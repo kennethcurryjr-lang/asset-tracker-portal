@@ -31,6 +31,7 @@ function App() {
   const [selectedDevices, setSelectedDevices] = useState([]);
   const [bulkGroupInput, setBulkGroupInput] = useState("");
   const [bulkNoteInput, setBulkNoteInput] = useState("");
+  const [dbError, setDbError] = useState(null); // Diagnostic State Vector
   
   // Category Multi-Select Active Token States
   const [statusFilter, setStatusFilter] = useState("all"); 
@@ -195,15 +196,40 @@ function App() {
 
   const fetchDevices = useCallback(async () => {
     if (!auth.isAuthenticated) return;
+    setDbError(null);
     try {
-      const response = await docClient.send(new ScanCommand({
-        TableName: "AssetTrackerData"
-      }));
+      // Robust diagnostic query fallback routine
+      let items = [];
+      const userSub = auth.user?.profile?.sub;
+
+      try {
+        // Method A: Attempt indexed query search via clientId-index mapping matrix
+        const queryResponse = await docClient.send(new QueryCommand({
+          TableName: "AssetTrackerData",
+          IndexName: "clientId-index", 
+          KeyConditionExpression: "clientId = :cid",
+          ExpressionAttributeValues: { ":cid": userSub || "" }
+        }));
+        items = queryResponse.Items || [];
+      } catch (queryErr) {
+        console.warn("GSI Query Vector unaligned, dropping back to direct table scanner...", queryErr);
+        // Method B: Fallback scan route if IAM policies permit global collection retrieval
+        const scanResponse = await docClient.send(new ScanCommand({ TableName: "AssetTrackerData" }));
+        items = scanResponse.Items || [];
+      }
+
+      if (items.length === 0) {
+        setDbError(`Handshake successful, but 0 data files returned for user identifier: ${userSub || "Missing Profile Sub"}`);
+        setAssets([]);
+        return;
+      }
       
       const grouped = {};
-      response.Items.forEach(item => {
-        if (!grouped[item.deviceId]) grouped[item.deviceId] = [];
-        grouped[item.deviceId].push(item);
+      items.forEach(item => {
+        if (item.deviceId) {
+          if (!grouped[item.deviceId]) grouped[item.deviceId] = [];
+          grouped[item.deviceId].push(item);
+        }
       });
 
       const processed = await Promise.all(Object.keys(grouped).map(async (id) => {
@@ -247,6 +273,7 @@ function App() {
 
         return {
           ...latest,
+          deviceId: id,
           deviceNotes, 
           tag: history.find(i => i.tag)?.tag || "",
           group: history.find(i => i.group)?.group || "",
@@ -266,8 +293,11 @@ function App() {
         };
       }));
       setAssets(processed);
-    } catch (err) { console.error(err); }
-  }, [auth.isAuthenticated]);
+    } catch (err) { 
+      console.error(err); 
+      setDbError(`AWS DynamoDB Database Transaction Fault: ${err.message || err}`);
+    }
+  }, [auth.isAuthenticated, auth.user]);
 
   useEffect(() => {
     if (auth.isAuthenticated) fetchDevices();
@@ -545,7 +575,7 @@ function App() {
                 <div style={{ fontSize: '16px', fontWeight: '600' }}>{sharedAsset.latitude?.toFixed(5)}, {sharedAsset.longitude?.toFixed(5)}</div>
               </div>
               <div>
-                <div style={labelStyle}>Approximate Region</div>
+                <div style={{ ...labelStyle }}>Approximate Region</div>
                 <div style={{ fontSize: '16px', fontWeight: '600' }}>{sharedAsset.city || "Locating Node..."}</div>
               </div>
               <div>
@@ -756,6 +786,13 @@ function App() {
           transition: 'all 0.2s'
         }}>Sign Out</button>
       </header>
+
+      {/* Database Diagnostic Notification Banner */}
+      {dbError && (
+        <div style={{ backgroundColor: '#ff3b30', color: '#ffffff', padding: '12px 24px', fontSize: '14px', fontWeight: '600', textAlign: 'center', boxShadow: '0 4px 12px rgba(255,59,48,0.2)' }}>
+          ⚠️ {dbError}
+        </div>
+      )}
       
       <div style={{ maxWidth: '1140px', margin: '20px auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
