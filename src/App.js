@@ -481,7 +481,7 @@ function App() {
     auth.removeUser();
     const cognitoDomain = "us-east-2ck94skjac.auth.us-east-2.amazoncognito.com";
     const clientId = "51fu0mfnpb0r0e319ftppvcbaf";
-    const logoutUri = "https://main.dzqkd5uk2wwnj.amplifyapp.com/";
+    const logoutUri = "https://main.d1qrq5npo0cqdy.amplifyapp.com/";
     window.location.href = `https://` + cognitoDomain + `/logout?client_id=` + clientId + `&logout_uri=` + encodeURIComponent(logoutUri);
   };
 
