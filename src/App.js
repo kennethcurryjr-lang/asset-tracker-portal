@@ -194,13 +194,10 @@ function App() {
   }, [auth.isLoading, auth.isAuthenticated, auth.activeNavigator, auth, isSharePage]);
 
   const fetchDevices = useCallback(async () => {
-    if (!auth.isAuthenticated || !auth.user?.profile.sub) return;
+    if (!auth.isAuthenticated) return;
     try {
-      const response = await docClient.send(new QueryCommand({
-        TableName: "AssetTrackerData",
-        IndexName: "clientId-index", 
-        KeyConditionExpression: "clientId = :cid",
-        ExpressionAttributeValues: { ":cid": auth.user.profile.sub }
+      const response = await docClient.send(new ScanCommand({
+        TableName: "AssetTrackerData"
       }));
       
       const grouped = {};
@@ -270,7 +267,7 @@ function App() {
       }));
       setAssets(processed);
     } catch (err) { console.error(err); }
-  }, [auth.isAuthenticated, auth.user]);
+  }, [auth.isAuthenticated]);
 
   useEffect(() => {
     if (auth.isAuthenticated) fetchDevices();
