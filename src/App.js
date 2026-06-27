@@ -448,11 +448,23 @@ function App() {
 
   const applyBulkGroup = async () => {
     if (!bulkGroupInput || !bulkGroupInput.trim()) return;
-    await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId === id);
-      return updateAttribute(dev.deviceId, dev.timestamp, 'group', bulkGroupInput.trim(), '#g');
+    const results = await Promise.all(selectedDevices.map(async (id) => {
+      try {
+        const dev = assets.find(a => a.deviceId === id);
+        if (!dev) throw new Error("Device " + id + " not found");
+        await updateAttribute(dev.deviceId, dev.timestamp, "group", bulkGroupInput.trim(), "#g");
+        return { id, success: true };
+      } catch (err) {
+        console.error("Failed to update " + id + ":", err);
+        return { id, success: false, error: err.message };
+      }
     }));
-    alert(`Assigned group folder "${bulkGroupInput.trim()}" to ${selectedDevices.length} Kinetic Cards.`);
+    const failures = results.filter(r => !r.success);
+    if (failures.length > 0) {
+      alert("Bulk group update partial failure: " + failures.map(f => f.id).join(", "));
+    } else {
+      alert("Assigned group folder "" + bulkGroupInput.trim() + "" to " + selectedDevices.length + " Kinetic Cards.");
+    }
     resetAllInputs();
     fetchDevices();
   };
