@@ -632,100 +632,14 @@ function App() {
     whiteSpace: 'nowrap'
   });
 
-  if (isSharePage) {
-    if (isShareLoading) return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f'}}>Establishing secure map tracking vector...</div>;
-    if (shareError) {
-      return (
-        <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', gap: '16px', padding: '0 24px', textAlign: 'center'}}>
-          <div style={{fontSize: '24px', fontWeight: '600', letterSpacing: '-0.02em', color: '#ff3b30'}}>Authorization Link Revoked</div>
-          <div style={{fontSize: '15px', color: '#86868b', maxWidth: '480px', lineHeight: '1.6', backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #d2d2d7'}}>{shareError}</div>
-        </div>
-      );
-    }
-    if (sharedAsset) {
-      return (
-        <div style={{...appContainerStyle, padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...cardStyle, width: '100%', maxWidth: '640px', border: '1px solid #ff3b30' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '12px', marginBottom: '20px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ff3b30' }}></div>
-              <span style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#ff3b30', letterSpacing: '0.05em' }}>Active Law Enforcement Tracking Stream</span>
-            </div>
-            
-            <h2 style={{ margin: '0 0 4px 0', fontSize: '26px', fontWeight: '600', letterSpacing: '-0.02em' }}>
-              {sharedAsset.tag ? `${sharedAsset.tag} — ${sharedAsset.deviceId}` : sharedAsset.deviceId}
-            </h2>
-            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Last telemetry lock recorded: <span style={{ color: '#1d1d1f', fontWeight: '500' }}>{new Date(sharedAsset.timestamp).toLocaleString()}</span></p>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', backgroundColor: '#f5f5f7', padding: '20px', borderRadius: '10px', border: '1px solid #d2d2d7', marginBottom: '28px' }}>
-              <div>
-                <div style={labelStyle}>Coordinates Vector</div>
-                <div style={{ fontSize: '16px', fontWeight: '600' }}>{sharedAsset.latitude?.toFixed(5)}, {sharedAsset.longitude?.toFixed(5)}</div>
-              </div>
-              <div>
-                <div style={{ ...labelStyle }}>Approximate Region</div>
-                <div style={{ fontSize: '16px', fontWeight: '600' }}>{sharedAsset.city || "Locating Node..."}</div>
-              </div>
-              <div>
-                <div style={labelStyle}>Battery Life</div>
-                <div style={{ fontSize: '16px', fontWeight: '600' }}>{sharedAsset.battery}%</div>
-              </div>
-              <div>
-                <div style={labelStyle}>Operational Target Group</div>
-                <div style={{ fontSize: '16px', fontWeight: '600' }}>{sharedAsset.group || "Default File"}</div>
-              </div>
-            </div>
-
-            <a 
-              href={`https://www.openstreetmap.org/?mlat=${sharedAsset.latitude}&mlon=${sharedAsset.longitude}#map=15/${sharedAsset.latitude}/${sharedAsset.longitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ ...primaryButtonStyle, display: 'block', textAlign: 'center', textDecoration: 'none', padding: '14px', borderRadius: '24px', fontSize: '15px', fontWeight: '600' }}
-            >
-              Open Live Route in OpenStreetMap
-            </a>
-          </div>
-          <p style={{ marginTop: '24px', fontSize: '11px', color: '#86868b', maxWidth: '440px', textAlign: 'center', lineHeight: '1.4' }}>This transmission viewport is heavily tokenized, cryptographically secure, and completely unindexed. It will drop offline immediately upon token expiration.</p>
-        </div>
-      );
-    }
-    return null;
-  }
-
-  if (auth.error && !window.location.search.includes('code=')) {
-    return (
-      <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', gap: '24px', padding: '0 24px', textAlign: 'center'}}>
-        <div style={{fontSize: '24px', fontWeight: '600', letterSpacing: '-0.02em'}}>System Connection Mismatch</div>
-        <div style={{fontSize: '15px', color: '#86868b', maxWidth: '540px', lineHeight: '1.6', backgroundColor: '#ffffff', padding: '24px', borderRadius: '18px', border: '1px solid #d2d2d7'}}>{auth.error.message}</div>
-        <button onClick={() => { localStorage.clear(); sessionStorage.clear(); window.location.href = window.location.origin; }} style={primaryButtonStyle}>Reset Environment</button>
-      </div>
-    );
-  }
-
-  if (auth.isLoading || auth.activeNavigator) {
-    return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', paddingLeft: '40px'}}>Loading dashboard systems...</div>;
-  }
-
-  if (!auth.isAuthenticated) {
-    return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', paddingLeft: '40px'}}>Redirecting to secure gateway...</div>;
-  }
-
   return (
     <div style={appContainerStyle}>
-      <style>{`
-        .custom-scrollbar-viewport::-webkit-scrollbar { width: 6px !important; height: 6px !important; display: block !important; }
-        .custom-scrollbar-viewport::-webkit-scrollbar-track { background: #e5e5ea !important; border-radius: 4px !important; }
-        .custom-scrollbar-viewport::-webkit-scrollbar-thumb { background: #86868b !important; border-radius: 4px !important; }
-        .custom-scrollbar-viewport { scrollbar-width: thin !important; scrollbar-color: #86868b #e5e5ea !important; }
-        @keyframes radar-pulse-glow { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
-        .live-pulse-indicator-dot { width: 8px; height: 8px; background-color: #34c759; border-radius: 50%; display: inline-block; animation: radar-pulse-glow 2s infinite ease-in-out; }
-        @media (max-width: 768px) {
-          .card-split-columns-view { flex-direction: row !important; }
-          .card-column-right-mapping { height: 120px !important; }
-        }
-      `}</style>
       <header style={headerStyle}>
         <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
-        <div style={{ color: '#ffffff', fontSize: '15px', fontWeight: '500', textAlign: 'center' }}>{auth.user?.profile.email} {isAdmin && <span style={{ color: '#86868b', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}</div>
+        <div style={{ color: '#ffffff', fontSize: '15px', fontWeight: '500', textAlign: 'center' }}>
+            {auth.user?.profile.email} 
+            {isAdmin && <span style={{ color: '#86868b', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}
+        </div>
         <button onClick={handleSignOut} style={{ backgroundColor: '#ffffff', color: '#000000', border: 'none', padding: '6px 18px', fontSize: '12px', borderRadius: '14px', cursor: 'pointer', fontWeight: '600' }}>Sign Out</button>
       </header>
       
