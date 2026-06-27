@@ -259,6 +259,22 @@ function App() {
         const isOffline = (Date.now() - new Date(latest.timestamp).getTime()) > (24 * 60 * 60 * 1000); 
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
         
+        // --- Predictive Battery Analytics ---
+        let estTimeRemaining = null;
+        if (history.length >= 2 && latest.battery !== undefined && latest.battery !== null) {
+          const prevRecord = history[1]; 
+          if (prevRecord.battery !== undefined && prevRecord.battery !== null && latest.battery < prevRecord.battery) {
+            const timeDiffMs = new Date(latest.timestamp).getTime() - new Date(prevRecord.timestamp).getTime();
+            const drainPerMs = (prevRecord.battery - latest.battery) / timeDiffMs;
+            if (drainPerMs > 0) {
+              const remainingMs = latest.battery / drainPerMs;
+              const hours = Math.floor(remainingMs / 3600000);
+              const mins = Math.floor((remainingMs % 3600000) / 60000);
+              estTimeRemaining = `Est. ${hours}h ${mins}m left`;
+            }
+          }
+        }
+
         const homeLat = history.find(i => i.homeLat)?.homeLat;
         const homeLon = history.find(i => i.homeLon)?.homeLon;
         const isServiceMode = history.find(i => i.isServiceMode)?.isServiceMode || false;
@@ -306,6 +322,7 @@ function App() {
           isOffline,
           isGeofenceViolation,
           isLowBattery,
+          estTimeRemaining,
           zip: loc.zip,
           city: loc.city,
           latitude: latest.latitude,
@@ -433,7 +450,7 @@ function App() {
     }
   };
 
-  // --- NEW FEATURE: Bulk Factory Reset (Wipe Devices) ---
+  // --- FEATURE: Bulk Factory Reset (Wipe Devices + Watchdog Off) ---
   const applyBulkFactoryReset = async () => {
     if (!isAdmin) { alert("Security Violation."); return; }
     if (!window.confirm(`WARNING: PERMANENTLY wipe logs, reset names, and clear home/watchdog for all ${selectedDevices.length} selected devices?`)) return;
@@ -444,8 +461,10 @@ function App() {
             await docClient.send(new UpdateCommand({ 
                 TableName: "AssetTrackerData", 
                 Key: { deviceId: dev.deviceId, timestamp: dev.timestamp }, 
-                UpdateExpression: "REMOVE notesList, note, noteUser, noteTime, tag, homeLat, homeLon, isServiceMode, lastServiceModeUser, lastServiceModeTime" 
+                UpdateExpression: "REMOVE notesList, note, noteUser, noteTime, tag, homeLat, homeLon, lastServiceModeUser, lastServiceModeTime SET isServiceMode = :val",
+                ExpressionAttributeValues: { ":val": false }
             }));
+            await addNote(dev.deviceId, dev.timestamp, "🛡️ Factory Reset: Watchdog Disabled");
         }));
         alert(`Successfully reset ${selectedDevices.length} devices.`);
         setSelectedDevices([]);
@@ -693,483 +712,92 @@ function App() {
   return (
     <div style={appContainerStyle}>
       <style>{`
-        .custom-scrollbar-viewport::-webkit-scrollbar {
-          width: 6px !important;
-          height: 6px !important;
-          display: block !important;
-        }
-        .custom-scrollbar-viewport::-webkit-scrollbar-track {
-          background: #e5e5ea !important;
-          border-radius: 4px !important;
-        }
-        .custom-scrollbar-viewport::-webkit-scrollbar-thumb {
-          background: #86868b !important;
-          border-radius: 4px !important;
-        }
-        .custom-scrollbar-viewport {
-          scrollbar-width: thin !important;
-          scrollbar-color: #86868b #e5e5ea !important;
-        }
-        @keyframes radar-pulse-glow {
-          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); }
-          70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); }
-          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
-        }
-        .live-pulse-indicator-dot {
-          width: 8px;
-          height: 8px;
-          background-color: #34c759;
-          border-radius: 50%;
-          display: inline-block;
-          animation: radar-pulse-glow 2s infinite ease-in-out;
-        }
-        @keyframes emergency-battery-flash {
-          0% { opacity: 1; }
-          50% { opacity: 0.3; }
-          100% { opacity: 1; }
-        }
-        .critical-battery-pulse-animation {
-          animation: emergency-battery-flash 1.5s infinite ease-in-out;
-        }
-        
-        .responsive-pill-container-row {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          flex-wrap: wrap;
-        }
-        .responsive-pill-options-sub-block {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-        
-        .search-row-input-wrapper {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          width: 100%;
-        }
-        .card-split-columns-view {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
+        .custom-scrollbar-viewport::-webkit-scrollbar { width: 6px !important; height: 6px !important; display: block !important; }
+        .custom-scrollbar-viewport::-webkit-scrollbar-track { background: #e5e5ea !important; border-radius: 4px !important; }
+        .custom-scrollbar-viewport::-webkit-scrollbar-thumb { background: #86868b !important; border-radius: 4px !important; }
+        .custom-scrollbar-viewport { scrollbar-width: thin !important; scrollbar-color: #86868b #e5e5ea !important; }
+        @keyframes radar-pulse-glow { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
+        .live-pulse-indicator-dot { width: 8px; height: 8px; background-color: #34c759; border-radius: 50%; display: inline-block; animation: radar-pulse-glow 2s infinite ease-in-out; }
         @media (max-width: 768px) {
-          .sticky-search-panel-container {
-            padding: 12px 14px !important;
-            top: 4px !important;
-          }
-          .responsive-pill-container-row {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 4px;
-          }
-          .responsive-pill-options-sub-block {
-            justify-content: flex-start;
-            gap: 6px;
-          }
-          .responsive-pill-options-sub-block button {
-            flex: 1 1 auto;
-            padding: 5px 10px !important;
-            font-size: 11px !important;
-          }
-          .responsive-panel-footer-action-deck {
-            margin-top: 8px !important;
-            padding-top: 8px !important;
-          }
-          
-          .card-split-columns-view {
-            flex-direction: row !important;
-            align-items: stretch !important;
-            gap: 10px !important;
-          }
-          .card-column-left-telemetry {
-            flex: 1.1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-          }
-          .card-column-right-mapping {
-            flex: 0.9;
-            min-width: 0;
-            height: 120px !important;
-            margin-top: 0 !important;
-          }
-          
-          .card-column-right-mapping iframe {
-            width: 300% !important;
-            height: calc(100% + 40px) !important;
-            margin-left: -100% !important;
-            margin-top: -10px !important;
-            border: none !important;
-          }
-          
-          .timeline-wrapper-panel {
-            margin-top: 8px !important;
-            padding: 10px 12px !important;
-          }
-          .timeline-scroll-track-box {
-            height: 100px !important;
-          }
+          .card-split-columns-view { flex-direction: row !important; }
+          .card-column-right-mapping { height: 120px !important; }
         }
       `}</style>
-
       <header style={headerStyle}>
         <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
-        
-        <div style={{ 
-          color: '#ffffff',
-          fontSize: '15px',
-          fontWeight: '500',
-          letterSpacing: '-0.02em',
-          textAlign: 'center'
-        }}>
-            {auth.user?.profile.email} 
-            {isAdmin && <span style={{ color: '#86868b', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}
-        </div>
-        
-        <button onClick={handleSignOut} style={{ 
-          backgroundColor: '#ffffff', 
-          color: '#000000', 
-          border: 'none', 
-          padding: '6px 18px', 
-          fontSize: '12px', 
-          borderRadius: '14px', 
-          cursor: 'pointer', 
-          fontWeight: '600',
-          transition: 'all 0.2s'
-        }}>Sign Out</button>
+        <div style={{ color: '#ffffff', fontSize: '15px', fontWeight: '500', textAlign: 'center' }}>{auth.user?.profile.email} {isAdmin && <span style={{ color: '#86868b', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}</div>
+        <button onClick={handleSignOut} style={{ backgroundColor: '#ffffff', color: '#000000', border: 'none', padding: '6px 18px', fontSize: '12px', borderRadius: '14px', cursor: 'pointer', fontWeight: '600' }}>Sign Out</button>
       </header>
-
-      {dbError && (
-        <div style={{ backgroundColor: '#ff3b30', color: '#ffffff', padding: '12px 24px', fontSize: '14px', fontWeight: '600', textAlign: 'center', boxShadow: '0 4px 12px rgba(255,59,48,0.2)' }}>
-          ⚠️ {dbError}
-        </div>
-      )}
+      
+      {dbError && <div style={{ backgroundColor: '#ff3b30', color: '#ffffff', padding: '12px 24px', fontSize: '14px', fontWeight: '600', textAlign: 'center' }}>⚠️ {dbError}</div>}
       
       <div style={{ maxWidth: '1140px', margin: '20px auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        
-        {/* Compressed Real-Estate Search Panel Deck */}
         <div className="sticky-search-panel-container" style={stickySearchCardStyle}>
-          <div className="search-row-input-wrapper">
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                 <div style={labelStyle}>Search Inventory</div>
-                <input 
-                  list="inventory-suggestions-list"
-                  placeholder="Filter by ID, region, folder..." 
-                  value={searchTerm} 
-                  onChange={(e) => setSearchTerm(e.target.value)} 
-                  style={{ ...inputStyle, width: '100%', boxSizing: 'border-box' }} 
-                />
-                <datalist id="inventory-suggestions-list">
-                  {inventorySuggestions.map(suggestion => (
-                    <option key={suggestion} value={suggestion} />
-                  ))}
-                </datalist>
+                <input list="inventory-suggestions-list" placeholder="Filter by ID, region, folder..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ ...inputStyle, width: '100%' }} />
+                <datalist id="inventory-suggestions-list">{inventorySuggestions.map(s => <option key={s} value={s} />)}</datalist>
             </div>
-            
-            <button 
-              onClick={() => setShowFilters(!showFilters)}
-              style={{
-                ...secondaryButtonStyle,
-                alignSelf: 'flex-end',
-                padding: '8px 14px',
-                borderRadius: '8px',
-                fontSize: '13px',
-                fontWeight: '600',
-                backgroundColor: showFilters ? '#1d1d1f' : 'transparent',
-                color: showFilters ? '#ffffff' : '#1d1d1f'
-              }}
-            >
-              {showFilters ? '✕ Clear Filters' : '🎛️ Filter Drawer'}
-            </button>
-          </div>
-          
-          {/* Reactive Inline App Slider Tray Component */}
-          <div style={{
-            display: showFilters ? 'flex' : 'none',
-            flexDirection: 'column',
-            gap: '12px',
-            marginTop: '12px',
-            borderTop: '1px solid #e5e5ea',
-            paddingTop: '12px'
-          }}>
-            {/* Row A: Hardware Core Alerts */}
-            <div className="responsive-pill-container-row">
-              <span style={{ ...labelStyle, width: '80px', margin: 0 }}>Status</span>
-              <div className="responsive-pill-options-sub-block">
-                <button onClick={() => setStatusFilter("all")} style={getPillStyle(statusFilter === "all")}>All</button>
-                <button onClick={() => setStatusFilter("offline")} style={getPillStyle(statusFilter === "offline")}>🔴 Offline</button>
-                <button onClick={() => setStatusFilter("geofence")} style={getPillStyle(statusFilter === "geofence")}>🟠 Geofence</button>
-                <button onClick={() => setStatusFilter("low_battery")} style={getPillStyle(statusFilter === "low_battery")}>🪫 Low Batt</button>
-              </div>
-            </div>
-
-            {/* Row B: Operational Group Folders */}
-            <div className="responsive-pill-container-row">
-              <span style={{ ...labelStyle, width: '80px', margin: 0 }}>Groups</span>
-              <div className="responsive-pill-options-sub-block">
-                <button onClick={() => setActiveGroupFilter("all")} style={getPillStyle(activeGroupFilter === "all")}>All</button>
-                {distinctGroups.map(grp => (
-                  <button key={grp} onClick={() => setActiveGroupFilter(grp)} style={getPillStyle(activeGroupFilter === grp)}>📦 {grp}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Row C: Naming Conventions */}
-            <div className="responsive-pill-container-row">
-              <span style={{ ...labelStyle, width: '80px', margin: 0 }}>Naming</span>
-              <div className="responsive-pill-options-sub-block">
-                <button onClick={() => setNamingFilter("all")} style={getPillStyle(namingFilter === "all")}>All</button>
-                <button onClick={() => setNamingFilter("named")} style={getPillStyle(namingFilter === "named")}>📝 Named</button>
-                <button onClick={() => setNamingFilter("unnamed")} style={getPillStyle(namingFilter === "unnamed")}>🔎 Unnamed</button>
-              </div>
-            </div>
-          </div>
-          
-          <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end', gap: '16px', borderTop: '1px solid #e5e5ea', paddingTop: '10px' }}>
-             <div style={{ marginRight: 'auto', display: 'flex', gap: '20px', fontSize: '13px', fontWeight: '500', color: '#86868b', alignItems: 'center' }}>
-                
-                {/* Master Selective Toggle Checkbox Interface Vector */}
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1d1d1f', cursor: 'pointer', fontWeight: '600', userSelect: 'none' }}>
-                  <input 
-                    type="checkbox" 
-                    checked={filteredAssets.length > 0 && filteredAssets.every(a => selectedDevices.includes(a.deviceId))} 
-                    onChange={() => {
-                      const visibleIds = filteredAssets.map(a => a.deviceId);
-                      const isAllSelected = filteredAssets.every(a => selectedDevices.includes(a.deviceId));
-                      if (isAllSelected) {
-                        setSelectedDevices(prev => prev.filter(id => !visibleIds.includes(id)));
-                      } else {
-                        setSelectedDevices(prev => Array.from(new Set([...prev, ...visibleIds])));
-                      }
-                    }}
-                    style={{ width: '15px', height: '15px', accentColor: '#1d1d1f', cursor: 'pointer' }} 
-                  />
-                  Select All Visible ({filteredAssets.length})
-                </label>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: alertCount > 0 ? '#ff3b30' : '#d2d2d7' }}></div> 
-                  {alertCount} Alert
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#34c759' }}></div> 
-                  {healthyCount} Stable
-                </div>
-             </div>
-             <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: '4px 12px', fontSize: '12px', borderRadius: '12px' }}>Reset</button>
-          </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 0.33fr))', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
-          {filteredAssets.map(item => {
-              const historicalNotes = item.deviceNotes || [];
-              const batteryLevel = item.battery !== undefined ? Number(item.battery) : 100;
-              const sparkColor = getBatteryStatusColor(batteryLevel);
-              
-              const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${item.longitude - 0.005}%2C${item.latitude - 0.003}%2C${item.longitude + 0.005}%2C${item.latitude + 0.003}&layer=mapnik&marker=${item.latitude}%2C${item.longitude}`;
-
-              return (
-                <div key={item.deviceId} style={{ ...deviceCardStyle, backgroundColor: '#ffffff' }}>
-                  
-                  {/* Split Responsive Core Row */}
-                  <div className="card-split-columns-view">
-                    
-                    {/* Left Hand Data Block */}
-                    <div className="card-column-left-telemetry">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <input type="checkbox" checked={selectedDevices.includes(item.deviceId)} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId) ? prev.filter(i => i !== item.deviceId) : [...prev, item.deviceId])} style={{ width: '16px', height: '16px', accentColor: '#1d1d1f', cursor: 'pointer' }} />
-                        <div style={{ fontSize: '15px', fontWeight: '600', color: '#1d1d1f', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>
-                            {item.tag ? item.tag : item.deviceId}
-                        </div>
-                      </div>
-                      
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '6px' }}>
-                          {item.isOffline && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#ff3b30', borderRadius: '4px' }}>Offline</span>}
-                          {item.isGeofenceViolation && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#ff9500', borderRadius: '4px' }}>Geofence</span>}
-                          {item.isLowBattery && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#b7094c', borderRadius: '4px' }}>Low Batt</span>}
-                      </div>
-
-                      <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.4' }}>
-                        <div style={{ fontWeight: '500', color: '#1d1d1f' }}>{item.city || "Locating"}</div>
-                        <div style={{ fontSize: '11px' }}>ID: {item.deviceId}</div>
-                        {item.group && <div style={{ fontSize: '11px', fontStyle: 'italic' }}>📦 {item.group}</div>}
-                      </div>
-
-                      {/* Micro Battery Spark Gauge */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', backgroundColor: '#f5f5f7', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e5e5ea' }}>
-                        <div style={{ flex: 1, height: '4px', backgroundColor: '#e5e5ea', borderRadius: '2px', overflow: 'hidden' }}>
-                          <div style={{ width: `${batteryLevel}%`, height: '100%', backgroundColor: sparkColor }} />
-                        </div>
-                        <span style={{ fontSize: '11px', fontWeight: '700', color: sparkColor }}>{batteryLevel}%</span>
-                      </div>
-                    </div>
-                    
-                    {/* Right Hand Inline Micro Map Box */}
-                    <div 
-                      className="card-column-right-mapping"
-                      onClick={() => setActiveMapModalAsset(item)}
-                      style={{ 
-                        position: 'relative', 
-                        height: '100px', 
-                        borderRadius: '8px', 
-                        overflow: 'hidden', 
-                        border: '1px solid #d2d2d7', 
-                        cursor: 'pointer',
-                        backgroundColor: '#f5f5f7'
-                      }}
-                    >
-                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'transparent' }}></div>
-                      <iframe 
-                        title={`inline-map-${item.deviceId}`}
-                        width="100%" 
-                        height="100%" 
-                        frameBorder="0" 
-                        scrolling="no" 
-                        src={mapUrl}
-                        style={{ pointerEvents: 'none', border: 'none' }}
-                      ></iframe>
-                      <div style={{ position: 'absolute', bottom: '4px', right: '4px', zIndex: 20, backgroundColor: 'rgba(29, 29, 31, 0.85)', color: '#ffffff', fontSize: '9px', fontWeight: '600', padding: '2px 4px', borderRadius: '3px' }}>
-                        ⛶ Expand
-                      </div>
-                    </div>
-                    
-                  </div>
-
-                  {/* Crunched Operations Rows */}
-                  <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                      <input placeholder="Rename Asset..." value={tagInputs[item.deviceId] || ""} onChange={(e) => setTagInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#f5f5f7' }} />
-                      <input type="hidden" />
-                      <button onClick={() => updateAttribute(item.deviceId, item.timestamp, 'tag', tagInputs[item.deviceId], '#t')} style={{ ...primaryButtonStyle, padding: '6px 12px', fontSize: '12px', borderRadius: '6px' }}>Save</button>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '4px', width: '100%', flexWrap: 'wrap' }}>
-                      {isAdmin && <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: '6px 10px', fontSize: '11px', borderRadius: '8px', flex: 1 }}>Share</button>}
-                      
-                      {/* Watchdog Status Button with Conditional Radar Light */}
-                      <button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode ? 'transparent' : '#1d1d1f', color: item.isServiceMode ? '#1d1d1f' : '#ffffff', border: item.isServiceMode ? '1px solid #1d1d1f' : 'none' }}>
-                        {!item.isServiceMode && <span className="live-pulse-indicator-dot"></span>}
-                        {item.isServiceMode ? 'Watchdog off' : 'Watchdog active'}
-                      </button>
-                      
-                      {/* Secure Double-Validation Toggling Anchor Controls */}
-                      <button 
-                        onClick={() => {
-                          if (item.homeLat) {
-                            if (window.confirm(`Are you sure you want to permanently clear the home location geofence anchor for ${item.tag || item.deviceId}?`)) {
-                              clearHomeLocation(item.deviceId, item.timestamp).then(fetchDevices);
-                            }
-                          } else {
-                            setHomeLocation(item.deviceId, item.timestamp, item.latitude, item.longitude);
-                          }
-                        }} 
-                        style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.2, padding: '6px 10px', backgroundColor: item.homeLat ? 'transparent' : '#1d1d1f', color: item.homeLat ? '#1d1d1f' : '#ffffff', border: item.homeLat ? '1px solid #1d1d1f' : 'none' }}
-                      >
-                        {item.homeLat ? 'Clear Home' : 'Set Home'}
-                      </button>
-                  </div>
-                  
-                  {/* Interactive Timeline Stepper for Logs */}
-                  <div className="timeline-wrapper-panel" style={{ marginTop: '10px', padding: '12px', backgroundColor: '#f5f5f7', borderRadius: '8px', border: '1px solid #d2d2d7' }}>
-                    <div className="custom-scrollbar-viewport timeline-scroll-track-box" style={{ display: 'block', height: '110px', overflowY: 'scroll', overflowX: 'hidden', marginBottom: '8px', paddingRight: '2px', boxSizing: 'border-box' }}>
-                      {historicalNotes.length > 0 ? (
-                        <div style={{ position: 'relative', paddingLeft: '12px', borderLeft: '2px solid #d2d2d7', marginLeft: '4px' }}>
-                          {historicalNotes.map((logEntry, index) => {
-                            const nodeColor = getTimelineMarkerColor(logEntry.text);
-                            return (
-                              <div key={index} style={{ position: 'relative', paddingBottom: index !== historicalNotes.length - 1 ? '12px' : '2px', color: '#1d1d1f', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '4px' }}>
-                                <div style={{ position: 'absolute', left: '-19px', top: '4px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: nodeColor, border: '2px solid #f5f5f7', boxShadow: '0 0 0 1px ' + nodeColor, zIndex: 2 }}></div>
-                                <div style={{ flex: 1, minWidth: '0' }}>
-                                  <div style={{ fontSize: '12px', fontWeight: '500', lineHeight: '1.3', wordBreak: 'break-word' }}>{logEntry.text}</div>
-                                  <div style={{ color: '#86868b', fontSize: '10px', marginTop: '1px' }}>
-                                    {logEntry.user.split('@')[0]} • <span style={{ fontSize: '9px', color: '#86868b' }}>{logEntry.time.includes('-') ? logEntry.time : `${logEntry.time} • 00:00 AM`}</span>
-                                  </div>
-                                </div>
-                                {isAdmin && (
-                                  <button 
-                                    onClick={() => deleteNote(item.deviceId, logEntry)} 
-                                    style={{ color: '#ff3b30', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(255, 59, 48, 0.05)', borderRadius: '4px', flexShrink: 0 }}
-                                  >
-                                    ✕
-                                  </button>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div style={{ fontSize: '12px', color: '#86868b', fontStyle: 'italic' }}>No timeline logs.</div>
-                      )}
-                    </div>
-                    
-                    <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid #e5e5ea', paddingTop: '8px' }}>
-                        <input placeholder="Add note..." value={noteInputs[item.deviceId] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1, backgroundColor: '#ffffff', padding: '4px 8px', fontSize: '12px', borderRadius: '6px' }} />
-                        <button onClick={() => addNote(item.deviceId, item.timestamp, noteInputs[item.deviceId])} style={{ ...primaryButtonStyle, padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }}>Post</button>
-                    </div>
-                  </div>
-                  
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 0.33fr))', gap: '24px' }}>
+          {filteredAssets.map(item => (
+            <div key={item.deviceId} style={{ ...deviceCardStyle, backgroundColor: '#ffffff' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <input type="checkbox" checked={selectedDevices.includes(item.deviceId)} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId) ? prev.filter(i => i !== item.deviceId) : [...prev, item.deviceId])} />
+                    <div style={{ fontSize: '15px', fontWeight: '600' }}>{item.tag || item.deviceId}</div>
                 </div>
-              );
-            })}
+                <div style={{ fontSize: '12px', color: getBatteryStatusColor(item.battery), fontWeight: '700' }}>{item.battery}% Battery {item.estTimeRemaining && `• ${item.estTimeRemaining}`}</div>
+                <div className="timeline-wrapper-panel" style={{ marginTop: '10px', padding: '12px', backgroundColor: '#f5f5f7', borderRadius: '8px' }}>
+                    <div className="custom-scrollbar-viewport" style={{ height: '110px', overflowY: 'scroll', marginBottom: '8px' }}>
+                        {item.deviceNotes?.map((log, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getTimelineMarkerColor(log.text) }}></div>
+                                <div style={{ fontSize: '11px', fontWeight: '500' }}>{log.text} <span style={{ fontSize: '9px', color: '#86868b' }}>• {log.time}</span></div>
+                            </div>
+                        ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                        <input placeholder="Add note..." value={noteInputs[item.deviceId] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1 }} />
+                        <button onClick={() => addNote(item.deviceId, item.timestamp, noteInputs[item.deviceId])} style={primaryButtonStyle}>Post</button>
+                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: '4px', width: '100%', flexWrap: 'wrap' }}>
+                    {isAdmin && <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: '6px 10px', fontSize: '11px', borderRadius: '8px', flex: 1 }}>Share</button>}
+                    <button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode ? 'transparent' : '#1d1d1f', color: item.isServiceMode ? '#1d1d1f' : '#ffffff', border: item.isServiceMode ? '1px solid #1d1d1f' : 'none' }}>{!item.isServiceMode && <span className="live-pulse-indicator-dot"></span>} {item.isServiceMode ? 'Watchdog off' : 'Watchdog active'}</button>
+                </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Full-Screen High-Contrast Interactive Map Overlay Modal Window */}
-      {activeMapModalAsset && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 6000, padding: '24px' }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '18px', width: '100%', maxWidth: '800px', height: '80vh', border: '1px solid #d2d2d7', boxShadow: '0 30px 70px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ padding: '20px 28px', borderBottom: '1px solid #e5e5ea', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-              <div>
-                <h3 style={{ margin: '0 0 2px 0', fontSize: '18px', fontWeight: '600', letterSpacing: '-0.01em' }}>
-                  {activeMapModalAsset.tag ? `${activeMapModalAsset.tag} — ${activeMapModalAsset.deviceId}` : activeMapModalAsset.deviceId}
-                </h3>
-                <p style={{ margin: 0, fontSize: '13px', color: '#86868b' }}>Live Coordinates Matrix: <span style={{ color: '#1d1d1f', fontWeight: '500' }}>{activeMapModalAsset.latitude?.toFixed(5)}, {activeMapModalAsset.longitude?.toFixed(5)}</span></p>
-              </div>
-              <button onClick={() => setActiveMapModalAsset(null)} style={{ ...secondaryButtonStyle, padding: '8px 18px', fontSize: '13px', borderRadius: '14px', cursor: 'pointer' }}>Close Map</button>
-            </div>
-            <div style={{ flex: 1, width: '100%', backgroundColor: '#f5f5f7', position: 'relative' }}>
-              <iframe 
-                title="fullscreen-interactive-tracker"
-                width="100%" 
-                height="100%" 
-                frameBorder="0" 
-                scrolling="no" 
-                src={`https://www.openstreetmap.org/export/embed.html?bbox=${activeMapModalAsset.longitude - 0.01}%2C${activeMapModalAsset.latitude - 0.006}%2C${activeMapModalAsset.longitude + 0.01}%2C${activeMapModalAsset.latitude + 0.006}&layer=mapnik&marker=${activeMapModalAsset.latitude}%2C${activeMapModalAsset.longitude}`}
-                style={{ border: 'none' }}
-              ></iframe>
-            </div>
-          </div>
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#ffffff', borderTop: '1px solid #d2d2d7', padding: '20px 40px', transform: selectedDevices.length > 0 ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 0.3s', zIndex: 4000 }}>
+        <div style={{ maxWidth: '1140px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'flex-end' }}>
+            <button onClick={applyBulkClearLogs} style={{ ...secondaryButtonStyle, borderColor: '#ff3b30', color: '#ff3b30' }}>Clear Logs</button>
+            <button onClick={applyBulkFactoryReset} style={{ ...secondaryButtonStyle, borderColor: '#ff3b30', color: '#ff3b30' }}>Factory Reset</button>
         </div>
-      )}
+      </div>
 
-      {/* Monochromatic High-Contrast Apple-style Modal Overlay for Token Management */}
       {sharingAsset && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', zIndex: 5000 }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '32px', width: '440px', border: '1px solid #d2d2d7', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}>
-            <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: '600', letterSpacing: '-0.02em' }}>Escalate Live Tracking</h3>
-            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Generate a secure external reference view for Device ID: <span style={{ fontWeight: '600', color: '#1d1d1f' }}>{sharingAsset.deviceId}</span></p>
-            
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 5000 }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '32px', width: '90%', maxWidth: '440px', border: '1px solid #d2d2d7', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}>
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: '600' }}>Escalate Live Tracking</h3>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Device ID: {sharingAsset.deviceId}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <label style={labelStyle}>Recipient Email Address</label>
                 <input type="email" placeholder="e.g. investigator@agency.gov" value={shareEmail} onChange={(e) => setShareEmail(e.target.value)} style={inputStyle} />
               </div>
-              
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <label style={labelStyle}>Link Authorization Expiry</label>
                 <select value={shareDuration} onChange={(e) => setShareDuration(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
-                  <option value="12">12 Hours (Short Term Search)</option>
-                  <option value="24">24 Hours (Standard Window)</option>
-                  <option value="72">72 Hours (Extended Watch)</option>
-                  <option value="168">7 Days (Full Recovery Span)</option>
+                  <option value="12">12 Hours</option>
+                  <option value="24">24 Hours</option>
+                  <option value="72">72 Hours</option>
+                  <option value="168">7 Days</option>
                 </select>
               </div>
             </div>
-
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button onClick={() => { setSharingAsset(null); setShareEmail(""); }} style={secondaryButtonStyle}>Cancel</button>
               <button onClick={executeLiveShareEscalation} disabled={!shareEmail.trim()} style={{ ...primaryButtonStyle, opacity: !shareEmail.trim() ? 0.3 : 1 }}>Generate & Dispatch</button>
@@ -1177,67 +805,6 @@ function App() {
           </div>
         </div>
       )}
-
-      {/* Sticky Sliding Bulk Actions Drawer Overlay Tray */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#ffffff',
-        borderTop: '1px solid #d2d2d7',
-        boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
-        zIndex: 4000,
-        transform: selectedDevices.length > 0 ? 'translateY(0)' : 'translateY(100%)',
-        transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-        padding: '20px 40px',
-        boxSizing: 'border-box'
-      }}>
-        <div style={{ maxWidth: '1140px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <div style={{ fontSize: '16px', fontWeight: '700', letterSpacing: '-0.01em' }}>{selectedDevices.length} Kinetic Cards Selected</div>
-            <div style={{ fontSize: '12px', color: '#86868b', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setSelectedDevices([])}>Deselect all records</div>
-          </div>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', flex: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
-            
-            {/* Action 1: Bulk Group Assignment Refactored Label */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input 
-                list="group-suggestions-list"
-                placeholder="Assign to Group..." 
-                value={bulkGroupInput}
-                onChange={(e) => setBulkGroupInput(e.target.value)}
-                style={{ ...inputStyle, padding: '8px 12px', fontSize: '13px', width: '150px' }}
-              />
-              <button onClick={applyBulkGroup} disabled={!bulkGroupInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkGroupInput.trim() ? 1 : 0.4 }}>Move</button>
-            </div>
-
-            {/* Action 2: Bulk Timeline Log Broadcast with Phrasing and Safe Confirmation */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input 
-                placeholder="Post log to Group..." 
-                value={bulkNoteInput}
-                onChange={(e) => setBulkNoteInput(e.target.value)}
-                style={{ ...inputStyle, padding: '8px 12px', fontSize: '13px', width: '240px' }}
-              />
-              <button onClick={applyBulkNote} disabled={!bulkNoteInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkNoteInput.trim() ? 1 : 0.4 }}>Post log to Group</button>
-            </div>
-
-            {/* Action 3: Dual Set Home Anchors with Confirmation Prompt */}
-            <button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#34c759', color: '#34c759' }}>Set Home Anchors</button>
-
-            {/* Action 4: Dual Clear Home Anchors with Confirmation Prompt */}
-            <button onClick={applyBulkClearHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff3b30', color: '#ff3b30' }}>Clear Home Anchors</button>
-            
-            {/* NEW ACTION: Factory Reset Devices */}
-            <button onClick={applyBulkFactoryReset} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff3b30', color: '#ff3b30' }}>Factory Reset</button>
-
-          </div>
-        </div>
-      </div>
-
     </div>
   );
 }
