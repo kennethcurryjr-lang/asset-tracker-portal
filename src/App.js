@@ -67,7 +67,7 @@ function App() {
     width: '100%',
     boxSizing: 'border-box',
     padding: '24px 24px', 
-    background: 'linear-gradient(180deg, #0c0c0d 0%, #1a1a1c 100%)', 
+    background: 'linear-gradient(180deg, #0c0c0d 0%, #1a1a1c 100%)', borderRadius: '14px', 
     borderBottom: '1px solid #2d2d2f', 
     boxShadow: 'inset 0 -1px 0 rgba(255, 255, 255, 0.02), 0 4px 30px rgba(0, 0, 0, 0.15)',
     display: 'flex', 
