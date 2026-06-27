@@ -266,6 +266,26 @@ function App() {
         const isGeofenceViolation = !isServiceMode && homeLat && distance > 0.5;
         const isLowBattery = latest.battery !== undefined && Number(latest.battery) <= 20;
 
+        let estTimeRemaining = "Calculating...";
+        if (history.length >= 2 && latest.battery !== undefined && latest.battery !== null) {
+          const prevRecord = history[1];
+          if (prevRecord.battery !== undefined && prevRecord.battery !== null && latest.battery < prevRecord.battery) {
+            const timeDiffMs = new Date(latest.timestamp).getTime() - new Date(prevRecord.timestamp).getTime();
+            const drainPerMs = (prevRecord.battery - latest.battery) / timeDiffMs;
+            if (drainPerMs > 0) {
+              const days = Math.floor((latest.battery / drainPerMs) / 86400000);
+              if (days >= 30) {
+                const m = Math.floor(days / 30);
+                estTimeRemaining = `Est. ${m} month${m > 1 ? 's' : ''} left`;
+              } else if (days > 0) {
+                estTimeRemaining = `Est. ${days} day${days > 1 ? 's' : ''} left`;
+              } else {
+                estTimeRemaining = "Est. < 1 day left";
+              }
+            }
+          }
+        }
+
         let deviceNotes = [];
         history.forEach(row => {
           if (row.notesList && Array.isArray(row.notesList)) {
@@ -310,7 +330,8 @@ function App() {
           city: loc.city,
           latitude: latest.latitude,
           longitude: latest.longitude,
-          battery: latest.battery
+          battery: latest.battery,
+          estTimeRemaining
         };
       }));
       setAssets(processed);
@@ -1004,10 +1025,11 @@ function App() {
 
                       {/* Micro Battery Spark Gauge */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', backgroundColor: '#f5f5f7', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e5e5ea' }}>
-                        <div style={{ flex: 1, height: '4px', backgroundColor: '#e5e5ea', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ width: '40px', height: '4px', backgroundColor: '#e5e5ea', borderRadius: '2px', overflow: 'hidden' }}>
                           <div style={{ width: `${batteryLevel}%`, height: '100%', backgroundColor: sparkColor }} />
                         </div>
                         <span style={{ fontSize: '11px', fontWeight: '700', color: sparkColor }}>{batteryLevel}%</span>
+                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#86868b', borderLeft: '1px solid #d2d2d7', paddingLeft: '8px', marginLeft: '2px' }}>{item.estTimeRemaining}</span>
                       </div>
                     </div>
                     
