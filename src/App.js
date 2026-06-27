@@ -445,7 +445,7 @@ function App() {
                 TableName: "AssetTrackerData", 
                 Key: { deviceId: dev.deviceId, timestamp: dev.timestamp }, 
                 UpdateExpression: "REMOVE notesList, note, noteUser, noteTime, tag, homeLat, homeLon, lastServiceModeUser, lastServiceModeTime SET isServiceMode = :val",
-                ExpressionAttributeValues: { ":val": false }
+                ExpressionAttributeValues: { ":val": true }
             }));
             await addNote(dev.deviceId, dev.timestamp, "🛡️ Factory Reset: Watchdog Disabled");
         }));
