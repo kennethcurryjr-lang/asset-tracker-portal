@@ -339,7 +339,8 @@ function App() {
 
       if (dbItem.notesList && Array.isArray(dbItem.notesList)) {
         const updatedList = dbItem.notesList.filter(
-          n => !(n.text === targetNote.text && n.time.replace(/\s+/g, '') === targetNote.time.replace(/\s+/g, ''))
+          n => !(n.text === targetNote.text && n.time === targetNote.time)
+        );
         );
         
         await docClient.send(new UpdateCommand({
