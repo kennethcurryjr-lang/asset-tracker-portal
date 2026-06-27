@@ -32,6 +32,7 @@ function App() {
   const [bulkGroupInput, setBulkGroupInput] = useState("");
   const [bulkNoteInput, setBulkNoteInput] = useState("");
   const [dbError, setDbError] = useState(null); 
+  
   const [statusFilter, setStatusFilter] = useState("all"); 
   const [activeGroupFilter, setActiveGroupFilter] = useState("all"); 
   const [namingFilter, setNamingFilter] = useState("all"); 
@@ -108,20 +109,6 @@ function App() {
     }
     processPublicEscalationFetch();
   }, [isSharePage, shareTokenParam]);
-
-  useEffect(() => {
-    if (auth.error && (window.location.search.includes('code=') || window.location.search.includes('state='))) {
-      localStorage.clear(); sessionStorage.clear(); window.location.href = window.location.origin;
-    }
-  }, [auth.error]);
-
-  useEffect(() => {
-    if (isSharePage) return; 
-    const isSigningOut = localStorage.getItem('isSigningOut') === 'true';
-    const hasAuthParams = window.location.search.includes('code=') || window.location.search.includes('state=') || window.location.search.includes('error=') || window.location.search.includes('session_state=');
-    if (isSigningOut) return;
-    if (!auth.isLoading && !auth.isAuthenticated && !auth.activeNavigator && !hasAuthParams) { auth.signinRedirect(); }
-  }, [auth.isLoading, auth.isAuthenticated, auth.activeNavigator, auth, isSharePage]);
 
   const fetchDevices = useCallback(async () => {
     if (!auth.isAuthenticated) return;
@@ -327,13 +314,13 @@ function App() {
       </header>
       <div style={{ maxWidth: '1140px', margin: '20px auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div className="sticky-search-panel-container" style={stickySearchCardStyle}>
-          <div className="search-row-input-wrapper">
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+          <div className="search-row-input-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
+            <div style={{ flex: 1, minWidth: '200px' }}>
                 <div style={labelStyle}>Search Inventory</div>
                 <input list="inventory-suggestions-list" placeholder="Filter by ID, region, folder..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ ...inputStyle, width: '100%' }} />
                 <datalist id="inventory-suggestions-list">{inventorySuggestions.map(s => <option key={s} value={s} />)}</datalist>
             </div>
-            <button onClick={() => setShowFilters(!showFilters)} style={{ ...secondaryButtonStyle, alignSelf: 'flex-end', padding: '8px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: '600' }}>{showFilters ? '✕ Clear Filters' : '🎛️ Filter Drawer'}</button>
+            <button onClick={() => setShowFilters(!showFilters)} style={{ ...secondaryButtonStyle, flexShrink: 0, padding: '8px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: '600' }}>{showFilters ? '✕ Clear Filters' : '🎛️ Filter Drawer'}</button>
           </div>
           <div style={{ marginTop: '12px', display: showFilters ? 'flex' : 'none', flexDirection: 'column', gap: '12px', borderTop: '1px solid #e5e5ea', paddingTop: '12px' }}>
             <div className="responsive-pill-container-row"><span style={{ ...labelStyle, width: '80px', margin: 0 }}>Status</span><div className="responsive-pill-options-sub-block"><button onClick={() => setStatusFilter("all")} style={getPillStyle(statusFilter === "all")}>All</button><button onClick={() => setStatusFilter("offline")} style={getPillStyle(statusFilter === "offline")}>🔴 Offline</button><button onClick={() => setStatusFilter("geofence")} style={getPillStyle(statusFilter === "geofence")}>🟠 Geofence</button><button onClick={() => setStatusFilter("low_battery")} style={getPillStyle(statusFilter === "low_battery")}>🪫 Low Batt</button></div></div>
@@ -364,10 +351,10 @@ function App() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}><input placeholder="Rename..." value={tagInputs[item.deviceId] || ""} onChange={(e) => setTagInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1 }} /><button onClick={() => updateAttribute(item.deviceId, item.timestamp, 'tag', tagInputs[item.deviceId], '#t')} style={primaryButtonStyle}>Save</button></div>
-                  <div style={{ display: 'flex', gap: '4px', width: '100%' }}>{isAdmin && <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, flex: 1 }}>Share</button>}<button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, flex: 1.5, backgroundColor: item.isServiceMode ? 'transparent' : '#1d1d1f' }}>{item.isServiceMode ? 'Watchdog off' : 'Watchdog active'}</button></div>
+                  <div style={{ display: 'flex', gap: '4px', width: '100%' }}>{isAdmin && <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, flex: 1 }}>Share</button>}<button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, flex: 1.5, backgroundColor: item.isServiceMode ? 'transparent' : '#1d1d1f' }}>{!item.isServiceMode && <span className="live-pulse-indicator-dot"></span>} {item.isServiceMode ? 'Watchdog off' : 'Watchdog active'}</button></div>
                   <div className="timeline-wrapper-panel" style={{ marginTop: '10px', padding: '12px', backgroundColor: '#f5f5f7', borderRadius: '8px' }}>
                     <div className="custom-scrollbar-viewport" style={{ height: '110px', overflowY: 'scroll', marginBottom: '8px' }}>
-                      {historicalNotes.map((log, i) => <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}><div style={{ fontSize: '11px', fontWeight: '500' }}>{log.text} <span style={{ fontSize: '9px', color: '#86868b' }}>• {log.time.includes('-') ? log.time : `${log.time} • 00:00 AM`}</span></div></div>)}
+                      {historicalNotes.map((log, i) => <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getTimelineMarkerColor(log.text) }}></div><div style={{ fontSize: '11px', fontWeight: '500' }}>{log.text} <span style={{ fontSize: '9px', color: '#86868b' }}>• {log.time.includes('-') ? log.time : `${log.time} • 00:00 AM`}</span></div></div>)}
                     </div>
                     <div style={{ display: 'flex', gap: '6px' }}><input placeholder="Add note..." value={noteInputs[item.deviceId] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1 }} /><button onClick={() => addNote(item.deviceId, item.timestamp, noteInputs[item.deviceId])} style={primaryButtonStyle}>Post</button></div>
                   </div>
@@ -377,7 +364,7 @@ function App() {
         </div>
       </div>
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#ffffff', borderTop: '1px solid #d2d2d7', padding: '20px 40px', transform: selectedDevices.length > 0 ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 0.3s' }}>
-        <div style={{ display: 'flex', gap: '20px', justifyContent: 'flex-end' }}>
+        <div style={{ maxWidth: '1140px', margin: '0 auto', display: 'flex', gap: '20px', justifyContent: 'flex-end' }}>
             <input placeholder="Assign to Group..." value={bulkGroupInput} onChange={(e) => setBulkGroupInput(e.target.value)} style={inputStyle} /><button onClick={applyBulkGroup} style={primaryButtonStyle}>Move</button>
             <input placeholder="Post log to Group..." value={bulkNoteInput} onChange={(e) => setBulkNoteInput(e.target.value)} style={inputStyle} /><button onClick={applyBulkNote} style={primaryButtonStyle}>Post</button>
             <button onClick={applyBulkSetHome} style={secondaryButtonStyle}>Set Home</button>
