@@ -96,10 +96,52 @@ function App() {
     boxShadow: '0 12px 40px rgba(0, 0, 0, 0.06)'
   };
 
+  // Centralized Filter Memo Pool Matrix
+  const filteredAssets = useMemo(() => {
+    return assets.filter(a => {
+      const term = searchTerm.toLowerCase();
+      const textMatches = (
+        (a.deviceId || '').toLowerCase().includes(term) || 
+        (a.city || '').toLowerCase().includes(term) || 
+        (a.group || '').toLowerCase().includes(term) ||
+        (a.tag || '').toLowerCase().includes(term)
+      );
+      if (!textMatches) return false;
+
+      if (statusFilter === "offline" && !a.isOffline) return false;
+      if (statusFilter === "geofence" && !a.isGeofenceViolation) return false;
+      if (statusFilter === "low_battery" && !a.isLowBattery) return false;
+
+      if (activeGroupFilter !== "all" && a.group !== activeGroupFilter) return false;
+
+      if (namingFilter === "named" && !a.tag) return false;
+      if (namingFilter === "unnamed" && !!a.tag) return false;
+
+      return true;
+    });
+  }, [assets, searchTerm, statusFilter, activeGroupFilter, namingFilter]);
+
+  // Master Toggling Selection Mechanics Hook Matrix
+  const isAllVisibleSelected = useMemo(() => {
+    if (filteredAssets.length === 0) return false;
+    return filteredAssets.every(a => selectedDevices.includes(a.deviceId));
+  }, [filteredAssets, selectedDevices]);
+
+  const toggleSelectAllVisible = () => {
+    const visibleIds = filteredAssets.map(a => a.deviceId);
+    if (isAllVisibleSelected) {
+      // Clean target subtraction matching visible array values
+      setSelectedDevices(prev => prev.filter(id => !visibleIds.includes(id)));
+    } else {
+      // Union set array generation safely appending unique values
+      setSelectedDevices(prev => Array.from(new Set([...prev, ...visibleIds])));
+    }
+  };
+
   const { alertCount, healthyCount } = useMemo(() => {
-    const alerts = assets.filter(a => a.isOffline || a.isGeofenceViolation || a.isLowBattery).length;
-    return { alertCount: alerts, healthyCount: assets.length - alerts };
-  }, [assets]);
+    const alerts = filteredAssets.filter(a => a.isOffline || a.isGeofenceViolation || a.isLowBattery).length;
+    return { alertCount: alerts, healthyCount: filteredAssets.length - alerts };
+  }, [filteredAssets]);
 
   // Extract dynamic auto-suggest keywords from our live device collection state
   const { inventorySuggestions, groupSuggestions, distinctGroups } = useMemo(() => {
@@ -870,7 +912,27 @@ function App() {
           </div>
           
           <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end', gap: '16px', borderTop: '1px solid #e5e5ea', paddingTop: '10px' }}>
-             <div style={{ marginRight: 'auto', display: 'flex', gap: '16px', fontSize: '13px', fontWeight: '500', color: '#86868b', alignItems: 'center' }}>
+             <div style={{ marginRight: 'auto', display: 'flex', gap: '20px', fontSize: '13px', fontWeight: '500', color: '#86868b', alignItems: 'center' }}>
+                
+                {/* Master Selective Toggle Checkbox Interface Vector */}
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1d1d1f', cursor: 'pointer', fontWeight: '600', userSelect: 'none' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={filteredAssets.length > 0 && filteredAssets.every(a => selectedDevices.includes(a.deviceId))} 
+                    onChange={() => {
+                      const visibleIds = filteredAssets.map(a => a.deviceId);
+                      const isAllSelected = filteredAssets.every(a => selectedDevices.includes(a.deviceId));
+                      if (isAllVisibleSelected || isAllVisibleSelected) {
+                        setSelectedDevices(prev => prev.filter(id => !visibleIds.includes(id)));
+                      } else {
+                        setSelectedDevices(prev => Array.from(new Set([...prev, ...visibleIds])));
+                      }
+                    }}
+                    style={{ width: '15px', height: '15px', accentColor: '#1d1d1f', cursor: 'pointer' }} 
+                  />
+                  Select All Visible ({filteredAssets.length})
+                </label>
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: alertCount > 0 ? '#ff3b30' : '#d2d2d7' }}></div> 
                   {alertCount} Alert
@@ -885,28 +947,7 @@ function App() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 0.33fr))', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
-          {assets
-            .filter(a => {
-              const term = searchTerm.toLowerCase();
-              const textMatches = (
-                (a.deviceId || '').toLowerCase().includes(term) || 
-                (a.city || '').toLowerCase().includes(term) || 
-                (a.group || '').toLowerCase().includes(term)
-              );
-              if (!textMatches) return false;
-
-              if (statusFilter === "offline" && !a.isOffline) return false;
-              if (statusFilter === "geofence" && !a.isGeofenceViolation) return false;
-              if (statusFilter === "low_battery" && !a.isLowBattery) return false;
-
-              if (activeGroupFilter !== "all" && a.group !== activeGroupFilter) return false;
-
-              if (namingFilter === "named" && !a.tag) return false;
-              if (namingFilter === "unnamed" && !!a.tag) return false;
-
-              return true;
-            })
-            .map(item => {
+          {filteredAssets.map(item => {
               const historicalNotes = item.deviceNotes || [];
               const batteryLevel = item.battery !== undefined ? Number(item.battery) : 100;
               const sparkColor = getBatteryStatusColor(batteryLevel);
