@@ -486,7 +486,6 @@ function App() {
         updateAttribute(deviceId, timestamp, 'homeLon', lon, '#hlon'),
         addNote(deviceId, timestamp, logMsg)
     ]);
-    alert("Home location saved and logged!");
   };
 
   const applyBulkGroup = async () => {
