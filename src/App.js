@@ -38,8 +38,8 @@ function App() {
   const [activeGroupFilter, setActiveGroupFilter] = useState("all"); 
   const [namingFilter, setNamingFilter] = useState("all"); 
   
-  // Mobile Filter Expansion Tray Toggle State
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  // Dynamic Filter Expansion Drawer State
+  const [showFilters, setShowFilters] = useState(false);
 
   // Micro-Mapping Active Interactive Modal Viewport State
   const [activeMapModalAsset, setActiveMapModalAsset] = useState(null);
@@ -679,34 +679,16 @@ function App() {
           gap: 12px;
           width: 100%;
         }
-        .mobile-filter-drawer-expansion-tray {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          margin-top: 12px;
-          border-top: 1px solid #e5e5ea;
-          padding-top: 12px;
-        }
         .card-split-columns-view {
           display: flex;
           flex-direction: column;
           gap: 12px;
         }
-        
-        .mobile-filter-toggle-btn {
-          display: none !important;
-        }
 
         @media (max-width: 768px) {
-          .mobile-filter-toggle-btn {
-            display: block !important;
-          }
           .sticky-search-panel-container {
             padding: 12px 14px !important;
             top: 4px !important;
-          }
-          .mobile-filter-drawer-expansion-tray {
-            display: ${showMobileFilters ? 'flex' : 'none'} !important;
           }
           .responsive-pill-container-row {
             flex-direction: column;
@@ -817,8 +799,7 @@ function App() {
             </div>
             
             <button 
-              onClick={() => setShowMobileFilters(!showMobileFilters)}
-              className="mobile-filter-toggle-btn"
+              onClick={() => setShowFilters(!showFilters)}
               style={{
                 ...secondaryButtonStyle,
                 alignSelf: 'flex-end',
@@ -826,15 +807,23 @@ function App() {
                 borderRadius: '8px',
                 fontSize: '13px',
                 fontWeight: '600',
-                backgroundColor: showMobileFilters ? '#1d1d1f' : 'transparent',
-                color: showMobileFilters ? '#ffffff' : '#1d1d1f'
+                backgroundColor: showFilters ? '#1d1d1f' : 'transparent',
+                color: showFilters ? '#ffffff' : '#1d1d1f'
               }}
             >
-              {showMobileFilters ? '✕ Clear' : '🎛️ Filters'}
+              {showFilters ? '✕ Clear Filters' : '🎛️ Filter Drawer'}
             </button>
           </div>
           
-          <div className="mobile-filter-drawer-expansion-tray">
+          {/* Reactive Inline App Slider Tray Component */}
+          <div style={{
+            display: showFilters ? 'flex' : 'none',
+            flexDirection: 'column',
+            gap: '12px',
+            marginTop: '12px',
+            borderTop: '1px solid #e5e5ea',
+            paddingTop: '12px'
+          }}>
             {/* Row A: Hardware Core Alerts */}
             <div className="responsive-pill-container-row">
               <span style={{ ...labelStyle, width: '80px', margin: 0 }}>Status</span>
