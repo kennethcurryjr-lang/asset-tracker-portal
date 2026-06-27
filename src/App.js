@@ -247,9 +247,9 @@ function App() {
       
       const grouped = {};
       items.forEach(item => {
-        if (item.deviceId) {
-          if (!grouped[item.deviceId]) grouped[item.deviceId] = [];
-          grouped[item.deviceId].push(item);
+        if (item.deviceId.slice(-5)) {
+          if (!grouped[item.deviceId.slice(-5)]) grouped[item.deviceId.slice(-5)] = [];
+          grouped[item.deviceId.slice(-5)].push(item);
         }
       });
 
@@ -997,7 +997,7 @@ function App() {
               const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${item.longitude - 0.005}%2C${item.latitude - 0.003}%2C${item.longitude + 0.005}%2C${item.latitude + 0.003}&layer=mapnik&marker=${item.latitude}%2C${item.longitude}`;
 
               return (
-                <div key={item.deviceId} style={{ ...deviceCardStyle, backgroundColor: '#ffffff' }}>
+                <div key={item.deviceId.slice(-5)} style={{ ...deviceCardStyle, backgroundColor: '#ffffff' }}>
                   
                   {/* Split Responsive Core Row */}
                   <div className="card-split-columns-view">
@@ -1005,9 +1005,9 @@ function App() {
                     {/* Left Hand Data Block */}
                     <div className="card-column-left-telemetry">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <input type="checkbox" checked={selectedDevices.includes(item.deviceId)} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId) ? prev.filter(i => i !== item.deviceId) : [...prev, item.deviceId])} style={{ width: '16px', height: '16px', accentColor: '#1d1d1f', cursor: 'pointer' }} />
+                        <input type="checkbox" checked={selectedDevices.includes(item.deviceId.slice(-5))} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId.slice(-5)) ? prev.filter(i => i !== item.deviceId.slice(-5)) : [...prev, item.deviceId.slice(-5)])} style={{ width: '16px', height: '16px', accentColor: '#1d1d1f', cursor: 'pointer' }} />
                         <div style={{ fontSize: '15px', fontWeight: '600', color: '#1d1d1f', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>
-                            {item.tag ? item.tag : item.deviceId.slice(-5)}
+                            {item.tag ? item.tag : item.deviceId.slice(-5).slice(-5)}
                         </div>
                       </div>
                       
@@ -1019,7 +1019,7 @@ function App() {
 
                       <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.4' }}>
                         <div style={{ fontWeight: '500', color: '#1d1d1f' }}>{item.city || "Locating"}</div>
-                        <div style={{ fontSize: '11px' }}>ID: {item.deviceId}</div>
+                        <div style={{ fontSize: '11px' }}>ID: {item.deviceId.slice(-5)}</div>
                         {item.group && <div style={{ fontSize: '11px', fontStyle: 'italic' }}>📦 {item.group}</div>}
                       </div>
 
@@ -1049,7 +1049,7 @@ function App() {
                     >
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'transparent' }}></div>
                       <iframe 
-                        title={`inline-map-${item.deviceId}`}
+                        title={`inline-map-${item.deviceId.slice(-5)}`}
                         width="100%" 
                         height="100%" 
                         frameBorder="0" 
@@ -1066,16 +1066,16 @@ function App() {
 
                   {/* Crunched Operations Rows */}
                   <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                      <input placeholder="Rename Asset..." value={tagInputs[item.deviceId] || ""} onChange={(e) => setTagInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#f5f5f7' }} />
+                      <input placeholder="Rename Asset..." value={tagInputs[item.deviceId.slice(-5)] || ""} onChange={(e) => setTagInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ ...inputStyle, flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#f5f5f7' }} />
                       <input type="hidden" />
-                      <button onClick={() => updateAttribute(item.deviceId, item.timestamp, 'tag', tagInputs[item.deviceId], '#t')} style={{ ...primaryButtonStyle, padding: '6px 12px', fontSize: '12px', borderRadius: '6px' }}>Save</button>
+                      <button onClick={() => updateAttribute(item.deviceId.slice(-5), item.timestamp, 'tag', tagInputs[item.deviceId.slice(-5)], '#t')} style={{ ...primaryButtonStyle, padding: '6px 12px', fontSize: '12px', borderRadius: '6px' }}>Save</button>
                   </div>
 
                   <div style={{ display: 'flex', gap: '4px', width: '100%', flexWrap: 'wrap' }}>
                       {isAdmin && <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: '6px 10px', fontSize: '11px', borderRadius: '8px', flex: 1 }}>Share</button>}
                       
                       {/* Watchdog Status Button with Conditional Radar Light */}
-                      <button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode ? 'transparent' : '#1d1d1f', color: item.isServiceMode ? '#1d1d1f' : '#ffffff', border: item.isServiceMode ? '1px solid #1d1d1f' : 'none' }}>
+                      <button onClick={() => toggleServiceMode(item.deviceId.slice(-5), item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode ? 'transparent' : '#1d1d1f', color: item.isServiceMode ? '#1d1d1f' : '#ffffff', border: item.isServiceMode ? '1px solid #1d1d1f' : 'none' }}>
                         {!item.isServiceMode && <span className="live-pulse-indicator-dot"></span>}
                         {item.isServiceMode ? 'Watchdog off' : 'Watchdog active'}
                       </button>
@@ -1084,11 +1084,11 @@ function App() {
                       <button 
                         onClick={() => {
                           if (item.homeLat) {
-                            if (window.confirm(`Are you sure you want to permanently clear the home location geofence anchor for ${item.tag || item.deviceId}?`)) {
-                              clearHomeLocation(item.deviceId, item.timestamp).then(fetchDevices);
+                            if (window.confirm(`Are you sure you want to permanently clear the home location geofence anchor for ${item.tag || item.deviceId.slice(-5)}?`)) {
+                              clearHomeLocation(item.deviceId.slice(-5), item.timestamp).then(fetchDevices);
                             }
                           } else {
-                            setHomeLocation(item.deviceId, item.timestamp, item.latitude, item.longitude);
+                            setHomeLocation(item.deviceId.slice(-5), item.timestamp, item.latitude, item.longitude);
                           }
                         }} 
                         style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.2, padding: '6px 10px', backgroundColor: item.homeLat ? 'transparent' : '#1d1d1f', color: item.homeLat ? '#1d1d1f' : '#ffffff', border: item.homeLat ? '1px solid #1d1d1f' : 'none' }}
@@ -1115,7 +1115,7 @@ function App() {
                                 </div>
                                 {isAdmin && (
                                   <button 
-                                    onClick={() => deleteNote(item.deviceId, logEntry)} 
+                                    onClick={() => deleteNote(item.deviceId.slice(-5), logEntry)} 
                                     style={{ color: '#ff3b30', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(255, 59, 48, 0.05)', borderRadius: '4px', flexShrink: 0 }}
                                   >
                                     ✕
@@ -1131,8 +1131,8 @@ function App() {
                     </div>
                     
                     <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid #e5e5ea', paddingTop: '8px' }}>
-                        <input placeholder="Add note..." value={noteInputs[item.deviceId] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1, backgroundColor: '#ffffff', padding: '4px 8px', fontSize: '12px', borderRadius: '6px' }} />
-                        <button onClick={() => addNote(item.deviceId, item.timestamp, noteInputs[item.deviceId])} style={{ ...primaryButtonStyle, padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }}>Post</button>
+                        <input placeholder="Add note..." value={noteInputs[item.deviceId.slice(-5)] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ ...inputStyle, flex: 1, backgroundColor: '#ffffff', padding: '4px 8px', fontSize: '12px', borderRadius: '6px' }} />
+                        <button onClick={() => addNote(item.deviceId.slice(-5), item.timestamp, noteInputs[item.deviceId.slice(-5)])} style={{ ...primaryButtonStyle, padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }}>Post</button>
                     </div>
                   </div>
                   
