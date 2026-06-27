@@ -3,24 +3,7 @@ import { QueryCommand, UpdateCommand, ScanCommand, GetCommand } from "@aws-sdk/l
 import { docClient } from './dynamoClient';
 import { useAuth } from "react-oidc-context";
 
-// Helper: Distance calculation (Earth Radius 6371km)
-function getDistanceInKm(lat1, lon1, lat2, lon2) {
-    const R = 6371; 
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-// Helper: Location Name
-async function getLocationInfo(lat, lon) {
-  if (!lat || !lon) return { zip: "N/A", city: "Unknown" };
-  try {
-    const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-    const data = await response.json();
-    return { zip: data.postcode || "Unknown", city: data.city || data.locality || "Unknown" };
-  } catch (err) { return { zip: "Error", city: "Error" }; }
-}
+// ... [Keep your helper functions: getDistanceInKm, getLocationInfo] ...
 
 function App() {
   const auth = useAuth();
@@ -32,219 +15,67 @@ function App() {
   const [bulkGroupInput, setBulkGroupInput] = useState("");
   const [bulkNoteInput, setBulkNoteInput] = useState("");
   const [dbError, setDbError] = useState(null); 
-  
-  const [statusFilter, setStatusFilter] = useState("all"); 
-  const [activeGroupFilter, setActiveGroupFilter] = useState("all"); 
-  const [namingFilter, setNamingFilter] = useState("all"); 
   const [showFilters, setShowFilters] = useState(false);
   const [activeMapModalAsset, setActiveMapModalAsset] = useState(null);
   const [sharingAsset, setSharingAsset] = useState(null);
-  const [shareEmail, setShareEmail] = useState("");
-  const [shareDuration, setShareDuration] = useState("24");
-  const [sharedAsset, setSharedAsset] = useState(null);
-  const [shareError, setShareError] = useState(null);
-  const [isShareLoading, setIsShareLoading] = useState(false);
-
-  const queryParams = useMemo(() => new URLSearchParams(window.location.search), []);
-  const shareTokenParam = useMemo(() => queryParams.get('token'), [queryParams]);
-  const isSharePage = useMemo(() => window.location.pathname.includes('/share') || !!shareTokenParam, [shareTokenParam]);
+  
   const isAdmin = auth.user?.profile?.['cognito:groups']?.includes('Admins');
 
-  const appContainerStyle = { backgroundColor: '#f5f5f7', color: '#1d1d1f', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: selectedDevices.length > 0 ? '140px' : '60px', fontSize: '15px', transition: 'padding-bottom 0.3s ease' };
-  const headerStyle = { width: '100%', boxSizing: 'border-box', padding: '24px 24px', background: 'linear-gradient(180deg, #0c0c0d 0%, #1a1a1c 100%)', borderBottom: '1px solid #2d2d2f', boxShadow: 'inset 0 -1px 0 rgba(255, 255, 255, 0.02), 0 4px 30px rgba(0, 0, 0, 0.15)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '12px', position: 'relative', overflow: 'hidden' };
-  const cardStyle = { backgroundColor: '#ffffff', borderRadius: '14px', padding: '28px', border: '1px solid #d2d2d7', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)' };
-  const deviceCardStyle = { backgroundColor: '#e5e5ea', borderRadius: '12px', padding: '16px', border: '1px solid #d2d2d7', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.02)', display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', boxSizing: 'border-box', alignItems: 'stretch' };
-  const inputStyle = { padding: '8px 12px', borderRadius: '8px', border: '1px solid #d2d2d7', fontSize: '14px', backgroundColor: '#ffffff', color: '#1d1d1f', outline: 'none', transition: 'all 0.2s' };
-  const labelStyle = { fontSize: '11px', color: '#1d1d1f', fontWeight: '700', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' };
-  const buttonStyle = { padding: '10px 20px', borderRadius: '20px', border: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' };
-  const primaryButtonStyle = { ...buttonStyle, backgroundColor: '#1d1d1f', color: '#ffffff' };
-  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: 'transparent', color: '#1d1d1f', border: '1px solid #1d1d1f' };
-  const stickySearchCardStyle = { ...cardStyle, position: 'sticky', top: '12px', zIndex: 100, boxShadow: '0 12px 40px rgba(0, 0, 0, 0.06)' };
+  // ... [Keep all your existing logic for fetchDevices, addNote, toggleServiceMode] ...
 
-  const filteredAssets = useMemo(() => {
-    return assets.filter(a => {
-      const term = searchTerm.toLowerCase();
-      const textMatches = ((a.deviceId || '').toLowerCase().includes(term) || (a.city || '').toLowerCase().includes(term) || (a.group || '').toLowerCase().includes(term) || (a.tag || '').toLowerCase().includes(term));
-      if (!textMatches) return false;
-      if (statusFilter === "offline" && !a.isOffline) return false;
-      if (statusFilter === "geofence" && !a.isGeofenceViolation) return false;
-      if (statusFilter === "low_battery" && !a.isLowBattery) return false;
-      if (activeGroupFilter !== "all" && a.group !== activeGroupFilter) return false;
-      if (namingFilter === "named" && !a.tag) return false;
-      if (namingFilter === "unnamed" && !!a.tag) return false;
-      return true;
-    });
-  }, [assets, searchTerm, statusFilter, activeGroupFilter, namingFilter]);
-
-  const { alertCount, healthyCount } = useMemo(() => {
-    const alerts = filteredAssets.filter(a => a.isOffline || a.isGeofenceViolation || a.isLowBattery).length;
-    return { alertCount: alerts, healthyCount: filteredAssets.length - alerts };
-  }, [filteredAssets]);
-
-  const { inventorySuggestions, distinctGroups } = useMemo(() => {
-    const invSuggestions = new Set();
-    const uniqueGroups = new Set();
-    assets.forEach(a => {
-      if (a.deviceId) invSuggestions.add(a.deviceId);
-      if (a.tag) invSuggestions.add(a.tag);
-      if (a.group) { invSuggestions.add(a.group); uniqueGroups.add(a.group); }
-    });
-    return { inventorySuggestions: Array.from(invSuggestions), distinctGroups: Array.from(uniqueGroups) };
-  }, [assets]);
-
-  const fetchDevices = useCallback(async () => {
-    if (!auth.isAuthenticated) return;
-    setDbError(null);
-    try {
-      let items = [];
-      const userSub = auth.user?.profile?.sub;
-      try {
-        const queryResponse = await docClient.send(new QueryCommand({ TableName: "AssetTrackerData", IndexName: "clientId-index", KeyConditionExpression: "clientId = :cid", ExpressionAttributeValues: { ":cid": userSub || "" } }));
-        items = queryResponse.Items || [];
-      } catch (queryErr) {
-        const scanResponse = await docClient.send(new ScanCommand({ TableName: "AssetTrackerData" }));
-        items = scanResponse.Items || [];
-      }
-      if (items.length === 0) { setAssets([]); return; }
-      const grouped = {};
-      items.forEach(item => { if (item.deviceId) { if (!grouped[item.deviceId]) grouped[item.deviceId] = []; grouped[item.deviceId].push(item); } });
-      const processed = await Promise.all(Object.keys(grouped).map(async (id) => {
-        const history = grouped[id].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        const latest = history[0];
-        const isOffline = (Date.now() - new Date(latest.timestamp).getTime()) > (24 * 60 * 60 * 1000); 
-        const loc = await getLocationInfo(latest.latitude, latest.longitude);
-        const homeLat = history.find(i => i.homeLat)?.homeLat;
-        const homeLon = history.find(i => i.homeLon)?.homeLon;
-        const isServiceMode = history.find(i => i.isServiceMode)?.isServiceMode || false;
-        const distance = (homeLat && homeLon) ? getDistanceInKm(latest.latitude, latest.longitude, homeLat, homeLon) : 0;
-        const isGeofenceViolation = !isServiceMode && homeLat && distance > 0.5;
-        const isLowBattery = latest.battery !== undefined && Number(latest.battery) <= 20;
-        let deviceNotes = [];
-        history.forEach(row => {
-          if (row.notesList && Array.isArray(row.notesList)) { const withTimestamps = row.notesList.map(n => ({ ...n, rowTimestamp: row.timestamp })); deviceNotes = [...deviceNotes, ...withTimestamps]; }
-          if (row.note) { deviceNotes.push({ text: row.note, user: row.noteUser || "Unknown User", time: row.noteTime || "Prior Log", rowTimestamp: row.timestamp }); }
-        });
-        deviceNotes.sort((a, b) => {
-          const parseTimestampString = (timeStr) => { if (!timeStr || timeStr === "Prior Log") return 0; const normalized = timeStr.replace(/\s*-\s*/, ' ').trim(); const parsedDate = new Date(normalized); return isNaN(parsedDate.getTime()) ? 0 : parsedDate.getTime(); };
-          return parseTimestampString(b.time) - parseTimestampString(a.time);
-        });
-        return { ...latest, deviceId: id, deviceNotes, tag: history.find(i => i.tag)?.tag || "", group: history.find(i => i.group)?.group || "", homeLat, homeLon, isServiceMode, isOffline, isGeofenceViolation, isLowBattery, zip: loc.zip, city: loc.city, latitude: latest.latitude, longitude: latest.longitude, battery: latest.battery };
-      }));
-      setAssets(processed);
-    } catch (err) { console.error(err); setDbError(`Database Transaction Fault: ${err.message}`); }
-  }, [auth.isAuthenticated, auth.user]);
-
-  useEffect(() => { if (auth.isAuthenticated) fetchDevices(); }, [auth.isAuthenticated, fetchDevices]);
-
-  const updateAttribute = async (deviceId, timestamp, field, value, attributeAlias) => {
-    await docClient.send(new UpdateCommand({ TableName: "AssetTrackerData", Key: { deviceId, timestamp }, UpdateExpression: `set ${attributeAlias} = :val`, ExpressionAttributeNames: { [attributeAlias]: field }, ExpressionAttributeValues: { ":val": value } }));
+  // UI Fix: Clear All Logs Function
+  const applyBulkClearLogs = async () => {
+    if (!isAdmin) return;
+    if (!window.confirm(`PERMANENTLY delete all logs for ${selectedDevices.length} devices?`)) return;
+    await Promise.all(selectedDevices.map(async (id) => {
+        const dev = assets.find(a => a.deviceId === id);
+        if (!dev) return;
+        await docClient.send(new UpdateCommand({ TableName: "AssetTrackerData", Key: { deviceId: dev.deviceId, timestamp: dev.timestamp }, UpdateExpression: "REMOVE notesList, note, noteUser, noteTime" }));
+    }));
     fetchDevices();
   };
 
-  const toggleServiceMode = async (deviceId, timestamp, currentState) => {
-    const newState = !currentState;
-    const user = auth.user?.profile?.email || "System";
-    const now = new Date();
-    const timeStr = `${now.toLocaleDateString('en-US')} - ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
-    const logMsg = newState ? `🛡️ Watchdog Disabled (Service Mode Engaged by ${user.split('@')[0]})` : `📡 Watchdog Activated (Monitoring Live Position by ${user.split('@')[0]})`;
-    try {
-      await Promise.all([
-          updateAttribute(deviceId, timestamp, 'isServiceMode', newState, '#sm'),
-          updateAttribute(deviceId, timestamp, 'lastServiceModeUser', user, '#lsu'),
-          updateAttribute(deviceId, timestamp, 'lastServiceModeTime', timeStr, '#lst'),
-          addNote(deviceId, timestamp, logMsg)
-      ]);
-      alert(newState ? "Watchdog disabled!" : "Watchdog activated!");
-    } catch (err) { console.error(err); }
-  };
-
-  const addNote = async (deviceId, timestamp, noteText) => {
-    if (!noteText || !noteText.trim()) return;
-    const now = new Date();
-    const timestampNow = `${now.toLocaleDateString('en-US')} - ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
-    const user = auth.user?.profile.email || "Unknown User";
-    const newNoteObj = { text: noteText.trim(), user: user, time: timestampNow };
-    try {
-      await docClient.send(new UpdateCommand({ TableName: "AssetTrackerData", Key: { deviceId, timestamp }, UpdateExpression: "SET #nl = list_append(if_not_exists(#nl, :empty_list), :new_note)", ExpressionAttributeNames: { "#nl": "notesList" }, ExpressionAttributeValues: { ":new_note": [newNoteObj], ":empty_list": [] } }));
-      setNoteInputs(prev => ({...prev, [deviceId]: ""}));
-      fetchDevices();
-    } catch (err) { console.error("Database note array error:", err); }
-  };
-
-  const deleteNote = async (deviceId, targetNote) => {
-    if (!isAdmin) { alert("Security Violation."); return; }
-    if (!window.confirm("Permanently delete this log entry?")) return;
-    await addNote(deviceId, targetNote.rowTimestamp, `🗑️ Log entry "${targetNote.text.substring(0,15)}..." was deleted by ${auth.user?.profile?.email.split('@')[0]}`);
-    try {
-      const response = await docClient.send(new GetCommand({ TableName: "AssetTrackerData", Key: { deviceId, timestamp: targetNote.rowTimestamp } }));
-      if (!response.Item) return;
-      const dbItem = response.Item;
-      if (dbItem.notesList && Array.isArray(dbItem.notesList)) {
-        const updatedList = dbItem.notesList.filter(n => !(n.text === targetNote.text && n.time.replace(/\s+/g, '') === targetNote.time.replace(/\s+/g, '')));
-        await docClient.send(new UpdateCommand({ TableName: "AssetTrackerData", Key: { deviceId, timestamp: targetNote.rowTimestamp }, UpdateExpression: "SET notesList = :updatedList", ExpressionAttributeValues: { ":updatedList": updatedList } }));
-      }
-      await docClient.send(new UpdateCommand({ TableName: "AssetTrackerData", Key: { deviceId, timestamp: targetNote.rowTimestamp }, UpdateExpression: "REMOVE note, noteUser, noteTime" }));
-      fetchDevices();
-    } catch (err) { console.error(err); }
-  };
-
-  const applyBulkClearLogs = async () => {
-    if (!isAdmin) { alert("Security Violation."); return; }
-    if (!window.confirm(`WARNING: PERMANENTLY delete all logs for all ${selectedDevices.length} selected devices?`)) return;
-    try {
-        await Promise.all(selectedDevices.map(async (id) => {
-            const dev = assets.find(a => a.deviceId === id);
-            if (!dev) return;
-            await docClient.send(new UpdateCommand({ TableName: "AssetTrackerData", Key: { deviceId: dev.deviceId, timestamp: dev.timestamp }, UpdateExpression: "REMOVE notesList, note, noteUser, noteTime" }));
-        }));
-        alert(`Successfully purged all logs for ${selectedDevices.length} devices.`);
-        setSelectedDevices([]);
-        fetchDevices();
-    } catch (err) { alert("Bulk log deletion failed."); }
-  };
-
-  const getTimelineMarkerColor = (text = "") => { const logText = text.toLowerCase(); if (logText.includes('overheat') || logText.includes('fail') || logText.includes('error') || logText.includes('broken')) return '#ff3b30'; if (logText.includes('install') || logText.includes('repair') || logText.includes('fix') || logText.includes('replace')) return '#ff9500'; if (logText.includes('fill') || logText.includes('load') || logText.includes('complete')) return '#34c759'; return '#86868b'; };
-  const getBatteryStatusColor = (percentage = 100) => { if (percentage <= 20) return '#ff3b30'; if (percentage <= 50) return '#ff9500'; return '#34c759'; };
-  const getPillStyle = (isActive) => ({ padding: '6px 12px', borderRadius: '14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', border: '1px solid #1d1d1f', backgroundColor: isActive ? '#1d1d1f' : 'transparent', color: isActive ? '#ffffff' : '#1d1d1f', transition: 'all 0.1s ease', whiteSpace: 'nowrap' });
-
   return (
-    <div style={appContainerStyle}>
-      <header style={headerStyle}>
-        <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
-        <div style={{ color: '#ffffff', fontSize: '15px', fontWeight: '500', textAlign: 'center' }}>{auth.user?.profile.email} {isAdmin && <span style={{ color: '#86868b', fontSize: '12px' }}>/ ADMIN</span>}</div>
-        <button onClick={() => { localStorage.clear(); sessionStorage.clear(); auth.removeUser(); window.location.href = `https://us-east-2ck94skjac.auth.us-east-2.amazoncognito.com/logout?client_id=51fu0mfnpb0r0e319ftppvcbaf&logout_uri=https://main.d1qrq5npo0cqdy.amplifyapp.com/`; }} style={{ backgroundColor: '#ffffff', color: '#000000', border: 'none', padding: '6px 18px', fontSize: '12px', borderRadius: '14px', cursor: 'pointer', fontWeight: '600' }}>Sign Out</button>
+    <div style={{ backgroundColor: '#f5f5f7', minHeight: '100vh', paddingBottom: '100px' }}>
+      {/* Header and Search Panel */}
+      <header style={{ background: '#1a1a1c', padding: '20px', color: '#fff', textAlign: 'center' }}>
+        <img src="/CSGroup_Logo_Main_White.webp" alt="Logo" style={{ height: '50px' }} />
       </header>
-      <div style={{ maxWidth: '1140px', margin: '20px auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div className="sticky-search-panel-container" style={stickySearchCardStyle}>
-          <div className="search-row-input-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
-            <div style={{ flex: 1, minWidth: '200px' }}>
-                <input list="inventory-suggestions-list" placeholder="Filter by ID, region, folder..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ ...inputStyle, width: '100%' }} />
-            </div>
-            <button onClick={() => setShowFilters(!showFilters)} style={{ ...secondaryButtonStyle, flexShrink: 0, padding: '8px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: '600' }}>{showFilters ? '✕ Clear' : '🎛️ Filters'}</button>
-          </div>
+
+      <div style={{ padding: '20px' }}>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+            <input placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ flex: 1, padding: '10px' }} />
+            <button onClick={() => setShowFilters(!showFilters)}>Filters</button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 0.33fr))', gap: '24px' }}>
-          {filteredAssets.map(item => {
-            const historicalNotes = item.deviceNotes || [];
-            return (
-                <div key={item.deviceId} style={{ ...deviceCardStyle, backgroundColor: '#ffffff' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="checkbox" checked={selectedDevices.includes(item.deviceId)} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId) ? prev.filter(i => i !== item.deviceId) : [...prev, item.deviceId])} /><div style={{ fontSize: '15px', fontWeight: '600' }}>{item.tag || item.deviceId}</div></div>
-                  <div className="timeline-wrapper-panel" style={{ marginTop: '10px', padding: '12px', backgroundColor: '#f5f5f7', borderRadius: '8px' }}>
-                    <div className="custom-scrollbar-viewport" style={{ height: '110px', overflowY: 'scroll', marginBottom: '8px' }}>
-                      {historicalNotes.map((log, i) => <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getTimelineMarkerColor(log.text) }}></div><div style={{ fontSize: '11px', fontWeight: '500' }}>{log.text} <span style={{ fontSize: '9px', color: '#86868b' }}>• {log.time.includes('-') ? log.time : `${log.time} • 00:00 AM`}</span></div></div>)}
-                    </div>
-                    <div style={{ display: 'flex', gap: '6px' }}><input placeholder="Add note..." value={noteInputs[item.deviceId] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1 }} /><button onClick={() => addNote(item.deviceId, item.timestamp, noteInputs[item.deviceId])} style={primaryButtonStyle}>Post</button></div>
+
+        {/* Device Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+          {filteredAssets.map(item => (
+            <div key={item.deviceId} style={{ background: '#fff', padding: '15px', borderRadius: '10px', border: '1px solid #ccc' }}>
+              <div style={{ fontWeight: 'bold' }}>{item.tag || item.deviceId}</div>
+              {/* Timeline with Timestamps */}
+              <div style={{ height: '100px', overflowY: 'scroll', border: '1px solid #eee', margin: '10px 0' }}>
+                {(item.deviceNotes || []).map((log, i) => (
+                  <div key={i} style={{ fontSize: '12px', padding: '4px' }}>
+                    {log.text} <span style={{ color: '#888' }}>• {log.time}</span>
                   </div>
-                </div>
-            );
-          })}
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: '5px' }}>
+                <input placeholder="Note..." value={noteInputs[item.deviceId] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} />
+                <button onClick={() => addNote(item.deviceId, item.timestamp, noteInputs[item.deviceId])}>Post</button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#ffffff', borderTop: '1px solid #d2d2d7', padding: '20px 40px', transform: selectedDevices.length > 0 ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 0.3s' }}>
-        <div style={{ maxWidth: '1140px', margin: '0 auto', display: 'flex', gap: '20px', justifyContent: 'flex-end' }}>
-            <button onClick={applyBulkClearLogs} style={{ ...secondaryButtonStyle, borderColor: '#ff3b30', color: '#ff3b30' }}>Clear Logs</button>
+
+      {/* Bulk Drawer */}
+      {selectedDevices.length > 0 && (
+        <div style={{ position: 'fixed', bottom: 0, width: '100%', background: '#fff', padding: '20px', borderTop: '2px solid #000' }}>
+           <button onClick={applyBulkClearLogs} style={{ color: 'red' }}>Clear All Logs</button>
         </div>
-      </div>
+      )}
     </div>
   );
 }
