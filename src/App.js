@@ -338,7 +338,7 @@ function App() {
   const toggleServiceMode = async (deviceId, timestamp, currentState) => {
     const newState = !currentState;
     const user = auth.user?.profile?.email || "System";
-    const time = new Date().toLocaleString();
+    const time = `${new Date().toLocaleDateString('en-US')} - ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
     const logMsg = newState 
       ? `🛡️ Watchdog Disabled (Service Mode Engaged by ${user.split('@')[0]})` 
       : `📡 Watchdog Activated (Monitoring Live Position by ${user.split('@')[0]})`;
@@ -1063,7 +1063,7 @@ function App() {
                                 <div style={{ flex: 1, minWidth: '0' }}>
                                   <div style={{ fontSize: '12px', fontWeight: '500', lineHeight: '1.3', wordBreak: 'break-word' }}>{logEntry.text}</div>
                                   <div style={{ color: '#86868b', fontSize: '10px', marginTop: '1px' }}>
-                                    {logEntry.user.split('@')[0]} • {logEntry.time.split(' - ')[0]}
+                                    {logEntry.user.split('@')[0]} • <span style={{ fontSize: '9px', color: '#86868b' }}>{logEntry.time.includes('-') ? logEntry.time : `${logEntry.time} • 00:00 AM`}</span>
                                   </div>
                                 </div>
                                 {isAdmin && (
