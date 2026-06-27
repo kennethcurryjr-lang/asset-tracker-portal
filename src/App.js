@@ -449,7 +449,7 @@ function App() {
             }));
             await addNote(dev.deviceId, dev.timestamp, "🛡️ Factory Reset: Watchdog Disabled");
         }));
-        alert(`Successfully reset ${selectedDevices.length} devices.`);
+        await Promise.all(selectedDevices.map(id => addNote(id, assets.find(a => a.deviceId === id).timestamp, "🛡️ Factory Reset: Watchdog Disabled"))); alert(`Successfully reset ${selectedDevices.length} devices.`);
         setSelectedDevices([]);
         fetchDevices();
     } catch (err) { 
