@@ -84,7 +84,7 @@ function App() {
   const inputStyle = { padding: '8px 12px', borderRadius: '8px', border: '1px solid #d2d2d7', fontSize: '14px', backgroundColor: '#ffffff', color: '#1d1d1f', outline: 'none', transition: 'all 0.2s' };
   const labelStyle = { fontSize: '11px', color: '#1d1d1f', fontWeight: '700', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' };
   
-  const buttonStyle = { padding: '10px 20px', borderRadius: '20px', border: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s' };
+  const buttonStyle = { padding: '10px 20px', borderRadius: '20px', border: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' };
   const primaryButtonStyle = { ...buttonStyle, backgroundColor: '#1d1d1f', color: '#ffffff' };
   const secondaryButtonStyle = { ...buttonStyle, backgroundColor: 'transparent', color: '#1d1d1f', border: '1px solid #1d1d1f' };
 
@@ -639,9 +639,9 @@ function App() {
           scrollbar-color: #86868b #e5e5ea !important;
         }
         @keyframes radar-pulse-glow {
-          0% { transform: scale(0.95); boxShadow: 0 0 0 0 rgba(52, 199, 89, 0.5); }
-          70% { transform: scale(1); boxShadow: 0 0 0 6px rgba(52, 199, 89, 0); }
-          100% { transform: scale(0.95); boxShadow: 0 0 0 0 rgba(52, 199, 89, 0); }
+          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); }
+          70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); }
+          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
         }
         .live-pulse-indicator-dot {
           width: 8px;
@@ -649,7 +649,6 @@ function App() {
           background-color: #34c759;
           border-radius: 50%;
           display: inline-block;
-          margin-right: 6px;
           animation: radar-pulse-glow 2s infinite ease-in-out;
         }
         @keyframes emergency-battery-flash {
@@ -977,11 +976,16 @@ function App() {
 
                   <div style={{ display: 'flex', gap: '4px', width: '100%', flexWrap: 'wrap' }}>
                       {isAdmin && <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: '6px 10px', fontSize: '11px', borderRadius: '8px', flex: 1 }}>Share</button>}
+                      
+                      {/* Watchdog Status Button with Conditional Radar Light */}
                       <button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode ? 'transparent' : '#1d1d1f', color: item.isServiceMode ? '#1d1d1f' : '#ffffff', border: item.isServiceMode ? '1px solid #1d1d1f' : 'none' }}>
+                        {!item.isServiceMode && <span className="live-pulse-indicator-dot"></span>}
                         {item.isServiceMode ? 'Watchdog off' : 'Watchdog active'}
                       </button>
+                      
+                      {/* Updated Anchor Controls to reflect Home Management Mapping */}
                       <button onClick={() => item.homeLat ? clearHomeLocation(item.deviceId, item.timestamp).then(fetchDevices) : setHomeLocation(item.deviceId, item.timestamp, item.latitude, item.longitude)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.2, padding: '6px 10px', backgroundColor: item.homeLat ? 'transparent' : '#1d1d1f', color: item.homeLat ? '#1d1d1f' : '#ffffff', border: item.homeLat ? '1px solid #1d1d1f' : 'none' }}>
-                        {item.homeLat ? 'Clear Anchor' : 'Anchor'}
+                        {item.homeLat ? 'Clear Home' : 'Set Home'}
                       </button>
                   </div>
                   
