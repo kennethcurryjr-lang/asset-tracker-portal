@@ -302,6 +302,7 @@ function App() {
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId, timestamp },
+        Key: { deviceId, timestamp },
         UpdateExpression: "SET #nl = list_append(if_not_exists(#nl, :empty_list), :new_note)",
         ExpressionAttributeNames: { "#nl": "notesList" },
         ExpressionAttributeValues: {
