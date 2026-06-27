@@ -121,23 +121,6 @@ function App() {
     });
   }, [assets, searchTerm, statusFilter, activeGroupFilter, namingFilter]);
 
-  // Master Toggling Selection Mechanics Hook Matrix
-  const isAllVisibleSelected = useMemo(() => {
-    if (filteredAssets.length === 0) return false;
-    return filteredAssets.every(a => selectedDevices.includes(a.deviceId));
-  }, [filteredAssets, selectedDevices]);
-
-  const toggleSelectAllVisible = () => {
-    const visibleIds = filteredAssets.map(a => a.deviceId);
-    if (isAllVisibleSelected) {
-      // Clean target subtraction matching visible array values
-      setSelectedDevices(prev => prev.filter(id => !visibleIds.includes(id)));
-    } else {
-      // Union set array generation safely appending unique values
-      setSelectedDevices(prev => Array.from(new Set([...prev, ...visibleIds])));
-    }
-  };
-
   const { alertCount, healthyCount } = useMemo(() => {
     const alerts = filteredAssets.filter(a => a.isOffline || a.isGeofenceViolation || a.isLowBattery).length;
     return { alertCount: alerts, healthyCount: filteredAssets.length - alerts };
@@ -354,15 +337,20 @@ function App() {
 
   const toggleServiceMode = async (deviceId, timestamp, currentState) => {
     const newState = !currentState;
-    const user = auth.user?.profile?.email || "Unknown User";
+    const user = auth.user?.profile?.email || "System";
     const time = new Date().toLocaleString();
+    const logMsg = newState 
+      ? `🛡️ Watchdog Disabled (Service Mode Engaged by ${user.split('@')[0]})` 
+      : `📡 Watchdog Activated (Monitoring Live Position by ${user.split('@')[0]})`;
+    
     try {
       await Promise.all([
           updateAttribute(deviceId, timestamp, 'isServiceMode', newState, '#sm'),
           updateAttribute(deviceId, timestamp, 'lastServiceModeUser', user, '#lsu'),
-          updateAttribute(deviceId, timestamp, 'lastServiceModeTime', time, '#lst')
+          updateAttribute(deviceId, timestamp, 'lastServiceModeTime', time, '#lst'),
+          addNote(deviceId, timestamp, logMsg)
       ]);
-      alert(newState ? "Watchdog disabled! (Service Mode Activated)" : "Watchdog activated! (Monitoring Live Position)");
+      alert(newState ? "Watchdog disabled!" : "Watchdog activated!");
     } catch (err) { console.error(err); }
   };
 
@@ -402,6 +390,8 @@ function App() {
       return;
     }
     if (!window.confirm("Are you sure you want to permanently delete this log entry from the database?")) return;
+
+    await addNote(deviceId, targetNote.rowTimestamp, `🗑️ Log entry "${targetNote.text.substring(0,15)}..." was deleted by ${auth.user?.profile?.email.split('@')[0]}`);
 
     try {
       const response = await docClient.send(new GetCommand({
@@ -479,18 +469,24 @@ function App() {
   };
 
   const clearHomeLocation = async (deviceId, timestamp) => {
-    await docClient.send(new UpdateCommand({
+    await Promise.all([
+      docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId, timestamp },
         UpdateExpression: "REMOVE homeLat, homeLon"
-    }));
+      })),
+      addNote(deviceId, timestamp, `🚫 Home Anchor Cleared`)
+    ]);
   };
 
   const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
+    const logMsg = `📍 Home Anchor Set: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
     await Promise.all([
         updateAttribute(deviceId, timestamp, 'homeLat', lat, '#hl'),
-        updateAttribute(deviceId, timestamp, 'homeLon', lon, '#hlon')
+        updateAttribute(deviceId, timestamp, 'homeLon', lon, '#hlon'),
+        addNote(deviceId, timestamp, logMsg)
     ]);
+    alert("Home location saved and logged!");
   };
 
   const applyBulkGroup = async () => {
@@ -922,7 +918,7 @@ function App() {
                     onChange={() => {
                       const visibleIds = filteredAssets.map(a => a.deviceId);
                       const isAllSelected = filteredAssets.every(a => selectedDevices.includes(a.deviceId));
-                      if (isAllVisibleSelected || isAllVisibleSelected) {
+                      if (isAllSelected) {
                         setSelectedDevices(prev => prev.filter(id => !visibleIds.includes(id)));
                       } else {
                         setSelectedDevices(prev => Array.from(new Set([...prev, ...visibleIds])));
