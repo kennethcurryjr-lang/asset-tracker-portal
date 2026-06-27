@@ -3,7 +3,6 @@ import { QueryCommand, UpdateCommand, ScanCommand, GetCommand } from "@aws-sdk/l
 import { docClient } from './dynamoClient';
 import { useAuth } from "react-oidc-context";
 
-// Helper: Distance calculation (Earth Radius 6371km)
 function getDistanceInKm(lat1, lon1, lat2, lon2) {
     const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -12,7 +11,6 @@ function getDistanceInKm(lat1, lon1, lat2, lon2) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Helper: Location Name
 async function getLocationInfo(lat, lon) {
   if (!lat || !lon) return { zip: "N/A", city: "Unknown" };
   try {
@@ -32,11 +30,9 @@ function App() {
   const [bulkGroupInput, setBulkGroupInput] = useState("");
   const [bulkNoteInput, setBulkNoteInput] = useState("");
   const [dbError, setDbError] = useState(null); 
-  
   const [statusFilter, setStatusFilter] = useState("all"); 
   const [activeGroupFilter, setActiveGroupFilter] = useState("all"); 
   const [namingFilter, setNamingFilter] = useState("all"); 
-  
   const [showFilters, setShowFilters] = useState(false);
   const [activeMapModalAsset, setActiveMapModalAsset] = useState(null);
   const [sharingAsset, setSharingAsset] = useState(null);
@@ -82,17 +78,16 @@ function App() {
     return { alertCount: alerts, healthyCount: filteredAssets.length - alerts };
   }, [filteredAssets]);
 
-  const { inventorySuggestions, groupSuggestions, distinctGroups } = useMemo(() => {
+  const { inventorySuggestions, distinctGroups } = useMemo(() => {
     const invSuggestions = new Set();
-    const grpSuggestions = new Set();
     const uniqueGroups = new Set();
     assets.forEach(a => {
       if (a.deviceId) invSuggestions.add(a.deviceId);
       if (a.tag) invSuggestions.add(a.tag);
       if (a.city && a.city !== "Unknown" && a.city !== "Locating") invSuggestions.add(a.city);
-      if (a.group) { invSuggestions.add(a.group); grpSuggestions.add(a.group); uniqueGroups.add(a.group); }
+      if (a.group) { invSuggestions.add(a.group); uniqueGroups.add(a.group); }
     });
-    return { inventorySuggestions: Array.from(invSuggestions), groupSuggestions: Array.from(grpSuggestions), distinctGroups: Array.from(uniqueGroups) };
+    return { inventorySuggestions: Array.from(invSuggestions), distinctGroups: Array.from(uniqueGroups) };
   }, [assets]);
 
   useEffect(() => {
@@ -110,20 +105,6 @@ function App() {
     }
     processPublicEscalationFetch();
   }, [isSharePage, shareTokenParam]);
-
-  useEffect(() => {
-    if (auth.error && (window.location.search.includes('code=') || window.location.search.includes('state='))) {
-      console.warn("State mismatch detected.");
-      localStorage.clear(); sessionStorage.clear();
-      window.location.href = window.location.origin;
-    }
-  }, [auth.error]);
-
-  useEffect(() => {
-    if (isSharePage) return; 
-    const hasAuthParams = window.location.search.includes('code=') || window.location.search.includes('state=');
-    if (!auth.isLoading && !auth.isAuthenticated && !auth.activeNavigator && !hasAuthParams) { auth.signinRedirect(); }
-  }, [auth.isLoading, auth.isAuthenticated, auth.activeNavigator, auth, isSharePage]);
 
   const fetchDevices = useCallback(async () => {
     if (!auth.isAuthenticated) return;
@@ -146,8 +127,6 @@ function App() {
         const latest = history[0];
         const isOffline = (Date.now() - new Date(latest.timestamp).getTime()) > (24 * 60 * 60 * 1000); 
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
-        
-        // Predictive Battery Analytics
         let estTimeRemaining = null;
         if (history.length >= 2 && latest.battery !== undefined && latest.battery !== null) {
           const prevRecord = history[1]; 
@@ -162,14 +141,12 @@ function App() {
             }
           }
         }
-
         const homeLat = history.find(i => i.homeLat)?.homeLat;
         const homeLon = history.find(i => i.homeLon)?.homeLon;
         const isServiceMode = history.find(i => i.isServiceMode)?.isServiceMode || false;
         const distance = (homeLat && homeLon) ? getDistanceInKm(latest.latitude, latest.longitude, homeLat, homeLon) : 0;
         const isGeofenceViolation = !isServiceMode && homeLat && distance > 0.5;
         const isLowBattery = latest.battery !== undefined && Number(latest.battery) <= 20;
-
         let deviceNotes = [];
         history.forEach(row => {
           if (row.notesList && Array.isArray(row.notesList)) deviceNotes = [...deviceNotes, ...row.notesList.map(n => ({ ...n, rowTimestamp: row.timestamp }))];
@@ -308,7 +285,6 @@ function App() {
 
   const getTimelineMarkerColor = (text = "") => { const logText = text.toLowerCase(); if (logText.includes('overheat') || logText.includes('fail') || logText.includes('error') || logText.includes('broken')) return '#ff3b30'; if (logText.includes('install') || logText.includes('repair') || logText.includes('fix') || logText.includes('replace')) return '#ff9500'; if (logText.includes('fill') || logText.includes('load') || logText.includes('complete')) return '#34c759'; return '#86868b'; };
   const getBatteryStatusColor = (percentage = 100) => { if (percentage <= 20) return '#ff3b30'; if (percentage <= 50) return '#ff9500'; return '#34c759'; };
-  const getPillStyle = (isActive) => ({ padding: '6px 12px', borderRadius: '14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', border: '1px solid #1d1d1f', backgroundColor: isActive ? '#1d1d1f' : 'transparent', color: isActive ? '#ffffff' : '#1d1d1f', transition: 'all 0.1s ease', whiteSpace: 'nowrap' });
 
   return (
     <div style={appContainerStyle}>
