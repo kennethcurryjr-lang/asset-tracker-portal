@@ -433,6 +433,29 @@ function App() {
     }
   };
 
+  // --- NEW FEATURE: Bulk Factory Reset (Wipe Devices) ---
+  const applyBulkFactoryReset = async () => {
+    if (!isAdmin) { alert("Security Violation."); return; }
+    if (!window.confirm(`WARNING: PERMANENTLY wipe logs, reset names, and clear home/watchdog for all ${selectedDevices.length} selected devices?`)) return;
+    try {
+        await Promise.all(selectedDevices.map(async (id) => {
+            const dev = assets.find(a => a.deviceId === id);
+            if (!dev) return;
+            await docClient.send(new UpdateCommand({ 
+                TableName: "AssetTrackerData", 
+                Key: { deviceId: dev.deviceId, timestamp: dev.timestamp }, 
+                UpdateExpression: "REMOVE notesList, note, noteUser, noteTime, tag, homeLat, homeLon, isServiceMode, lastServiceModeUser, lastServiceModeTime" 
+            }));
+        }));
+        alert(`Successfully reset ${selectedDevices.length} devices.`);
+        setSelectedDevices([]);
+        fetchDevices();
+    } catch (err) { 
+        console.error(err);
+        alert("Bulk reset failed."); 
+    }
+  };
+
   const executeLiveShareEscalation = async () => {
     if (!isAdmin) {
       alert("Security Violation: Only administrator accounts are cleared to authorize external view vectors.");
@@ -1207,6 +1230,9 @@ function App() {
 
             {/* Action 4: Dual Clear Home Anchors with Confirmation Prompt */}
             <button onClick={applyBulkClearHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff3b30', color: '#ff3b30' }}>Clear Home Anchors</button>
+            
+            {/* NEW ACTION: Factory Reset Devices */}
+            <button onClick={applyBulkFactoryReset} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff3b30', color: '#ff3b30' }}>Factory Reset</button>
 
           </div>
         </div>
