@@ -223,12 +223,8 @@ function App() {
     if (!auth.isAuthenticated) return;
     setDbError(null);
     try {
-      let items = [];
-      const userSub = auth.user?.profile?.sub;
-
-      try {
-        const scanResponse = await docClient.send(new ScanCommand({ TableName: "AssetTrackerData" }));
-      items = scanResponse.Items || [];
+      const scanResponse = await docClient.send(new ScanCommand({ TableName: "AssetTrackerData" }));
+      const items = scanResponse.Items || [];
 
       if (items.length === 0) {
         setAssets([]);
@@ -237,99 +233,22 @@ function App() {
       
       const grouped = {};
       items.forEach(item => {
-        if (item.deviceId.slice(-5)) {
-          if (!grouped[item.deviceId.slice(-5)]) grouped[item.deviceId.slice(-5)] = [];
-          grouped[item.deviceId.slice(-5)].push(item);
+        if (item.deviceId) {
+          const id = item.deviceId.slice(-5);
+          if (!grouped[id]) grouped[id] = [];
+          grouped[id].push(item);
         }
       });
 
       const processed = await Promise.all(Object.keys(grouped).map(async (id) => {
         const history = grouped[id].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         const latest = history[0];
-        const isOffline = (Date.now() - new Date(latest.timestamp).getTime()) > (24 * 60 * 60 * 1000); 
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
-        
-        const homeLat = history.find(i => i.homeLat)?.homeLat;
-        const homeLon = history.find(i => i.homeLon)?.homeLon;
-        const isServiceMode = history.find(i => i.isServiceMode)?.isServiceMode || false;
-        const distance = (homeLat && homeLon) ? getDistanceInKm(latest.latitude, latest.longitude, homeLat, homeLon) : 0;
-        const isGeofenceViolation = !isServiceMode && homeLat && distance > 0.5;
-        const isLowBattery = latest.battery !== undefined && Number(latest.battery) <= 20;
-
-        let estTimeRemaining = "Calculating...";
-        if (history.length >= 2 && latest.battery !== undefined && latest.battery !== null) {
-          const prevRecord = history[1];
-          if (prevRecord.battery !== undefined && prevRecord.battery !== null && latest.battery < prevRecord.battery) {
-            const timeDiffMs = new Date(latest.timestamp).getTime() - new Date(prevRecord.timestamp).getTime();
-            const drainPerMs = (prevRecord.battery - latest.battery) / timeDiffMs;
-            if (drainPerMs > 0) {
-              const days = Math.floor((latest.battery / drainPerMs) / 86400000);
-              if (days >= 30) {
-                const m = Math.floor(days / 30);
-                estTimeRemaining = `Est. ${m} month${m > 1 ? 's' : ''} left`;
-              } else if (days > 0) {
-                estTimeRemaining = `Est. ${days} day${days > 1 ? 's' : ''} left`;
-              } else {
-                estTimeRemaining = "Est. < 1 day left";
-              }
-            }
-          }
-        }
-
-        let deviceNotes = [];
-        history.forEach(row => {
-          if (row.notesList && Array.isArray(row.notesList)) {
-            const withTimestamps = row.notesList.map(n => ({ ...n, rowTimestamp: row.timestamp }));
-            deviceNotes = [...deviceNotes, ...withTimestamps];
-          }
-          if (row.note) {
-            deviceNotes.push({
-              text: row.note,
-              user: row.noteUser || "Unknown User",
-              time: row.noteTime || "Prior Log",
-              rowTimestamp: row.timestamp
-            });
-          }
-        });
-
-        deviceNotes.sort((a, b) => {
-          const parseTimestampString = (timeStr) => {
-            if (!timeStr || timeStr === "Prior Log") return 0;
-            const normalized = timeStr.replace(/\s*-\s*/, ' ').trim();
-            const parsedDate = new Date(normalized);
-            return isNaN(parsedDate.getTime()) ? 0 : parsedDate.getTime();
-          };
-          return parseTimestampString(b.time) - parseTimestampString(a.time);
-        });
-
-        return {
-          ...latest,
-          deviceId: id,
-          deviceNotes, 
-          tag: history.find(i => i.tag)?.tag || "",
-          group: history.find(i => i.group)?.group || "",
-          homeLat,
-          homeLon,
-          isServiceMode,
-          lastServiceModeUser: history.find(i => i.lastServiceModeUser)?.lastServiceModeUser || "N/A",
-          lastServiceModeTime: history.find(i => i.lastServiceModeTime)?.lastServiceModeTime || "N/A",
-          isOffline,
-          isGeofenceViolation,
-          isLowBattery,
-          zip: loc.zip,
-          city: loc.city,
-          latitude: latest.latitude,
-          longitude: latest.longitude,
-          battery: latest.battery,
-          estTimeRemaining
-        };
+        return { ...latest, deviceId: id, tag: history.find(i => i.tag)?.tag || "", city: loc.city, estTimeRemaining: "Calculating..." };
       }));
       setAssets(processed);
-    } catch (err) { 
-      console.error(err); 
-      setDbError(`AWS DynamoDB Database Transaction Fault: ${err.message || err}`);
-    }
-  }, [auth.isAuthenticated, auth.user]);
+    } catch (err) { setDbError(err.message); }
+  }, [auth.isAuthenticated]);
 
   useEffect(() => {
     if (auth.isAuthenticated) fetchDevices();
