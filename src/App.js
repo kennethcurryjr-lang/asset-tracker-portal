@@ -31,7 +31,7 @@ function App() {
   const [selectedDevices, setSelectedDevices] = useState([]);
   const [bulkGroupInput, setBulkGroupInput] = useState("");
   const [bulkNoteInput, setBulkNoteInput] = useState("");
-  const [dbError, setDbError] = useState(null); // Diagnostic State Vector
+  const [dbError, setDbError] = useState(null); 
   
   // Category Multi-Select Active Token States
   const [statusFilter, setStatusFilter] = useState("all"); 
@@ -198,12 +198,10 @@ function App() {
     if (!auth.isAuthenticated) return;
     setDbError(null);
     try {
-      // Robust diagnostic query fallback routine
       let items = [];
       const userSub = auth.user?.profile?.sub;
 
       try {
-        // Method A: Attempt indexed query search via clientId-index mapping matrix
         const queryResponse = await docClient.send(new QueryCommand({
           TableName: "AssetTrackerData",
           IndexName: "clientId-index", 
@@ -213,13 +211,11 @@ function App() {
         items = queryResponse.Items || [];
       } catch (queryErr) {
         console.warn("GSI Query Vector unaligned, dropping back to direct table scanner...", queryErr);
-        // Method B: Fallback scan route if IAM policies permit global collection retrieval
         const scanResponse = await docClient.send(new ScanCommand({ TableName: "AssetTrackerData" }));
         items = scanResponse.Items || [];
       }
 
       if (items.length === 0) {
-        setDbError(`Handshake successful, but 0 data files returned for user identifier: ${userSub || "Missing Profile Sub"}`);
         setAssets([]);
         return;
       }
@@ -688,7 +684,7 @@ function App() {
           flex-direction: column;
           gap: 12px;
           margin-top: 12px;
-          border-top: '1px solid #e5e5ea';
+          border-top: 1px solid #e5e5ea;
           padding-top: 12px;
         }
         .card-split-columns-view {
@@ -697,7 +693,14 @@ function App() {
           gap: 12px;
         }
         
+        .mobile-filter-toggle-btn {
+          display: none !important;
+        }
+
         @media (max-width: 768px) {
+          .mobile-filter-toggle-btn {
+            display: block !important;
+          }
           .sticky-search-panel-container {
             padding: 12px 14px !important;
             top: 4px !important;
@@ -743,7 +746,6 @@ function App() {
             margin-top: 0 !important;
           }
           
-          /* Cryptographic micro-clip layer to filter out multi-line wrap text clutter on mobile cards */
           .card-column-right-mapping iframe {
             height: calc(100% + 22px) !important;
             margin-top: -11px !important;
@@ -787,7 +789,6 @@ function App() {
         }}>Sign Out</button>
       </header>
 
-      {/* Database Diagnostic Notification Banner */}
       {dbError && (
         <div style={{ backgroundColor: '#ff3b30', color: '#ffffff', padding: '12px 24px', fontSize: '14px', fontWeight: '600', textAlign: 'center', boxShadow: '0 4px 12px rgba(255,59,48,0.2)' }}>
           ⚠️ {dbError}
@@ -817,9 +818,9 @@ function App() {
             
             <button 
               onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="mobile-filter-toggle-btn"
               style={{
                 ...secondaryButtonStyle,
-                display: window.innerWidth <= 768 ? 'block' : 'none',
                 alignSelf: 'flex-end',
                 padding: '8px 14px',
                 borderRadius: '8px',
@@ -907,7 +908,6 @@ function App() {
             .map(item => {
               const historicalNotes = item.deviceNotes || [];
               const batteryLevel = item.battery !== undefined ? Number(item.battery) : 100;
-              const isBatteryLow = batteryLevel <= 20;
               const sparkColor = getBatteryStatusColor(batteryLevel);
               
               const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${item.longitude - 0.005}%2C${item.latitude - 0.003}%2C${item.longitude + 0.005}%2C${item.latitude + 0.003}&layer=mapnik&marker=${item.latitude}%2C${item.longitude}`;
