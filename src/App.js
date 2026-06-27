@@ -464,7 +464,7 @@ function App() {
                 UpdateExpression: "REMOVE notesList, note, noteUser, noteTime, tag, homeLat, homeLon, lastServiceModeUser, lastServiceModeTime SET isServiceMode = :val",
                 ExpressionAttributeValues: { ":val": false }
             }));
-            await addNote(dev.deviceId, dev.timestamp, "🛡️ Factory Reset: Watchdog Disabled");
+            await docClient.send(new UpdateCommand({TableName: "AssetTrackerData", Key: {deviceId: dev.deviceId, timestamp: dev.timestamp}, UpdateExpression: "SET isServiceMode = :val", ExpressionAttributeValues: { ":val": false }})); await addNote(dev.deviceId, dev.timestamp, "🛡️ Factory Reset: Watchdog Disabled");
         }));
         alert(`Successfully reset ${selectedDevices.length} devices.`);
         setSelectedDevices([]);
