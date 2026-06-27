@@ -449,7 +449,6 @@ function App() {
         updateAttribute(deviceId, timestamp, 'homeLat', lat, '#hl'),
         updateAttribute(deviceId, timestamp, 'homeLon', lon, '#hlon')
     ]);
-    alert("Home location saved!");
   };
 
   const applyBulkGroup = async () => {
@@ -465,6 +464,7 @@ function App() {
 
   const applyBulkNote = async () => {
     if (!bulkNoteInput || !bulkNoteInput.trim()) return;
+    if (!window.confirm(`Are you sure you want to broadcast this timeline log entry to all ${selectedDevices.length} selected devices?`)) return;
     await Promise.all(selectedDevices.map(id => {
       const dev = assets.find(a => a.deviceId === id);
       return addNote(dev.deviceId, dev.timestamp, bulkNoteInput.trim());
@@ -475,8 +475,19 @@ function App() {
     fetchDevices();
   };
 
+  const applyBulkSetHome = async () => {
+    if (!window.confirm(`Are you sure you want to set the current lock position as the home location anchor for all ${selectedDevices.length} selected devices?`)) return;
+    await Promise.all(selectedDevices.map(id => {
+      const dev = assets.find(a => a.deviceId === id);
+      return setHomeLocation(dev.deviceId, dev.timestamp, dev.latitude, dev.longitude);
+    }));
+    alert(`Saved home target geofence anchors for ${selectedDevices.length} devices.`);
+    setSelectedDevices([]);
+    fetchDevices();
+  };
+
   const applyBulkClearHome = async () => {
-    if (!window.confirm(`Are you sure you want to completely clear the home location anchors for all ${selectedDevices.length} selected Kinetic Cards?`)) return;
+    if (!window.confirm(`Are you sure you want to completely wipe out and clear the home location anchors for all ${selectedDevices.length} selected Kinetic Cards?`)) return;
     await Promise.all(selectedDevices.map(id => {
       const dev = assets.find(a => a.deviceId === id);
       return clearHomeLocation(dev.deviceId, dev.timestamp);
@@ -727,7 +738,6 @@ function App() {
             margin-top: 0 !important;
           }
           
-          /* Symmetrical scaling blocks mapping coordinates directly centered on screen layouts */
           .card-column-right-mapping iframe {
             width: 300% !important;
             height: calc(100% + 40px) !important;
@@ -1132,11 +1142,11 @@ function App() {
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', flex: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
             
-            {/* Action 1: Bulk Group Assignment */}
+            {/* Action 1: Bulk Group Assignment Refactored Label */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input 
                 list="group-suggestions-list"
-                placeholder="Assign folder..." 
+                placeholder="Assign to Group..." 
                 value={bulkGroupInput}
                 onChange={(e) => setBulkGroupInput(e.target.value)}
                 style={{ ...inputStyle, padding: '8px 12px', fontSize: '13px', width: '150px' }}
@@ -1144,18 +1154,21 @@ function App() {
               <button onClick={applyBulkGroup} disabled={!bulkGroupInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkGroupInput.trim() ? 1 : 0.4 }}>Move</button>
             </div>
 
-            {/* Action 2: Bulk Timeline Log Broadcast */}
+            {/* Action 2: Bulk Timeline Log Broadcast with Phrasing and Safe Confirmation */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input 
-                placeholder="Broadcast event log note..." 
+                placeholder="Post log to Group..." 
                 value={bulkNoteInput}
                 onChange={(e) => setBulkNoteInput(e.target.value)}
                 style={{ ...inputStyle, padding: '8px 12px', fontSize: '13px', width: '240px' }}
               />
-              <button onClick={applyBulkNote} disabled={!bulkNoteInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkNoteInput.trim() ? 1 : 0.4 }}>Post Log</button>
+              <button onClick={applyBulkNote} disabled={!bulkNoteInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkNoteInput.trim() ? 1 : 0.4 }}>Post log to Group</button>
             </div>
 
-            {/* Action 3: Bulk Clear Anchors */}
+            {/* Action 3: Dual Set Home Anchors with Confirmation Prompt */}
+            <button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#34c759', color: '#34c759' }}>Set Home Anchors</button>
+
+            {/* Action 4: Dual Clear Home Anchors with Confirmation Prompt */}
             <button onClick={applyBulkClearHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff3b30', color: '#ff3b30' }}>Clear Home Anchors</button>
 
           </div>
