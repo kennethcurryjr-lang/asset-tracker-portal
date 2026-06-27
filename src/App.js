@@ -900,7 +900,7 @@ function App() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 0.33fr))', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
           {filteredAssets.map(item => {
-              const historicalNotes = item.deviceNotes || [];
+              const historicalNotes = item.notesList || [];
               const batteryLevel = item.battery !== undefined ? Number(item.battery) : 100;
               const sparkColor = getBatteryStatusColor(batteryLevel);
               
