@@ -227,18 +227,8 @@ function App() {
       const userSub = auth.user?.profile?.sub;
 
       try {
-        const queryResponse = await docClient.send(new QueryCommand({
-          TableName: "AssetTrackerData",
-          IndexName: "clientId-index", 
-          KeyConditionExpression: "clientId = :cid",
-          ExpressionAttributeValues: { ":cid": userSub || "" }
-        }));
-        items = queryResponse.Items || [];
-      } catch (queryErr) {
-        console.warn("GSI Query Vector unaligned, dropping back to direct table scanner...", queryErr);
         const scanResponse = await docClient.send(new ScanCommand({ TableName: "AssetTrackerData" }));
-        items = scanResponse.Items || [];
-      }
+      items = scanResponse.Items || [];
 
       if (items.length === 0) {
         setAssets([]);
