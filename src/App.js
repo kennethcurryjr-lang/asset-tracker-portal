@@ -1007,7 +1007,7 @@ function App() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                         <input type="checkbox" checked={selectedDevices.includes(item.deviceId.slice(-5))} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId.slice(-5)) ? prev.filter(i => i !== item.deviceId.slice(-5)) : [...prev, item.deviceId.slice(-5)])} style={{ width: '16px', height: '16px', accentColor: '#1d1d1f', cursor: 'pointer' }} />
                         <div style={{ fontSize: '15px', fontWeight: '600', color: '#1d1d1f', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>
-                            {item.tag ? item.tag : 'UNNAMED'.slice(-5)}
+                            {item.tag ? item.tag : 'UNNAMED'}
                         </div>
                       </div>
                       
