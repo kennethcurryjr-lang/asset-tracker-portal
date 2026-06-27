@@ -277,7 +277,7 @@ function App() {
           homeLon,
           isServiceMode,
           lastServiceModeUser: history.find(i => i.lastServiceModeUser)?.lastServiceModeUser || "N/A",
-          lastServiceModeTime: history.find(i => i.lastServiceModeTime || "N/A"),
+          lastServiceModeTime: history.find(i => i.lastServiceModeTime)?.lastServiceModeTime || "N/A",
           isOffline,
           isGeofenceViolation,
           isLowBattery,
@@ -727,10 +727,13 @@ function App() {
             margin-top: 0 !important;
           }
           
+          /* Symmetrical scaling blocks mapping coordinates directly centered on screen layouts */
           .card-column-right-mapping iframe {
-            height: calc(100% + 22px) !important;
-            margin-top: -11px !important;
-            clip-path: inset(11px 0px 22px 0px);
+            width: 300% !important;
+            height: calc(100% + 40px) !important;
+            margin-left: -100% !important;
+            margin-top: -10px !important;
+            border: none !important;
           }
           
           .timeline-wrapper-panel {
