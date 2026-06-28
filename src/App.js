@@ -1246,4 +1246,5 @@ function App() {
   );
 }
 
+<div style="text-align: center; padding: 20px; color: #86868b; font-size: 12px;">©2024 Kinetic Cards</div>
 export default App;
