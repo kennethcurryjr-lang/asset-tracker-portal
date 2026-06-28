@@ -1236,15 +1236,17 @@ function App() {
             <button onClick={applyBulkClearHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff3b30', color: '#ff3b30' }}>Clear Home Anchors</button>
             
             {/* NEW ACTION: Factory Reset Devices */}
-            <button onClick={applyBulkFactoryReset} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff3b30', color: '#ff3b30' }}>Factory Reset</button>
+            <button onClick={applyBulkFactoryReset} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#ff3b30", color: "#ff3b30" }}>Factory Reset</button>
 
           </div>
         </div>
       </div>
 
+      <div style={{ textAlign: "center", padding: "20px", color: "#86868b", fontSize: "12px" }}>
+        ©2024 Kinetic Cards
+      </div>
     </div>
   );
 }
 
-<div style="text-align: center; padding: 20px; color: #86868b; font-size: 12px;">©2024 Kinetic Cards</div>
 export default App;
