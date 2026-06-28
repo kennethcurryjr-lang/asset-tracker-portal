@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { QueryCommand, UpdateCommand, ScanCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { QueryCommand, UpdateCommand, ScanCommand, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient } from './dynamoClient';
 import { useAuth } from "react-oidc-context";
 
@@ -366,25 +366,43 @@ function App() {
   // --- NEW FEATURE: Bulk Factory Reset (Wipe Devices) ---
   const applyBulkFactoryReset = async () => {
     if (!isAdmin) { alert("Security Violation."); return; }
-    if (!window.confirm(`WARNING: PERMANENTLY wipe logs, reset names, and clear home/watchdog for all ${selectedDevices.length} selected devices?`)) return;
+    if (!window.confirm(`WARNING: PERMANENTLY wipe ALL historical logs, tracking data, and names for ${selectedDevices.length} selected devices? This cannot be undone.`)) return;
     try {
         await Promise.all(selectedDevices.map(async (id) => {
             const dev = assets.find(a => a.deviceId === id);
             if (!dev) return;
-            await docClient.send(new UpdateCommand({ 
-                TableName: "AssetTrackerData", 
-                Key: { deviceId: dev.deviceId, timestamp: dev.timestamp }, 
-                UpdateExpression: "REMOVE notesList, note, noteUser, noteTime, tag, homeLat, homeLon, lastServiceModeUser, lastServiceModeTime SET isServiceMode = :val",
-                ExpressionAttributeValues: { ":val": true }
+            const queryResponse = await docClient.send(new QueryCommand({
+              TableName: "AssetTrackerData",
+              KeyConditionExpression: "deviceId = :id",
+              ExpressionAttributeValues: { ":id": id }
             }));
-            await addNote(dev.deviceId, dev.timestamp, "🛡️ Factory Reset: Watchdog Disabled");
+            const items = queryResponse.Items || [];
+            await Promise.all(items.map(item => 
+              docClient.send(new DeleteCommand({
+                TableName: "AssetTrackerData",
+                Key: { deviceId: id, timestamp: item.timestamp }
+              }))
+            ));
+            const cleanTimestamp = new Date().toISOString();
+            await docClient.send(new UpdateCommand({
+              TableName: "AssetTrackerData",
+              Key: { deviceId: id, timestamp: cleanTimestamp },
+              UpdateExpression: "SET isServiceMode = :sm, battery = :bat, latitude = :lat, longitude = :lon",
+              ExpressionAttributeValues: { 
+                ":sm": true,
+                ":bat": dev.battery || 100,
+                ":lat": dev.latitude || 0,
+                ":lon": dev.longitude || 0
+              }
+            }));
+            await addNote(id, cleanTimestamp, "🛡️ Factory Reset: Device Wiped and Re-initialized");
         }));
-        await Promise.all(selectedDevices.map(id => addNote(id, assets.find(a => a.deviceId === id).timestamp, "🛡️ Factory Reset: Watchdog Disabled"))); alert(`Successfully reset ${selectedDevices.length} devices.`);
+        alert(`Successfully purged and reset ${selectedDevices.length} devices.`);
         setSelectedDevices([]);
         fetchDevices();
     } catch (err) { 
-        console.error(err);
-        alert("Bulk reset failed."); 
+        console.error("Deep Purge Error:", err);
+        alert("Bulk reset failed. Check console for details."); 
     }
   };
 
