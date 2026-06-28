@@ -244,7 +244,43 @@ function App() {
         const history = grouped[id].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         const latest = history[0];
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
-        return { ...latest, deviceId: id, tag: history.find(i => i.tag)?.tag || "", city: loc.city, estTimeRemaining: "Calculating..." };
+        
+        let estTimeRemaining = "Calculating...";
+        const currentBattery = Number(latest.battery) || 100;
+
+        if (currentBattery <= 0) {
+          estTimeRemaining = "Depleted";
+        } else if (history.length > 1) {
+          const pastPing = history.find(ping => (Number(ping.battery) || 100) > currentBattery);
+          
+          if (pastPing) {
+            const timeDiffMs = new Date(latest.timestamp) - new Date(pastPing.timestamp);
+            const hoursDiff = timeDiffMs / (1000 * 60 * 60);
+            const batteryDrop = Number(pastPing.battery) - currentBattery;
+            
+            if (hoursDiff > 0 && batteryDrop > 0) {
+              const dropPerHour = batteryDrop / hoursDiff;
+              const hoursRemaining = currentBattery / dropPerHour;
+              
+              if (hoursRemaining > 48) {
+                estTimeRemaining = `${Math.floor(hoursRemaining / 24)} days`;
+              } else if (hoursRemaining > 1) {
+                estTimeRemaining = `${Math.floor(hoursRemaining)} hrs`;
+              } else {
+                estTimeRemaining = `${Math.floor(hoursRemaining * 60)} mins`;
+              }
+            }
+          }
+        }
+
+        if (estTimeRemaining === "Calculating...") {
+           const fallbackHours = (currentBattery / 100) * 72; 
+           estTimeRemaining = fallbackHours > 48 
+              ? `${Math.floor(fallbackHours / 24)} days` 
+              : `${Math.floor(fallbackHours)} hrs`;
+        }
+
+        return { ...latest, deviceId: id, tag: history.find(i => i.tag)?.tag || "", city: loc.city, estTimeRemaining };
       }));
       setAssets(processed);
     } catch (err) { setDbError(err.message); }
