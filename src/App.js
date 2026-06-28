@@ -302,7 +302,6 @@ function App() {
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId, timestamp },
-        Key: { deviceId, timestamp },
         UpdateExpression: "SET #nl = list_append(if_not_exists(#nl, :empty_list), :new_note)",
         ExpressionAttributeNames: { "#nl": "notesList" },
         ExpressionAttributeValues: {
@@ -340,7 +339,6 @@ function App() {
       if (dbItem.notesList && Array.isArray(dbItem.notesList)) {
         const updatedList = dbItem.notesList.filter(
           n => !(n.text === targetNote.text && n.time === targetNote.time)
-        );
         );
         
         await docClient.send(new UpdateCommand({
@@ -452,7 +450,7 @@ function App() {
       try {
         const dev = assets.find(a => a.deviceId === id);
         if (!dev) throw new Error("Device " + id + " not found");
-        await updateAttribute(dev.deviceId, dev.timestamp, "group", bulkGroupInput.trim(), "#g");
+        await updateAttribute(dev.deviceId, dev.timestamp, 'group', bulkGroupInput.trim(), '#g');
         return { id, success: true };
       } catch (err) {
         console.error("Failed to update " + id + ":", err);
@@ -461,9 +459,9 @@ function App() {
     }));
     const failures = results.filter(r => !r.success);
     if (failures.length > 0) {
-      alert("Bulk group update partial failure: " + failures.map(f => f.id).join(", "));
+      alert(`Bulk group update partial failure: ${failures.map(f => f.id).join(", ")}`);
     } else {
-      alert("Assigned group folder "" + bulkGroupInput.trim() + "" to " + selectedDevices.length + " Kinetic Cards.");
+      alert(`Assigned group folder "${bulkGroupInput.trim()}" to ${selectedDevices.length} Kinetic Cards.`);
     }
     resetAllInputs();
     fetchDevices();
