@@ -273,11 +273,16 @@ function App() {
           }
         }
 
+        // Failsafe: Align with 12-month IoT hardware baseline (365 days)
         if (estTimeRemaining === "Calculating...") {
-           const fallbackHours = (currentBattery / 100) * 72; 
-           estTimeRemaining = fallbackHours > 48 
-              ? `${Math.floor(fallbackHours / 24)} days` 
-              : `${Math.floor(fallbackHours)} hrs`;
+           const fallbackDays = (currentBattery / 100) * 365;
+           if (fallbackDays >= 60) {
+               estTimeRemaining = `${Math.floor(fallbackDays / 30)} months`;
+           } else if (fallbackDays > 2) {
+               estTimeRemaining = `${Math.floor(fallbackDays)} days`;
+           } else {
+               estTimeRemaining = `${Math.floor(fallbackDays * 24)} hrs`;
+           }
         }
 
         return { ...latest, deviceId: id, tag: history.find(i => i.tag)?.tag || "", city: loc.city, estTimeRemaining };
