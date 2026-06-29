@@ -27,11 +27,6 @@ async function getLocationInfo(lat, lon) {
     return result;
   } catch (err) { return { zip: "Error", city: "Error" }; }
 }
-  try {
-    const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-    const data = await response.json();
-    return { zip: data.postcode || "Unknown", city: data.city || data.locality || "Unknown" };
-  } catch (err) { return { zip: "Error", city: "Error" }; }
 
 function App() {
   const auth = useAuth();
