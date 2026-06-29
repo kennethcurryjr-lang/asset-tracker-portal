@@ -36,3 +36,9 @@
     transform: rotate(360deg);
   }
 }
+
+@media only screen and (max-width: 600px) {
+  .filter-row-container, div:has(> input[type="checkbox"]) {
+    margin-left: 15px !important;
+  }
+}
