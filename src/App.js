@@ -1101,6 +1101,8 @@ function App() {
                           {item.isOffline && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#ff3b30', borderRadius: '4px' }}>Offline</span>}
                           {item.isGeofenceViolation && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#ff9500', borderRadius: '4px' }}>Geofence</span>}
                           {item.isLowBattery && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#b7094c', borderRadius: '4px' }}>Low Batt</span>}
+                          {marineModes?.[item.deviceId.slice(-5)] && <span style={{ color: "#ffffff", fontSize: "9px", fontWeight: "700", textTransform: "uppercase", padding: "2px 6px", backgroundColor: "#007aff", borderRadius: "4px" }}>⚓ Marine</span>}
+
                       </div>
 
                       <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.4' }}>
@@ -1318,7 +1320,7 @@ function App() {
             </div>
 
             {/* Action 3: Dual Set Home Anchors with Confirmation Prompt */}
-            <div className="marine-home-group"><button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#34c759", color: "#34c759" }}>Set Home Anchors</button><button onClick={() => setMarineModes(prev => { const res = {...prev}; selectedDevices.forEach(id => res[id] = !res[id]); return res; })} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#007aff", color: "#007aff" }}>⚓ Toggle Marine Mode</button></div>
+            <div className="marine-home-group"><button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#34c759", color: "#34c759" }}>Set Home Anchors</button><button onClick={() => { setMarineModes(prev => { const res = {...prev}; selectedDevices.forEach(id => res[id] = !res[id]); return res; }); alert("Marine Mode toggled for " + selectedDevices.length + " device(s)."); setSelectedDevices([]); }} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#007aff", color: "#007aff" }}>⚓ Toggle Marine Mode</button></div>
 
             {/* Action 4: Dual Clear Home Anchors with Confirmation Prompt */}
             <button onClick={applyBulkClearHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff9500', color: '#ff9500' }}>Clear Home Anchors</button>
