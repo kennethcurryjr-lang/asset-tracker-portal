@@ -1133,6 +1133,7 @@ function App() {
                         backgroundColor: '#f5f5f7'
                       }}
                     >
+                      <iframe title="map-thumb" width="100%" height="100%" frameBorder="0" scrolling="no" src={item.latitude ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(item.longitude)-0.005}%2C${Number(item.latitude)-0.005}%2C${Number(item.longitude)+0.005}%2C${Number(item.latitude)+0.005}&layer=mapnik&marker=${item.latitude}%2C${item.longitude}` : "about:blank"} style={{ pointerEvents: "none", border: "none" }}></iframe>
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'transparent' }}></div>
                       <div style={{ position: 'absolute', bottom: '4px', right: '4px', zIndex: 20, backgroundColor: 'rgba(29, 29, 31, 0.85)', color: '#ffffff', fontSize: '9px', fontWeight: '600', padding: '2px 4px', borderRadius: '3px' }}>
                         ⛶ Expand
@@ -1231,7 +1232,7 @@ function App() {
               <button onClick={() => setActiveMapModalAsset(null)} style={{ ...secondaryButtonStyle, padding: '8px 18px', fontSize: '13px', borderRadius: '14px', cursor: 'pointer' }}>Close Map</button>
             </div>
             <div style={{ flex: 1, width: '100%', backgroundColor: '#f5f5f7', position: 'relative' }}>
-              <MapContainer key={sharedAsset?.latitude || 0} center={[Number(sharedAsset?.latitude) || 0, Number(sharedAsset?.longitude) || 0]} zoom={15} style={{ width: "100%", height: "100%", zIndex: 1 }}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><Marker position={[Number(sharedAsset?.latitude) || 0, Number(sharedAsset?.longitude) || 0]} icon={customIcon} /></MapContainer>
+              <iframe title="map-modal" width="100%" height="100%" frameBorder="0" scrolling="no" src={activeMapModalAsset?.latitude ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(activeMapModalAsset.longitude)-0.01}%2C${Number(activeMapModalAsset.latitude)-0.01}%2C${Number(activeMapModalAsset.longitude)+0.01}%2C${Number(activeMapModalAsset.latitude)+0.01}&layer=mapnik&marker=${activeMapModalAsset.latitude}%2C${activeMapModalAsset.longitude}` : "about:blank"}></iframe>
             </div>
           </div>
         </div>
