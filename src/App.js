@@ -45,6 +45,8 @@ const customIcon = new L.Icon({ iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/i
 function App() {
   const auth = useAuth();
   const [assets, setAssets] = useState([]);
+  const [marineModes, setMarineModes] = useState({});
+
   const [searchTerm, setSearchTerm] = useState("");
   const [tagInputs, setTagInputs] = useState({});
   const [noteInputs, setNoteInputs] = useState({});
@@ -915,6 +917,12 @@ function App() {
             height: 100px !important;
           }
         }
+        .marine-home-group { display: flex; gap: 20px; flex-direction: row-reverse; }
+        @media (max-width: 768px) {
+          .marine-home-group { flex-direction: column; width: 100%; gap: 12px; }
+          .marine-home-group button { width: 100%; }
+        }
+
       `}</style>
 
       <header style={headerStyle}>
@@ -1309,7 +1317,7 @@ function App() {
             </div>
 
             {/* Action 3: Dual Set Home Anchors with Confirmation Prompt */}
-            <button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#34c759', color: '#34c759' }}>Set Home Anchors</button>
+            <div className="marine-home-group"><button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#34c759", color: "#34c759" }}>Set Home Anchors</button><button onClick={() => setMarineModes(prev => { const res = {...prev}; selectedDevices.forEach(id => res[id] = !res[id]); return res; })} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#007aff", color: "#007aff" }}>⚓ Toggle Marine Mode</button></div>
 
             {/* Action 4: Dual Clear Home Anchors with Confirmation Prompt */}
             <button onClick={applyBulkClearHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff3b30', color: '#ff3b30' }}>Clear Home Anchors</button>
