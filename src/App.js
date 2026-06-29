@@ -632,35 +632,20 @@ function App() {
     }
   };
 
-  const exportToCSV = () => {
+  const emailReport = () => {
     if (!isAdmin) return;
-    if (filteredAssets.length === 0) { alert("No data to export."); return; }
-    const headers = ["Device ID", "Tag Name", "Group", "Status", "Battery %", "Est. Life", "City", "Lat", "Lon", "Last Update"];
-    const csvRows = [headers.join(",")];
+    if (filteredAssets.length === 0) { alert("No data to email."); return; }
+    const subject = encodeURIComponent(`Kinetic Cards Status Report - ${new Date().toLocaleDateString()}`);
+    let bodyText = "KINETIC CARDS - SYSTEM REPORT\n\n";
     filteredAssets.forEach(a => {
       const status = a.isOffline ? "Offline" : a.isGeofenceViolation ? "Geofence Alert" : a.isLowBattery ? "Low Battery" : "Active";
-      const row = [
-        a.deviceId,
-        `"${a.tag || "UNNAMED"}"`,
-        `"${a.group || ""}"`,
-        status,
-        a.battery || 100,
-        `"${a.estTimeRemaining || ""}"`,
-        `"${a.city || ""}"`,
-        a.latitude || "",
-        a.longitude || "",
-        `"${a.timestamp || ""}"`
-      ];
-      csvRows.push(row.join(","));
+      bodyText += `ID: ${a.deviceId} | Tag: ${a.tag || "UNNAMED"} | Group: ${a.group || "N/A"}\n`;
+      bodyText += `Status: ${status} | Battery: ${a.battery || 100}% (${a.estTimeRemaining || "Unknown"})\n`;
+      bodyText += `Location: ${a.city || "Unknown"} [${a.latitude}, ${a.longitude}]\n`;
+      bodyText += `--------------------------------------------------\n`;
     });
-    const csvData = new Blob([csvRows.join("\n")], { type: "text/csv" });
-    const csvUrl = URL.createObjectURL(csvData);
-    const link = document.createElement("a");
-    link.href = csvUrl;
-    link.download = `Kinetic_Cards_Export_${new Date().toISOString().slice(0,10)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+
   };
 
   const handleSignOut = () => {
@@ -1054,7 +1039,7 @@ function App() {
                   {healthyCount} Stable
                 </div>
              </div>
-             {isAdmin && <button onClick={exportToCSV} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>📥 Export CSV</button>}
+             {isAdmin && <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button>}
              <button onClick={fetchDevices} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#34c759", color: "#34c759" }}>🔄 Sync Data</button>
              <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>Reset</button>
           </div>
