@@ -1,4 +1,8 @@
 /* eslint-disable no-unused-vars */
+import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { QueryCommand, UpdateCommand, ScanCommand, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient } from './dynamoClient';
@@ -27,6 +31,8 @@ async function getLocationInfo(lat, lon) {
     return result;
   } catch (err) { return { zip: "Error", city: "Error" }; }
 }
+
+const customIcon = new L.Icon({ iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png", shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize: [25, 41], iconAnchor: [12, 41] });
 
 function App() {
   const auth = useAuth();
@@ -252,6 +258,7 @@ function App() {
         const history = grouped[id].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         const latest = history[0];
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
+        latest.path = history.slice(0, 10).filter(p => p.latitude && p.longitude).map(p => [Number(p.latitude), Number(p.longitude)]);
         
         let estTimeRemaining = "Calculating...";
         const currentBattery = Number(latest.battery) || 100;
@@ -1112,15 +1119,7 @@ function App() {
                       }}
                     >
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'transparent' }}></div>
-                      <iframe 
-                        title={`inline-map-${item.deviceId.slice(-5)}`}
-                        width="100%" 
-                        height="100%" 
-                        frameBorder="0" 
-                        scrolling="no" 
-                        src={mapUrl}
-                        style={{ pointerEvents: 'none', border: 'none' }}
-                      ></iframe>
+                      <MapContainer center={[item.latitude || 0, item.longitude || 0]} zoom={14} zoomControl={false} style={{ width: "100%", height: "100%", zIndex: 1 }}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><Polyline positions={item.path || [[item.latitude || 0, item.longitude || 0]]} color="#007aff" weight={4} opacity={0.8} /><Marker position={[item.latitude || 0, item.longitude || 0]} icon={customIcon} /></MapContainer>
                       <div style={{ position: 'absolute', bottom: '4px', right: '4px', zIndex: 20, backgroundColor: 'rgba(29, 29, 31, 0.85)', color: '#ffffff', fontSize: '9px', fontWeight: '600', padding: '2px 4px', borderRadius: '3px' }}>
                         ⛶ Expand
                       </div>
@@ -1220,15 +1219,7 @@ function App() {
               <button onClick={() => setActiveMapModalAsset(null)} style={{ ...secondaryButtonStyle, padding: '8px 18px', fontSize: '13px', borderRadius: '14px', cursor: 'pointer' }}>Close Map</button>
             </div>
             <div style={{ flex: 1, width: '100%', backgroundColor: '#f5f5f7', position: 'relative' }}>
-              <iframe 
-                title="fullscreen-interactive-tracker"
-                width="100%" 
-                height="100%" 
-                frameBorder="0" 
-                scrolling="no" 
-                src={`https://www.openstreetmap.org/export/embed.html?bbox=${activeMapModalAsset.longitude - 0.01}%2C${activeMapModalAsset.latitude - 0.006}%2C${activeMapModalAsset.longitude + 0.01}%2C${activeMapModalAsset.latitude + 0.006}&layer=mapnik&marker=${activeMapModalAsset.latitude}%2C${activeMapModalAsset.longitude}`}
-                style={{ border: 'none' }}
-              ></iframe>
+              <MapContainer center={[sharedAsset.latitude || 0, sharedAsset.longitude || 0]} zoom={15} style={{ width: "100%", height: "100%", zIndex: 1 }}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><Marker position={[sharedAsset.latitude || 0, sharedAsset.longitude || 0]} icon={customIcon} /></MapContainer>
             </div>
           </div>
         </div>
