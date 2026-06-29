@@ -1223,15 +1223,7 @@ function App() {
               <button onClick={() => setActiveMapModalAsset(null)} style={{ ...secondaryButtonStyle, padding: '8px 18px', fontSize: '13px', borderRadius: '14px', cursor: 'pointer' }}>Close Map</button>
             </div>
             <div style={{ flex: 1, width: '100%', backgroundColor: '#f5f5f7', position: 'relative' }}>
-              <MapContainer 
-  key={item.timestamp || Date.now()} 
-  center={[parseFloat(item.latitude) || 36.1699, parseFloat(item.longitude) || -115.1398]} 
-  zoom={14} 
-  style={{ width: "100%", height: "100%", zIndex: 1 }}
->
-  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-  <Marker position={[parseFloat(item.latitude) || 36.1699, parseFloat(item.longitude) || -115.1398]} icon={customIcon} />
-</MapContainer>
+              <MapContainer key={sharedAsset?.latitude || 0} center={[Number(sharedAsset?.latitude) || 0, Number(sharedAsset?.longitude) || 0]} zoom={15} style={{ width: "100%", height: "100%", zIndex: 1 }}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><Marker position={[Number(sharedAsset?.latitude) || 0, Number(sharedAsset?.longitude) || 0]} icon={customIcon} /></MapContainer>
             </div>
           </div>
         </div>
