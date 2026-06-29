@@ -1094,7 +1094,7 @@ function App() {
                   </div>
 
                   <div style={{ display: 'flex', gap: '4px', width: '100%', flexWrap: 'wrap' }}>
-                      {isAdmin && <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: '6px 10px', fontSize: '11px', borderRadius: '8px', flex: 1 }}>Share</button>}
+                      {isAdmin && (item.shareToken ? <button onClick={() => revokeLiveShare(item.deviceId.slice(-5), item.timestamp)} style={{ ...secondaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1, borderColor: "#ff3b30", color: "#ff3b30" }}>Revoke</button> : <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1 }}>Share</button>)}
                       
                       {/* Watchdog Status Button with Conditional Radar Light */}
                       <button onClick={() => toggleServiceMode(item.deviceId.slice(-5), item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode ? 'transparent' : '#1d1d1f', color: item.isServiceMode ? '#1d1d1f' : '#ffffff', border: item.isServiceMode ? '1px solid #1d1d1f' : 'none' }}>
