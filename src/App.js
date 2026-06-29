@@ -46,6 +46,8 @@ function App() {
   const auth = useAuth();
   const [assets, setAssets] = useState([]);
   const [marineModes, setMarineModes] = useState({});
+  const [showGuide, setShowGuide] = useState(false);
+
 
   const [searchTerm, setSearchTerm] = useState("");
   const [tagInputs, setTagInputs] = useState({});
@@ -1071,7 +1073,7 @@ function App() {
              </div>
              {isAdmin && <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button>}
              <button onClick={() => { fetchDevices(); alert("Data successfully synced with live database."); }} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#34c759", color: "#34c759" }}>🔄 Sync Data</button>
-             <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>Reset</button>
+             <button onClick={() => setShowGuide(true)} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>📖 Quick Guide</button> <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>Reset</button>
           </div>
         </div>
 
@@ -1268,6 +1270,25 @@ function App() {
               <button onClick={() => { setSharingAsset(null); setShareEmail(""); }} style={secondaryButtonStyle}>Cancel</button>
               <button onClick={executeLiveShareEscalation} disabled={!shareEmail.trim()} style={{ ...primaryButtonStyle, opacity: !shareEmail.trim() ? 0.3 : 1 }}>Generate & Dispatch</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showGuide && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.4)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 7000, padding: "24px" }}>
+          <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", border: "1px solid #d2d2d7", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", letterSpacing: "-0.02em" }}>Kinetic Cards v2.1 - Quick Guide</h3>
+              <button onClick={() => setShowGuide(false)} style={{ background: "transparent", border: "none", fontSize: "20px", cursor: "pointer", color: "#86868b" }}>✕</button>
+            </div>
+            <div style={{ fontSize: "14px", color: "#1d1d1f", lineHeight: "1.6", display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div><strong style={{ fontSize: "15px" }}>1. Finding & Filtering:</strong><br/>Use the search bar or 🎛️ Filter Drawer to locate units by ID, status (Offline, Geofence), or Group.</div>
+              <div><strong style={{ fontSize: "15px" }}>2. Geofence & Watchdog:</strong><br/>Click "Set Home" to drop a GPS anchor. Activate "Watchdog" to trigger alerts if the unit moves from that anchor.</div>
+              <div style={{ backgroundColor: "#f5f5f7", padding: "12px", borderRadius: "8px", borderLeft: "3px solid #007aff" }}><strong style={{ fontSize: "15px", color: "#007aff" }}>3. Marine Mode ⚓:</strong><br/>For cruise ships, <strong>DO NOT</strong> Set Home. Activate Watchdog, open the bottom bulk drawer, and toggle "Marine Mode" ON. This relies strictly on Wi-Fi drops and tamper sensors.</div>
+              <div><strong style={{ fontSize: "15px" }}>4. Bulk Actions:</strong><br/>Check boxes on multiple cards to open the bottom drawer. Mass-assign groups, post logs, or toggle Marine Mode.</div>
+              <div><strong style={{ fontSize: "15px" }}>5. Secure Live Sharing:</strong><br/>Click "Share" on any device to email a secure, self-destructing tracking link to law enforcement.</div>
+            </div>
+            <button onClick={() => setShowGuide(false)} style={{ ...primaryButtonStyle, width: "100%", marginTop: "24px", padding: "14px" }}>Close Guide</button>
           </div>
         </div>
       )}
