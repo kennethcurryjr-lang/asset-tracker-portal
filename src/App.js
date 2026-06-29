@@ -292,7 +292,11 @@ function App() {
   }, [auth.isAuthenticated]);
 
   useEffect(() => {
-    if (auth.isAuthenticated) fetchDevices();
+    if (auth.isAuthenticated) {
+      fetchDevices();
+      const interval = setInterval(fetchDevices, 60000);
+      return () => clearInterval(interval);
+    }
   }, [auth.isAuthenticated, fetchDevices]);
 
   const updateAttribute = async (deviceId, timestamp, field, value, attributeAlias) => {
