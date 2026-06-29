@@ -732,7 +732,7 @@ function App() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', backgroundColor: '#f5f5f7', padding: '20px', borderRadius: '10px', border: '1px solid #d2d2d7', marginBottom: '28px' }}>
               <div>
                 <div style={labelStyle}>Coordinates Vector</div>
-                <div style={{ fontSize: '16px', fontWeight: '600' }}>{sharedAsset.latitude?.toFixed(5)}, {sharedAsset.longitude?.toFixed(5)}</div>
+                <div style={{ fontSize: '16px', fontWeight: '600' }}>{sharedAsset?.latitude?.toFixed(5)}, {sharedAsset?.longitude?.toFixed(5)}</div>
               </div>
               <div>
                 <div style={{ ...labelStyle }}>Approximate Region</div>
@@ -749,7 +749,7 @@ function App() {
             </div>
 
             <a 
-              href={`https://www.openstreetmap.org/?mlat=${sharedAsset.latitude}&mlon=${sharedAsset.longitude}#map=15/${sharedAsset.latitude}/${sharedAsset.longitude}`}
+              href={`https://www.openstreetmap.org/?mlat=${sharedAsset?.latitude}&mlon=${sharedAsset?.longitude}#map=15/${sharedAsset?.latitude}/${sharedAsset?.longitude}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{ ...primaryButtonStyle, display: 'block', textAlign: 'center', textDecoration: 'none', padding: '14px', borderRadius: '24px', fontSize: '15px', fontWeight: '600' }}
@@ -1065,7 +1065,7 @@ function App() {
               const batteryLevel = item.battery !== undefined ? Number(item.battery) : 100;
               const sparkColor = getBatteryStatusColor(batteryLevel);
               
-              const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${item.longitude - 0.005}%2C${item.latitude - 0.003}%2C${item.longitude + 0.005}%2C${item.latitude + 0.003}&layer=mapnik&marker=${item.latitude}%2C${item.longitude}`;
+              const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${item?.longitude - 0.005}%2C${item?.latitude - 0.003}%2C${item?.longitude + 0.005}%2C${item?.latitude + 0.003}&layer=mapnik&marker=${item?.latitude}%2C${item?.longitude}`;
 
               return (
                 <div key={item.deviceId.slice(-5)} style={{ ...deviceCardStyle, backgroundColor: '#ffffff' }}>
@@ -1119,7 +1119,7 @@ function App() {
                       }}
                     >
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'transparent' }}></div>
-                      <MapContainer center={[item.latitude || 0, item.longitude || 0]} zoom={14} zoomControl={false} style={{ width: "100%", height: "100%", zIndex: 1 }}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><Polyline positions={item.path || [[item.latitude || 0, item.longitude || 0]]} color="#007aff" weight={4} opacity={0.8} /><Marker position={[item.latitude || 0, item.longitude || 0]} icon={customIcon} /></MapContainer>
+                      <MapContainer center={[item?.latitude || 0, item?.longitude || 0]} zoom={14} zoomControl={false} style={{ width: "100%", height: "100%", zIndex: 1 }}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><Polyline positions={item.path || [[item?.latitude || 0, item?.longitude || 0]]} color="#007aff" weight={4} opacity={0.8} /><Marker position={[item?.latitude || 0, item?.longitude || 0]} icon={customIcon} /></MapContainer>
                       <div style={{ position: 'absolute', bottom: '4px', right: '4px', zIndex: 20, backgroundColor: 'rgba(29, 29, 31, 0.85)', color: '#ffffff', fontSize: '9px', fontWeight: '600', padding: '2px 4px', borderRadius: '3px' }}>
                         ⛶ Expand
                       </div>
@@ -1150,14 +1150,14 @@ function App() {
                               clearHomeLocation(item.deviceId.slice(-5), item.timestamp).then(fetchDevices);
                             }
                           } else {
-                            setHomeLocation(item.deviceId.slice(-5), item.timestamp, item.latitude, item.longitude);
+                            setHomeLocation(item.deviceId.slice(-5), item.timestamp, item?.latitude, item?.longitude);
                           }
                         }} 
                         style={{ ...buttonStyle, fontSize: "11px", borderRadius: "8px", flex: 1.2, padding: "6px 10px", backgroundColor: item.homeLat ? "transparent" : "#1d1d1f", color: item.homeLat ? "#1d1d1f" : "#ffffff", border: item.homeLat ? "1px solid #1d1d1f" : "none" }}
                       >
                         {item.homeLat ? "Clear Home" : "Set Home"}
                       </button>
-                      {isAdmin && <button onClick={() => applySingleFactoryReset(item.deviceId.slice(-5), item.battery, item.latitude, item.longitude)} style={{ ...secondaryButtonStyle, fontSize: "11px", borderRadius: "8px", flex: 0.8, padding: "6px 10px", borderColor: "#ff3b30", color: "#ff3b30" }}>Wipe</button>}
+                      {isAdmin && <button onClick={() => applySingleFactoryReset(item.deviceId.slice(-5), item.battery, item?.latitude, item?.longitude)} style={{ ...secondaryButtonStyle, fontSize: "11px", borderRadius: "8px", flex: 0.8, padding: "6px 10px", borderColor: "#ff3b30", color: "#ff3b30" }}>Wipe</button>}
                   </div>
                   
                   {/* Interactive Timeline Stepper for Logs */}
@@ -1219,7 +1219,7 @@ function App() {
               <button onClick={() => setActiveMapModalAsset(null)} style={{ ...secondaryButtonStyle, padding: '8px 18px', fontSize: '13px', borderRadius: '14px', cursor: 'pointer' }}>Close Map</button>
             </div>
             <div style={{ flex: 1, width: '100%', backgroundColor: '#f5f5f7', position: 'relative' }}>
-              <MapContainer center={[sharedAsset.latitude || 0, sharedAsset.longitude || 0]} zoom={15} style={{ width: "100%", height: "100%", zIndex: 1 }}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><Marker position={[sharedAsset.latitude || 0, sharedAsset.longitude || 0]} icon={customIcon} /></MapContainer>
+              <MapContainer center={[sharedAsset?.latitude || 0, sharedAsset?.longitude || 0]} zoom={15} style={{ width: "100%", height: "100%", zIndex: 1 }}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><Marker position={[sharedAsset?.latitude || 0, sharedAsset?.longitude || 0]} icon={customIcon} /></MapContainer>
             </div>
           </div>
         </div>
