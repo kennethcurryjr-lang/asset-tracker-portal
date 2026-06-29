@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { QueryCommand, UpdateCommand, ScanCommand, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient } from './dynamoClient';
@@ -612,6 +613,23 @@ function App() {
     setStatusFilter("all");
     setActiveGroupFilter("all");
     setNamingFilter("all");
+  };
+
+  const revokeLiveShare = async (deviceId, timestamp) => {
+    if (!isAdmin) return;
+    if (!window.confirm("Immediately terminate the active tracking link and revoke access?")) return;
+    try {
+      await docClient.send(new UpdateCommand({
+        TableName: "AssetTrackerData",
+        Key: { deviceId, timestamp },
+        UpdateExpression: "REMOVE shareToken, shareExpires, shareEmail, isStolenFlag"
+      }));
+      alert("Tracking link revoked successfully.");
+      fetchDevices();
+    } catch (err) {
+      console.error("Failed to revoke link:", err);
+      alert("System update failure.");
+    }
   };
 
   const handleSignOut = () => {
