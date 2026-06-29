@@ -404,6 +404,43 @@ function App() {
     }
   };
 
+  const applySingleFactoryReset = async (id, batteryLevel, lat, lon) => {
+    if (!isAdmin) { alert("Security Violation."); return; }
+    if (!window.confirm(`WARNING: PERMANENTLY wipe ALL historical logs, tracking data, and names for device ${id}? This cannot be undone.`)) return;
+    try {
+        const queryResponse = await docClient.send(new QueryCommand({
+          TableName: "AssetTrackerData",
+          KeyConditionExpression: "deviceId = :id",
+          ExpressionAttributeValues: { ":id": id }
+        }));
+        const items = queryResponse.Items || [];
+        await Promise.all(items.map(item => 
+          docClient.send(new DeleteCommand({
+            TableName: "AssetTrackerData",
+            Key: { deviceId: id, timestamp: item.timestamp }
+          }))
+        ));
+        const cleanTimestamp = new Date().toISOString();
+        await docClient.send(new UpdateCommand({
+          TableName: "AssetTrackerData",
+          Key: { deviceId: id, timestamp: cleanTimestamp },
+          UpdateExpression: "SET isServiceMode = :sm, battery = :bat, latitude = :lat, longitude = :lon",
+          ExpressionAttributeValues: { 
+            ":sm": true,
+            ":bat": batteryLevel || 100,
+            ":lat": lat || 0,
+            ":lon": lon || 0
+          }
+        }));
+        await addNote(id, cleanTimestamp, "🛡️ Factory Reset: Device Wiped and Re-initialized");
+        alert(`Successfully purged and reset device ${id}.`);
+        fetchDevices();
+    } catch (err) { 
+        console.error("Deep Purge Error:", err);
+        alert("Reset failed. Check console for details."); 
+    }
+  };
+
   // --- NEW FEATURE: Bulk Factory Reset (Wipe Devices) ---
   const applyBulkFactoryReset = async () => {
     if (!isAdmin) { alert("Security Violation."); return; }
@@ -1071,10 +1108,11 @@ function App() {
                             setHomeLocation(item.deviceId.slice(-5), item.timestamp, item.latitude, item.longitude);
                           }
                         }} 
-                        style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.2, padding: '6px 10px', backgroundColor: item.homeLat ? 'transparent' : '#1d1d1f', color: item.homeLat ? '#1d1d1f' : '#ffffff', border: item.homeLat ? '1px solid #1d1d1f' : 'none' }}
+                        style={{ ...buttonStyle, fontSize: "11px", borderRadius: "8px", flex: 1.2, padding: "6px 10px", backgroundColor: item.homeLat ? "transparent" : "#1d1d1f", color: item.homeLat ? "#1d1d1f" : "#ffffff", border: item.homeLat ? "1px solid #1d1d1f" : "none" }}
                       >
-                        {item.homeLat ? 'Clear Home' : 'Set Home'}
+                        {item.homeLat ? "Clear Home" : "Set Home"}
                       </button>
+                      {isAdmin && <button onClick={() => applySingleFactoryReset(item.deviceId.slice(-5), item.battery, item.latitude, item.longitude)} style={{ ...secondaryButtonStyle, fontSize: "11px", borderRadius: "8px", flex: 0.8, padding: "6px 10px", borderColor: "#ff3b30", color: "#ff3b30" }}>Wipe</button>}
                   </div>
                   
                   {/* Interactive Timeline Stepper for Logs */}
