@@ -632,6 +632,37 @@ function App() {
     }
   };
 
+  const exportToCSV = () => {
+    if (!isAdmin) return;
+    if (filteredAssets.length === 0) { alert("No data to export."); return; }
+    const headers = ["Device ID", "Tag Name", "Group", "Status", "Battery %", "Est. Life", "City", "Lat", "Lon", "Last Update"];
+    const csvRows = [headers.join(",")];
+    filteredAssets.forEach(a => {
+      const status = a.isOffline ? "Offline" : a.isGeofenceViolation ? "Geofence Alert" : a.isLowBattery ? "Low Battery" : "Active";
+      const row = [
+        a.deviceId,
+        `"${a.tag || "UNNAMED"}"`,
+        `"${a.group || ""}"`,
+        status,
+        a.battery || 100,
+        `"${a.estTimeRemaining || ""}"`,
+        `"${a.city || ""}"`,
+        a.latitude || "",
+        a.longitude || "",
+        `"${a.timestamp || ""}"`
+      ];
+      csvRows.push(row.join(","));
+    });
+    const csvData = new Blob([csvRows.join("\n")], { type: "text/csv" });
+    const csvUrl = URL.createObjectURL(csvData);
+    const link = document.createElement("a");
+    link.href = csvUrl;
+    link.download = `Kinetic_Cards_Export_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleSignOut = () => {
     localStorage.clear();
     sessionStorage.clear();
@@ -1023,6 +1054,7 @@ function App() {
                   {healthyCount} Stable
                 </div>
              </div>
+             {isAdmin && <button onClick={exportToCSV} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>📥 Export CSV</button>}
              <button onClick={fetchDevices} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#34c759", color: "#34c759" }}>🔄 Sync Data</button>
              <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>Reset</button>
           </div>
