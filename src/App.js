@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
+import { useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -30,6 +31,12 @@ async function getLocationInfo(lat, lon) {
     locationCache.set(cacheKey, result);
     return result;
   } catch (err) { return { zip: "Error", city: "Error" }; }
+}
+
+function MapUpdater({ center }) {
+  const map = useMap();
+  map.setView(center, 14);
+  return null;
 }
 
 const customIcon = new L.Icon({ iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png", shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize: [25, 41], iconAnchor: [12, 41] });
