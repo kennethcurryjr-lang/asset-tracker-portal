@@ -1001,7 +1001,8 @@ function App() {
                   {healthyCount} Stable
                 </div>
              </div>
-             <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: '4px 12px', fontSize: '12px', borderRadius: '12px' }}>Reset</button>
+             <button onClick={fetchDevices} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#34c759", color: "#34c759" }}>🔄 Sync Data</button>
+             <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>Reset</button>
           </div>
         </div>
 
