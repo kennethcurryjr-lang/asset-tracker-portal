@@ -1320,7 +1320,7 @@ function App() {
       </div>
 
       <div style={{ textAlign: "center", padding: "20px", color: "#86868b", fontSize: "12px" }}>
-        ©2024 Kinetic Cards
+        Kinetic Cards v2.1
       </div>
     </div>
   );
