@@ -1015,8 +1015,8 @@ function App() {
             </div>
           </div>
           
-          <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end', gap: '16px', borderTop: '1px solid #e5e5ea', paddingTop: '10px' }}>
-             <div style={{ marginRight: 'auto', display: 'flex', gap: '20px', fontSize: '13px', fontWeight: '500', color: '#86868b', alignItems: 'center' }}>
+          <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '16px', borderTop: '1px solid #e5e5ea', paddingTop: '10px' }}>
+             <div style={{ marginRight: 'auto', display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px', fontWeight: '500', color: '#86868b', alignItems: 'center' }}>
                 
                 {/* Master Selective Toggle Checkbox Interface Vector */}
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1d1d1f', cursor: 'pointer', fontWeight: '600', userSelect: 'none' }}>
