@@ -13,9 +13,20 @@ function getDistanceInKm(lat1, lon1, lat2, lon2) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Helper: Location Name
+// Helper: Location Name (Cached)
+const locationCache = new Map();
 async function getLocationInfo(lat, lon) {
   if (!lat || !lon) return { zip: "N/A", city: "Unknown" };
+  const cacheKey = `${Number(lat).toFixed(3)},${Number(lon).toFixed(3)}`;
+  if (locationCache.has(cacheKey)) return locationCache.get(cacheKey);
+  try {
+    const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+    const data = await response.json();
+    const result = { zip: data.postcode || "Unknown", city: data.city || data.locality || "Unknown" };
+    locationCache.set(cacheKey, result);
+    return result;
+  } catch (err) { return { zip: "Error", city: "Error" }; }
+}
   try {
     const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
     const data = await response.json();
@@ -158,10 +169,12 @@ function App() {
     async function processPublicEscalationFetch() {
       setIsShareLoading(true);
       try {
-        const response = await docClient.send(new ScanCommand({
+        const targetId = shareTokenParam.split("_")[0];
+        const response = await docClient.send(new QueryCommand({
           TableName: "AssetTrackerData",
+          KeyConditionExpression: "deviceId = :id",
           FilterExpression: "shareToken = :tok",
-          ExpressionAttributeValues: { ":tok": shareTokenParam }
+          ExpressionAttributeValues: { ":id": targetId, ":tok": shareTokenParam }
         }));
 
         if (!response.Items || response.Items.length === 0) {
@@ -497,7 +510,7 @@ function App() {
     }
     if (!shareEmail || !shareEmail.trim() || !sharingAsset) return;
     
-    const secureToken = crypto.randomUUID();
+    const secureToken = sharingAsset.deviceId + "_" + crypto.randomUUID();
     const durationMs = parseInt(shareDuration, 10) * 60 * 60 * 1000;
     const expirationTimestamp = Date.now() + durationMs;
 
