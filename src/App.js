@@ -1126,7 +1126,7 @@ function App() {
                       }}
                     >
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'transparent' }}></div>
-                      <MapContainer key={item?.latitude || 0} center={[Number(item?.latitude) || 0, Number(item?.longitude) || 0]} zoom={14} zoomControl={false} style={{ width: "100%", height: "100%", zIndex: 1 }}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><Polyline positions={item.path || [[Number(item?.latitude) || 0, Number(item?.longitude) || 0]]} color="#007aff" weight={4} opacity={0.8} /><Marker position={[Number(item?.latitude) || 0, Number(item?.longitude) || 0]} icon={customIcon} /></MapContainer>
+                      <MapContainer key={item?.latitude || 0} center={[parseFloat(item?.latitude) || 0, parseFloat(item?.longitude) || 0]} zoom={14} zoomControl={false} style={{ width: "100%", height: "100%", zIndex: 1 }}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><Polyline positions={item.path || [[parseFloat(item?.latitude) || 0, parseFloat(item?.longitude) || 0]]} color="#007aff" weight={4} opacity={0.8} /><Marker position={[parseFloat(item?.latitude) || 0, parseFloat(item?.longitude) || 0]} icon={customIcon} /></MapContainer>
                       <div style={{ position: 'absolute', bottom: '4px', right: '4px', zIndex: 20, backgroundColor: 'rgba(29, 29, 31, 0.85)', color: '#ffffff', fontSize: '9px', fontWeight: '600', padding: '2px 4px', borderRadius: '3px' }}>
                         ⛶ Expand
                       </div>
