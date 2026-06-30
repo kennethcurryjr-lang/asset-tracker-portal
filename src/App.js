@@ -1046,7 +1046,7 @@ function App() {
                 color: showFilters ? '#ffffff' : '#1d1d1f'
               }}
             >
-              {showFilters ? '✕ Clear Filters' : '🎛️ Filter Drawer'}
+              {showFilters ? '✕ Close Filter' : '🎛️ Select Groups'}
             </button>
           </div>
           
