@@ -461,7 +461,7 @@ function App() {
     }
   };
 
-  const applySingleFactoryReset = async (id, batteryLevel, lat, lon) => {
+  const applySingleFactoryReset = async (id, batteryLevel, lat, lon) => { const dev = { deviceId: id };
     if (!isAdmin) { alert("Security Violation."); return; }
     if (!window.confirm(`WARNING: PERMANENTLY wipe ALL historical logs, tracking data, and names for device ${id}? This cannot be undone.`)) return;
     try {
