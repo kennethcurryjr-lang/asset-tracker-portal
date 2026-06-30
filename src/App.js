@@ -57,6 +57,7 @@ function App() {
   const [selectedDevices, setSelectedDevices] = useState([]);
   const [bulkGroupInput, setBulkGroupInput] = useState("");
   const [bulkNoteInput, setBulkNoteInput] = useState("");
+  const [bulkNameInput, setBulkNameInput] = useState("");
   const [dbError, setDbError] = useState(null); 
   
   // Category Multi-Select Active Token States
@@ -628,6 +629,7 @@ function App() {
     }));
     alert(`Broadcast log note to ${selectedDevices.length} Kinetic Card timelines.`);
     setBulkNoteInput("");
+    setBulkNameInput("");
     setSelectedDevices([]);
     fetchDevices();
   };
@@ -654,10 +656,35 @@ function App() {
     fetchDevices();
   };
 
+  const applyBulkSequentialNaming = async (inputString) => {
+    if (!inputString || !inputString.trim()) return;
+    const match = inputString.trim().match(/^(.*?)-(\d+)$/);
+    let baseName = inputString.trim();
+    let startIndex = 1;
+    if (match) {
+      baseName = match[1];
+      startIndex = parseInt(match[2], 10);
+    }
+    try {
+      await Promise.all(selectedDevices.map(async (id, index) => {
+        const dev = assets.find(a => a.deviceId == id);
+        if (!dev) return;
+        const sequentialName = `${baseName}-${startIndex + index}`;
+        await updateAttribute(dev.deviceId, dev.timestamp, 'tag', sequentialName, '#t');
+      }));
+      alert(`Successfully generated sequential tags for ${selectedDevices.length} assets!`);
+      resetAllInputs();
+      fetchDevices();
+    } catch (err) {
+      print("Sequential naming fault:", err);
+    }
+  };
+
   const resetAllInputs = () => {
     setSearchTerm("");
     setBulkGroupInput("");
     setBulkNoteInput("");
+    setBulkNameInput("");
     setTagInputs({});
     setNoteInputs({});
     setSelectedDevices([]);
@@ -1379,6 +1406,17 @@ function App() {
                 style={{ ...inputStyle, padding: '8px 12px', fontSize: '13px', width: '150px' }}
               />
               <button onClick={applyBulkGroup} disabled={!bulkGroupInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkGroupInput.trim() ? 1 : 0.4 }}>Move</button>
+            </div>
+
+            {/* Action 1.5: Sequential Auto-Naming Engine Vector */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                placeholder="e.g. Cosmo-1"
+                value={bulkNameInput}
+                onChange={(e) => setBulkNameInput(e.target.value)}
+                style={{ ...inputStyle, padding: '8px 12px', fontSize: '13px', width: '140px' }}
+              />
+              <button onClick={() => applyBulkSequentialNaming(bulkNameInput)} disabled={!bulkNameInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkNameInput.trim() ? 1 : 0.4 }}>Sequence Name</button>
             </div>
 
             {/* Action 2: Bulk Timeline Log Broadcast with Phrasing and Safe Confirmation */}
