@@ -474,13 +474,13 @@ function App() {
         await Promise.all(items.map(item => 
           docClient.send(new DeleteCommand({
             TableName: "AssetTrackerData",
-            Key: { deviceId: latest.deviceId, timestamp: item.timestamp }
+            Key: { deviceId: dev.deviceId, timestamp: item.timestamp }
           }))
         ));
         const cleanTimestamp = new Date().toISOString();
         await docClient.send(new UpdateCommand({
           TableName: "AssetTrackerData",
-          Key: { deviceId: latest.deviceId, timestamp: cleanTimestamp },
+          Key: { deviceId: dev.deviceId, timestamp: cleanTimestamp },
           UpdateExpression: "SET isServiceMode = :sm, battery = :bat, latitude = :lat, longitude = :lon",
           ExpressionAttributeValues: { 
             ":sm": true,
@@ -515,13 +515,13 @@ function App() {
             await Promise.all(items.map(item => 
               docClient.send(new DeleteCommand({
                 TableName: "AssetTrackerData",
-                Key: { deviceId: latest.deviceId, timestamp: item.timestamp }
+                Key: { deviceId: dev.deviceId, timestamp: item.timestamp }
               }))
             ));
             const cleanTimestamp = new Date().toISOString();
             await docClient.send(new UpdateCommand({
               TableName: "AssetTrackerData",
-              Key: { deviceId: latest.deviceId, timestamp: cleanTimestamp },
+              Key: { deviceId: dev.deviceId, timestamp: cleanTimestamp },
               UpdateExpression: "SET isServiceMode = :sm, battery = :bat, latitude = :lat, longitude = :lon",
               ExpressionAttributeValues: { 
                 ":sm": true,
