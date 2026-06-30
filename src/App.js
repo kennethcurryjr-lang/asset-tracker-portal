@@ -1181,9 +1181,9 @@ function App() {
                       {isAdmin && (item.shareToken ? <button onClick={() => revokeLiveShare(item.deviceId.slice(-5), item.timestamp)} style={{ ...secondaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1, borderColor: "#ff3b30", color: "#ff3b30" }}>Revoke</button> : <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1 }}>Share</button>)}
                       
                       {/* Watchdog Status Button with Conditional Radar Light */}
-                      <button onClick={() => toggleServiceMode(item.deviceId.slice(-5), item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode ? 'transparent' : '#1d1d1f', color: item.isServiceMode ? '#1d1d1f' : '#ffffff', border: item.isServiceMode ? '1px solid #1d1d1f' : 'none' }}>
-                        {!item.isServiceMode && <span className="live-pulse-indicator-dot"></span>}
-                        {item.isServiceMode ? 'Watchdog off' : 'Watchdog active'}
+        <button onClick={() => toggleServiceMode(item.deviceId.slice(-5), item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode === false ? '#1d1d1f' : 'transparent', color: item.isServiceMode === false ? '#ffffff' : '#1d1d1f', border: '1px solid #1d1d1f' }}>
+          {item.isServiceMode === false && <span className="live-pulse-indicator-dot"></span>}
+          {item.isServiceMode === false ? 'Watchdog active' : 'Watchdog off'}
                       </button>
                       
                       {/* Secure Double-Validation Toggling Anchor Controls */}
