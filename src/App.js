@@ -1096,6 +1096,8 @@ function App() {
                   {healthyCount} Stable
                 </div>
              </div>
+<button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>✉️ Feedback</button>
+<button onClick={() => alert("Español localization is currently in development.")} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>🌐 Español</button>
              {isAdmin && <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button>}
              <button onClick={() => { fetchDevices(); alert("Data successfully synced with live database."); }} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#34c759", color: "#34c759" }}>🔄 Sync Data</button>
              <button onClick={() => setShowGuide(true)} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>📖 Quick Guide</button> <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>Reset</button>
@@ -1329,10 +1331,7 @@ function App() {
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.4)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 7000, padding: "24px" }}>
           <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", border: "1px solid #d2d2d7", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-<div style={{ position: "fixed", bottom: "24px", right: "24px", display: "flex", gap: "12px", zIndex: 9999 }}>
-  <button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ background: "transparent", border: "1px solid #86868b", color: "#1d1d1f", padding: "8px 16px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", fontWeight: "600", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", backgroundColor: "#ffffff" }}>✉️ Feedback</button>
-  <button onClick={() => alert("Español localization is currently in development.")} style={{ background: "transparent", border: "1px solid #86868b", color: "#1d1d1f", padding: "8px 16px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", fontWeight: "600", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", backgroundColor: "#ffffff" }}>🌐 Español</button>
-</div>
+
               <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", letterSpacing: "-0.02em" }}>Kinetic Cards v2.1 - Quick Guide</h3>
               <button onClick={() => setShowGuide(false)} style={{ background: "transparent", border: "none", fontSize: "20px", cursor: "pointer", color: "#86868b" }}>✕</button>
             </div>
