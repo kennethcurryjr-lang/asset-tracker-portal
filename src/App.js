@@ -315,7 +315,7 @@ function App() {
            }
         }
 
-        return { ...latest, deviceId: id, tag: history.find(i => i.tag)?.tag || "", city: loc.city, estTimeRemaining };
+        return { ...latest, deviceId: latest.deviceId, tag: history.find(i => i.tag)?.tag || "", city: loc.city, estTimeRemaining };
       }));
       setAssets(processed);
     } catch (err) { setDbError(err.message); }
@@ -468,19 +468,19 @@ function App() {
         const queryResponse = await docClient.send(new QueryCommand({
           TableName: "AssetTrackerData",
           KeyConditionExpression: "deviceId = :id",
-          ExpressionAttributeValues: { ":id": id }
+          ExpressionAttributeValues: { ":id": dev.deviceId }
         }));
         const items = queryResponse.Items || [];
         await Promise.all(items.map(item => 
           docClient.send(new DeleteCommand({
             TableName: "AssetTrackerData",
-            Key: { deviceId: id, timestamp: item.timestamp }
+            Key: { deviceId: latest.deviceId, timestamp: item.timestamp }
           }))
         ));
         const cleanTimestamp = new Date().toISOString();
         await docClient.send(new UpdateCommand({
           TableName: "AssetTrackerData",
-          Key: { deviceId: id, timestamp: cleanTimestamp },
+          Key: { deviceId: latest.deviceId, timestamp: cleanTimestamp },
           UpdateExpression: "SET isServiceMode = :sm, battery = :bat, latitude = :lat, longitude = :lon",
           ExpressionAttributeValues: { 
             ":sm": true,
@@ -489,7 +489,7 @@ function App() {
             ":lon": lon || 0
           }
         }));
-        await addNote(id, cleanTimestamp, "🛡️ Factory Reset: Device Wiped and Re-initialized");
+        await addNote(dev.deviceId, cleanTimestamp, "🛡️ Factory Reset: Device Wiped and Re-initialized");
         alert(`Successfully purged and reset device ${id}.`);
         fetchDevices();
     } catch (err) { 
@@ -504,24 +504,24 @@ function App() {
     if (!window.confirm(`WARNING: PERMANENTLY wipe ALL historical logs, tracking data, and names for ${selectedDevices.length} selected devices? This cannot be undone.`)) return;
     try {
         await Promise.all(selectedDevices.map(async (id) => {
-            const dev = assets.find(a => a.deviceId === id);
+            const dev = assets.find(a => a.deviceId.slice(-5) === id);
             if (!dev) return;
             const queryResponse = await docClient.send(new QueryCommand({
               TableName: "AssetTrackerData",
               KeyConditionExpression: "deviceId = :id",
-              ExpressionAttributeValues: { ":id": id }
+              ExpressionAttributeValues: { ":id": dev.deviceId }
             }));
             const items = queryResponse.Items || [];
             await Promise.all(items.map(item => 
               docClient.send(new DeleteCommand({
                 TableName: "AssetTrackerData",
-                Key: { deviceId: id, timestamp: item.timestamp }
+                Key: { deviceId: latest.deviceId, timestamp: item.timestamp }
               }))
             ));
             const cleanTimestamp = new Date().toISOString();
             await docClient.send(new UpdateCommand({
               TableName: "AssetTrackerData",
-              Key: { deviceId: id, timestamp: cleanTimestamp },
+              Key: { deviceId: latest.deviceId, timestamp: cleanTimestamp },
               UpdateExpression: "SET isServiceMode = :sm, battery = :bat, latitude = :lat, longitude = :lon",
               ExpressionAttributeValues: { 
                 ":sm": true,
@@ -530,7 +530,7 @@ function App() {
                 ":lon": dev.longitude || 0
               }
             }));
-            await addNote(id, cleanTimestamp, "🛡️ Factory Reset: Device Wiped and Re-initialized");
+            await addNote(dev.deviceId, cleanTimestamp, "🛡️ Factory Reset: Device Wiped and Re-initialized");
         }));
         alert(`Successfully purged and reset ${selectedDevices.length} devices.`);
         setSelectedDevices([]);
@@ -601,7 +601,7 @@ function App() {
     if (!bulkGroupInput || !bulkGroupInput.trim()) return;
     const results = await Promise.all(selectedDevices.map(async (id) => {
       try {
-        const dev = assets.find(a => a.deviceId === id);
+        const dev = assets.find(a => a.deviceId.slice(-5) === id);
         if (!dev) throw new Error("Device " + id + " not found");
         await updateAttribute(dev.deviceId, dev.timestamp, 'group', bulkGroupInput.trim(), '#g');
         return { id, success: true };
@@ -624,7 +624,7 @@ function App() {
     if (!bulkNoteInput || !bulkNoteInput.trim()) return;
     if (!window.confirm(`Are you sure you want to broadcast this timeline log entry to all ${selectedDevices.length} selected devices?`)) return;
     await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId === id);
+      const dev = assets.find(a => a.deviceId.slice(-5) === id);
       return addNote(dev.deviceId, dev.timestamp, bulkNoteInput.trim());
     }));
     alert(`Broadcast log note to ${selectedDevices.length} Kinetic Card timelines.`);
@@ -637,7 +637,7 @@ function App() {
   const applyBulkSetHome = async () => {
     if (!window.confirm(`Are you sure you want to set the current lock position as the home location anchor for all ${selectedDevices.length} selected devices?`)) return;
     await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId === id);
+      const dev = assets.find(a => a.deviceId.slice(-5) === id);
       return setHomeLocation(dev.deviceId, dev.timestamp, dev.latitude, dev.longitude);
     }));
     alert(`Saved home target geofence anchors for ${selectedDevices.length} devices.`);
@@ -648,7 +648,7 @@ function App() {
   const applyBulkClearHome = async () => {
     if (!window.confirm(`Are you sure you want to completely wipe out and clear the home location anchors for all ${selectedDevices.length} selected Kinetic Cards?`)) return;
     await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId === id);
+      const dev = assets.find(a => a.deviceId.slice(-5) === id);
       return clearHomeLocation(dev.deviceId, dev.timestamp);
     }));
     alert(`Cleared home target anchors for ${selectedDevices.length} Kinetic Cards.`);
@@ -667,7 +667,7 @@ function App() {
     }
     try {
       await Promise.all(selectedDevices.map(async (id, index) => {
-        const dev = assets.find(a => a.deviceId === id);
+        const dev = assets.find(a => a.deviceId.slice(-5) === id);
         if (!dev) return;
         const sequentialName = `${baseName}-${startIndex + index}`;
         await updateAttribute(dev.deviceId, dev.timestamp, 'tag', sequentialName, '#t');
@@ -1201,14 +1201,14 @@ function App() {
                   {/* Crunched Operations Rows */}
                   <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
                       <input placeholder="Rename Asset..." value={tagInputs[item.deviceId.slice(-5)] || ""} onChange={(e) => setTagInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ ...inputStyle, flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#f5f5f7' }} />
-                      <button onClick={() => updateAttribute(item.deviceId.slice(-5), item.timestamp, 'tag', tagInputs[item.deviceId.slice(-5)], '#t')} style={{ ...primaryButtonStyle, padding: '6px 12px', fontSize: '12px', borderRadius: '6px' }}>Save</button>
+                      <button onClick={() => updateAttribute(item.deviceId, item.timestamp, 'tag', tagInputs[item.deviceId.slice(-5)], '#t')} style={{ ...primaryButtonStyle, padding: '6px 12px', fontSize: '12px', borderRadius: '6px' }}>Save</button>
                   </div>
 
                   <div style={{ display: 'flex', gap: '4px', width: '100%', flexWrap: 'wrap' }}>
-                      {isAdmin && (item.shareToken ? <button onClick={() => revokeLiveShare(item.deviceId.slice(-5), item.timestamp)} style={{ ...secondaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1, borderColor: "#ff3b30", color: "#ff3b30" }}>Revoke</button> : <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1 }}>Share</button>)}
+                      {isAdmin && (item.shareToken ? <button onClick={() => revokeLiveShare(item.deviceId, item.timestamp)} style={{ ...secondaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1, borderColor: "#ff3b30", color: "#ff3b30" }}>Revoke</button> : <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1 }}>Share</button>)}
                       
                       {/* Watchdog Status Button with Conditional Radar Light */}
-        <button onClick={() => toggleServiceMode(item.deviceId.slice(-5), item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode === false ? '#1d1d1f' : 'transparent', color: item.isServiceMode === false ? '#ffffff' : '#1d1d1f', border: '1px solid #1d1d1f' }}>
+        <button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode === false ? '#1d1d1f' : 'transparent', color: item.isServiceMode === false ? '#ffffff' : '#1d1d1f', border: '1px solid #1d1d1f' }}>
           {item.isServiceMode === false && <span className="live-pulse-indicator-dot"></span>}
           {item.isServiceMode === false ? 'Watchdog active' : 'Watchdog off'}
                       </button>
@@ -1218,10 +1218,10 @@ function App() {
                         onClick={() => {
                           if (item.homeLat) {
                             if (window.confirm(`Are you sure you want to permanently clear the home location geofence anchor for ${item.tag || item.deviceId.slice(-5)}?`)) {
-                              clearHomeLocation(item.deviceId.slice(-5), item.timestamp).then(fetchDevices);
+                              clearHomeLocation(item.deviceId, item.timestamp).then(fetchDevices);
                             }
                           } else {
-                            setHomeLocation(item.deviceId.slice(-5), item.timestamp, item.latitude, item.longitude);
+                            setHomeLocation(item.deviceId, item.timestamp, item.latitude, item.longitude);
                           }
                         }} 
                         style={{ ...buttonStyle, fontSize: "11px", borderRadius: "8px", flex: 1.2, padding: "6px 10px", backgroundColor: item.homeLat ? "transparent" : "#1d1d1f", color: item.homeLat ? "#1d1d1f" : "#ffffff", border: item.homeLat ? "1px solid #1d1d1f" : "none" }}
@@ -1241,7 +1241,7 @@ function App() {
                               <option value="9">9 Months</option>
                               <option value="12">12 Months</option>
                             </select>
-                            <button onClick={() => setMaintenanceInterval(item.deviceId.slice(-5), item.timestamp, maintenanceInputs[item.deviceId.slice(-5)] || "0")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #1d1d1f", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#1d1d1f", color: "#ffffff" }}>Schedule Service</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, maintenanceInputs[item.deviceId.slice(-5)] || "0")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #1d1d1f", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#1d1d1f", color: "#ffffff" }}>Schedule Service</button>
                           </>
                         ) : (
                           <>
@@ -1249,8 +1249,8 @@ function App() {
                               <span style={{ width: "8px", height: "8px", backgroundColor: "#34c759", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 4px rgba(52, 199, 89, 0.6)" }}></span>
                               <span style={{ fontSize: "11px", fontWeight: "700", color: "#34c759", textTransform: "uppercase" }}>Service Scheduled</span>
                             </div>
-                            <button onClick={() => setMaintenanceInterval(item.deviceId.slice(-5), item.timestamp, item.maintenanceInterval)} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #34c759", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "transparent", color: "#34c759" }}>✅ Log & Reset</button>
-                            <button onClick={() => setMaintenanceInterval(item.deviceId.slice(-5), item.timestamp, "0")} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #ff3b30", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "transparent", color: "#ff3b30" }}>Opt Out</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, item.maintenanceInterval)} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #34c759", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "transparent", color: "#34c759" }}>✅ Log & Reset</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, "0")} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #ff3b30", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "transparent", color: "#ff3b30" }}>Opt Out</button>
                           </>
                         )}
                       </div>
@@ -1273,7 +1273,7 @@ function App() {
                                 </div>
                                 {isAdmin && (
                                   <button 
-                                    onClick={() => deleteNote(item.deviceId.slice(-5), logEntry)} 
+                                    onClick={() => deleteNote(item.deviceId, logEntry)} 
                                     style={{ color: '#ff3b30', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(255, 59, 48, 0.05)', borderRadius: '4px', flexShrink: 0 }}
                                   >
                                     ✕
@@ -1290,7 +1290,7 @@ function App() {
                     
                     <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid #e5e5ea', paddingTop: '8px' }}>
                         <input placeholder="Add note..." value={noteInputs[item.deviceId.slice(-5)] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ ...inputStyle, flex: 1, backgroundColor: '#ffffff', padding: '4px 8px', fontSize: '12px', borderRadius: '6px' }} />
-                        <button onClick={() => addNote(item.deviceId.slice(-5), item.timestamp, noteInputs[item.deviceId.slice(-5)])} style={{ ...primaryButtonStyle, padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }}>Post</button>
+                        <button onClick={() => addNote(item.deviceId, item.timestamp, noteInputs[item.deviceId.slice(-5)])} style={{ ...primaryButtonStyle, padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }}>Post</button>
                     </div>
                   </div>
                   
