@@ -667,7 +667,7 @@ function App() {
     }
     try {
       await Promise.all(selectedDevices.map(async (id, index) => {
-        const dev = assets.find(a => a.deviceId == id);
+        const dev = assets.find(a => a.deviceId === id);
         if (!dev) return;
         const sequentialName = `${baseName}-${startIndex + index}`;
         await updateAttribute(dev.deviceId, dev.timestamp, 'tag', sequentialName, '#t');
@@ -676,7 +676,7 @@ function App() {
       resetAllInputs();
       fetchDevices();
     } catch (err) {
-      print("Sequential naming fault:", err);
+      console.error("Sequential naming fault:", err);
     }
   };
 
