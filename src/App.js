@@ -1338,6 +1338,7 @@ function App() {
               <div style={{ backgroundColor: "#f5f5f7", padding: "12px", borderRadius: "8px", borderLeft: "3px solid #007aff" }}><strong style={{ fontSize: "15px", color: "#007aff" }}>3. Marine Mode ⚓:</strong><br/>For cruise ships, <strong>DO NOT</strong> Set Home. Activate Watchdog, open the bottom bulk drawer, and toggle "Marine Mode" ON. This relies strictly on Wi-Fi drops and tamper sensors.</div>
               <div><strong style={{ fontSize: "15px" }}>4. Bulk Actions:</strong><br/>Check boxes on multiple cards to open the bottom drawer. Mass-assign groups, post logs, or toggle Marine Mode.</div>
               <div><strong style={{ fontSize: "15px" }}>5. Secure Live Sharing:</strong><br/>Click "Share" on any device to email a secure, self-destructing tracking link to law enforcement.</div>
+              <div><strong style={{ fontSize: "15px" }}>6. Proactive Maintenance:</strong><br/>Select a 1-12 month interval to schedule service. Once completed, click "✅ Log & Reset" to automatically update the timeline and reset the timer.</div>
             </div>
             <button onClick={() => setShowGuide(false)} style={{ ...primaryButtonStyle, width: "100%", marginTop: "24px", padding: "14px" }}>Close Guide</button>
           </div>
