@@ -976,7 +976,7 @@ function App() {
           cursor: 'pointer', 
           fontWeight: '600',
           transition: 'all 0.2s'
-        }}>Sign Out</button> 
+        }}>Sign Out</button>
       </header>
 
       {dbError && (
@@ -1096,9 +1096,7 @@ function App() {
                   {healthyCount} Stable
                 </div>
              </div>
-<button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>✉️ Feedback</button>
-<button onClick={() => alert("Español localization is currently in development.")} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>🌐 Español</button>
-             {isAdmin && <button onClick={() => window.location.href="mailto:kennethcurryjr.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>✉️ Feedback</button> <button onClick={() => alert("Español localization is currently in development.")} style={{ padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>🌐 Español</button> <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button>}
+             {isAdmin && (<><button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>✉️ Feedback</button> <button onClick={() => alert("Español localization is currently in development.")} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>🌐 Español</button> <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button></>)}
              <button onClick={() => { fetchDevices(); alert("Data successfully synced with live database."); }} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#34c759", color: "#34c759" }}>🔄 Sync Data</button>
              <button onClick={() => setShowGuide(true)} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>📖 Quick Guide</button> <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>Reset</button>
           </div>
@@ -1277,7 +1275,137 @@ function App() {
 
       {/* Full-Screen High-Contrast Interactive Map Overlay Modal Window */}
       {activeMapModalAsset && (
-        
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 6000, padding: '24px' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '18px', width: '100%', maxWidth: '800px', height: '80vh', border: '1px solid #d2d2d7', boxShadow: '0 30px 70px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ padding: '20px 28px', borderBottom: '1px solid #e5e5ea', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+              <div>
+                <h3 style={{ margin: '0 0 2px 0', fontSize: '18px', fontWeight: '600', letterSpacing: '-0.01em' }}>
+                  {activeMapModalAsset.tag ? `${activeMapModalAsset.tag} — ${activeMapModalAsset.deviceId}` : activeMapModalAsset.deviceId}
+                </h3>
+                <p style={{ margin: 0, fontSize: '13px', color: '#86868b' }}>Live Coordinates Matrix: <span style={{ color: '#1d1d1f', fontWeight: '500' }}>{activeMapModalAsset.latitude?.toFixed(5)}, {activeMapModalAsset.longitude?.toFixed(5)}</span></p>
+              </div>
+              <button onClick={() => setActiveMapModalAsset(null)} style={{ ...secondaryButtonStyle, padding: '8px 18px', fontSize: '13px', borderRadius: '14px', cursor: 'pointer' }}>Close Map</button>
+            </div>
+            <div style={{ flex: 1, width: '100%', backgroundColor: '#f5f5f7', position: 'relative' }}>
+              <iframe title="map-modal" width="100%" height="100%" frameBorder="0" scrolling="no" src={activeMapModalAsset?.latitude ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(activeMapModalAsset.longitude)-0.01}%2C${Number(activeMapModalAsset.latitude)-0.01}%2C${Number(activeMapModalAsset.longitude)+0.01}%2C${Number(activeMapModalAsset.latitude)+0.01}&layer=mapnik&marker=${activeMapModalAsset.latitude}%2C${activeMapModalAsset.longitude}` : "about:blank"}></iframe>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Monochromatic High-Contrast Apple-style Modal Overlay for Token Management */}
+      {sharingAsset && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 5000 }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '32px', width: '90%', maxWidth: '440px', border: '1px solid #d2d2d7', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}>
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: '600', letterSpacing: '-0.02em' }}>Escalate Live Tracking</h3>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Generate a secure external reference view for Device ID: <span style={{ fontWeight: '600', color: '#1d1d1f' }}>{sharingAsset.deviceId}</span></p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <label style={labelStyle}>Recipient Email Address</label>
+                <input type="email" placeholder="e.g. investigator@agency.gov" value={shareEmail} onChange={(e) => setShareEmail(e.target.value)} style={inputStyle} />
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <label style={labelStyle}>Link Authorization Expiry</label>
+                <select value={shareDuration} onChange={(e) => setShareDuration(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="12">12 Hours (Short Term Search)</option>
+                  <option value="24">24 Hours (Standard Window)</option>
+                  <option value="72">72 Hours (Extended Watch)</option>
+                  <option value="168">7 Days (Full Recovery Span)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={() => { setSharingAsset(null); setShareEmail(""); }} style={secondaryButtonStyle}>Cancel</button>
+              <button onClick={executeLiveShareEscalation} disabled={!shareEmail.trim()} style={{ ...primaryButtonStyle, opacity: !shareEmail.trim() ? 0.3 : 1 }}>Generate & Dispatch</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showGuide && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.4)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 7000, padding: "24px" }}>
+          <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", border: "1px solid #d2d2d7", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", letterSpacing: "-0.02em" }}>Kinetic Cards v2.1 - Quick Guide</h3>
+              <button onClick={() => setShowGuide(false)} style={{ background: "transparent", border: "none", fontSize: "20px", cursor: "pointer", color: "#86868b" }}>✕</button>
+            </div>
+            <div style={{ fontSize: "14px", color: "#1d1d1f", lineHeight: "1.6", display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div><strong style={{ fontSize: "15px" }}>1. Finding & Filtering:</strong><br/>Use the search bar or 🎛️ Filter Drawer to locate units by ID, status (Offline, Geofence), or Group.</div>
+              <div><strong style={{ fontSize: "15px" }}>2. Geofence & Watchdog:</strong><br/>Click "Set Home" to drop a GPS anchor. Activate "Watchdog" to trigger alerts if the unit moves from that anchor.</div>
+              <div style={{ backgroundColor: "#f5f5f7", padding: "12px", borderRadius: "8px", borderLeft: "3px solid #007aff" }}><strong style={{ fontSize: "15px", color: "#007aff" }}>3. Marine Mode ⚓:</strong><br/>For cruise ships, <strong>DO NOT</strong> Set Home. Activate Watchdog, open the bottom bulk drawer, and toggle "Marine Mode" ON. This relies strictly on Wi-Fi drops and tamper sensors.</div>
+              <div><strong style={{ fontSize: "15px" }}>4. Bulk Actions:</strong><br/>Check boxes on multiple cards to open the bottom drawer. Mass-assign groups, post logs, or toggle Marine Mode.</div>
+              <div><strong style={{ fontSize: "15px" }}>5. Secure Live Sharing:</strong><br/>Click "Share" on any device to email a secure, self-destructing tracking link to law enforcement.</div>
+              <div><strong style={{ fontSize: "15px" }}>6. Proactive Maintenance:</strong><br/>Select a 1-12 month interval to schedule service. Once completed, click "✅ Log & Reset" to automatically update the timeline and reset the timer.</div>
+            </div>
+            <button onClick={() => setShowGuide(false)} style={{ ...primaryButtonStyle, width: "100%", marginTop: "24px", padding: "14px" }}>Close Guide</button>
+          </div>
+        </div>
+      )}
+
+      {/* Sticky Sliding Bulk Actions Drawer Overlay Tray */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#ffffff',
+        borderTop: '1px solid #d2d2d7',
+        boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
+        zIndex: 4000,
+        transform: selectedDevices.length > 0 ? 'translateY(0)' : 'translateY(100%)',
+        transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        padding: '20px 40px',
+        boxSizing: 'border-box'
+      }}>
+        <div style={{ maxWidth: '1140px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div style={{ fontSize: '22px', fontWeight: '700', letterSpacing: '-0.01em' }}>{selectedDevices.length} Kinetic Card{selectedDevices.length === 1 ? '' : 's'} Selected</div>
+            <div style={{ fontSize: '14px', color: '#86868b', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setSelectedDevices([])}>Deselect all records</div>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', flex: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
+            
+            {/* Action 1: Bulk Group Assignment Refactored Label */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input 
+                list="group-suggestions-list"
+                placeholder="Assign to Group..." 
+                value={bulkGroupInput}
+                onChange={(e) => setBulkGroupInput(e.target.value)}
+                style={{ ...inputStyle, padding: '8px 12px', fontSize: '13px', width: '150px' }}
+              />
+              <button onClick={applyBulkGroup} disabled={!bulkGroupInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkGroupInput.trim() ? 1 : 0.4 }}>Move</button>
+            </div>
+
+            {/* Action 2: Bulk Timeline Log Broadcast with Phrasing and Safe Confirmation */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input 
+                placeholder="Post log to Group..." 
+                value={bulkNoteInput}
+                onChange={(e) => setBulkNoteInput(e.target.value)}
+                style={{ ...inputStyle, padding: '8px 12px', fontSize: '13px', width: '240px' }}
+              />
+              <button onClick={applyBulkNote} disabled={!bulkNoteInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkNoteInput.trim() ? 1 : 0.4 }}>Post log to Group</button>
+            </div>
+
+            {/* Action 3: Dual Set Home Anchors with Confirmation Prompt */}
+            <div className="marine-home-group"><button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#34c759", color: "#34c759" }}>Set Home Anchors</button><button onClick={() => { if (!window.confirm("Are you sure you want to toggle Marine Mode for " + selectedDevices.length + " selected device(s)?")) return; setMarineModes(prev => { const res = {...prev}; selectedDevices.forEach(id => res[id] = !res[id]); return res; }); alert("Marine Mode toggled for " + selectedDevices.length + " device(s)."); setSelectedDevices([]); }} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#007aff", color: "#007aff" }}>⚓ Toggle Marine Mode</button></div>
+
+            {/* Action 4: Dual Clear Home Anchors with Confirmation Prompt */}
+            <button onClick={applyBulkClearHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff9500', color: '#ff9500' }}>Clear Home Anchors</button>
+            
+            {/* NEW ACTION: Factory Reset Devices */}
+            <button onClick={applyBulkFactoryReset} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#ff3b30", color: "#ff3b30" }}>Factory Reset</button>
+
+          </div>
+        </div>
+      </div>
+
+      <div style={{ textAlign: "center", padding: "20px", color: "#86868b", fontSize: "12px" }}>
         Kinetic Cards v2.1
       </div>
     </div>
