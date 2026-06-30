@@ -1169,6 +1169,7 @@ function App() {
                               clearHomeLocation(item.deviceId.slice(-5), item.timestamp).then(fetchDevices);
                             }
                           } else {
+                            setHomeLocation(item.deviceId.slice(-5), item.timestamp, item.latitude, item.longitude);
                           }
                         }} 
                         style={{ ...buttonStyle, fontSize: "11px", borderRadius: "8px", flex: 1.2, padding: "6px 10px", backgroundColor: item.homeLat ? "transparent" : "#1d1d1f", color: item.homeLat ? "#1d1d1f" : "#ffffff", border: item.homeLat ? "1px solid #1d1d1f" : "none" }}
