@@ -976,7 +976,7 @@ function App() {
           cursor: 'pointer', 
           fontWeight: '600',
           transition: 'all 0.2s'
-        }}>Sign Out</button>
+        }}>Sign Out</button> <div style={{ display: "flex", gap: "8px", marginLeft: "24px", borderLeft: "1px solid #424245", paddingLeft: "24px" }}><button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ background: "transparent", border: "1px solid #86868b", color: "#f5f5f7", padding: "4px 12px", borderRadius: "12px", fontSize: "11px", cursor: "pointer", fontWeight: "500" }}>✉️ Feedback</button> <button onClick={() => alert("Español localization is currently in development and will be available in a future update.")} style={{ background: "transparent", border: "1px solid #86868b", color: "#f5f5f7", padding: "4px 12px", borderRadius: "12px", fontSize: "11px", cursor: "pointer", fontWeight: "500" }}>🌐 Español</button></div>
       </header>
 
       {dbError && (
