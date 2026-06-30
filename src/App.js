@@ -46,6 +46,8 @@ function App() {
   const auth = useAuth();
   const [assets, setAssets] = useState([]);
   const [marineModes, setMarineModes] = useState({});
+  const [maintenanceInputs, setMaintenanceInputs] = useState({});
+
   const [showGuide, setShowGuide] = useState(false);
 
 
@@ -354,6 +356,29 @@ function App() {
       ]);
       alert(newState ? "Watchdog disabled!" : "Watchdog activated!");
     } catch (err) { console.error(err); }
+  };
+
+  const setMaintenanceInterval = async (deviceId, timestamp, months) => {
+    const numMonths = parseInt(months, 10);
+    if (numMonths === 0 || isNaN(numMonths)) {
+      await docClient.send(new UpdateCommand({
+        TableName: "AssetTrackerData",
+        Key: { deviceId, timestamp },
+        UpdateExpression: "REMOVE maintenanceInterval, maintenanceDueDate"
+      }));
+      addNote(deviceId, timestamp, "🗓️ Maintenance schedule cleared (Opted Out).");
+    } else {
+      const dueDate = new Date();
+      dueDate.setMonth(dueDate.getMonth() + numMonths);
+      await docClient.send(new UpdateCommand({
+        TableName: "AssetTrackerData",
+        Key: { deviceId, timestamp },
+        UpdateExpression: "SET maintenanceInterval = :mi, maintenanceDueDate = :md",
+        ExpressionAttributeValues: { ":mi": numMonths, ":md": dueDate.toISOString() }
+      }));
+      addNote(deviceId, timestamp, `🔧 Service logged & timer set. Next due: ${dueDate.toLocaleDateString()}`);
+    }
+    fetchDevices();
   };
 
   const addNote = async (deviceId, timestamp, noteText) => {
@@ -1178,6 +1203,31 @@ function App() {
                       </button>
                   </div>
                   
+                      <div style={{ display: "flex", gap: "6px", width: "100%", marginTop: "12px", marginBottom: "8px", alignItems: "center", backgroundColor: "#f5f5f7", padding: "8px", borderRadius: "8px", border: "1px solid #e5e5ea", boxSizing: "border-box", flexWrap: "wrap" }}>
+                        {!item.maintenanceInterval ? (
+                          <>
+                            <select value={maintenanceInputs[item.deviceId.slice(-5)] || "0"} onChange={(e) => setMaintenanceInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #d2d2d7", fontSize: "11px", backgroundColor: "#ffffff", color: "#1d1d1f", flex: 1, outline: "none" }}>
+                              <option value="0">Off (Opt-Out)</option>
+                              <option value="1">1 Month</option>
+                              <option value="3">3 Months</option>
+                              <option value="6">6 Months</option>
+                              <option value="9">9 Months</option>
+                              <option value="12">12 Months</option>
+                            </select>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId.slice(-5), item.timestamp, maintenanceInputs[item.deviceId.slice(-5)] || "0")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #1d1d1f", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#1d1d1f", color: "#ffffff" }}>Schedule Service</button>
+                          </>
+                        ) : (
+                          <>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1 }}>
+                              <span style={{ width: "8px", height: "8px", backgroundColor: "#34c759", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 4px rgba(52, 199, 89, 0.6)" }}></span>
+                              <span style={{ fontSize: "11px", fontWeight: "700", color: "#34c759", textTransform: "uppercase" }}>Service Scheduled</span>
+                            </div>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId.slice(-5), item.timestamp, item.maintenanceInterval)} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #34c759", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "transparent", color: "#34c759" }}>✅ Log & Reset</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId.slice(-5), item.timestamp, "0")} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #ff3b30", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "transparent", color: "#ff3b30" }}>Opt Out</button>
+                          </>
+                        )}
+                      </div>
+
                   {/* Interactive Timeline Stepper for Logs */}
                   <div className="timeline-wrapper-panel" style={{ marginTop: '10px', padding: '12px', backgroundColor: '#f5f5f7', borderRadius: '8px', border: '1px solid #d2d2d7' }}>
                     <div className="custom-scrollbar-viewport timeline-scroll-track-box" style={{ display: 'block', height: '110px', overflowY: 'scroll', overflowX: 'hidden', marginBottom: '8px', paddingRight: '2px', boxSizing: 'border-box' }}>
