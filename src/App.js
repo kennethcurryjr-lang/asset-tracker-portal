@@ -359,22 +359,21 @@ function App() {
     } catch (err) { console.error(err); }
   };
 
-    const setMaintenanceInterval = async (deviceId, timestamp, months) => {
+    const setMaintenanceInterval = async (deviceId, timestamp, actionOrMonths) => {
     const targetTimestamp = timestamp || "LATEST";
     const assetRecord = assets.find(a => a.deviceId === deviceId);
     
-    if (months === "OPT_OUT" || parseInt(months, 10) === 0 || isNaN(parseInt(months, 10))) {
-      // Complete Clear / Opt-Out Path
+    if (actionOrMonths === "OPT_OUT" || actionOrMonths === 0 || actionOrMonths === "0") {
+      // PROPER FIX: Actually REMOVE the database attributes completely so React sees them as empty/falsy
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId, timestamp: targetTimestamp },
-        UpdateExpression: "SET maintenanceInterval = :c, maintenanceDueDate = :c", 
-        ExpressionAttributeValues: { ":c": "CLEARED" }
+        UpdateExpression: "REMOVE maintenanceInterval, maintenanceDueDate"
       }));
       await addNote(deviceId, targetTimestamp, "🗓️ Maintenance schedule cleared (Opted Out).");
-    } else if (months === "LOG_RESET") {
-      // Advance Date Forward Path (Keep interval active)
-      const currentInterval = assetRecord?.maintenanceInterval || 1;
+    } else if (actionOrMonths === "LOG_RESET") {
+      // Standard target advancement logic
+      const currentInterval = parseInt(assetRecord?.maintenanceInterval, 10) || 1;
       let dueDate = new Date();
       if (assetRecord && assetRecord.maintenanceDueDate && assetRecord.maintenanceDueDate !== "CLEARED") {
           dueDate = new Date(assetRecord.maintenanceDueDate);
@@ -389,18 +388,20 @@ function App() {
       }));
       await addNote(deviceId, targetTimestamp, `🔧 Service logged & timer set. Next due: ${dueDate.toLocaleDateString()}`);
     } else {
-      // Initial Schedule Set Path
-      const numMonths = parseInt(months, 10);
-      const dueDate = new Date();
-      dueDate.setMonth(dueDate.getMonth() + numMonths);
-      
-      await docClient.send(new UpdateCommand({
-        TableName: "AssetTrackerData",
-        Key: { deviceId, timestamp: targetTimestamp },
-        UpdateExpression: "SET maintenanceInterval = :mi, maintenanceDueDate = :md",
-        ExpressionAttributeValues: { ":mi": numMonths, ":md": dueDate.toISOString() }
-      }));
-      await addNote(deviceId, targetTimestamp, `📅 Service scheduled. Next due: ${dueDate.toLocaleDateString()}`);
+      // Initial schedule creation logic
+      const numMonths = parseInt(actionOrMonths, 10);
+      if (!isNaN(numMonths) && numMonths > 0) {
+        const dueDate = new Date();
+        dueDate.setMonth(dueDate.getMonth() + numMonths);
+        
+        await docClient.send(new UpdateCommand({
+          TableName: "AssetTrackerData",
+          Key: { deviceId, timestamp: targetTimestamp },
+          UpdateExpression: "SET maintenanceInterval = :mi, maintenanceDueDate = :md",
+          ExpressionAttributeValues: { ":mi": numMonths, ":md": dueDate.toISOString() }
+        }));
+        await addNote(deviceId, targetTimestamp, `📅 Service scheduled. Next due: ${dueDate.toLocaleDateString()}`);
+      }
     }
     
     const shortId = deviceId.slice(-5);
