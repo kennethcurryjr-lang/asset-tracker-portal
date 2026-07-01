@@ -271,7 +271,7 @@ function App() {
 
       const processed = await Promise.all(Object.keys(grouped).map(async (id) => {
         const history = grouped[id].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        const latest = history[0];
+        const latest = { ...history[0] }; ["homeLat", "homeLon", "isServiceMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag"].forEach(k => { if (latest[k] === undefined) { const prev = history.find(h => h[k] !== undefined); if (prev) latest[k] = (prev[k] === "CLEARED" ? undefined : prev[k]); } }); const allNotes = []; history.forEach(h => { if (h.notesList) { h.notesList.forEach(n => { if (!allNotes.some(e => e.text === n.text && e.time === n.time)) { allNotes.push({...n, rowTimestamp: h.timestamp}); } }); } }); latest.notesList = allNotes;
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
         latest.path = history.slice(0, 10).filter(p => p.latitude && p.longitude).map(p => [Number(p.latitude), Number(p.longitude)]);
         
@@ -365,7 +365,7 @@ function App() {
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId, timestamp },
-        UpdateExpression: "REMOVE maintenanceInterval, maintenanceDueDate"
+        UpdateExpression: "SET maintenanceInterval = :c, maintenanceDueDate = :c", ExpressionAttributeValues: { ":c": "CLEARED" }
       }));
       addNote(deviceId, timestamp, "🗓️ Maintenance schedule cleared (Opted Out).");
     } else {
@@ -581,7 +581,7 @@ function App() {
       docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId, timestamp },
-        UpdateExpression: "REMOVE homeLat, homeLon"
+        UpdateExpression: "SET homeLat = :c, homeLon = :c", ExpressionAttributeValues: { ":c": "CLEARED" }
       })),
       addNote(deviceId, timestamp, `🚫 Home Anchor Cleared`)
     ]);
@@ -700,7 +700,7 @@ function App() {
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId, timestamp },
-        UpdateExpression: "REMOVE shareToken, shareExpires, shareEmail, isStolenFlag"
+        UpdateExpression: "SET shareToken = :c, shareExpires = :c, shareEmail = :c, isStolenFlag = :c", ExpressionAttributeValues: { ":c": "CLEARED" }
       }));
       alert("Tracking link revoked successfully.");
       fetchDevices();
