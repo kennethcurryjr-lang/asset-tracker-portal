@@ -22,22 +22,13 @@ function getDistanceInKm(lat1, lon1, lat2, lon2) {
 // Helper: Location Name (Cached)
 const locationCache = new Map();
 async function getLocationInfo(lat, lon) {
-  const numLat = Number(lat);
-  const numLon = Number(lon);
-  if (lat == null || lon == null || isNaN(numLat) || isNaN(numLon) || (numLat === 0 && numLon === 0)) {
-     return { zip: "N/A", city: "Awaiting GPS Lock" };
-  }
-  const cacheKey = `${numLat.toFixed(3)},${numLon.toFixed(3)}`;
+  if (!lat || !lon) return { zip: "N/A", city: "Unknown" };
+  const cacheKey = `${Number(lat).toFixed(3)},${Number(lon).toFixed(3)}`;
   if (locationCache.has(cacheKey)) return locationCache.get(cacheKey);
   try {
     const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
     const data = await response.json();
-    let finalCity = data.city || data.locality || "Unknown";
-    // Intercept default ocean mapping vectors
-    if (finalCity === "Unknown" || finalCity.includes("Ocean") || finalCity.includes("Sea")) {
-        finalCity = "Awaiting GPS Lock";
-    }
-    const result = { zip: data.postcode || "Unknown", city: finalCity };
+    const result = { zip: data.postcode || "Unknown", city: data.city || data.locality || "Unknown" };
     locationCache.set(cacheKey, result);
     return result;
   } catch (err) { return { zip: "Error", city: "Error" }; }
@@ -1227,20 +1218,11 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         backgroundColor: '#f5f5f7'
                       }}
                     >
-                      {(!item.latitude || !item.longitude || (Number(item.latitude) === 0 && Number(item.longitude) === 0) || item.city === "Awaiting GPS Lock") ? (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e5e5ea', color: '#86868b' }}>
-                    <span style={{ fontSize: '24px', marginBottom: '4px' }}>🛰️</span>
-                    <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.02em' }}>Awaiting Lock</span>
-                  </div>
-                ) : (
-                  <>
-                    <iframe title="map-thumb" width="100%" height="100%" frameBorder="0" scrolling="no" src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(item.longitude)-0.02}%2C${Number(item.latitude)-0.02}%2C${Number(item.longitude)+0.02}%2C${Number(item.latitude)+0.02}&layer=mapnik&marker=${Number(item.latitude)}%2C${Number(item.longitude)}`} style={{ pointerEvents: "none", border: "none" }}></iframe>
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'transparent' }}></div>
-                    <div style={{ position: 'absolute', bottom: '4px', right: '4px', zIndex: 20, backgroundColor: 'rgba(29, 29, 31, 0.85)', color: '#ffffff', fontSize: '9px', fontWeight: '600', padding: '2px 4px', borderRadius: '3px' }}>
-                      ⛶ Expand
-                    </div>
-                  </>
-                )}
+                      <iframe title="map-thumb" width="100%" height="100%" frameBorder="0" scrolling="no" src={item.latitude && !isNaN(Number(item.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(item.longitude)-0.02}%2C${Number(item.latitude)-0.02}%2C${Number(item.longitude)+0.02}%2C${Number(item.latitude)+0.02}&layer=mapnik&marker=${Number(item.latitude)}%2C${Number(item.longitude)}` : "about:blank"} style={{ pointerEvents: "none", border: "none" }}></iframe>
+                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'transparent' }}></div>
+                      <div style={{ position: 'absolute', bottom: '4px', right: '4px', zIndex: 20, backgroundColor: 'rgba(29, 29, 31, 0.85)', color: '#ffffff', fontSize: '9px', fontWeight: '600', padding: '2px 4px', borderRadius: '3px' }}>
+                        ⛶ Expand
+                      </div>
                     </div>
                     
                   </div>
