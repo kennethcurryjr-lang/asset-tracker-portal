@@ -434,7 +434,7 @@ function App() {
           ":empty_list": []
         }
       }));
-      setNoteInputs(prev => ({...prev, [deviceId]: ""}));
+      setNoteInputs(prev => ({...prev, [deviceId.slice(-5)]: ""}));
       fetchDevices();
     } catch (err) { console.error("Database note array error:", err); }
   };
