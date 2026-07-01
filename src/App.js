@@ -1479,3 +1479,5 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 }
 
 export default App;
+
+// Forced cache-bust and pipeline sync for geofence logic
