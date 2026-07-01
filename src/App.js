@@ -1356,16 +1356,15 @@ function App() {
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.4)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 7000, padding: "24px" }}>
           <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", border: "1px solid #d2d2d7", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", letterSpacing: "-0.02em" }}>Kinetic Cards v2.1 - Quick Guide</h3>
+              <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", letterSpacing: "-0.02em" }}>⚡ Quick Setup Guide</h3>
               <button onClick={() => setShowGuide(false)} style={{ background: "transparent", border: "none", fontSize: "20px", cursor: "pointer", color: "#86868b" }}>✕</button>
             </div>
-            <div style={{ fontSize: "14px", color: "#1d1d1f", lineHeight: "1.6", display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div><strong style={{ fontSize: "15px" }}>1. Finding & Filtering:</strong><br/>Use the search bar or 🎛️ Filter Drawer to locate units by ID, status (Offline, Geofence), or Group.</div>
-              <div><strong style={{ fontSize: "15px" }}>2. Geofence & Watchdog:</strong><br/>Click "Set Home" to drop a GPS anchor. Activate "Watchdog" to trigger alerts if the unit moves from that anchor.</div>
-              <div style={{ backgroundColor: "#f5f5f7", padding: "12px", borderRadius: "8px", borderLeft: "3px solid #007aff" }}><strong style={{ fontSize: "15px", color: "#007aff" }}>3. Marine Mode ⚓:</strong><br/>For cruise ships, <strong>DO NOT</strong> Set Home. Activate Watchdog, open the bottom bulk drawer, and toggle "Marine Mode" ON. This relies strictly on Wi-Fi drops and tamper sensors.</div>
-              <div><strong style={{ fontSize: "15px" }}>4. Bulk Actions:</strong><br/>Check boxes on multiple cards to open the bottom drawer. Mass-assign groups, post logs, or toggle Marine Mode.</div>
-              <div><strong style={{ fontSize: "15px" }}>5. Secure Live Sharing:</strong><br/>Click "Share" on any device to email a secure, self-destructing tracking link to law enforcement.</div>
-              <div><strong style={{ fontSize: "15px" }}>6. Proactive Maintenance:</strong><br/>Select a 1-12 month interval to schedule service. Once completed, click "✅ Log & Reset" to automatically update the timeline and reset the timer.</div>
+            <div style={{ fontSize: "14px", color: "#1d1d1f", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "14px" }}>
+              <div><strong>Step 1: Name It</strong><br/><span style={{ color: "#86868b" }}>Type a friendly name into <em>Rename Asset...</em> and click <strong>Save</strong>. (e.g., McDonalds-1)</span></div>
+              <div><strong>Step 2: Lock Home</strong><br/><span style={{ color: "#86868b" }}>With the tracking device sitting at its base station location, click <strong>Set Home</strong> to drop the reference anchor.</span></div>
+              <div><strong>Step 3: Arm Watchdog</strong><br/><span style={{ color: "#86868b" }}>Toggle the status switch to <strong style={{ color: "#34c759" }}>Watchdog active</strong>. The green animation ring will pulse to indicate live perimeter monitoring.</span></div>
+              <div style={{ borderTop: "1px dashed #d2d2d7", paddingTop: "10px" }}><strong>Step 4: Group It <span style={{ color: "#86868b", fontStyle: "italic", fontWeight: "normal" }}>(Optional)</span></strong><br/><span style={{ color: "#86868b" }}>If deploying multiple units: Check asset boxes &rarr; select a folder from the bottom drawer dropdown &rarr; click <strong>Move</strong>.</span></div>
+              <div><strong>Step 5: Log Installation <span style={{ color: "#86868b", fontStyle: "italic", fontWeight: "normal" }}>(Optional)</span></strong><br/><span style={{ color: "#86868b" }}>With your asset checkboxes active, type <em>"Gps devices installed"</em> into the bulk logging field &rarr; click <strong>Post log to Group</strong>.</span></div>
             </div>
             <button onClick={() => setShowGuide(false)} style={{ ...primaryButtonStyle, width: "100%", marginTop: "24px", padding: "14px" }}>Close Guide</button>
           </div>
