@@ -341,25 +341,25 @@ function App() {
   };
 
   const toggleServiceMode = async (deviceId, timestamp, currentState) => {
-    const newState = !currentState;
-    const user = auth.user?.profile?.email || "System";
-    const time = `${new Date().toLocaleDateString('en-US')} - ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
-    const logMsg = newState 
-      ? `🛡️ Watchdog Disabled (Service Mode Engaged by ${user.split('@')[0]})` 
-      : `📡 Watchdog Activated (Monitoring Live Position by ${user.split('@')[0]})`;
-    
-    try {
-      await Promise.all([
-          updateAttribute(deviceId, timestamp, 'isServiceMode', newState, '#sm'),
-          updateAttribute(deviceId, timestamp, 'lastServiceModeUser', user, '#lsu'),
-          updateAttribute(deviceId, timestamp, 'lastServiceModeTime', time, '#lst'),
-          addNote(deviceId, timestamp, logMsg)
-      ]);
-      alert(newState ? "Watchdog disabled!" : "Watchdog activated!");
-    } catch (err) { console.error(err); }
-  };
+  const newState = !currentState;
+  const user = auth.user?.profile?.email || "System";
+  const time = `${new Date().toLocaleDateString('en-US')} - ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+  const logMsg = newState 
+    ? `🛡️ Watchdog Disabled (Service Mode Engaged by ${user.split('@')[0]})` 
+    : `📡 Watchdog Activated (Monitoring Live Position by ${user.split('@')[0]})`;
+  
+  try {
+    await Promise.all([
+        updateAttribute(deviceId, "LATEST", 'isServiceMode', newState, '#sm'),
+        updateAttribute(deviceId, "LATEST", 'lastServiceModeUser', user, '#lsu'),
+        updateAttribute(deviceId, "LATEST", 'lastServiceModeTime', time, '#lst'),
+        addNote(deviceId, "LATEST", logMsg)
+    ]);
+    alert(newState ? "Watchdog disabled!" : "Watchdog activated!");
+  } catch (err) { console.error(err); }
+};
 
-    const setMaintenanceInterval = async (deviceId, timestamp, actionOrMonths) => {
+  const setMaintenanceInterval = async (deviceId, timestamp, actionOrMonths) => {
     const targetTimestamp = timestamp || "LATEST";
     const assetRecord = assets.find(a => a.deviceId === deviceId);
     
@@ -569,39 +569,40 @@ function App() {
   };
 
   const executeLiveShareEscalation = async () => {
-    if (!isAdmin) {
-      alert("Security Violation: Only administrator accounts are cleared to authorize external view vectors.");
-      setSharingAsset(null);
-      return;
-    }
-    if (!shareEmail || !shareEmail.trim() || !sharingAsset) return;
-    
-    const secureToken = sharingAsset.deviceId + "_" + crypto.randomUUID();
-    const durationMs = parseInt(shareDuration, 10) * 60 * 60 * 1000;
-    const expirationTimestamp = Date.now() + durationMs;
+  if (!isAdmin) {
+    alert("Security Violation: Only administrator accounts are cleared to authorize external view vectors.");
+    setSharingAsset(null);
+    return;
+  }
+  if (!shareEmail || !shareEmail.trim() || !sharingAsset) return;
+  
+  const secureToken = sharingAsset.deviceId + "_" + crypto.randomUUID();
+  const durationMs = parseInt(shareDuration, 10) * 60 * 60 * 1000;
+  const expirationTimestamp = Date.now() + durationMs;
 
-    try {
-      await docClient.send(new UpdateCommand({
-        TableName: "AssetTrackerData",
-        Key: { deviceId: sharingAsset.deviceId, timestamp: sharingAsset.timestamp },
-        UpdateExpression: "SET shareToken = :tok, shareExpires = :exp, shareEmail = :em, isStolenFlag = :st",
-        ExpressionAttributeValues: {
-          ":tok": secureToken,
-          ":exp": expirationTimestamp,
-          ":em": shareEmail.trim().toLowerCase(),
-          ":st": true
-        }
-      }));
-      
-      alert(`Secure Track link dispatched to ${shareEmail} for the next ${shareDuration} hours.`);
-      setSharingAsset(null);
-      setShareEmail("");
-      fetchDevices();
-    } catch (err) {
-      console.error("Failed writing escalation token to data node:", err);
-      alert("System update failure. Verify database permissions.");
-    }
-  };
+  try {
+    await docClient.send(new UpdateCommand({
+      TableName: "AssetTrackerData",
+      Key: { deviceId: sharingAsset.deviceId, timestamp: "LATEST" },
+      UpdateExpression: "SET shareToken = :tok, shareExpires = :exp, shareEmail = :em, isStolenFlag = :st",
+      ExpressionAttributeValues: {
+        ":tok": secureToken,
+        ":exp": expirationTimestamp,
+        ":em": shareEmail.trim().toLowerCase(),
+        ":st": true
+      }
+    }));
+    
+    await addNote(sharingAsset.deviceId, "LATEST", `🔗 Secure Track link dispatched to ${shareEmail}`);
+    alert(`Secure Track link dispatched to ${shareEmail} for the next ${shareDuration} hours.`);
+    setSharingAsset(null);
+    setShareEmail("");
+    fetchDevices();
+  } catch (err) {
+    console.error("Failed writing escalation token to data node:", err);
+    alert("System update failure. Verify database permissions.");
+  }
+};
 
   const clearHomeLocation = async (deviceId, timestamp) => {
   await docClient.send(new UpdateCommand({
@@ -723,21 +724,22 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
   };
 
   const revokeLiveShare = async (deviceId, timestamp) => {
-    if (!isAdmin) return;
-    if (!window.confirm("Immediately terminate the active tracking link and revoke access?")) return;
-    try {
-      await docClient.send(new UpdateCommand({
-        TableName: "AssetTrackerData",
-        Key: { deviceId, timestamp },
-        UpdateExpression: "SET shareToken = :c, shareExpires = :c, shareEmail = :c, isStolenFlag = :c", ExpressionAttributeValues: { ":c": "CLEARED" }
-      }));
-      alert("Tracking link revoked successfully.");
-      fetchDevices();
-    } catch (err) {
-      console.error("Failed to revoke link:", err);
-      alert("System update failure.");
-    }
-  };
+  if (!isAdmin) return;
+  if (!window.confirm("Immediately terminate the active tracking link and revoke access?")) return;
+  try {
+    await docClient.send(new UpdateCommand({
+      TableName: "AssetTrackerData",
+      Key: { deviceId, timestamp: "LATEST" },
+      UpdateExpression: "REMOVE shareToken, shareExpires, shareEmail, isStolenFlag"
+    }));
+    await addNote(deviceId, "LATEST", "🔒 Secure tracking link manually revoked.");
+    alert("Tracking link revoked successfully.");
+    fetchDevices();
+  } catch (err) {
+    console.error("Failed to revoke link:", err);
+    alert("System update failure.");
+  }
+};
 
   const emailReport = () => {
     if (!isAdmin) return;
