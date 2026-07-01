@@ -385,6 +385,9 @@ function App() {
       }));
       await addNote(deviceId, targetTimestamp, `🔧 Service logged & timer set. Next due: ${dueDate.toLocaleDateString()}`);
     }
+    // Wipe out the temporary component inputs to force the UI row to collapse back to selection mode
+    const shortId = deviceId.slice(-5);
+    setMaintenanceInputs(prev => ({ ...prev, [shortId]: "0" }));
     fetchDevices();
   };
 
