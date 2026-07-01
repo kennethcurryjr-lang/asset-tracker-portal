@@ -359,11 +359,12 @@ function App() {
     } catch (err) { console.error(err); }
   };
 
-  const setMaintenanceInterval = async (deviceId, timestamp, months) => {
-    const numMonths = parseInt(months, 10);
+    const setMaintenanceInterval = async (deviceId, timestamp, months) => {
     const targetTimestamp = timestamp || "LATEST";
+    const assetRecord = assets.find(a => a.deviceId === deviceId);
     
-    if (numMonths === 0 || isNaN(numMonths)) {
+    if (months === "OPT_OUT" || parseInt(months, 10) === 0 || isNaN(parseInt(months, 10))) {
+      // Complete Clear / Opt-Out Path
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId, timestamp: targetTimestamp },
@@ -371,28 +372,37 @@ function App() {
         ExpressionAttributeValues: { ":c": "CLEARED" }
       }));
       await addNote(deviceId, targetTimestamp, "🗓️ Maintenance schedule cleared (Opted Out).");
-    } else {
-      // Find the existing asset profile to read its current deadline status
-      const assetRecord = assets.find(a => a.deviceId === deviceId);
+    } else if (months === "LOG_RESET") {
+      // Advance Date Forward Path (Keep interval active)
+      const currentInterval = assetRecord?.maintenanceInterval || 1;
       let dueDate = new Date();
-      
       if (assetRecord && assetRecord.maintenanceDueDate && assetRecord.maintenanceDueDate !== "CLEARED") {
-          // Parse the existing date string and advance forward from there
           dueDate = new Date(assetRecord.maintenanceDueDate);
       }
+      dueDate.setMonth(dueDate.getMonth() + currentInterval);
+      
+      await docClient.send(new UpdateCommand({
+        TableName: "AssetTrackerData",
+        Key: { deviceId, timestamp: targetTimestamp },
+        UpdateExpression: "SET maintenanceDueDate = :md",
+        ExpressionAttributeValues: { ":md": dueDate.toISOString() }
+      }));
+      await addNote(deviceId, targetTimestamp, `🔧 Service logged & timer set. Next due: ${dueDate.toLocaleDateString()}`);
+    } else {
+      // Initial Schedule Set Path
+      const numMonths = parseInt(months, 10);
+      const dueDate = new Date();
       dueDate.setMonth(dueDate.getMonth() + numMonths);
+      
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId, timestamp: targetTimestamp },
         UpdateExpression: "SET maintenanceInterval = :mi, maintenanceDueDate = :md",
-        ExpressionAttributeValues: { 
-          ":mi": numMonths, 
-          ":md": dueDate.toISOString() 
-        }
+        ExpressionAttributeValues: { ":mi": numMonths, ":md": dueDate.toISOString() }
       }));
-      await addNote(deviceId, targetTimestamp, `🔧 Service logged & timer set. Next due: ${dueDate.toLocaleDateString()}`);
+      await addNote(deviceId, targetTimestamp, `📅 Service scheduled. Next due: ${dueDate.toLocaleDateString()}`);
     }
-    // Wipe out the temporary component inputs to force the UI row to collapse back to selection mode
+    
     const shortId = deviceId.slice(-5);
     setMaintenanceInputs(prev => ({ ...prev, [shortId]: "0" }));
     fetchDevices();
@@ -1265,8 +1275,8 @@ function App() {
                               <span style={{ width: "8px", height: "8px", backgroundColor: "#34c759", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 4px rgba(52, 199, 89, 0.6)" }}></span>
                               <span style={{ fontSize: "11px", fontWeight: "700", color: "#34c759", textTransform: "uppercase" }}>Service Scheduled</span>
                             </div>
-                            <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, 0)} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #34c759", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "transparent", color: "#34c759" }}>✅ Log & Reset</button>
-                            <button onClick={() => setMaintenanceInterval(item.deviceId, 'LATEST', "0")} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #ff3b30", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "transparent", color: "#ff3b30" }}>Opt Out</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, "LOG_RESET")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #34c759", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#34c759", color: "#ffffff" }}>Log & Reset</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, "OPT_OUT")} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #ff3b30", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "transparent", color: "#ff3b30" }}>Opt Out</button>
                           </>
                         )}
                       </div>
