@@ -372,7 +372,14 @@ function App() {
       }));
       await addNote(deviceId, targetTimestamp, "🗓️ Maintenance schedule cleared (Opted Out).");
     } else {
-      const dueDate = new Date();
+      // Find the existing asset profile to read its current deadline status
+      const assetRecord = assets.find(a => a.deviceId === deviceId);
+      let dueDate = new Date();
+      
+      if (assetRecord && assetRecord.maintenanceDueDate && assetRecord.maintenanceDueDate !== "CLEARED") {
+          // Parse the existing date string and advance forward from there
+          dueDate = new Date(assetRecord.maintenanceDueDate);
+      }
       dueDate.setMonth(dueDate.getMonth() + numMonths);
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
