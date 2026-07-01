@@ -504,7 +504,7 @@ function App() {
     if (!window.confirm(`WARNING: PERMANENTLY wipe ALL historical logs, tracking data, and names for ${selectedDevices.length} selected devices? This cannot be undone.`)) return;
     try {
         await Promise.all(selectedDevices.map(async (id) => {
-            const dev = assets.find(a => a.deviceId.slice(-5) === id);
+            const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
             if (!dev) return;
             const queryResponse = await docClient.send(new QueryCommand({
               TableName: "AssetTrackerData",
@@ -601,7 +601,7 @@ function App() {
     if (!bulkGroupInput || !bulkGroupInput.trim()) return;
     const results = await Promise.all(selectedDevices.map(async (id) => {
       try {
-        const dev = assets.find(a => a.deviceId.slice(-5) === id);
+        const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
         if (!dev) throw new Error("Device " + id + " not found");
         await updateAttribute(dev.deviceId, 'LATEST', 'group', bulkGroupInput.trim(), '#g');
         return { id, success: true };
@@ -624,7 +624,7 @@ function App() {
     if (!bulkNoteInput || !bulkNoteInput.trim()) return;
     if (!window.confirm(`Are you sure you want to broadcast this timeline log entry to all ${selectedDevices.length} selected devices?`)) return;
     await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId.slice(-5) === id);
+      const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
       return addNote(dev.deviceId, dev.timestamp, bulkNoteInput.trim());
     }));
     alert(`Broadcast log note to ${selectedDevices.length} Kinetic Card timelines.`);
@@ -637,7 +637,7 @@ function App() {
   const applyBulkSetHome = async () => {
     if (!window.confirm(`Are you sure you want to set the current lock position as the home location anchor for all ${selectedDevices.length} selected devices?`)) return;
     await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId.slice(-5) === id);
+      const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
       return setHomeLocation(dev.deviceId, dev.timestamp, dev.latitude, dev.longitude);
     }));
     alert(`Saved home target geofence anchors for ${selectedDevices.length} devices.`);
@@ -648,7 +648,7 @@ function App() {
   const applyBulkClearHome = async () => {
     if (!window.confirm(`Are you sure you want to completely wipe out and clear the home location anchors for all ${selectedDevices.length} selected Kinetic Cards?`)) return;
     await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId.slice(-5) === id);
+      const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
       return clearHomeLocation(dev.deviceId, dev.timestamp);
     }));
     alert(`Cleared home target anchors for ${selectedDevices.length} Kinetic Cards.`);
@@ -667,7 +667,7 @@ function App() {
     }
     try {
       await Promise.all(selectedDevices.map(async (id, index) => {
-        const dev = assets.find(a => a.deviceId.slice(-5) === id);
+        const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
         if (!dev) return;
         const sequentialName = `${baseName}-${startIndex + index}`;
         await updateAttribute(dev.deviceId, dev.timestamp, 'tag', sequentialName, '#t');
