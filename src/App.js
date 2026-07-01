@@ -604,25 +604,27 @@ function App() {
   };
 
   const clearHomeLocation = async (deviceId, timestamp) => {
-    await Promise.all([
-      docClient.send(new UpdateCommand({
-        TableName: "AssetTrackerData",
-        Key: { deviceId, timestamp },
-        UpdateExpression: "SET homeLat = :c, homeLon = :c", ExpressionAttributeValues: { ":c": "CLEARED" }
-      })),
-      addNote(deviceId, timestamp, `🚫 Home Anchor Cleared`)
-    ]);
-  };
+  await docClient.send(new UpdateCommand({
+    TableName: "AssetTrackerData",
+    Key: { deviceId, timestamp: "LATEST" },
+    UpdateExpression: "REMOVE homeLat, homeLon"
+  }));
+  await addNote(deviceId, "LATEST", `🚫 Home Anchor Cleared`);
+  fetchDevices();
+};
 
-  const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
-    const logMsg = `📍 Home Anchor Set: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-    await Promise.all([
-        updateAttribute(deviceId, timestamp, 'homeLat', lat, '#hl'),
-        updateAttribute(deviceId, timestamp, 'homeLon', lon, '#hlon'),
-        addNote(deviceId, timestamp, logMsg)
-    ]);
-    alert("Home location saved and logged!");
-  };
+const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
+  const logMsg = `📍 Home Anchor Set: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+  await docClient.send(new UpdateCommand({
+    TableName: "AssetTrackerData",
+    Key: { deviceId, timestamp: "LATEST" },
+    UpdateExpression: "SET homeLat = :lat, homeLon = :lon",
+    ExpressionAttributeValues: { ":lat": lat, ":lon": lon }
+  }));
+  await addNote(deviceId, "LATEST", logMsg);
+  alert("Home location saved and logged!");
+  fetchDevices();
+};
 
   const applyBulkGroup = async () => {
     if (!bulkGroupInput || !bulkGroupInput.trim()) return;
