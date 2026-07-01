@@ -361,23 +361,29 @@ function App() {
 
   const setMaintenanceInterval = async (deviceId, timestamp, months) => {
     const numMonths = parseInt(months, 10);
+    const targetTimestamp = timestamp || "LATEST";
+    
     if (numMonths === 0 || isNaN(numMonths)) {
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
-        Key: { deviceId, timestamp },
-        UpdateExpression: "SET maintenanceInterval = :c, maintenanceDueDate = :c", ExpressionAttributeValues: { ":c": "CLEARED" }
+        Key: { deviceId, timestamp: targetTimestamp },
+        UpdateExpression: "SET maintenanceInterval = :c, maintenanceDueDate = :c", 
+        ExpressionAttributeValues: { ":c": "CLEARED" }
       }));
-      addNote(deviceId, timestamp, "🗓️ Maintenance schedule cleared (Opted Out).");
+      await addNote(deviceId, targetTimestamp, "🗓️ Maintenance schedule cleared (Opted Out).");
     } else {
       const dueDate = new Date();
       dueDate.setMonth(dueDate.getMonth() + numMonths);
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
-        Key: { deviceId, timestamp },
+        Key: { deviceId, timestamp: targetTimestamp },
         UpdateExpression: "SET maintenanceInterval = :mi, maintenanceDueDate = :md",
-        ExpressionAttributeValues: { ":mi": numMonths, ":md": dueDate.toISOString() }
+        ExpressionAttributeValues: { 
+          ":mi": numMonths, 
+          ":md": dueDate.toISOString() 
+        }
       }));
-      addNote(deviceId, timestamp, `🔧 Service logged & timer set. Next due: ${dueDate.toLocaleDateString()}`);
+      await addNote(deviceId, targetTimestamp, `🔧 Service logged & timer set. Next due: ${dueDate.toLocaleDateString()}`);
     }
     fetchDevices();
   };
