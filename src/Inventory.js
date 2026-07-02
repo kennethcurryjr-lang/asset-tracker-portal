@@ -29,6 +29,8 @@ export default function Inventory({ user }) {
   
   const [pendingModeSwitch, setPendingModeSwitch] = useState(null);
   const [showRegisterConfirm, setShowRegisterConfirm] = useState(false);
+  
+  // AUDIT LEDGER STATE
   const [showAuditModal, setShowAuditModal] = useState(false);
   const [auditLog, setAuditLog] = useState([]);
 
@@ -57,9 +59,24 @@ export default function Inventory({ user }) {
     } catch (err) { console.error("DynamoDB Fetch Error:", err); }
   };
 
+  // 🔥 NEW: Fetch Historical Audit Logs from the Cloud
+  const fetchAuditLogs = async () => {
+    try {
+      const response = await docClient.send(new ScanCommand({ TableName: "BeverageAuditLogs" }));
+      if (response.Items) {
+        // Sort newest transactions to the top based on timestamp ID
+        setAuditLog(response.Items.sort((a, b) => b.id - a.id));
+      }
+    } catch (err) { console.error("Failed to fetch historical audit logs:", err); }
+  };
+
   useEffect(() => {
     fetchInventory();
-    const interval = setInterval(fetchInventory, 3000);
+    fetchAuditLogs();
+    const interval = setInterval(() => { 
+      fetchInventory(); 
+      fetchAuditLogs(); 
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -90,16 +107,32 @@ export default function Inventory({ user }) {
     if (!pendingAction) return;
     const { targetItem, boxAdjustment, newQuantity, newZone, actionName } = pendingAction;
     
-    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || "Admin Mode", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor };
+    // Construct the permanent log payload
+    const logEntry = { 
+      id: Date.now(), 
+      time: new Date().toLocaleString(), 
+      user: user?.email || "Admin Mode", 
+      action: actionName.replace(/[^a-zA-Z]/g, ""), 
+      qty: boxAdjustment, 
+      flavor: targetItem.flavor 
+    };
+    
+    // Instantly update the UI for a snappy feel
     setAuditLog(prev => [logEntry, ...prev]);
     setStock(prevStock => prevStock.map(item => item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone } : item));
     setScanFeedback(`✅ ${actionName.replace(/[^a-zA-Z]/g, "")} ${boxAdjustment} boxes of ${targetItem.flavor}`);
     setShowConfirmModal(false);
     setPendingAction(null);
 
+    // 🔥 NEW: Double-Cloud Sync (Inventory Count + Audit Ledger)
     try {
       await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone } }));
-    } catch (err) { console.error("Cloud update failed:", err); }
+    } catch (err) { console.error("Inventory cloud update failed:", err); }
+    
+    try {
+      await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: logEntry }));
+    } catch (err) { console.error("Audit log cloud sync failed:", err); }
+
     setTimeout(() => setScanFeedback(""), 4000);
   };
 
@@ -177,19 +210,14 @@ export default function Inventory({ user }) {
       {/* TOOLBAR */}
       <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "16px", border: "1px solid #3a3a3c" }}>
         
-        {/* Left Side: Search & Multi-Flip */}
         <div className="search-group" style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%", maxWidth: "280px" }}>
           <input type="text" placeholder="🔎 Filter Inventory..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "14px 16px", width: "100%", boxSizing: "border-box", color: "#ffffff" }} />
           
-          <button onClick={() => { 
-            setIsMultiFlipMode(!isMultiFlipMode); 
-            if (isMultiFlipMode) setFlippedCards([]); 
-          }} style={{ backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%" }}>
+          <button onClick={() => { setIsMultiFlipMode(!isMultiFlipMode); if (isMultiFlipMode) setFlippedCards([]); }} style={{ backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%" }}>
             🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
           </button>
         </div>
 
-        {/* Right Side: Primary Actions */}
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", flex: "1", justifyContent: "flex-end" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "4px 12px" }}><span style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span><input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} /></div>
           
@@ -225,14 +253,8 @@ export default function Inventory({ user }) {
               }}
             >
               <div style={{
-                width: '100%',
-                position: 'relative',
-                transition: 'transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1)',
-                transformStyle: 'preserve-3d',
-                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+                width: '100%', position: 'relative', transition: 'transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1)', transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
               }}>
-                
-                {/* 🟢 FRONT SIDE */}
                 <div style={{ 
                   backfaceVisibility: 'hidden', backgroundColor: '#2c2c2e', borderRadius: '16px', padding: '24px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)', minHeight: '220px'
                 }}>
@@ -247,7 +269,6 @@ export default function Inventory({ user }) {
                   </div>
                 </div>
 
-                {/* 🔵 BACK SIDE */}
                 <div style={{ 
                   backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#1a1a1c', borderRadius: '16px', padding: '24px', border: '1px solid #007aff', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 30px rgba(0, 122, 255, 0.15)', boxSizing: 'border-box'
                 }}>
@@ -309,16 +330,17 @@ export default function Inventory({ user }) {
         </div>
       )}
 
+      {/* 🔥 UPGRADED AUDIT MODAL */}
       {showAuditModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "700px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "20px", maxHeight: "80vh" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
-              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "22px" }}>📋 Session Transaction Audit</h3>
+              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "22px" }}>📋 Historical Cloud Audit</h3>
               <button onClick={() => setShowAuditModal(false)} style={{ background: "transparent", color: "#8e8e93", border: "none", fontSize: "16px", cursor: "pointer" }}>Close ✕</button>
             </div>
             <div style={{ overflowY: "auto", flex: 1, paddingRight: "8px" }}>
               {auditLog.length === 0 ? (
-                <div style={{ color: "#8e8e93", textAlign: "center", padding: "40px" }}>No transactions recorded in this session.</div>
+                <div style={{ color: "#8e8e93", textAlign: "center", padding: "40px" }}>No historical transactions found in the cloud ledger.</div>
               ) : (
                 <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "14px", color: "#ffffff" }}>
                   <thead>
