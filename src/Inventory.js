@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { ScanCommand, UpdateCommand, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient } from './dynamoClient';
 
@@ -7,12 +7,12 @@ const initialMockData = [
   { barcode: "082123456781", lotNumber: "LOT-2026-01", expiryDate: "2026-10-15", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", type: "3G Bag-in-Box", quantity: 420, zone: "Cooler Bay-01" },
   { barcode: "082123456782", lotNumber: "LOT-2026-02", expiryDate: "2026-11-01", brand: "Citrus Springs", flavor: "Apple Juice Premium", type: "3G Bag-in-Box", quantity: 180, zone: "Cooler Bay-01" },
   { barcode: "082123456783", lotNumber: "LOT-2026-03", expiryDate: "2027-01-20", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 310, zone: "Dry Aisle A" },
-  { barcode: "082123456783-OLD", lotNumber: "LOT-2025-11", expiryDate: "2026-08-10", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 45, zone: "Dry Aisle B" }, // Added for FIFO testing
+  { barcode: "082123456783-OLD", lotNumber: "LOT-2025-11", expiryDate: "2026-08-10", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 45, zone: "Dry Aisle B" },
   { barcode: "082123456784", lotNumber: "LOT-2026-04", expiryDate: "2026-12-05", brand: "Twisted Branch", flavor: "Craft Lemonade Base", type: "3G Bag-in-Box", quantity: 35, zone: "Dry Aisle B" },
   { barcode: "082123456785", lotNumber: "LOT-2026-05", expiryDate: "2027-03-10", brand: "Madrinas Coffee", flavor: "Vanilla Cold Brew RTD", type: "24-Can Case", quantity: 300, zone: "Dry Aisle C" }
 ];
 
-const MANAGER_PIN = "1234"; // Hardcoded RBAC PIN for Demo
+const MANAGER_PIN = "1234";
 
 export default function Inventory({ user }) {
   const [stock, setStock] = useState([]);
@@ -42,7 +42,6 @@ export default function Inventory({ user }) {
   const [editModes, setEditModes] = useState({});
   const [editForms, setEditForms] = useState({});
 
-  // 🔥 RBAC STATE ENGINE
   const [pinModal, setPinModal] = useState({ isOpen: false, callback: null, error: false });
   const [pinInput, setPinInput] = useState("");
 
@@ -113,7 +112,6 @@ export default function Inventory({ user }) {
       const newQuantity = scanMode === "receive" ? targetItem.quantity + boxAdjustment : Math.max(0, targetItem.quantity - boxAdjustment);
       const newZone = (scanMode === "receive" && activeZone !== "Unassigned Warehouse") ? activeZone : targetItem.zone;
       
-      // 🔥 FIFO ENFORCEMENT LOGIC
       let fifoWarningItem = null;
       if (scanMode === "ship") {
         const olderLots = stock.filter(i => 
@@ -123,7 +121,7 @@ export default function Inventory({ user }) {
         );
         if (olderLots.length > 0) {
           olderLots.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
-          fifoWarningItem = olderLots[0]; // Grab the absolute oldest lot
+          fifoWarningItem = olderLots[0]; 
         }
       }
 
@@ -194,13 +192,37 @@ export default function Inventory({ user }) {
     const a = document.createElement("a"); a.href = url; a.download = `CS_Inventory_Snapshot_${new Date().toISOString().split('T')[0]}.csv`; a.click(); URL.revokeObjectURL(url);
   };
 
+  // 🔥 UPGRADED CORE SCANNER ENGINE (Forces Environment Camera, Skips UI Menu)
   const processRef = useRef(); processRef.current = processScannedCode;
   useEffect(() => {
+    let qrCodeInstance;
+    
     if (isScanning) {
-      const scanner = new Html5QrcodeScanner("reader", { fps: 30, qrbox: { width: 300, height: 150 }, rememberLastUsedCamera: true, aspectRatio: 1.777778 });
-      scanner.render((decodedText) => { scanner.clear(); setIsScanning(false); if (processRef.current) processRef.current(decodedText); }, (error) => {});
-      return () => { scanner.clear().catch(e => console.log(e)); };
+      setTimeout(() => {
+        qrCodeInstance = new Html5Qrcode("reader");
+        qrCodeInstance.start(
+          { facingMode: "environment" }, 
+          { fps: 30, qrbox: { width: 300, height: 150 }, aspectRatio: 1.777778 },
+          (decodedText) => {
+            qrCodeInstance.stop().then(() => {
+              setIsScanning(false);
+              if (processRef.current) processRef.current(decodedText);
+            }).catch(e => console.log(e));
+          },
+          (error) => { /* Ignore frame-level errors during active scan */ }
+        ).catch(err => {
+          console.error("Camera start error:", err);
+          setIsScanning(false);
+          alert("Unable to access rear camera. Please ensure permissions are granted.");
+        });
+      }, 100);
     }
+
+    return () => {
+      if (qrCodeInstance) {
+        try { qrCodeInstance.stop().catch(e => {}); } catch(e) {}
+      }
+    };
   }, [isScanning]);
 
   return (
@@ -220,7 +242,8 @@ export default function Inventory({ user }) {
           .secondary-row { width: 100% !important; justify-content: space-between !important; gap: 8px !important; margin-top: 8px !important; }
           .secondary-row > button { flex: 1; }
         }
-        #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; }
+        #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; display: flex; justify-content: center; }
+        #reader video { border-radius: 14px; object-fit: cover; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
       `}</style>
 
@@ -268,16 +291,11 @@ export default function Inventory({ user }) {
               <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} />
             </div>
             <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#1c1c1e", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>🪵 {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
-            
-            {/* ADD ITEM NOW REQUIRES MANAGER RBAC */}
             <button onClick={() => requireManager(handleManualAdd)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>➕ Add</button>
             <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "12px", color: "#ffffff", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" }}>📷 SCAN</button>
           </div>
           <div className="secondary-row" style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
-            
-            {/* AUDIT LOG NOW REQUIRES MANAGER RBAC */}
             <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>📋 Security Audit</button>
-            
             <button onClick={handleExportCSV} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>📥 CSV</button>
           </div>
         </div>
@@ -318,13 +336,10 @@ export default function Inventory({ user }) {
                 
                 {/* 🟢 FRONT SIDE */}
                 <div style={{ backfaceVisibility: 'hidden', backgroundColor: '#2c2c2e', borderRadius: '16px', padding: '24px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)', minHeight: '310px' }}>
-                  
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div><div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{item.brand}</div><div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', marginTop: '4px', lineHeight: '1.2' }}>{item.flavor}</div></div>
-                    
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                       <div style={{ fontSize: '11px', color: '#8e8e93', backgroundColor: '#1c1c1e', padding: '4px 8px', borderRadius: '8px', border: '1px solid #3a3a3c', whiteSpace: 'nowrap' }}>Lot: {item.lotNumber}</div>
-                      {/* 🔥 NEW VISUAL: SHELF LIFE / EXPIRY DATE */}
                       <div style={{ fontSize: '10px', color: '#ff9500', fontWeight: '600' }}>Exp: {item.expiryDate || "N/A"}</div>
                     </div>
                   </div>
@@ -396,8 +411,6 @@ export default function Inventory({ user }) {
                         <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>90-Day Burn</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#ffffff', marginTop: '2px' }}>{quarterlyBurn} <span style={{fontSize: '12px', color:'#8e8e93'}}>bx</span></div></div>
                         <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Est. Run-Out Date</div><div style={{ fontSize: '18px', fontWeight: '700', color: item.quantity === 0 ? '#ff3b30' : '#34c759', marginTop: '2px' }}>{item.quantity === 0 ? "Depleted" : runOutDate}</div></div>
                       </div>
-                      
-                      {/* EDIT DETAILS NOW REQUIRES MANAGER RBAC */}
                       <button 
                         onClick={(e) => { 
                           e.stopPropagation(); 
@@ -419,7 +432,7 @@ export default function Inventory({ user }) {
         })}
       </div>
 
-      {/* 🔥 NEW: RBAC SECURITY PIN MODAL */}
+      {/* RBAC SECURITY PIN MODAL */}
       {pinModal.isOpen && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.9)", backdropFilter: "blur(15px)", zIndex: 10001, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "380px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.8)" }}>
@@ -428,17 +441,8 @@ export default function Inventory({ user }) {
               <h3 style={{ margin: 0, color: "#ffffff", fontSize: "22px", fontWeight: "700" }}>Manager Override</h3>
               <p style={{ margin: "8px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Enter 4-digit PIN to authorize action.</p>
             </div>
-            
-            <input 
-              type="password" 
-              maxLength="4" 
-              value={pinInput} 
-              onChange={(e) => setPinInput(e.target.value)} 
-              autoFocus
-              style={{ backgroundColor: "#242426", border: pinModal.error ? "2px solid #ff3b30" : "2px solid #007aff", color: "#fff", fontSize: "32px", fontWeight: "800", textAlign: "center", letterSpacing: "12px", padding: "16px", borderRadius: "16px", outline: "none", width: "100%", boxSizing: "border-box" }} 
-            />
+            <input type="password" maxLength="4" value={pinInput} onChange={(e) => setPinInput(e.target.value)} autoFocus style={{ backgroundColor: "#242426", border: pinModal.error ? "2px solid #ff3b30" : "2px solid #007aff", color: "#fff", fontSize: "32px", fontWeight: "800", textAlign: "center", letterSpacing: "12px", padding: "16px", borderRadius: "16px", outline: "none", width: "100%", boxSizing: "border-box" }} />
             {pinModal.error && <div style={{ color: "#ff3b30", fontSize: "12px", fontWeight: "700", marginTop: "-12px" }}>INCORRECT PIN</div>}
-            
             <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
               <button onClick={() => setPinModal({ isOpen: false, callback: null, error: false })} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "14px", borderRadius: "12px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
               <button onClick={submitPin} style={{ flex: 2, backgroundColor: "#007aff", color: "#ffffff", border: "none", padding: "14px", borderRadius: "12px", fontWeight: "700", cursor: "pointer" }}>Unlock</button>
@@ -452,10 +456,8 @@ export default function Inventory({ user }) {
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
             <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>⚠️ Confirm Update</h3>
-            
             <p style={{ margin: 0, color: "#ffffff", fontSize: "17px", lineHeight: "1.5" }}>Action: <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "800" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")} {pendingAction.boxAdjustment} Boxes</span> of <strong style={{color: "#007aff"}}>{pendingAction.targetItem.flavor}</strong></p>
             
-            {/* 🔥 FIFO WARNING INJECTION */}
             {pendingAction.fifoWarningItem && (
               <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid #ff9500", padding: "16px", borderRadius: "12px", textAlign: "left", display: "flex", flexDirection: "column", gap: "8px" }}>
                 <div style={{ color: "#ff9500", fontWeight: "800", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>🛑 FIFO VIOLATION DETECTED</div>
@@ -475,7 +477,7 @@ export default function Inventory({ user }) {
         </div>
       )}
 
-      {/* ALL OTHER MODALS REMAIN UNCHANGED BELOW */}
+      {/* MODE SWITCH & REGISTER MODALS */}
       {pendingModeSwitch && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
@@ -531,6 +533,7 @@ export default function Inventory({ user }) {
         </div>
       )}
 
+      {/* CORE VIEW FINDER INJECTION */}
       {isScanning && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.9)", zIndex: 9998, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "#1c1c1e", padding: "24px", borderRadius: "24px" }}>
@@ -538,7 +541,8 @@ export default function Inventory({ user }) {
               <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px" }}>📷 Viewfinder</h3>
               <button onClick={() => setIsScanning(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer" }}>Cancel ✕</button>
             </div>
-            <div id="reader" style={{ width: "100%" }}></div>
+            {/* The raw Html5Qrcode engine automatically mounts the video stream exactly here */}
+            <div id="reader" style={{ width: "100%", minHeight: "250px" }}></div>
           </div>
         </div>
       )}
