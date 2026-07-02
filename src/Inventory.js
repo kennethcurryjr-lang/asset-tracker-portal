@@ -22,6 +22,7 @@ export default function Inventory({ user }) {
   const [scanFeedback, setScanFeedback] = useState("");
   
   const [showNewItemModal, setShowNewItemModal] = useState(false);
+  const [showRegisterConfirm, setShowRegisterConfirm] = useState(false);
   const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", quantity: 1, zone: "" });
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -123,12 +124,15 @@ export default function Inventory({ user }) {
     setShowNewItemModal(true);
   };
 
-  const handleSaveNewItem = async () => {
+  const handleSaveNewItem = () => {
     if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) return alert("Required fields missing.");
-    if (!window.confirm(`⚠️ Registering New Product\n\nPermanently add [ ${newItemForm.flavor} ] to the cloud?`)) return;
-    
+    setShowRegisterConfirm(true); // Trigger stylish modal instead of native alert
+  };
+
+  const executeSaveNewItem = async () => {
     setStock(prev => { const exists = prev.find(i => i.barcode === newItemForm.barcode); return exists ? prev : [...prev, newItemForm]; });
     setShowNewItemModal(false);
+    setShowRegisterConfirm(false); // Close modal
     setScanFeedback(`✅ 📥 Registered Product: ${newItemForm.flavor}`);
     setTimeout(() => setScanFeedback(""), 4000);
 
