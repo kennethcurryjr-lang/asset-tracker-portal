@@ -79,7 +79,7 @@ export default function Inventory({ user }) {
 
     if (targetItem) {
       setStock(prevStock => prevStock.map(item => {
-        if (item.barcode === scannedBarcode) {
+        if (item.barcode === cleanScan) {
           if (scanMode === "receive") {
             return { ...item, quantity: item.quantity + boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : item.zone };
           } else if (scanMode === "ship") {
