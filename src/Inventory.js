@@ -189,7 +189,13 @@ export default function Inventory({ user }) {
         </div>
         <div style={{ display: "flex", backgroundColor: "#2c2c2e", padding: "4px", borderRadius: "12px", width: "fit-content" }}>
           <button onClick={() => setScanMode("receive")} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: "#ffffff", flex: 1 }}>📥 Receive</button>
-          <button onClick={() => setScanMode("ship")} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "transparent", color: "#ffffff", flex: 1 }}>🚚 Ship</button>
+          <button onClick={() => {
+          if (scanMode !== "ship") {
+            if (window.confirm("⚠️ WARNING: SWITCHING TO SHIP MODE\n\nAre you sure you want to switch to Shipping?\n\nAny barcodes scanned will now be DEDUCTED from the live warehouse inventory.")) {
+              setScanMode("ship");
+            }
+          }
+        }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "transparent", color: "#ffffff", flex: 1 }}>🚚 Ship</button>
         </div>
       </div>
 
