@@ -1236,6 +1236,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
                       <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.4' }}>
                         <div style={{ fontWeight: '500', color: '#1d1d1f' }}>{item.city || "Locating"}</div>
+                        <div style={{ fontSize: '10px', color: '#86868b', marginTop: '2px' }}>Last seen: {item.lastSeen}</div>
                         <div style={{ fontSize: '11px' }}>ID: {item.deviceId.slice(-5)}</div>
                         {item.group && <div style={{ fontSize: '11px', fontStyle: 'italic' }}>📦 {item.group}</div>}
                       </div>
