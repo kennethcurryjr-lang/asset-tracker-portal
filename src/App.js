@@ -21,31 +21,58 @@ function getDistanceInKm(lat1, lon1, lat2, lon2) {
 
 // Helper: Location Name (Cached)
 const locationCache = new Map();
+const geocodeQueue = [];
+let isGeocoding = false;
+
+async function processGeocodeQueue() {
+  if (isGeocoding || geocodeQueue.length === 0) return;
+  isGeocoding = true;
+  
+  while (geocodeQueue.length > 0) {
+    const { lat, lon, resolve } = geocodeQueue.shift();
+    try {
+      // Primary: OpenStreetMap (Highly accurate, but strict 1-req/sec limit)
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+      if (response.ok) {
+        const data = await response.json();
+        const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county || "Unknown";
+        resolve({ zip: data.address?.postcode || "Unknown", city: city });
+      } else {
+        // Fallback: BigDataCloud
+        const res2 = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+        const data2 = await res2.json();
+        resolve({ zip: data2.postcode || "Unknown", city: data2.city || data2.locality || "Unknown" });
+      }
+    } catch (err) {
+      resolve({ zip: "N/A", city: "Unknown" });
+    }
+    
+    // Strict 1.1-second delay between requests to completely avoid API spam bans
+    await new Promise(r => setTimeout(r, 1100));
+  }
+  isGeocoding = false;
+}
+
 async function getLocationInfo(lat, lon) {
   const numLat = Number(lat);
   const numLon = Number(lon);
-  
-  if (isNaN(numLat) || isNaN(numLon) || !lat || !lon) {
-    return { zip: "N/A", city: "Unknown" };
-  }
+  if (isNaN(numLat) || isNaN(numLon) || !lat || !lon) return { zip: "N/A", city: "Unknown" };
 
   const cacheKey = `${numLat.toFixed(3)},${numLon.toFixed(3)}`;
   if (locationCache.has(cacheKey)) return locationCache.get(cacheKey);
 
-  try {
-    const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-    if (!response.ok) throw new Error("API Limit Hit");
-    
-    const data = await response.json();
-    const city = data.city || data.locality || `${numLat.toFixed(4)}, ${numLon.toFixed(4)}`;
-    
-    const result = { zip: data.postcode || "Unknown", city: city };
-    locationCache.set(cacheKey, result);
-    return result;
-  } catch (err) {
-    // Absolute foolproof fallback: Show the actual coordinates instead of "Locating..."
-    return { zip: "N/A", city: `${numLat.toFixed(4)}, ${numLon.toFixed(4)}` };
-  }
+  return new Promise((resolve) => {
+    geocodeQueue.push({ 
+      lat, 
+      lon, 
+      resolve: (res) => {
+        if (res.city === "Unknown" || !res.city) res.city = `${numLat.toFixed(4)}, ${numLon.toFixed(4)}`;
+        locationCache.set(cacheKey, res);
+        resolve(res);
+      }
+    });
+    processGeocodeQueue();
+  });
 }
 
 function MapUpdater({ center }) {
