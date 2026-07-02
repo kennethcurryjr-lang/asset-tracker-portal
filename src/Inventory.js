@@ -36,7 +36,6 @@ export default function Inventory({ user }) {
   const [flippedCards, setFlippedCards] = useState([]);
   const [isMultiFlipMode, setIsMultiFlipMode] = useState(false);
 
-  // 🔥 NEW: State managers for inline card editing
   const [editModes, setEditModes] = useState({});
   const [editForms, setEditForms] = useState({});
 
@@ -65,19 +64,14 @@ export default function Inventory({ user }) {
   const fetchAuditLogs = async () => {
     try {
       const response = await docClient.send(new ScanCommand({ TableName: "BeverageAuditLogs" }));
-      if (response.Items) {
-        setAuditLog(response.Items.sort((a, b) => b.id - a.id));
-      }
+      if (response.Items) setAuditLog(response.Items.sort((a, b) => b.id - a.id));
     } catch (err) { console.error("Failed to fetch historical audit logs:", err); }
   };
 
   useEffect(() => {
     fetchInventory();
     fetchAuditLogs();
-    const interval = setInterval(() => { 
-      fetchInventory(); 
-      fetchAuditLogs(); 
-    }, 3000);
+    const interval = setInterval(() => { fetchInventory(); fetchAuditLogs(); }, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -112,8 +106,7 @@ export default function Inventory({ user }) {
     setAuditLog(prev => [logEntry, ...prev]);
     setStock(prevStock => prevStock.map(item => item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone } : item));
     setScanFeedback(`✅ ${actionName.replace(/[^a-zA-Z]/g, "")} ${boxAdjustment} boxes of ${targetItem.flavor}`);
-    setShowConfirmModal(false);
-    setPendingAction(null);
+    setShowConfirmModal(false); setPendingAction(null);
 
     try { await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone } })); } 
     catch (err) { console.error("Inventory cloud update failed:", err); }
@@ -133,7 +126,6 @@ export default function Inventory({ user }) {
     try { await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: newItemForm })); } catch (err) { console.error("Failed to register:", err); }
   };
 
-  // 🔥 NEW: Execute inline card edit and sync to cloud
   const handleSaveCardEdit = async (barcode) => {
     const form = editForms[barcode];
     const originalItem = stock.find(i => i.barcode === barcode);
@@ -143,7 +135,7 @@ export default function Inventory({ user }) {
     setAuditLog(prev => [logEntry, ...prev]);
 
     setStock(prev => prev.map(item => item.barcode === barcode ? { ...item, ...form } : item));
-    setEditModes(prev => ({...prev, [barcode]: false})); // Close edit form
+    setEditModes(prev => ({...prev, [barcode]: false}));
 
     try {
       if (form.lotNumber !== originalItem.lotNumber) {
@@ -255,10 +247,20 @@ export default function Inventory({ user }) {
           const isLowStock = item.quantity < 50;
           const isFlipped = flippedCards.includes(item.barcode);
           
-          const monthlyBurn = Math.round(item.quantity * 0.35) + 14;
+          // 🔥 UPGRADED MATH: Stable mock burn rate so gauges don't break when user manually edits stock quantity
+          const baseBurn = (item.flavor.length * 4) + 15; 
+          const monthlyBurn = baseBurn;
           const quarterlyBurn = monthlyBurn * 3;
+          const targetStock = quarterlyBurn; // Target = 90 Days Pipeline
           const daysRemaining = item.quantity === 0 ? 0 : Math.max(1, Math.round(item.quantity / (monthlyBurn / 30)));
           const runOutDate = new Date(Date.now() + (daysRemaining * 24 * 60 * 60 * 1000)).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
+          // Health Gauge Logic
+          const healthPercent = Math.min(100, Math.round((item.quantity / targetStock) * 100));
+          let healthColor = "#34c759"; // Green
+          if (item.quantity < 50) healthColor = "#ff3b30"; // Red
+          else if (daysRemaining < 30) healthColor = "#ff9500"; // Orange
+          else if (healthPercent > 80) healthColor = "#007aff"; // Blue (Optimal)
 
           return (
             <div 
@@ -277,11 +279,26 @@ export default function Inventory({ user }) {
                 
                 {/* 🟢 FRONT SIDE */}
                 <div style={{ backfaceVisibility: 'hidden', backgroundColor: '#2c2c2e', borderRadius: '16px', padding: '24px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)', minHeight: '310px' }}>
+                  
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div><div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{item.brand}</div><div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', marginTop: '4px', lineHeight: '1.2' }}>{item.flavor}</div></div>
                     <div style={{ fontSize: '11px', color: '#8e8e93', backgroundColor: '#1c1c1e', padding: '4px 8px', borderRadius: '8px', border: '1px solid #3a3a3c', whiteSpace: 'nowrap', marginLeft: '12px' }}>Lot: {item.lotNumber}</div>
                   </div>
+                  
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: '#1c1c1e', color: '#8e8e93', borderRadius: '8px', border: '1px solid #3a3a3c' }}>📦 {item.type}</span>{isLowStock && <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: '#ff3b30', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}</div>
+                  
+                  {/* 🔥 NEW VISUAL: STOCK HEALTH GAUGE */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8px 0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Pipeline Health</span>
+                      <span style={{ fontSize: '12px', color: healthColor, fontWeight: '700' }}>{daysRemaining} Days Supply</span>
+                    </div>
+                    <div style={{ width: '100%', height: '10px', backgroundColor: '#1c1c1e', borderRadius: '5px', overflow: 'hidden', border: '1px solid #3a3a3c' }}>
+                      <div style={{ width: `${healthPercent}%`, height: '100%', backgroundColor: healthColor, boxShadow: `0 0 10px ${healthColor}80`, transition: 'width 0.5s ease-out' }}></div>
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#8e8e93', marginTop: '8px', textAlign: 'right' }}>Target Stock: {targetStock} bx</div>
+                  </div>
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid #3a3a3c' }}>
                     <div><div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>Placement Zone</div><div style={{ fontSize: '14px', color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff", fontWeight: '600' }}>📍 {item.zone}</div></div>
                     <div style={{ textAlign: 'right' }}><div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '4px', textTransform: 'uppercase' }}>In Stock</div><div style={{ fontSize: '28px', fontWeight: '700', color: isLowStock ? '#ff3b30' : '#34c759', lineHeight: '1' }}>{item.quantity} <span style={{ fontSize: '14px', fontWeight: '600', color: '#8e8e93' }}>box</span></div></div>
@@ -290,7 +307,7 @@ export default function Inventory({ user }) {
 
                 {/* 🔵 BACK SIDE (Stats + Admin Override) */}
                 <div 
-                  onClick={(e) => { if (editModes[item.barcode]) e.stopPropagation(); }} // Prevent flips when interacting with form
+                  onClick={(e) => { if (editModes[item.barcode]) e.stopPropagation(); }} 
                   style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#1a1a1c', borderRadius: '16px', padding: '24px', border: editModes[item.barcode] ? '1px solid #ff3b30' : '1px solid #007aff', display: 'flex', flexDirection: 'column', boxShadow: editModes[item.barcode] ? '0 4px 30px rgba(255, 59, 48, 0.15)' : '0 4px 30px rgba(0, 122, 255, 0.15)', boxSizing: 'border-box' }}
                 >
                   {editModes[item.barcode] ? (
@@ -350,7 +367,7 @@ export default function Inventory({ user }) {
         })}
       </div>
 
-      {/* ALL PREVIOUS MODALS REMAIN IDENTICAL */}
+      {/* MODALS */}
       {showConfirmModal && pendingAction && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
