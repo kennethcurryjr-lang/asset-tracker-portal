@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
+import { ScanCommand, UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { docClient } from './dynamoClient';
 
-// Mock initial data matching CS Group flavor baseline
 const initialMockData = [
   { barcode: "082123456781", lotNumber: "LOT-2026-01", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", type: "3G Bag-in-Box", quantity: 420, zone: "Cooler Bay-01" },
   { barcode: "082123456782", lotNumber: "LOT-2026-02", brand: "Citrus Springs", flavor: "Apple Juice Premium", type: "3G Bag-in-Box", quantity: 180, zone: "Cooler Bay-01" },
@@ -11,7 +12,7 @@ const initialMockData = [
 ];
 
 export default function Inventory({ user }) {
-  const [stock, setStock] = useState(initialMockData);
+  const [stock, setStock] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isPalletMode, setIsPalletMode] = useState(false);
   const [scanMode, setScanMode] = useState("receive");
@@ -29,8 +30,31 @@ export default function Inventory({ user }) {
     item.zone.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // 1. DEFINE THE FUNCTION FIRST (Fixes the White Screen crash)
-  const processScannedCode = (rawScan) => {
+  // ☁️ LIVE CLOUD FETCH & AUTO-SEED
+  const fetchInventory = async () => {
+    try {
+      const response = await docClient.send(new ScanCommand({ TableName: "BeverageInventoryData" }));
+      if (response.Items && response.Items.length > 0) {
+        setStock(response.Items);
+      } else {
+        await Promise.all(initialMockData.map(item => 
+          docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: item }))
+        ));
+        setStock(initialMockData);
+      }
+    } catch (err) {
+      console.error("DynamoDB Fetch Error:", err);
+    }
+  };
+
+  // Poll database every 3 seconds to keep all screens in perfect sync
+  useEffect(() => {
+    fetchInventory();
+    const interval = setInterval(fetchInventory, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const processScannedCode = async (rawScan) => {
     const cleanScan = String(rawScan).trim();
     
     if (cleanScan.startsWith("ZONE-") || cleanScan.startsWith("BAY-")) {
@@ -41,65 +65,55 @@ export default function Inventory({ user }) {
     }
 
     const boxAdjustment = isPalletMode ? 70 : 1;
-    
-    // Aggressive fuzzy match to handle camera check-digits and ghost characters
-    const targetItem = stock.find(item => 
-      item.barcode === cleanScan || 
-      cleanScan.includes(item.barcode) || 
-      item.barcode.includes(cleanScan)
-    );
+    const targetItem = stock.find(item => item.barcode === cleanScan || cleanScan.includes(item.barcode) || item.barcode.includes(cleanScan));
 
     if (targetItem) {
-      setStock(prevStock => prevStock.map(item => {
-        if (item.barcode === targetItem.barcode) {
-          if (scanMode === "receive") {
-            return { ...item, quantity: item.quantity + boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : item.zone };
-          } else if (scanMode === "ship") {
-            return { ...item, quantity: Math.max(0, item.quantity - boxAdjustment) };
-          }
-        }
-        return item;
-      }));
+      const newQuantity = scanMode === "receive" ? targetItem.quantity + boxAdjustment : Math.max(0, targetItem.quantity - boxAdjustment);
+      const newZone = (scanMode === "receive" && activeZone !== "Unassigned Warehouse") ? activeZone : targetItem.zone;
+
+      // 1. Optimistic UI Update (Instant feedback for the worker)
+      setStock(prevStock => prevStock.map(item => 
+        item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone } : item
+      ));
       
       const action = scanMode === "receive" ? "📥 Received" : "🚚 Shipped";
       setScanFeedback(`✅ ${action} ${boxAdjustment} boxes of ${targetItem.flavor}`);
+
+      // 2. Background Cloud Update (Sends exact math to DynamoDB)
+      try {
+        await docClient.send(new UpdateCommand({
+          TableName: "BeverageInventoryData",
+          Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber },
+          UpdateExpression: "SET quantity = :q, #z = :z",
+          ExpressionAttributeNames: { "#z": "zone" },
+          ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone }
+        }));
+      } catch (err) {
+        console.error("Failed to update cloud inventory:", err);
+      }
+      
     } else {
       setScanFeedback(`⚠️ Unrecognized Barcode: ${cleanScan} (Not in database)`);
     }
     setTimeout(() => setScanFeedback(""), 4000);
   };
 
-  // 2. ATTACH THE REFERENCE AFTER DEFINITION
   const processRef = useRef();
   processRef.current = processScannedCode;
 
-  // 3. FIRE THE CAMERA HARDWARE
   useEffect(() => {
     if (isScanning) {
-      const scanner = new Html5QrcodeScanner("reader", { 
-        qrbox: { width: 250, height: 250 }, 
-        fps: 10,
-        rememberLastUsedCamera: true
-      });
-      
+      const scanner = new Html5QrcodeScanner("reader", { qrbox: { width: 250, height: 250 }, fps: 10, rememberLastUsedCamera: true });
       scanner.render(
-        (decodedText) => {
-          scanner.clear();
-          setIsScanning(false);
-          if (processRef.current) processRef.current(decodedText);
-        },
+        (decodedText) => { scanner.clear(); setIsScanning(false); if (processRef.current) processRef.current(decodedText); },
         (error) => {}
       );
-
-      return () => {
-        scanner.clear().catch(e => console.log(e));
-      };
+      return () => { scanner.clear().catch(e => console.log(e)); };
     }
   }, [isScanning]);
 
   return (
     <div className="inventory-container" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
-      
       <style>{`
         @media (max-width: 768px) {
           .inventory-container { padding: 16px !important; }
