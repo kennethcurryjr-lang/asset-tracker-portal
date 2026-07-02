@@ -21,58 +21,17 @@ function getDistanceInKm(lat1, lon1, lat2, lon2) {
 
 // Helper: Location Name (Cached)
 const locationCache = new Map();
-const geocodeQueue = [];
-let isGeocoding = false;
-
-async function processGeocodeQueue() {
-  if (isGeocoding || geocodeQueue.length === 0) return;
-  isGeocoding = true;
-  
-  while (geocodeQueue.length > 0) {
-    const { lat, lon, resolve } = geocodeQueue.shift();
-    try {
-      // Primary: OpenStreetMap (Highly accurate, but strict 1-req/sec limit)
-      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-      if (response.ok) {
-        const data = await response.json();
-        const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county || "Unknown";
-        resolve({ zip: data.address?.postcode || "Unknown", city: city });
-      } else {
-        // Fallback: BigDataCloud
-        const res2 = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-        const data2 = await res2.json();
-        resolve({ zip: data2.postcode || "Unknown", city: data2.city || data2.locality || "Unknown" });
-      }
-    } catch (err) {
-      resolve({ zip: "N/A", city: "Unknown" });
-    }
-    
-    // Strict 1.1-second delay between requests to completely avoid API spam bans
-    await new Promise(r => setTimeout(r, 1100));
-  }
-  isGeocoding = false;
-}
-
 async function getLocationInfo(lat, lon) {
-  const numLat = Number(lat);
-  const numLon = Number(lon);
-  if (isNaN(numLat) || isNaN(numLon) || !lat || !lon) return { zip: "N/A", city: "Unknown" };
-
-  const cacheKey = `${numLat.toFixed(3)},${numLon.toFixed(3)}`;
+  if (!lat || !lon) return { zip: "N/A", city: "Unknown" };
+  const cacheKey = `${Number(lat).toFixed(3)},${Number(lon).toFixed(3)}`;
   if (locationCache.has(cacheKey)) return locationCache.get(cacheKey);
-
-  return new Promise((resolve) => {
-    geocodeQueue.push({ 
-      lat, 
-      lon, 
-      resolve: (res) => {
-        if (res.city === "Unknown" || !res.city) res.city = `${numLat.toFixed(4)}, ${numLon.toFixed(4)}`;
-        locationCache.set(cacheKey, res);
-        resolve(res);
-      }
-    });
-    processGeocodeQueue();
-  });
+  try {
+    const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+    const data = await response.json();
+    const result = { zip: data.postcode || "Unknown", city: data.city || data.locality || "Unknown" };
+    locationCache.set(cacheKey, result);
+    return result;
+  } catch (err) { return { zip: "Error", city: "Error" }; }
 }
 
 function MapUpdater({ center }) {
@@ -311,23 +270,8 @@ function App() {
       });
 
       const processed = await Promise.all(Object.keys(grouped).map(async (id) => {
-        const rawGroup = grouped[id];
-        const latestRow = rawGroup.find(i => i.timestamp === "LATEST") || {};
-        const history = rawGroup.filter(i => i.timestamp !== "LATEST").sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
-        const latest = { ...(history[0] || {}) };
-        const stateKeys = ["homeLat", "homeLon", "isServiceMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag", "group", "tag"];
-        
-        // Master Translation Matrix: Explicitly force overrides, but translate 'CLEARED' to purely erase data from React's view
-        for (const k of stateKeys) {
-            if (latestRow[k] !== undefined) {
-                latest[k] = latestRow[k] === "CLEARED" ? undefined : latestRow[k];
-            } else if (latest[k] === "CLEARED") {
-                latest[k] = undefined;
-            }
-        }
-        
-        const allNotes = []; history.forEach(h => { if (h.notesList) { h.notesList.forEach(n => { if (!allNotes.some(e => e.text === n.text && e.time === n.time)) { allNotes.push({...n, rowTimestamp: h.timestamp}); } }); } }); latest.notesList = allNotes;
+        const history = grouped[id].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        const latest = { ...history[0] }; ["homeLat", "homeLon", "isServiceMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag"].forEach(k => { if (latest[k] === undefined) { const prev = history.find(h => h[k] !== undefined); if (prev) latest[k] = (prev[k] === "CLEARED" ? undefined : prev[k]); } }); const allNotes = []; history.forEach(h => { if (h.notesList) { h.notesList.forEach(n => { if (!allNotes.some(e => e.text === n.text && e.time === n.time)) { allNotes.push({...n, rowTimestamp: h.timestamp}); } }); } }); latest.notesList = allNotes;
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
         latest.path = history.slice(0, 10).filter(p => p.latitude && p.longitude).map(p => [Number(p.latitude), Number(p.longitude)]);
         
@@ -397,25 +341,25 @@ function App() {
   };
 
   const toggleServiceMode = async (deviceId, timestamp, currentState) => {
-  const newState = !currentState;
-  const user = auth.user?.profile?.email || "System";
-  const time = `${new Date().toLocaleDateString('en-US')} - ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
-  const logMsg = newState 
-    ? `🛡️ Watchdog Disabled (Service Mode Engaged by ${user.split('@')[0]})` 
-    : `📡 Watchdog Activated (Monitoring Live Position by ${user.split('@')[0]})`;
-  
-  try {
-    await Promise.all([
-        updateAttribute(deviceId, "LATEST", 'isServiceMode', newState, '#sm'),
-        updateAttribute(deviceId, "LATEST", 'lastServiceModeUser', user, '#lsu'),
-        updateAttribute(deviceId, "LATEST", 'lastServiceModeTime', time, '#lst'),
-        addNote(deviceId, "LATEST", logMsg)
-    ]);
-    alert(newState ? "Watchdog disabled!" : "Watchdog activated!");
-  } catch (err) { console.error(err); }
-};
+    const newState = !currentState;
+    const user = auth.user?.profile?.email || "System";
+    const time = `${new Date().toLocaleDateString('en-US')} - ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+    const logMsg = newState 
+      ? `🛡️ Watchdog Disabled (Service Mode Engaged by ${user.split('@')[0]})` 
+      : `📡 Watchdog Activated (Monitoring Live Position by ${user.split('@')[0]})`;
+    
+    try {
+      await Promise.all([
+          updateAttribute(deviceId, timestamp, 'isServiceMode', newState, '#sm'),
+          updateAttribute(deviceId, timestamp, 'lastServiceModeUser', user, '#lsu'),
+          updateAttribute(deviceId, timestamp, 'lastServiceModeTime', time, '#lst'),
+          addNote(deviceId, timestamp, logMsg)
+      ]);
+      alert(newState ? "Watchdog disabled!" : "Watchdog activated!");
+    } catch (err) { console.error(err); }
+  };
 
-  const setMaintenanceInterval = async (deviceId, timestamp, actionOrMonths) => {
+    const setMaintenanceInterval = async (deviceId, timestamp, actionOrMonths) => {
     const targetTimestamp = timestamp || "LATEST";
     const assetRecord = assets.find(a => a.deviceId === deviceId);
     
@@ -424,8 +368,7 @@ function App() {
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId, timestamp: targetTimestamp },
-        UpdateExpression: "SET maintenanceInterval = :c, maintenanceDueDate = :c",
-        ExpressionAttributeValues: { ":c": "CLEARED" }
+        UpdateExpression: "REMOVE maintenanceInterval, maintenanceDueDate"
       }));
       await addNote(deviceId, targetTimestamp, "🗓️ Maintenance schedule cleared (Opted Out).");
     } else if (actionOrMonths === "LOG_RESET") {
@@ -491,7 +434,7 @@ function App() {
           ":empty_list": []
         }
       }));
-      setNoteInputs(prev => ({...prev, [deviceId.slice(-5)]: ""}));
+      setNoteInputs(prev => ({...prev, [deviceId]: ""}));
       fetchDevices();
     } catch (err) { console.error("Database note array error:", err); }
   };
@@ -626,47 +569,45 @@ function App() {
   };
 
   const executeLiveShareEscalation = async () => {
-  if (!isAdmin) {
-    alert("Security Violation: Only administrator accounts are cleared to authorize external view vectors.");
-    setSharingAsset(null);
-    return;
-  }
-  if (!shareEmail || !shareEmail.trim() || !sharingAsset) return;
-  
-  const secureToken = sharingAsset.deviceId + "_" + crypto.randomUUID();
-  const durationMs = parseInt(shareDuration, 10) * 60 * 60 * 1000;
-  const expirationTimestamp = Date.now() + durationMs;
-
-  try {
-    await docClient.send(new UpdateCommand({
-      TableName: "AssetTrackerData",
-      Key: { deviceId: sharingAsset.deviceId, timestamp: "LATEST" },
-      UpdateExpression: "SET shareToken = :tok, shareExpires = :exp, shareEmail = :em, isStolenFlag = :st",
-      ExpressionAttributeValues: {
-        ":tok": secureToken,
-        ":exp": expirationTimestamp,
-        ":em": shareEmail.trim().toLowerCase(),
-        ":st": true
-      }
-    }));
+    if (!isAdmin) {
+      alert("Security Violation: Only administrator accounts are cleared to authorize external view vectors.");
+      setSharingAsset(null);
+      return;
+    }
+    if (!shareEmail || !shareEmail.trim() || !sharingAsset) return;
     
-    await addNote(sharingAsset.deviceId, "LATEST", `🔗 Secure Track link dispatched to ${shareEmail}`);
-    alert(`Secure Track link dispatched to ${shareEmail} for the next ${shareDuration} hours.`);
-    setSharingAsset(null);
-    setShareEmail("");
-    fetchDevices();
-  } catch (err) {
-    console.error("Failed writing escalation token to data node:", err);
-    alert("System update failure. Verify database permissions.");
-  }
-};
+    const secureToken = sharingAsset.deviceId + "_" + crypto.randomUUID();
+    const durationMs = parseInt(shareDuration, 10) * 60 * 60 * 1000;
+    const expirationTimestamp = Date.now() + durationMs;
+
+    try {
+      await docClient.send(new UpdateCommand({
+        TableName: "AssetTrackerData",
+        Key: { deviceId: sharingAsset.deviceId, timestamp: sharingAsset.timestamp },
+        UpdateExpression: "SET shareToken = :tok, shareExpires = :exp, shareEmail = :em, isStolenFlag = :st",
+        ExpressionAttributeValues: {
+          ":tok": secureToken,
+          ":exp": expirationTimestamp,
+          ":em": shareEmail.trim().toLowerCase(),
+          ":st": true
+        }
+      }));
+      
+      alert(`Secure Track link dispatched to ${shareEmail} for the next ${shareDuration} hours.`);
+      setSharingAsset(null);
+      setShareEmail("");
+      fetchDevices();
+    } catch (err) {
+      console.error("Failed writing escalation token to data node:", err);
+      alert("System update failure. Verify database permissions.");
+    }
+  };
 
   const clearHomeLocation = async (deviceId, timestamp) => {
   await docClient.send(new UpdateCommand({
     TableName: "AssetTrackerData",
     Key: { deviceId, timestamp: "LATEST" },
-    UpdateExpression: "SET homeLat = :c, homeLon = :c",
-    ExpressionAttributeValues: { ":c": "CLEARED" }
+    UpdateExpression: "REMOVE homeLat, homeLon"
   }));
   await addNote(deviceId, "LATEST", `🚫 Home Anchor Cleared`);
   fetchDevices();
@@ -782,23 +723,21 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
   };
 
   const revokeLiveShare = async (deviceId, timestamp) => {
-  if (!isAdmin) return;
-  if (!window.confirm("Immediately terminate the active tracking link and revoke access?")) return;
-  try {
-    await docClient.send(new UpdateCommand({
-      TableName: "AssetTrackerData",
-      Key: { deviceId, timestamp: "LATEST" },
-      UpdateExpression: "SET shareToken = :c, shareExpires = :c, shareEmail = :c, isStolenFlag = :c",
-      ExpressionAttributeValues: { ":c": "CLEARED" }
-    }));
-    await addNote(deviceId, "LATEST", "🔒 Secure tracking link manually revoked.");
-    alert("Tracking link revoked successfully.");
-    fetchDevices();
-  } catch (err) {
-    console.error("Failed to revoke link:", err);
-    alert("System update failure.");
-  }
-};
+    if (!isAdmin) return;
+    if (!window.confirm("Immediately terminate the active tracking link and revoke access?")) return;
+    try {
+      await docClient.send(new UpdateCommand({
+        TableName: "AssetTrackerData",
+        Key: { deviceId, timestamp },
+        UpdateExpression: "SET shareToken = :c, shareExpires = :c, shareEmail = :c, isStolenFlag = :c", ExpressionAttributeValues: { ":c": "CLEARED" }
+      }));
+      alert("Tracking link revoked successfully.");
+      fetchDevices();
+    } catch (err) {
+      console.error("Failed to revoke link:", err);
+      alert("System update failure.");
+    }
+  };
 
   const emailReport = () => {
     if (!isAdmin) return;
