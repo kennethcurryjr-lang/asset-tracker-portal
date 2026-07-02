@@ -94,7 +94,11 @@ function App() {
   const shareTokenParam = useMemo(() => queryParams.get('token'), [queryParams]);
   const isSharePage = useMemo(() => window.location.pathname.includes('/share') || !!shareTokenParam, [shareTokenParam]);
 
-  const isAdmin = auth.user?.profile?.['cognito:groups']?.includes('Admins');
+  const userGroups = auth.user?.profile?.["cognito:groups"] || [];
+  const isWarehouseManager = userGroups.includes("Warehouse-Managers");
+  const isFleetTracker = userGroups.includes("Fleet-Trackers");
+  const isAdmin = userGroups.includes("Admins") || (!isWarehouseManager && !isFleetTracker);
+  const [activePortal, setActivePortal] = useState(isWarehouseManager && !isAdmin ? "inventory" : "gps");
 
   // Design Tokens: High-Contrast Monochromatic System
   const appContainerStyle = { backgroundColor: '#f5f5f7', color: '#1d1d1f', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: selectedDevices.length > 0 ? '140px' : '60px', fontSize: '15px', transition: 'padding-bottom 0.3s ease' };
