@@ -261,7 +261,7 @@ export default function Inventory({ user }) {
               <th style={{ padding: "16px" }}>Packaging Type</th>
               <th style={{ padding: "16px" }}>Current Count</th>
               <th style={{ padding: "16px" }}>Warehouse Zone</th>
-              <th style={{ padding: "16px", textAlign: "center" }}>Manual Test</th>
+              
             </tr>
           </thead>
           <tbody>
@@ -276,11 +276,7 @@ export default function Inventory({ user }) {
                   </span>
                 </td>
                 <td data-label="Zone" style={{ padding: "16px" }}>📍 {item.zone}</td>
-                <td style={{ padding: "16px", textAlign: "center" }}>
-                  <button onClick={() => processScannedCode(item.barcode)} style={{ backgroundColor: "#3a3a3c", border: "none", color: "#ffffff", padding: "8px 16px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>
-                    Test Scan
-                  </button>
-                </td>
+
               </tr>
             ))}
           </tbody>
