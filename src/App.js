@@ -266,7 +266,7 @@ function App() {
     if (!auth.isAuthenticated) return;
     setDbError(null);
     try {
-      const scanResponse = await docClient.send(new ScanCommand({ TableName: "AssetTrackerData" }));
+      const scanResponse = await docClient.send(new ScanCommand({ TableName: "AssetTrackerData", ConsistentRead: true }));
       const items = scanResponse.Items || [];
 
       if (items.length === 0) {
