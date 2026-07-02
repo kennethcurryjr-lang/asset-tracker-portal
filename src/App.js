@@ -21,23 +21,42 @@ function getDistanceInKm(lat1, lon1, lat2, lon2) {
 
 // Helper: Location Name (Cached)
 const locationCache = new Map();
-async function getLocationInfo(lat, lon) {
-  const numLat = Number(lat);
-  const numLon = Number(lon);
-  const fallback = !isNaN(numLat) && !isNaN(numLon) ? `${numLat.toFixed(4)}, ${numLon.toFixed(4)}` : "Locating...";
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function getLocationInfo(lat, lon, retries = 3) {
+  const fallback = "Locating...";
+  
   if (!lat || !lon) return { zip: "N/A", city: "Unknown" };
-  const cacheKey = `${numLat.toFixed(3)},${numLon.toFixed(3)}`;
+  
+  const cacheKey = `${Number(lat).toFixed(3)},${Number(lon).toFixed(3)}`;
   if (locationCache.has(cacheKey)) return locationCache.get(cacheKey);
-  try {
-    const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-    if (!response.ok) return { zip: "N/A", city: fallback };
-    const data = await response.json();
-    const result = { zip: data.postcode || "Unknown", city: data.city || data.locality || fallback };
-    locationCache.set(cacheKey, result);
-    return result;
-  } catch (err) { 
-    return { zip: "N/A", city: fallback }; 
+  
+  // Random initial jitter (0-800ms) to desync the thunderous herd of API requests after a reset
+  await sleep(Math.random() * 800);
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const city = data.city || data.locality || fallback;
+        const result = { zip: data.postcode || "Unknown", city: city };
+        locationCache.set(cacheKey, result);
+        return result;
+      }
+      
+      // If rate-limited (429 Too Many Requests), wait 1.5s before trying again
+      if (attempt < retries - 1) {
+        await sleep(1500 + Math.random() * 1000);
+        continue;
+      }
+    } catch (err) { 
+      if (attempt === retries - 1) return { zip: "N/A", city: fallback };
+      await sleep(1000);
+    }
   }
+  return { zip: "N/A", city: fallback };
 }
 
 function MapUpdater({ center }) {
