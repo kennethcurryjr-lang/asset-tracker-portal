@@ -262,30 +262,43 @@ export default function Inventory({ user }) {
         </div>
       </div>
 
-      {/* INVENTORY MATRIX */}
-      <div style={{ backgroundColor: "#2c2c2e", borderRadius: "16px", overflow: "hidden" }}>
-        <table className="responsive-table" style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "14px" }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid #3a3a3c", color: "#8e8e93", backgroundColor: "#242426" }}>
-              <th style={{ padding: "16px" }}>Brand</th>
-              <th style={{ padding: "16px" }}>Flavor Lineup</th>
-              <th style={{ padding: "16px" }}>Packaging</th>
-              <th style={{ padding: "16px" }}>Current Count</th>
-              <th style={{ padding: "16px" }}>Zone</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredStock.map((item) => (
-              <tr key={`${item.barcode}-${item.lotNumber}`} style={{ borderBottom: "1px solid #3a3a3c" }}>
-                <td data-label="Brand" style={{ padding: "16px", fontWeight: "600" }}>{item.brand}</td>
-                <td data-label="Flavor Lineup" style={{ padding: "16px" }}>{item.flavor} <br/><span style={{ fontSize: "11px", color: "#8e8e93" }}>Lot: {item.lotNumber}</span></td>
-                <td data-label="Packaging" style={{ padding: "16px", color: "#8e8e93" }}>{item.type}</td>
-                <td data-label="In Stock" style={{ padding: "16px" }}><span style={{ padding: "4px 10px", borderRadius: "8px", fontWeight: "700", backgroundColor: item.quantity < 50 ? "rgba(255, 59, 48, 0.15)" : "rgba(52, 199, 89, 0.15)", color: item.quantity < 50 ? "#ff3b30" : "#34c759" }}>{item.quantity} boxes</span></td>
-                <td data-label="Zone" style={{ padding: "16px" }}>📍 {item.zone}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* INVENTORY KINETIC CARDS */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
+        {filteredStock.map((item) => {
+          const isLowStock = item.quantity < 50;
+          return (
+            <div key={`${item.barcode}-${item.lotNumber}`} style={{ backgroundColor: '#2c2c2e', borderRadius: '16px', padding: '24px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)' }}>
+              
+              {/* Header: Brand & Lot */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{item.brand}</div>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', marginTop: '4px', lineHeight: '1.2' }}>{item.flavor}</div>
+                </div>
+                <div style={{ fontSize: '11px', color: '#8e8e93', backgroundColor: '#1c1c1e', padding: '4px 8px', borderRadius: '8px', border: '1px solid #3a3a3c', whiteSpace: 'nowrap', marginLeft: '12px' }}>Lot: {item.lotNumber}</div>
+              </div>
+
+              {/* Tags / Packaging */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: '#1c1c1e', color: '#8e8e93', borderRadius: '8px', border: '1px solid #3a3a3c' }}>📦 {item.type}</span>
+                {isLowStock && <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: '#ff3b30', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}
+              </div>
+
+              {/* Data Row */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid #3a3a3c' }}>
+                <div>
+                  <div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>Placement Zone</div>
+                  <div style={{ fontSize: '14px', color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff", fontWeight: '600' }}>📍 {item.zone}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '4px', textTransform: 'uppercase' }}>In Stock</div>
+                  <div style={{ fontSize: '28px', fontWeight: '700', color: isLowStock ? '#ff3b30' : '#34c759', lineHeight: '1' }}>{item.quantity} <span style={{ fontSize: '14px', fontWeight: '600', color: '#8e8e93' }}>box</span></div>
+                </div>
+              </div>
+              
+            </div>
+          );
+        })}
       </div>
 
       {/* ACTION CONFIRM MODAL */}
