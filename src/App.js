@@ -1068,14 +1068,22 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       {/* DYNAMIC HEADER ARCHITECTURE */}
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        {/* DYNAMIC HEADER ARCHITECTURE */}
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        width: '100%', 
+        backgroundColor: activePortal === "inventory" ? "#1a1a1c" : "transparent",
+        borderRadius: activePortal === "inventory" ? "14px" : "0",
+        overflow: activePortal === "inventory" ? "hidden" : "visible",
+        boxShadow: activePortal === "inventory" ? "0 10px 30px rgba(0, 0, 0, 0.3)" : "none"
+      }}>
         <header style={{ 
           ...headerStyle, 
-          borderBottomLeftRadius: activePortal === "inventory" ? "0px" : "14px",
-          borderBottomRightRadius: activePortal === "inventory" ? "0px" : "14px",
+          borderRadius: activePortal === "inventory" ? "0px" : "14px",
           borderBottom: activePortal === "inventory" ? "none" : "1px solid #2d2d2f",
           boxShadow: activePortal === "inventory" ? "none" : headerStyle.boxShadow,
-          marginBottom: 0,
-          zIndex: 2
+          marginBottom: 0
         }}>
           <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
           
@@ -1095,15 +1103,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             display: "flex", 
             justifyContent: "center", 
             backgroundColor: activePortal === "inventory" ? "#1a1a1c" : "transparent", 
-            borderBottomLeftRadius: activePortal === "inventory" ? "14px" : "0px",
-            borderBottomRightRadius: activePortal === "inventory" ? "14px" : "0px",
-            borderTopLeftRadius: "0px",
-            borderTopRightRadius: "0px",
             padding: activePortal === "inventory" ? "0px 12px 24px 12px" : "16px 12px 0 12px", 
-            borderBottom: activePortal === "inventory" ? "1px solid #3a3a3c" : "none",
-            boxShadow: activePortal === "inventory" ? "0 10px 30px rgba(0, 0, 0, 0.15)" : "none",
-            marginTop: activePortal === "inventory" ? "-1px" : "0",
-            zIndex: 1
+            borderBottom: activePortal === "inventory" ? "1px solid #3a3a3c" : "none"
           }}>
             <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.3)" }}>
               <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📡 Live GPS Fleet</button>
