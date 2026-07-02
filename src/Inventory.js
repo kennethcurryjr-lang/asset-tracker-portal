@@ -83,7 +83,9 @@ export default function Inventory({ user }) {
         boxAdjustment,
         newQuantity,
         newZone,
-        actionName: scanMode === "receive" ? "📥 Receive" : "🚚 Ship"
+        actionName: scanMode === "receive" ? "📥 Receive" : "🚚 Ship",
+        isPallet: isPalletMode,
+        rawQty: parsedQty
       });
       setShowConfirmModal(true);
       
@@ -134,6 +136,7 @@ export default function Inventory({ user }) {
       alert("Flavor and Lot Number are required.");
       return;
     }
+    if (!window.confirm(`⚠️ CRITICAL ACTION: Registering New Product\n\nAre you sure you want to permanently add [ ${newItemForm.flavor} ] to the master cloud database?`)) return;
     
     setStock(prev => [...prev, newItemForm]);
     setShowNewItemModal(false);
@@ -204,7 +207,9 @@ export default function Inventory({ user }) {
             
             <div>
               <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>⚠️ Confirm Inventory Update</h3>
-              <p style={{ margin: "8px 0 0 0", color: "#8e8e93", fontSize: "15px" }}>Please verify the scan data before committing to the cloud.</p>
+              <p style={{ margin: "16px 0 0 0", color: "#ffffff", fontSize: "17px", lineHeight: "1.5" }}>
+              Are you sure you want to <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "800", textTransform: "uppercase" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")} {pendingAction.isPallet ? `${pendingAction.rawQty} Pallets (${pendingAction.boxAdjustment} Boxes)` : `${pendingAction.boxAdjustment} Boxes`}</span> of <strong style={{color: "#007aff"}}>{pendingAction.targetItem.flavor}</strong>?
+            </p>
             </div>
 
             <div style={{ backgroundColor: "#242426", padding: "20px", borderRadius: "16px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "12px", textAlign: "left" }}>
