@@ -22,16 +22,22 @@ function getDistanceInKm(lat1, lon1, lat2, lon2) {
 // Helper: Location Name (Cached)
 const locationCache = new Map();
 async function getLocationInfo(lat, lon) {
+  const numLat = Number(lat);
+  const numLon = Number(lon);
+  const fallback = !isNaN(numLat) && !isNaN(numLon) ? `${numLat.toFixed(4)}, ${numLon.toFixed(4)}` : "Locating...";
   if (!lat || !lon) return { zip: "N/A", city: "Unknown" };
-  const cacheKey = `${Number(lat).toFixed(3)},${Number(lon).toFixed(3)}`;
+  const cacheKey = `${numLat.toFixed(3)},${numLon.toFixed(3)}`;
   if (locationCache.has(cacheKey)) return locationCache.get(cacheKey);
   try {
     const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+    if (!response.ok) return { zip: "N/A", city: fallback };
     const data = await response.json();
-    const result = { zip: data.postcode || "Unknown", city: data.city || data.locality || "Unknown" };
+    const result = { zip: data.postcode || "Unknown", city: data.city || data.locality || fallback };
     locationCache.set(cacheKey, result);
     return result;
-  } catch (err) { return { zip: "Error", city: "Error" }; }
+  } catch (err) { 
+    return { zip: "N/A", city: fallback }; 
+  }
 }
 
 function MapUpdater({ center }) {
@@ -271,15 +277,20 @@ function App() {
 
       const processed = await Promise.all(Object.keys(grouped).map(async (id) => {
         const rawGroup = grouped[id];
-        
-        // 1. Isolate the LATEST master row so the word "LATEST" doesn't break the Date math
         const latestRow = rawGroup.find(i => i.timestamp === "LATEST") || {};
-        
-        // 2. Sort only the actual historical timestamps safely
         const history = rawGroup.filter(i => i.timestamp !== "LATEST").sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         
-        // 3. Base the state entirely on the master LATEST row, using history only for raw coordinates
-        const latest = { ...(history[0] || {}), ...latestRow };
+        const latest = { ...(history[0] || {}) };
+        const stateKeys = ["homeLat", "homeLon", "isServiceMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag", "group", "tag"];
+        
+        // Master Translation Matrix: Explicitly force overrides, but translate 'CLEARED' to purely erase data from React's view
+        for (const k of stateKeys) {
+            if (latestRow[k] !== undefined) {
+                latest[k] = latestRow[k] === "CLEARED" ? undefined : latestRow[k];
+            } else if (latest[k] === "CLEARED") {
+                latest[k] = undefined;
+            }
+        }
         
         const allNotes = []; history.forEach(h => { if (h.notesList) { h.notesList.forEach(n => { if (!allNotes.some(e => e.text === n.text && e.time === n.time)) { allNotes.push({...n, rowTimestamp: h.timestamp}); } }); } }); latest.notesList = allNotes;
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
@@ -378,7 +389,8 @@ function App() {
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId, timestamp: targetTimestamp },
-        UpdateExpression: "REMOVE maintenanceInterval, maintenanceDueDate"
+        UpdateExpression: "SET maintenanceInterval = :c, maintenanceDueDate = :c",
+        ExpressionAttributeValues: { ":c": "CLEARED" }
       }));
       await addNote(deviceId, targetTimestamp, "🗓️ Maintenance schedule cleared (Opted Out).");
     } else if (actionOrMonths === "LOG_RESET") {
@@ -618,7 +630,8 @@ function App() {
   await docClient.send(new UpdateCommand({
     TableName: "AssetTrackerData",
     Key: { deviceId, timestamp: "LATEST" },
-    UpdateExpression: "REMOVE homeLat, homeLon"
+    UpdateExpression: "SET homeLat = :c, homeLon = :c",
+    ExpressionAttributeValues: { ":c": "CLEARED" }
   }));
   await addNote(deviceId, "LATEST", `🚫 Home Anchor Cleared`);
   fetchDevices();
@@ -740,7 +753,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     await docClient.send(new UpdateCommand({
       TableName: "AssetTrackerData",
       Key: { deviceId, timestamp: "LATEST" },
-      UpdateExpression: "REMOVE shareToken, shareExpires, shareEmail, isStolenFlag"
+      UpdateExpression: "SET shareToken = :c, shareExpires = :c, shareEmail = :c, isStolenFlag = :c",
+      ExpressionAttributeValues: { ":c": "CLEARED" }
     }));
     await addNote(deviceId, "LATEST", "🔒 Secure tracking link manually revoked.");
     alert("Tracking link revoked successfully.");
