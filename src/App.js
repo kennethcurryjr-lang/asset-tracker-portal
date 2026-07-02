@@ -398,7 +398,7 @@ function App() {
   };
 
     const setMaintenanceInterval = async (deviceId, timestamp, actionOrMonths) => {
-    const targetTimestamp = timestamp || "LATEST";
+    const targetTimestamp = "LATEST";
     const assetRecord = assets.find(a => a.deviceId === deviceId);
     
     if (actionOrMonths === "OPT_OUT" || actionOrMonths === 0 || actionOrMonths === "0") {
