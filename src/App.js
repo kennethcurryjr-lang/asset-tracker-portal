@@ -1069,7 +1069,6 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       {/* DECOUPLED HEADER ARCHITECTURE */}
       {activePortal === "inventory" ? (
         
-        {/* INVENTORY MODE: ONE MASSIVE FUSED PILL */}
         <div style={{ width: '100%', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 4px 30px rgba(0, 0, 0, 0.15)', display: 'flex', flexDirection: 'column', backgroundColor: '#1a1a1c' }}>
           <header style={{ 
             ...headerStyle, 
@@ -1100,7 +1099,6 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       ) : (
 
-        {/* GPS MODE: SEPARATED MODULES */}
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
           <header style={{ ...headerStyle, marginBottom: '16px' }}>
             <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
