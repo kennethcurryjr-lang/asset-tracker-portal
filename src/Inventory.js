@@ -257,10 +257,13 @@ export default function Inventory({ user }) {
 
           // Health Gauge Logic
           const healthPercent = Math.min(100, Math.round((item.quantity / targetStock) * 100));
-          let healthColor = "#34c759"; // Green
-          if (item.quantity < 50) healthColor = "#ff3b30"; // Red
-          else if (daysRemaining < 30) healthColor = "#ff9500"; // Orange
-          else if (healthPercent > 80) healthColor = "#007aff"; // Blue (Optimal)
+          
+          let healthColor = "#007aff"; // Default to Blue (Actively burning / Middle of cycle)
+          if (item.quantity < 50) {
+            healthColor = "#ff3b30"; // Red (Critically Low - under 50 boxes)
+          } else if (daysRemaining >= 30) {
+            healthColor = "#34c759"; // Green (Safe - 30+ Days Supply)
+          }
 
           return (
             <div 
