@@ -56,7 +56,6 @@ export default function Inventory({ user }) {
   }, [isScanning]);
 
   const processScannedCode = (scannedBarcode) => {
-    // 1. Check if it is a Location Tag (Zone QR)
     if (scannedBarcode.startsWith("ZONE-") || scannedBarcode.startsWith("BAY-")) {
       setActiveZone(scannedBarcode);
       setScanFeedback(`📍 Location Locked: New items will be routed to ${scannedBarcode}`);
@@ -64,16 +63,14 @@ export default function Inventory({ user }) {
       return;
     }
 
-    // 2. Otherwise, treat it as a Manufacturer Product Barcode
     const boxAdjustment = isPalletMode ? 70 : 1;
-    let itemFound = false;
-    let modifiedItemName = "";
+    
+    // Fix: Search the existing stock array synchronously BEFORE updating state
+    const targetItem = stock.find(item => item.barcode === scannedBarcode);
 
-    setStock(prevStock => {
-      return prevStock.map(item => {
+    if (targetItem) {
+      setStock(prevStock => prevStock.map(item => {
         if (item.barcode === scannedBarcode) {
-          itemFound = true;
-          modifiedItemName = item.flavor;
           if (scanMode === "receive") {
             return { ...item, quantity: item.quantity + boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : item.zone };
           } else if (scanMode === "ship") {
@@ -81,13 +78,10 @@ export default function Inventory({ user }) {
           }
         }
         return item;
-      });
-    });
-
-    // 3. Trigger User Visual Feedback
-    if (itemFound) {
+      }));
+      
       const action = scanMode === "receive" ? "📥 Received" : "🚚 Shipped";
-      setScanFeedback(`✅ ${action} ${boxAdjustment} boxes of ${modifiedItemName}`);
+      setScanFeedback(`✅ ${action} ${boxAdjustment} boxes of ${targetItem.flavor}`);
     } else {
       setScanFeedback(`⚠️ Unrecognized Barcode: ${scannedBarcode} (Not in database)`);
     }
