@@ -452,6 +452,32 @@ export default function Inventory({ user }) {
       )}
 
       {/* SCANNER MODAL & FIFO INJECTION */}
+      {showNewItemModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "12px" }}>
+              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: "700" }}>➕ Register New Product</h3>
+              <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <input placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={e => setNewItemForm(prev => ({...prev, barcode: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              <input placeholder="Brand (e.g. Citrus Springs)" value={newItemForm.brand} onChange={e => setNewItemForm(prev => ({...prev, brand: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              <input placeholder="Flavor Profile" value={newItemForm.flavor} onChange={e => setNewItemForm(prev => ({...prev, flavor: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              <input placeholder="Packaging Type" value={newItemForm.type} onChange={e => setNewItemForm(prev => ({...prev, type: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input placeholder="Lot Number" value={newItemForm.lotNumber} onChange={e => setNewItemForm(prev => ({...prev, lotNumber: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+                <input type="date" value={newItemForm.expiryDate} onChange={e => setNewItemForm(prev => ({...prev, expiryDate: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px", colorScheme: "dark" }} />
+              </div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input type="number" placeholder="Initial QTY" value={newItemForm.quantity} onChange={e => setNewItemForm(prev => ({...prev, quantity: parseInt(e.target.value) || 0}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+                <input placeholder="Placement Zone" value={newItemForm.zone} onChange={e => setNewItemForm(prev => ({...prev, zone: e.target.value}))} style={{ flex: 2, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              </div>
+            </div>
+            <button onClick={handleSaveNewItem} style={{ width: "100%", backgroundColor: "#34c759", color: "#fff", padding: "14px", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", marginTop: "8px" }}>Proceed to Registration</button>
+          </div>
+        </div>
+      )}
+      
       {showConfirmModal && pendingAction && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
