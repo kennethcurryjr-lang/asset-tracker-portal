@@ -4,12 +4,15 @@ import { ScanCommand, UpdateCommand, PutCommand, DeleteCommand } from "@aws-sdk/
 import { docClient } from './dynamoClient';
 
 const initialMockData = [
-  { barcode: "082123456781", lotNumber: "LOT-2026-01", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", type: "3G Bag-in-Box", quantity: 420, zone: "Cooler Bay-01" },
-  { barcode: "082123456782", lotNumber: "LOT-2026-02", brand: "Citrus Springs", flavor: "Apple Juice Premium", type: "3G Bag-in-Box", quantity: 180, zone: "Cooler Bay-01" },
-  { barcode: "082123456783", lotNumber: "LOT-2026-03", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 310, zone: "Dry Aisle A" },
-  { barcode: "082123456784", lotNumber: "LOT-2026-04", brand: "Twisted Branch", flavor: "Craft Lemonade Base", type: "3G Bag-in-Box", quantity: 35, zone: "Dry Aisle B" },
-  { barcode: "082123456785", lotNumber: "LOT-2026-05", brand: "Madrinas Coffee", flavor: "Vanilla Cold Brew RTD", type: "24-Can Case", quantity: 300, zone: "Dry Aisle C" }
+  { barcode: "082123456781", lotNumber: "LOT-2026-01", expiryDate: "2026-10-15", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", type: "3G Bag-in-Box", quantity: 420, zone: "Cooler Bay-01" },
+  { barcode: "082123456782", lotNumber: "LOT-2026-02", expiryDate: "2026-11-01", brand: "Citrus Springs", flavor: "Apple Juice Premium", type: "3G Bag-in-Box", quantity: 180, zone: "Cooler Bay-01" },
+  { barcode: "082123456783", lotNumber: "LOT-2026-03", expiryDate: "2027-01-20", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 310, zone: "Dry Aisle A" },
+  { barcode: "082123456783-OLD", lotNumber: "LOT-2025-11", expiryDate: "2026-08-10", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 45, zone: "Dry Aisle B" }, // Added for FIFO testing
+  { barcode: "082123456784", lotNumber: "LOT-2026-04", expiryDate: "2026-12-05", brand: "Twisted Branch", flavor: "Craft Lemonade Base", type: "3G Bag-in-Box", quantity: 35, zone: "Dry Aisle B" },
+  { barcode: "082123456785", lotNumber: "LOT-2026-05", expiryDate: "2027-03-10", brand: "Madrinas Coffee", flavor: "Vanilla Cold Brew RTD", type: "24-Can Case", quantity: 300, zone: "Dry Aisle C" }
 ];
+
+const MANAGER_PIN = "2026"; // Hardcoded RBAC PIN for Demo
 
 export default function Inventory({ user }) {
   const [stock, setStock] = useState([]);
@@ -22,7 +25,7 @@ export default function Inventory({ user }) {
   const [scanFeedback, setScanFeedback] = useState("");
   
   const [showNewItemModal, setShowNewItemModal] = useState(false);
-  const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", quantity: 1, zone: "" });
+  const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", quantity: 1, zone: "" });
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
@@ -39,6 +42,10 @@ export default function Inventory({ user }) {
   const [editModes, setEditModes] = useState({});
   const [editForms, setEditForms] = useState({});
 
+  // 🔥 RBAC STATE ENGINE
+  const [pinModal, setPinModal] = useState({ isOpen: false, callback: null, error: false });
+  const [pinInput, setPinInput] = useState("");
+
   const totalBoxes = stock.reduce((acc, item) => acc + item.quantity, 0);
   const activeFlavorsCount = new Set(stock.map(item => item.flavor)).size;
   const lowStockItems = stock.filter(item => item.quantity < 50);
@@ -48,6 +55,21 @@ export default function Inventory({ user }) {
     item.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.zone.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const requireManager = (callbackAction) => {
+    setPinInput("");
+    setPinModal({ isOpen: true, callback: callbackAction, error: false });
+  };
+
+  const submitPin = () => {
+    if (pinInput === MANAGER_PIN) {
+      if (pinModal.callback) pinModal.callback();
+      setPinModal({ isOpen: false, callback: null, error: false });
+    } else {
+      setPinModal(prev => ({ ...prev, error: true }));
+      setPinInput("");
+    }
+  };
 
   const fetchInventory = async () => {
     try {
@@ -90,10 +112,25 @@ export default function Inventory({ user }) {
     if (targetItem) {
       const newQuantity = scanMode === "receive" ? targetItem.quantity + boxAdjustment : Math.max(0, targetItem.quantity - boxAdjustment);
       const newZone = (scanMode === "receive" && activeZone !== "Unassigned Warehouse") ? activeZone : targetItem.zone;
-      setPendingAction({ targetItem, boxAdjustment, newQuantity, newZone, actionName: scanMode === "receive" ? "📥 Receive" : "🚚 Ship", isPallet: isPalletMode, rawQty: parsedQty });
+      
+      // 🔥 FIFO ENFORCEMENT LOGIC
+      let fifoWarningItem = null;
+      if (scanMode === "ship") {
+        const olderLots = stock.filter(i => 
+          i.flavor === targetItem.flavor && 
+          i.quantity > 0 && 
+          new Date(i.expiryDate) < new Date(targetItem.expiryDate)
+        );
+        if (olderLots.length > 0) {
+          olderLots.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+          fifoWarningItem = olderLots[0]; // Grab the absolute oldest lot
+        }
+      }
+
+      setPendingAction({ targetItem, boxAdjustment, newQuantity, newZone, actionName: scanMode === "receive" ? "📥 Receive" : "🚚 Ship", fifoWarningItem });
       setShowConfirmModal(true);
     } else {
-      setNewItemForm({ barcode: cleanScan, brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", quantity: boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : "Unassigned Warehouse" });
+      setNewItemForm({ barcode: cleanScan, brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", quantity: boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : "Unassigned Warehouse" });
       setShowNewItemModal(true);
     }
   };
@@ -102,7 +139,7 @@ export default function Inventory({ user }) {
     if (!pendingAction) return;
     const { targetItem, boxAdjustment, newQuantity, newZone, actionName } = pendingAction;
     
-    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || "Admin Mode", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor };
+    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor };
     setAuditLog(prev => [logEntry, ...prev]);
     setStock(prevStock => prevStock.map(item => item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone } : item));
     setScanFeedback(`✅ ${actionName.replace(/[^a-zA-Z]/g, "")} ${boxAdjustment} boxes of ${targetItem.flavor}`);
@@ -115,7 +152,7 @@ export default function Inventory({ user }) {
     setTimeout(() => setScanFeedback(""), 4000);
   };
 
-  const handleManualAdd = () => { setNewItemForm({ barcode: "", brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", quantity: 0, zone: "Unassigned Warehouse" }); setShowNewItemModal(true); };
+  const handleManualAdd = () => { setNewItemForm({ barcode: "", brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", quantity: 0, zone: "Unassigned Warehouse" }); setShowNewItemModal(true); };
   const handleSaveNewItem = () => { if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) return alert("Required fields missing."); setShowRegisterConfirm(true); };
 
   const executeSaveNewItem = async () => {
@@ -131,7 +168,7 @@ export default function Inventory({ user }) {
     const originalItem = stock.find(i => i.barcode === barcode);
     if (!form || !originalItem) return;
 
-    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || "Admin Mode", action: "Admin Override", qty: form.quantity - originalItem.quantity, flavor: originalItem.flavor };
+    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || "Manager", action: "Admin Override", qty: form.quantity - originalItem.quantity, flavor: originalItem.flavor };
     setAuditLog(prev => [logEntry, ...prev]);
 
     setStock(prev => prev.map(item => item.barcode === barcode ? { ...item, ...form } : item));
@@ -142,16 +179,16 @@ export default function Inventory({ user }) {
         await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: { ...originalItem, ...form } }));
         await docClient.send(new DeleteCommand({ TableName: "BeverageInventoryData", Key: { barcode: originalItem.barcode, lotNumber: originalItem.lotNumber } }));
       } else {
-        await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: originalItem.barcode, lotNumber: originalItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": form.quantity, ":z": form.zone } }));
+        await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: originalItem.barcode, lotNumber: originalItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, expiryDate = :e", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": form.quantity, ":z": form.zone, ":e": form.expiryDate } }));
       }
       await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: logEntry }));
     } catch (err) { console.error("Admin edit cloud update failed:", err); }
   };
 
   const handleExportCSV = () => {
-    const headers = ["Brand", "Flavor", "Packaging Type", "Current Count", "Warehouse Zone", "Lot Number"];
+    const headers = ["Brand", "Flavor", "Packaging Type", "Current Count", "Warehouse Zone", "Lot Number", "Expiry Date"];
     const csvRows = [headers.join(",")];
-    stock.forEach(item => { csvRows.push([ `"${item.brand}"`, `"${item.flavor}"`, `"${item.type}"`, item.quantity, `"${item.zone}"`, `"${item.lotNumber}"` ].join(",")); });
+    stock.forEach(item => { csvRows.push([ `"${item.brand}"`, `"${item.flavor}"`, `"${item.type}"`, item.quantity, `"${item.zone}"`, `"${item.lotNumber}"`, `"${item.expiryDate}"` ].join(",")); });
     const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = `CS_Inventory_Snapshot_${new Date().toISOString().split('T')[0]}.csv`; a.click(); URL.revokeObjectURL(url);
@@ -191,7 +228,7 @@ export default function Inventory({ user }) {
       <div className="header-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
         <div>
           <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "700", letterSpacing: "-0.02em" }}>📦 Commercial Beverage Operations</h1>
-          <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Warehouse Logged in as: {user?.email || "Admin Mode"}</p>
+          <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Active Operator: {user?.email || "Scanner Mode Active"}</p>
         </div>
         <div style={{ display: "flex", backgroundColor: "#2c2c2e", padding: "4px", borderRadius: "12px", width: "fit-content" }}>
           <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>📥 Receive</button>
@@ -231,11 +268,16 @@ export default function Inventory({ user }) {
               <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} />
             </div>
             <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#1c1c1e", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>🪵 {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
-            <button onClick={handleManualAdd} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>➕ Add</button>
+            
+            {/* ADD ITEM NOW REQUIRES MANAGER RBAC */}
+            <button onClick={() => requireManager(handleManualAdd)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>➕ Add</button>
             <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "12px", color: "#ffffff", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" }}>📷 SCAN</button>
           </div>
           <div className="secondary-row" style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
-            <button onClick={() => setShowAuditModal(true)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>📋 Audit</button>
+            
+            {/* AUDIT LOG NOW REQUIRES MANAGER RBAC */}
+            <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>📋 Security Audit</button>
+            
             <button onClick={handleExportCSV} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>📥 CSV</button>
           </div>
         </div>
@@ -247,30 +289,24 @@ export default function Inventory({ user }) {
           const isLowStock = item.quantity < 50;
           const isFlipped = flippedCards.includes(item.barcode);
           
-          // 🔥 UPGRADED MATH: Stable mock burn rate so gauges don't break when user manually edits stock quantity
           const baseBurn = (item.flavor.length * 4) + 15; 
           const monthlyBurn = baseBurn;
           const quarterlyBurn = monthlyBurn * 3;
-          const targetStock = quarterlyBurn; // Target = 90 Days Pipeline
+          const targetStock = quarterlyBurn; 
           const daysRemaining = item.quantity === 0 ? 0 : Math.max(1, Math.round(item.quantity / (monthlyBurn / 30)));
           const runOutDate = new Date(Date.now() + (daysRemaining * 24 * 60 * 60 * 1000)).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
-          // Health Gauge Logic
           const healthPercent = Math.min(100, Math.round((item.quantity / targetStock) * 100));
-          
-          let healthColor = "#007aff"; // Default to Blue (Actively burning / Middle of cycle)
-          if (item.quantity < 50) {
-            healthColor = "#ff3b30"; // Red (Critically Low - under 50 boxes)
-          } else if (daysRemaining >= 30) {
-            healthColor = "#34c759"; // Green (Safe - 30+ Days Supply)
-          }
+          let healthColor = "#007aff"; 
+          if (item.quantity < 50) { healthColor = "#ff3b30"; } 
+          else if (daysRemaining >= 30) { healthColor = "#34c759"; }
 
           return (
             <div 
               key={`${item.barcode}-${item.lotNumber}`} 
               style={{ perspective: '1200px', cursor: 'pointer' }}
               onClick={() => {
-                if (editModes[item.barcode]) return; // Disable flip if actively editing
+                if (editModes[item.barcode]) return; 
                 if (isMultiFlipMode) {
                   setFlippedCards(prev => prev.includes(item.barcode) ? prev.filter(id => id !== item.barcode) : [...prev, item.barcode]);
                 } else {
@@ -285,12 +321,16 @@ export default function Inventory({ user }) {
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div><div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{item.brand}</div><div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', marginTop: '4px', lineHeight: '1.2' }}>{item.flavor}</div></div>
-                    <div style={{ fontSize: '11px', color: '#8e8e93', backgroundColor: '#1c1c1e', padding: '4px 8px', borderRadius: '8px', border: '1px solid #3a3a3c', whiteSpace: 'nowrap', marginLeft: '12px' }}>Lot: {item.lotNumber}</div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                      <div style={{ fontSize: '11px', color: '#8e8e93', backgroundColor: '#1c1c1e', padding: '4px 8px', borderRadius: '8px', border: '1px solid #3a3a3c', whiteSpace: 'nowrap' }}>Lot: {item.lotNumber}</div>
+                      {/* 🔥 NEW VISUAL: SHELF LIFE / EXPIRY DATE */}
+                      <div style={{ fontSize: '10px', color: '#ff9500', fontWeight: '600' }}>Exp: {item.expiryDate || "N/A"}</div>
+                    </div>
                   </div>
                   
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: '#1c1c1e', color: '#8e8e93', borderRadius: '8px', border: '1px solid #3a3a3c' }}>📦 {item.type}</span>{isLowStock && <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: '#ff3b30', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}</div>
                   
-                  {/* 🔥 NEW VISUAL: STOCK HEALTH GAUGE */}
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8px 0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                       <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Pipeline Health</span>
@@ -336,6 +376,11 @@ export default function Inventory({ user }) {
                           <input value={editForms[item.barcode]?.lotNumber ?? item.lotNumber} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), lotNumber: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
                         </div>
                       </div>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Expiry Date (YYYY-MM-DD)</label>
+                        <input type="date" value={editForms[item.barcode]?.expiryDate ?? item.expiryDate} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), expiryDate: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                      </div>
 
                       <button onClick={(e) => { e.stopPropagation(); handleSaveCardEdit(item.barcode); }} style={{ marginTop: 'auto', backgroundColor: '#007aff', color: '#fff', padding: '10px', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}>💾 Save Changes</button>
                     </div>
@@ -351,15 +396,19 @@ export default function Inventory({ user }) {
                         <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>90-Day Burn</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#ffffff', marginTop: '2px' }}>{quarterlyBurn} <span style={{fontSize: '12px', color:'#8e8e93'}}>bx</span></div></div>
                         <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Est. Run-Out Date</div><div style={{ fontSize: '18px', fontWeight: '700', color: item.quantity === 0 ? '#ff3b30' : '#34c759', marginTop: '2px' }}>{item.quantity === 0 ? "Depleted" : runOutDate}</div></div>
                       </div>
+                      
+                      {/* EDIT DETAILS NOW REQUIRES MANAGER RBAC */}
                       <button 
                         onClick={(e) => { 
                           e.stopPropagation(); 
-                          setEditForms(prev => ({...prev, [item.barcode]: item}));
-                          setEditModes(prev => ({...prev, [item.barcode]: true})); 
+                          requireManager(() => {
+                            setEditForms(prev => ({...prev, [item.barcode]: item}));
+                            setEditModes(prev => ({...prev, [item.barcode]: true})); 
+                          });
                         }} 
                         style={{ marginTop: '16px', backgroundColor: '#1c1c1e', color: '#ffffff', border: '1px solid #3a3a3c', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
                       >
-                        ✏️ Edit Product Details
+                        🔒 Edit Product Details
                       </button>
                     </div>
                   )}
@@ -370,20 +419,63 @@ export default function Inventory({ user }) {
         })}
       </div>
 
-      {/* MODALS */}
-      {showConfirmModal && pendingAction && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
-            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>⚠️ Confirm Update</h3>
-            <p style={{ margin: 0, color: "#ffffff", fontSize: "17px", lineHeight: "1.5" }}>Action: <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "800" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")} {pendingAction.boxAdjustment} Boxes</span> of <strong style={{color: "#007aff"}}>{pendingAction.targetItem.flavor}</strong></p>
-            <div style={{ display: "flex", gap: "12px" }}>
-              <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "16px", borderRadius: "12px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
-              <button onClick={handleConfirmAction} style={{ flex: 2, backgroundColor: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", color: "#ffffff", border: "none", padding: "16px", borderRadius: "12px", fontWeight: "700", cursor: "pointer" }}>Commit Action</button>
+      {/* 🔥 NEW: RBAC SECURITY PIN MODAL */}
+      {pinModal.isOpen && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.9)", backdropFilter: "blur(15px)", zIndex: 10001, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "380px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.8)" }}>
+            <div style={{ fontSize: "40px", marginBottom: "-10px" }}>🔐</div>
+            <div>
+              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "22px", fontWeight: "700" }}>Manager Override</h3>
+              <p style={{ margin: "8px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Enter 4-digit PIN to authorize action.</p>
+            </div>
+            
+            <input 
+              type="password" 
+              maxLength="4" 
+              value={pinInput} 
+              onChange={(e) => setPinInput(e.target.value)} 
+              autoFocus
+              style={{ backgroundColor: "#242426", border: pinModal.error ? "2px solid #ff3b30" : "2px solid #007aff", color: "#fff", fontSize: "32px", fontWeight: "800", textAlign: "center", letterSpacing: "12px", padding: "16px", borderRadius: "16px", outline: "none", width: "100%", boxSizing: "border-box" }} 
+            />
+            {pinModal.error && <div style={{ color: "#ff3b30", fontSize: "12px", fontWeight: "700", marginTop: "-12px" }}>INCORRECT PIN</div>}
+            
+            <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
+              <button onClick={() => setPinModal({ isOpen: false, callback: null, error: false })} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "14px", borderRadius: "12px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+              <button onClick={submitPin} style={{ flex: 2, backgroundColor: "#007aff", color: "#ffffff", border: "none", padding: "14px", borderRadius: "12px", fontWeight: "700", cursor: "pointer" }}>Unlock</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* SCANNER MODAL & FIFO INJECTION */}
+      {showConfirmModal && pendingAction && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
+            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>⚠️ Confirm Update</h3>
+            
+            <p style={{ margin: 0, color: "#ffffff", fontSize: "17px", lineHeight: "1.5" }}>Action: <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "800" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")} {pendingAction.boxAdjustment} Boxes</span> of <strong style={{color: "#007aff"}}>{pendingAction.targetItem.flavor}</strong></p>
+            
+            {/* 🔥 FIFO WARNING INJECTION */}
+            {pendingAction.fifoWarningItem && (
+              <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid #ff9500", padding: "16px", borderRadius: "12px", textAlign: "left", display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div style={{ color: "#ff9500", fontWeight: "800", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>🛑 FIFO VIOLATION DETECTED</div>
+                <div style={{ color: "#fff", fontSize: "13px", lineHeight: "1.5" }}>You are about to ship <strong style={{color: "#8e8e93"}}>{pendingAction.targetItem.lotNumber}</strong>, but older stock exists in the warehouse.</div>
+                <div style={{ backgroundColor: "#242426", padding: "10px", borderRadius: "8px", fontSize: "12px", color: "#8e8e93" }}>
+                  Please pull from <strong style={{color: "#fff"}}>{pendingAction.fifoWarningItem.zone}</strong>.<br/>
+                  (Lot: {pendingAction.fifoWarningItem.lotNumber} • Expires: <span style={{color: "#ff3b30"}}>{pendingAction.fifoWarningItem.expiryDate}</span>)
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "16px", borderRadius: "12px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+              <button onClick={handleConfirmAction} style={{ flex: 2, backgroundColor: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", color: "#ffffff", border: "none", padding: "16px", borderRadius: "12px", fontWeight: "700", cursor: "pointer" }}>{pendingAction.fifoWarningItem ? "Force Ship Anyway" : "Commit Action"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ALL OTHER MODALS REMAIN UNCHANGED BELOW */}
       {pendingModeSwitch && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
