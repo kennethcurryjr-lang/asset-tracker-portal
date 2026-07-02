@@ -30,7 +30,6 @@ export default function Inventory({ user }) {
   const [pendingModeSwitch, setPendingModeSwitch] = useState(null);
   const [showRegisterConfirm, setShowRegisterConfirm] = useState(false);
   
-  // AUDIT LEDGER STATE
   const [showAuditModal, setShowAuditModal] = useState(false);
   const [auditLog, setAuditLog] = useState([]);
 
@@ -59,12 +58,10 @@ export default function Inventory({ user }) {
     } catch (err) { console.error("DynamoDB Fetch Error:", err); }
   };
 
-  // 🔥 NEW: Fetch Historical Audit Logs from the Cloud
   const fetchAuditLogs = async () => {
     try {
       const response = await docClient.send(new ScanCommand({ TableName: "BeverageAuditLogs" }));
       if (response.Items) {
-        // Sort newest transactions to the top based on timestamp ID
         setAuditLog(response.Items.sort((a, b) => b.id - a.id));
       }
     } catch (err) { console.error("Failed to fetch historical audit logs:", err); }
@@ -107,7 +104,6 @@ export default function Inventory({ user }) {
     if (!pendingAction) return;
     const { targetItem, boxAdjustment, newQuantity, newZone, actionName } = pendingAction;
     
-    // Construct the permanent log payload
     const logEntry = { 
       id: Date.now(), 
       time: new Date().toLocaleString(), 
@@ -117,14 +113,12 @@ export default function Inventory({ user }) {
       flavor: targetItem.flavor 
     };
     
-    // Instantly update the UI for a snappy feel
     setAuditLog(prev => [logEntry, ...prev]);
     setStock(prevStock => prevStock.map(item => item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone } : item));
     setScanFeedback(`✅ ${actionName.replace(/[^a-zA-Z]/g, "")} ${boxAdjustment} boxes of ${targetItem.flavor}`);
     setShowConfirmModal(false);
     setPendingAction(null);
 
-    // 🔥 NEW: Double-Cloud Sync (Inventory Count + Audit Ledger)
     try {
       await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone } }));
     } catch (err) { console.error("Inventory cloud update failed:", err); }
@@ -173,7 +167,33 @@ export default function Inventory({ user }) {
           .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } 
           .toolbar-stack { flex-direction: column !important; align-items: stretch !important; } 
           .search-group { max-width: 100% !important; }
+          
+          /* 🔥 NEW MOBILE RULES FOR ACTION STACK */
+          .action-group-right { width: 100% !important; align-items: stretch !important; }
+          
+          /* Force QTY, Single, Add, Scan onto one single row */
+          .primary-row { 
+            justify-content: space-between !important; 
+            gap: 6px !important; 
+            flex-wrap: nowrap !important; 
+            width: 100% !important;
+          }
+          /* Shrink padding and text to fit 4 buttons on mobile */
+          .primary-row > * { 
+            padding: 10px 8px !important; 
+            font-size: 13px !important; 
+            flex: 1; 
+            display: flex;
+            justify-content: center;
+          }
+          .qty-box { padding: 4px !important; gap: 4px !important; }
+          .hide-mobile { display: none !important; } /* Hides "QTY:" text */
+          .qty-box input { width: 100% !important; max-width: 40px !important; font-size: 14px !important; }
+          
+          .secondary-row { width: 100% !important; justify-content: space-between !important; gap: 8px !important; margin-top: 8px !important; }
+          .secondary-row > button { flex: 1; }
         }
+        
         #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
       `}</style>
@@ -210,22 +230,44 @@ export default function Inventory({ user }) {
       {/* TOOLBAR */}
       <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "16px", border: "1px solid #3a3a3c" }}>
         
+        {/* LEFT: Search & Multi-Flip */}
         <div className="search-group" style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%", maxWidth: "280px" }}>
           <input type="text" placeholder="🔎 Filter Inventory..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "14px 16px", width: "100%", boxSizing: "border-box", color: "#ffffff" }} />
-          
           <button onClick={() => { setIsMultiFlipMode(!isMultiFlipMode); if (isMultiFlipMode) setFlippedCards([]); }} style={{ backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%" }}>
             🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
           </button>
         </div>
 
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", flex: "1", justifyContent: "flex-end" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "4px 12px" }}><span style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span><input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} /></div>
+        {/* RIGHT: Action Controls Stack */}
+        <div className="action-group-right" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1", alignItems: "flex-end" }}>
           
-          <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#1c1c1e", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer" }}>🪵 {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
-          <button onClick={() => setShowAuditModal(true)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer" }}>📋 Audit</button>
-          <button onClick={handleExportCSV} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer" }}>📥 CSV</button>
-          <button onClick={handleManualAdd} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer" }}>➕ Add</button>
-          <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "12px", color: "#ffffff", fontWeight: "700", cursor: "pointer" }}>📷 SCAN</button>
+          {/* Row 1: Primary Actions */}
+          <div className="primary-row" style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "4px 12px" }}>
+              <span className="hide-mobile" style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
+              <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} />
+            </div>
+            <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#1c1c1e", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>
+              🪵 {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}
+            </button>
+            <button onClick={handleManualAdd} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>
+              ➕ Add
+            </button>
+            <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "12px", color: "#ffffff", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" }}>
+              📷 SCAN
+            </button>
+          </div>
+
+          {/* Row 2: Secondary Actions */}
+          <div className="secondary-row" style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+            <button onClick={() => setShowAuditModal(true)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>
+              📋 Audit
+            </button>
+            <button onClick={handleExportCSV} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>
+              📥 CSV
+            </button>
+          </div>
+
         </div>
       </div>
 
