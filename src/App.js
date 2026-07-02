@@ -26,9 +26,10 @@ async function getLocationInfo(lat, lon) {
   const cacheKey = `${Number(lat).toFixed(3)},${Number(lon).toFixed(3)}`;
   if (locationCache.has(cacheKey)) return locationCache.get(cacheKey);
   try {
-    const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
     const data = await response.json();
-    const result = { zip: data.postcode || "Unknown", city: data.city || data.locality || "Unknown" };
+    const cityStr = data.address?.city || data.address?.town || data.address?.village || data.address?.county || "Unknown";
+    const result = { zip: data.address?.postcode || "Unknown", city: cityStr };
     locationCache.set(cacheKey, result);
     return result;
   } catch (err) { return { zip: "Error", city: "Error" }; }
@@ -270,8 +271,32 @@ function App() {
       });
 
       const processed = await Promise.all(Object.keys(grouped).map(async (id) => {
-        const history = grouped[id].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        const latest = { ...history[0] }; ["homeLat", "homeLon", "isServiceMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag"].forEach(k => { if (latest[k] === undefined) { const prev = history.find(h => h[k] !== undefined); if (prev) latest[k] = (prev[k] === "CLEARED" ? undefined : prev[k]); } }); const allNotes = []; history.forEach(h => { if (h.notesList) { h.notesList.forEach(n => { if (!allNotes.some(e => e.text === n.text && e.time === n.time)) { allNotes.push({...n, rowTimestamp: h.timestamp}); } }); } }); latest.notesList = allNotes;
+        const rawGroup = grouped[id];
+        const latestRow = rawGroup.find(i => i.timestamp === "LATEST") || {};
+        const history = rawGroup.filter(i => i.timestamp !== "LATEST").sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        const latest = { ...(history[0] || {}) };
+        const stateKeys = ["homeLat", "homeLon", "isServiceMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag", "group", "tag"];
+        
+        for (const k of stateKeys) {
+            if (latestRow[k] !== undefined) {
+                latest[k] = latestRow[k] === "CLEARED" ? undefined : latestRow[k];
+            } else if (latest[k] === "CLEARED") {
+                latest[k] = undefined;
+            }
+        }
+        
+        const allNotes = [];
+        rawGroup.forEach(h => {
+           if (h.notesList) {
+               h.notesList.forEach(n => {
+                   if (!allNotes.some(e => e.text === n.text && e.time === n.time)) {
+                       allNotes.push({...n, rowTimestamp: h.timestamp});
+                   }
+               });
+           }
+        });
+        latest.notesList = allNotes;
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
         latest.path = history.slice(0, 10).filter(p => p.latitude && p.longitude).map(p => [Number(p.latitude), Number(p.longitude)]);
         
@@ -332,7 +357,7 @@ function App() {
   const updateAttribute = async (deviceId, timestamp, field, value, attributeAlias) => {
     await docClient.send(new UpdateCommand({
       TableName: "AssetTrackerData",
-      Key: { deviceId, timestamp },
+      Key: { deviceId, timestamp: "LATEST" },
       UpdateExpression: `set ${attributeAlias} = :val`,
       ExpressionAttributeNames: { [attributeAlias]: field },
       ExpressionAttributeValues: { ":val": value }
@@ -350,10 +375,10 @@ function App() {
     
     try {
       await Promise.all([
-          updateAttribute(deviceId, timestamp, 'isServiceMode', newState, '#sm'),
-          updateAttribute(deviceId, timestamp, 'lastServiceModeUser', user, '#lsu'),
-          updateAttribute(deviceId, timestamp, 'lastServiceModeTime', time, '#lst'),
-          addNote(deviceId, timestamp, logMsg)
+          updateAttribute(deviceId, "LATEST", 'isServiceMode', newState, '#sm'),
+          updateAttribute(deviceId, "LATEST", 'lastServiceModeUser', user, '#lsu'),
+          updateAttribute(deviceId, "LATEST", 'lastServiceModeTime', time, '#lst'),
+          addNote(deviceId, "LATEST", logMsg)
       ]);
       alert(newState ? "Watchdog disabled!" : "Watchdog activated!");
     } catch (err) { console.error(err); }
@@ -426,7 +451,7 @@ function App() {
     try {
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
-        Key: { deviceId, timestamp },
+        Key: { deviceId, timestamp: "LATEST" },
         UpdateExpression: "SET #nl = list_append(if_not_exists(#nl, :empty_list), :new_note)",
         ExpressionAttributeNames: { "#nl": "notesList" },
         ExpressionAttributeValues: {
@@ -583,7 +608,7 @@ function App() {
     try {
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
-        Key: { deviceId: sharingAsset.deviceId, timestamp: sharingAsset.timestamp },
+        Key: { deviceId: sharingAsset.deviceId, timestamp: "LATEST" },
         UpdateExpression: "SET shareToken = :tok, shareExpires = :exp, shareEmail = :em, isStolenFlag = :st",
         ExpressionAttributeValues: {
           ":tok": secureToken,
@@ -728,7 +753,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     try {
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
-        Key: { deviceId, timestamp },
+        Key: { deviceId, timestamp: "LATEST" },
         UpdateExpression: "SET shareToken = :c, shareExpires = :c, shareEmail = :c, isStolenFlag = :c", ExpressionAttributeValues: { ":c": "CLEARED" }
       }));
       alert("Tracking link revoked successfully.");
