@@ -1066,43 +1066,42 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       `}</style>
 
-      <header style={{...headerStyle, paddingBottom: isAdmin ? '32px' : '24px'}}>
-        <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
-        
-        <div style={{ 
-          color: '#ffffff',
-          fontSize: '15px',
-          fontWeight: '500',
-          letterSpacing: '-0.02em',
-          textAlign: 'center'
+      {/* DYNAMIC HEADER ARCHITECTURE */}
+      <>
+        <header style={{ 
+          ...headerStyle, 
+          borderRadius: activePortal === "inventory" ? "14px 14px 0 0" : "14px",
+          borderBottom: activePortal === "inventory" ? "none" : "1px solid #2d2d2f",
+          boxShadow: activePortal === "inventory" ? "none" : headerStyle.boxShadow,
         }}>
-            {auth.user?.profile.email} 
-            {isAdmin && <span style={{ color: '#86868b', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}
-        </div>
-        
-        <button onClick={handleSignOut} style={{ 
-          backgroundColor: '#ffffff', 
-          color: '#000000', 
-          border: 'none', 
-          padding: '6px 18px', 
-          fontSize: '12px', 
-          borderRadius: '14px', 
-          cursor: 'pointer', 
-          fontWeight: '600',
-          transition: 'all 0.2s',
-          marginBottom: isAdmin ? '16px' : '0'
-        }}>Sign Out</button>
+          <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
+          
+          <div style={{ color: '#ffffff', fontSize: '15px', fontWeight: '500', letterSpacing: '-0.02em', textAlign: 'center' }}>
+              {auth.user?.profile.email} 
+              {isAdmin && <span style={{ color: '#86868b', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}
+          </div>
+          
+          <button onClick={handleSignOut} style={{ backgroundColor: '#ffffff', color: '#000000', border: 'none', padding: '6px 18px', fontSize: '12px', borderRadius: '14px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s' }}>
+            Sign Out
+          </button>
+        </header>
 
-        {/* 👑 MASTER ADMIN PORTAL TOGGLE (FUSED INTO HEADER) */}
+        {/* MASTER ADMIN PORTAL TOGGLE */}
         {isAdmin && (
-          <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
-            <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.4)" }}>
+          <div style={{ 
+            display: "flex", 
+            justifyContent: "center", 
+            backgroundColor: "#1c1c1e", 
+            padding: activePortal === "inventory" ? "0 12px 24px 12px" : "12px", 
+            borderBottom: "1px solid #3a3a3c" 
+          }}>
+            <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: activePortal === "inventory" ? "0 4px 14px rgba(0,0,0,0.4)" : "none" }}>
               <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📡 Live GPS Fleet</button>
               <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📦 CS Group Inventory</button>
             </div>
           </div>
         )}
-      </header>
+      </>
 
       {/* 🔀 THE ROUTING INTERSECTION */}
       {activePortal === "inventory" ? (
