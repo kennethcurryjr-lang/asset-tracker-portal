@@ -1066,7 +1066,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       `}</style>
 
-      <header style={headerStyle}>
+      <header style={{...headerStyle, paddingBottom: isAdmin ? '32px' : '24px'}}>
         <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
         
         <div style={{ 
@@ -1089,19 +1089,20 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           borderRadius: '14px', 
           cursor: 'pointer', 
           fontWeight: '600',
-          transition: 'all 0.2s'
+          transition: 'all 0.2s',
+          marginBottom: isAdmin ? '16px' : '0'
         }}>Sign Out</button>
-      </header>
 
-      {/* 👑 MASTER ADMIN PORTAL TOGGLE */}
-      {isAdmin && (
-        <div style={{ display: "flex", justifyContent: "center", backgroundColor: "#1c1c1e", padding: "12px", borderBottom: "1px solid #3a3a3c" }}>
-          <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px" }}>
-            <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📡 Live GPS Fleet</button>
-            <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📦 CS Group Inventory</button>
+        {/* 👑 MASTER ADMIN PORTAL TOGGLE (FUSED INTO HEADER) */}
+        {isAdmin && (
+          <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+            <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.4)" }}>
+              <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📡 Live GPS Fleet</button>
+              <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📦 CS Group Inventory</button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </header>
 
       {/* 🔀 THE ROUTING INTERSECTION */}
       {activePortal === "inventory" ? (
