@@ -32,7 +32,6 @@ export default function Inventory({ user }) {
   const [showAuditModal, setShowAuditModal] = useState(false);
   const [auditLog, setAuditLog] = useState([]);
 
-  // 🔥 NEW: Array State for Multi-Flip and the Toggle Button State
   const [flippedCards, setFlippedCards] = useState([]);
   const [isMultiFlipMode, setIsMultiFlipMode] = useState(false);
 
@@ -136,7 +135,12 @@ export default function Inventory({ user }) {
   return (
     <div className="inventory-container" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{`
-        @media (max-width: 768px) { .inventory-container { padding: 16px !important; } .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } .toolbar-stack { flex-direction: column !important; align-items: stretch !important; } }
+        @media (max-width: 768px) { 
+          .inventory-container { padding: 16px !important; } 
+          .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } 
+          .toolbar-stack { flex-direction: column !important; align-items: stretch !important; } 
+          .search-group { max-width: 100% !important; }
+        }
         #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
       `}</style>
@@ -168,20 +172,24 @@ export default function Inventory({ user }) {
       </div>
 
       {/* TOOLBAR */}
-      <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "16px", border: "1px solid #3a3a3c" }}>
-        <input type="text" placeholder="🔎 Filter Inventory..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "14px 16px", width: "100%", maxWidth: "260px", color: "#ffffff" }} />
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", flex: "1", justifyContent: "flex-end" }}>
+      <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "16px", border: "1px solid #3a3a3c" }}>
+        
+        {/* Left Side: Search & Multi-Flip */}
+        <div className="search-group" style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%", maxWidth: "280px" }}>
+          <input type="text" placeholder="🔎 Filter Inventory..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "14px 16px", width: "100%", boxSizing: "border-box", color: "#ffffff" }} />
           
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "4px 12px" }}><span style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span><input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} /></div>
-          
-          {/* 🔥 NEW TOGGLE: Multi-Flip Mode */}
           <button onClick={() => { 
             setIsMultiFlipMode(!isMultiFlipMode); 
-            if (isMultiFlipMode) setFlippedCards([]); // Clears open cards when turning off
-          }} style={{ backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}>
+            if (isMultiFlipMode) setFlippedCards([]); 
+          }} style={{ backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%" }}>
             🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
           </button>
+        </div>
 
+        {/* Right Side: Primary Actions */}
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", flex: "1", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "4px 12px" }}><span style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span><input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} /></div>
+          
           <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#1c1c1e", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer" }}>🪵 {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
           <button onClick={() => setShowAuditModal(true)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer" }}>📋 Audit</button>
           <button onClick={handleExportCSV} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer" }}>📥 CSV</button>
@@ -194,8 +202,6 @@ export default function Inventory({ user }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
         {filteredStock.map((item) => {
           const isLowStock = item.quantity < 50;
-          
-          // 🔥 NEW ARRAY CHECK LOGIC
           const isFlipped = flippedCards.includes(item.barcode);
           
           const monthlyBurn = Math.round(item.quantity * 0.35) + 14;
