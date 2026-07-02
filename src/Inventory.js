@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
 // Mock initial data matching CS Group flavor baseline
@@ -32,6 +32,9 @@ export default function Inventory({ user }) {
   );
 
   // Initialize and mount the camera hardware when the modal opens
+  const processRef = useRef();
+  processRef.current = processScannedCode;
+
   useEffect(() => {
     if (isScanning) {
       const scanner = new Html5QrcodeScanner("reader", { 
@@ -42,31 +45,37 @@ export default function Inventory({ user }) {
       
       scanner.render(
         (decodedText) => {
-          scanner.clear(); // Stop camera instantly on successful read
-          setIsScanning(false); // Close modal
-          processScannedCode(decodedText);
+          scanner.clear();
+          setIsScanning(false);
+          if (processRef.current) processRef.current(decodedText);
         },
-        (error) => { /* Ignore standard frame read errors (expected when finding focus) */ }
+        (error) => {}
       );
 
       return () => {
-        scanner.clear().catch(e => console.log("Scanner cleanup standard exit", e));
+        scanner.clear().catch(e => console.log(e));
       };
     }
   }, [isScanning]);
 
-  const processScannedCode = (scannedBarcode) => {
-    if (scannedBarcode.startsWith("ZONE-") || scannedBarcode.startsWith("BAY-")) {
-      setActiveZone(scannedBarcode);
-      setScanFeedback(`📍 Location Locked: New items will be routed to ${scannedBarcode}`);
+  const processScannedCode = (rawScan) => {
+    const cleanScan = String(rawScan).trim();
+    
+    if (cleanScan.startsWith("ZONE-") || cleanScan.startsWith("BAY-")) {
+      setActiveZone(cleanScan);
+      setScanFeedback(`📍 Location Locked: New items will be routed to ${cleanScan}`);
       setTimeout(() => setScanFeedback(""), 4000);
       return;
     }
 
     const boxAdjustment = isPalletMode ? 70 : 1;
     
-    // Fix: Search the existing stock array synchronously BEFORE updating state
-    const targetItem = stock.find(item => item.barcode === scannedBarcode);
+    // Aggressive fuzzy match to ignore ghost characters or check-digits
+    const targetItem = stock.find(item => 
+      item.barcode === cleanScan || 
+      cleanScan.includes(item.barcode) || 
+      item.barcode.includes(cleanScan)
+    );
 
     if (targetItem) {
       setStock(prevStock => prevStock.map(item => {
@@ -83,7 +92,7 @@ export default function Inventory({ user }) {
       const action = scanMode === "receive" ? "📥 Received" : "🚚 Shipped";
       setScanFeedback(`✅ ${action} ${boxAdjustment} boxes of ${targetItem.flavor}`);
     } else {
-      setScanFeedback(`⚠️ Unrecognized Barcode: ${scannedBarcode} (Not in database)`);
+      setScanFeedback(`⚠️ Unrecognized Barcode: ${cleanScan} (Not in database)`);
     }
     setTimeout(() => setScanFeedback(""), 4000);
   };
