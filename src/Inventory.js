@@ -4,12 +4,12 @@ import { ScanCommand, UpdateCommand, PutCommand, DeleteCommand } from "@aws-sdk/
 import { docClient } from './dynamoClient';
 
 const initialMockData = [
-  { barcode: "082123456781", lotNumber: "LOT-2026-01", expiryDate: "2026-10-15", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", type: "3G Bag-in-Box", quantity: 420, zone: "Cooler Bay-01" },
-  { barcode: "082123456782", lotNumber: "LOT-2026-02", expiryDate: "2026-11-01", brand: "Citrus Springs", flavor: "Apple Juice Premium", type: "3G Bag-in-Box", quantity: 180, zone: "Cooler Bay-01" },
-  { barcode: "082123456783", lotNumber: "LOT-2026-03", expiryDate: "2027-01-20", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 310, zone: "Dry Aisle A" },
-  { barcode: "082123456783-OLD", lotNumber: "LOT-2025-11", expiryDate: "2026-08-10", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 45, zone: "Dry Aisle B" },
-  { barcode: "082123456784", lotNumber: "LOT-2026-04", expiryDate: "2026-12-05", brand: "Twisted Branch", flavor: "Craft Lemonade Base", type: "3G Bag-in-Box", quantity: 35, zone: "Dry Aisle B" },
-  { barcode: "082123456785", lotNumber: "LOT-2026-05", expiryDate: "2027-03-10", brand: "Madrinas Coffee", flavor: "Vanilla Cold Brew RTD", type: "24-Can Case", quantity: 300, zone: "Dry Aisle C" }
+  { barcode: "082123456781", lotNumber: "LOT-2026-01", expiryDate: "2026-10-15", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", type: "3G Bag-in-Box", quantity: 420, zone: "Cooler Bay-01" },
+  { barcode: "082123456782", lotNumber: "LOT-2026-02", expiryDate: "2026-11-01", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "Apple Juice Premium", type: "3G Bag-in-Box", quantity: 180, zone: "Cooler Bay-01" },
+  { barcode: "082123456783", lotNumber: "LOT-2026-03", expiryDate: "2027-01-20", vendorEmail: "wholesale@coolattitudes.com", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 310, zone: "Dry Aisle A" },
+  { barcode: "082123456783-OLD", lotNumber: "LOT-2025-11", expiryDate: "2026-08-10", vendorEmail: "wholesale@coolattitudes.com", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 45, zone: "Dry Aisle B" },
+  { barcode: "082123456784", lotNumber: "LOT-2026-04", expiryDate: "2026-12-05", vendorEmail: "distro@twistedbranch.com", brand: "Twisted Branch", flavor: "Craft Lemonade Base", type: "3G Bag-in-Box", quantity: 35, zone: "Dry Aisle B" },
+  { barcode: "082123456785", lotNumber: "LOT-2026-05", expiryDate: "2027-03-10", vendorEmail: "supply@madrinas.com", brand: "Madrinas Coffee", flavor: "Vanilla Cold Brew RTD", type: "24-Can Case", quantity: 300, zone: "Dry Aisle C" }
 ];
 
 const MANAGER_PIN = "1234";
@@ -25,7 +25,7 @@ export default function Inventory({ user }) {
   const [scanFeedback, setScanFeedback] = useState("");
   
   const [showNewItemModal, setShowNewItemModal] = useState(false);
-  const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", quantity: 1, zone: "" });
+  const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 1, zone: "" });
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
@@ -44,6 +44,9 @@ export default function Inventory({ user }) {
 
   const [pinModal, setPinModal] = useState({ isOpen: false, callback: null, error: false });
   const [pinInput, setPinInput] = useState("");
+  
+  // 🔥 NEW: Print Engine State
+  const [printLabelItem, setPrintLabelItem] = useState(null);
 
   const totalBoxes = stock.reduce((acc, item) => acc + item.quantity, 0);
   const activeFlavorsCount = new Set(stock.map(item => item.flavor)).size;
@@ -128,7 +131,7 @@ export default function Inventory({ user }) {
       setPendingAction({ targetItem, boxAdjustment, newQuantity, newZone, actionName: scanMode === "receive" ? "📥 Receive" : "🚚 Ship", fifoWarningItem });
       setShowConfirmModal(true);
     } else {
-      setNewItemForm({ barcode: cleanScan, brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", quantity: boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : "Unassigned Warehouse" });
+      setNewItemForm({ barcode: cleanScan, brand: "", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : "Unassigned Warehouse" });
       setShowNewItemModal(true);
     }
   };
@@ -150,7 +153,7 @@ export default function Inventory({ user }) {
     setTimeout(() => setScanFeedback(""), 4000);
   };
 
-  const handleManualAdd = () => { setNewItemForm({ barcode: "", brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", quantity: 0, zone: "Unassigned Warehouse" }); setShowNewItemModal(true); };
+  const handleManualAdd = () => { setNewItemForm({ barcode: "", brand: "", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 0, zone: "Unassigned Warehouse" }); setShowNewItemModal(true); };
   const handleSaveNewItem = () => { if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) return alert("Required fields missing."); setShowRegisterConfirm(true); };
 
   const executeSaveNewItem = async () => {
@@ -177,26 +180,24 @@ export default function Inventory({ user }) {
         await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: { ...originalItem, ...form } }));
         await docClient.send(new DeleteCommand({ TableName: "BeverageInventoryData", Key: { barcode: originalItem.barcode, lotNumber: originalItem.lotNumber } }));
       } else {
-        await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: originalItem.barcode, lotNumber: originalItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, expiryDate = :e", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": form.quantity, ":z": form.zone, ":e": form.expiryDate } }));
+        await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: originalItem.barcode, lotNumber: originalItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, expiryDate = :e, vendorEmail = :v", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": form.quantity, ":z": form.zone, ":e": form.expiryDate, ":v": form.vendorEmail } }));
       }
       await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: logEntry }));
     } catch (err) { console.error("Admin edit cloud update failed:", err); }
   };
 
   const handleExportCSV = () => {
-    const headers = ["Brand", "Flavor", "Packaging Type", "Current Count", "Warehouse Zone", "Lot Number", "Expiry Date"];
+    const headers = ["Brand", "Flavor", "Packaging Type", "Current Count", "Warehouse Zone", "Lot Number", "Expiry Date", "Vendor Route"];
     const csvRows = [headers.join(",")];
-    stock.forEach(item => { csvRows.push([ `"${item.brand}"`, `"${item.flavor}"`, `"${item.type}"`, item.quantity, `"${item.zone}"`, `"${item.lotNumber}"`, `"${item.expiryDate}"` ].join(",")); });
+    stock.forEach(item => { csvRows.push([ `"${item.brand}"`, `"${item.flavor}"`, `"${item.type}"`, item.quantity, `"${item.zone}"`, `"${item.lotNumber}"`, `"${item.expiryDate}"`, `"${item.vendorEmail}"` ].join(",")); });
     const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = `CS_Inventory_Snapshot_${new Date().toISOString().split('T')[0]}.csv`; a.click(); URL.revokeObjectURL(url);
   };
 
-  // 🔥 UPGRADED CORE SCANNER ENGINE (Forces Environment Camera, Skips UI Menu)
   const processRef = useRef(); processRef.current = processScannedCode;
   useEffect(() => {
     let qrCodeInstance;
-    
     if (isScanning) {
       setTimeout(() => {
         qrCodeInstance = new Html5Qrcode("reader");
@@ -217,7 +218,6 @@ export default function Inventory({ user }) {
         });
       }, 100);
     }
-
     return () => {
       if (qrCodeInstance) {
         try { qrCodeInstance.stop().catch(e => {}); } catch(e) {}
@@ -225,8 +225,11 @@ export default function Inventory({ user }) {
     };
   }, [isScanning]);
 
+  // Group Low Stock Items by Vendor for PO Routing
+  const vendorsToAlert = [...new Set(lowStockItems.map(i => i.vendorEmail || "purchasing@csgroup.com"))];
+
   return (
-    <div className="inventory-container" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{`
         @media (max-width: 768px) { 
           .inventory-container { padding: 16px !important; } 
@@ -245,6 +248,14 @@ export default function Inventory({ user }) {
         #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; display: flex; justify-content: center; }
         #reader video { border-radius: 14px; object-fit: cover; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
+        
+        /* 🔥 NEW PRINT STYLES FOR LABEL GENERATOR */
+        @media print {
+          body * { visibility: hidden; }
+          #printable-label, #printable-label * { visibility: visible; }
+          #printable-label { position: absolute; left: 0; top: 0; width: 100%; max-width: 4in; height: 6in; margin: 0; padding: 16px; background: white; color: black; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box;}
+          .no-print { display: none !important; }
+        }
       `}</style>
 
       {/* HEADER & ALERTS */}
@@ -259,13 +270,31 @@ export default function Inventory({ user }) {
         </div>
       </div>
 
+      {/* 🔥 UPGRADED LOW STOCK BANNER WITH VENDOR PO ROUTING */}
       {lowStockItems.length > 0 && (
         <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "16px", padding: "20px", marginBottom: "24px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "16px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}><span style={{ fontSize: "32px", lineHeight: "1" }}>⚠️</span><div><h4 style={{ margin: 0, color: "#ff9500", fontSize: "18px", fontWeight: "700" }}>Critical Stock Alert</h4><p style={{ margin: "4px 0 0 0", color: "#ffffff", fontSize: "14px", lineHeight: "1.4" }}>Action Required: <strong style={{ color: "#ff9500" }}>{lowStockItems.map(i => i.flavor).join(", ")}</strong> dropped below 50 boxes.</p></div></div>
-          <button onClick={() => { 
-            const body = "Please process a replenishment order for the following low-stock items:%0D%0A%0D%0A" + lowStockItems.map(i => `[ ] ${i.flavor} - Only ${i.quantity} boxes remaining (Zone: ${i.zone})`).join("%0D%0A") + "%0D%0A%0D%0A- Generated by Kinetic Cards Inventory System";
-            window.location.href = `mailto:purchasing@csgroup.com?subject=URGENT: Warehouse Restock Required&body=${body}`; 
-          }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "12px 20px", borderRadius: "10px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}>✉️ Email Restock Report</button>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <span style={{ fontSize: "32px", lineHeight: "1" }}>⚠️</span>
+            <div>
+              <h4 style={{ margin: 0, color: "#ff9500", fontSize: "18px", fontWeight: "700" }}>Critical Stock Alert</h4>
+              <p style={{ margin: "4px 0 0 0", color: "#ffffff", fontSize: "14px", lineHeight: "1.4" }}>Action Required: <strong style={{ color: "#ff9500" }}>{lowStockItems.map(i => i.flavor).join(", ")}</strong> dropped below 50 boxes.</p>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {vendorsToAlert.map(vendorEmail => {
+              const vendorSpecificItems = lowStockItems.filter(i => (i.vendorEmail || "purchasing@csgroup.com") === vendorEmail);
+              const body = "Please process a replenishment order for the following low-stock items:%0D%0A%0D%0A" + vendorSpecificItems.map(i => `[ ] ${i.flavor} - Only ${i.quantity} boxes remaining (Zone: ${i.zone})`).join("%0D%0A") + "%0D%0A%0D%0A- Generated by Kinetic Cards Inventory System";
+              return (
+                <button 
+                  key={vendorEmail}
+                  onClick={() => { window.location.href = `mailto:${vendorEmail}?subject=URGENT: PO Request - Warehouse Restock Required&body=${body}`; }} 
+                  style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "12px 16px", borderRadius: "10px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}
+                >
+                  ✉️ PO to {vendorEmail.split('@')[0]}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -370,34 +399,40 @@ export default function Inventory({ user }) {
                 >
                   {editModes[item.barcode] ? (
                     // EDIT MODE
-                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '8px', overflowY: 'auto' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '4px' }}>
                         <div style={{ fontSize: '15px', fontWeight: '700', color: '#ffffff' }}>⚙️ Admin Override</div>
                         <button onClick={(e) => { e.stopPropagation(); setEditModes(prev => ({...prev, [item.barcode]: false})); }} style={{ background: 'transparent', color: '#ff3b30', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Cancel ✕</button>
                       </div>
                       
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Placement Zone</label>
-                        <input value={editForms[item.barcode]?.zone ?? item.zone} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), zone: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                          <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Zone</label>
+                          <input value={editForms[item.barcode]?.zone ?? item.zone} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), zone: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                          <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Qty</label>
+                          <input type="number" value={editForms[item.barcode]?.quantity ?? item.quantity} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), quantity: parseInt(e.target.value) || 0}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                        </div>
                       </div>
 
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                          <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Quantity</label>
-                          <input type="number" value={editForms[item.barcode]?.quantity ?? item.quantity} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), quantity: parseInt(e.target.value) || 0}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                          <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Lot Number</label>
+                          <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Lot No.</label>
                           <input value={editForms[item.barcode]?.lotNumber ?? item.lotNumber} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), lotNumber: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
                         </div>
-                      </div>
-                      
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Expiry Date (YYYY-MM-DD)</label>
-                        <input type="date" value={editForms[item.barcode]?.expiryDate ?? item.expiryDate} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), expiryDate: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                          <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Expiry</label>
+                          <input type="date" value={editForms[item.barcode]?.expiryDate ?? item.expiryDate} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), expiryDate: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                        </div>
                       </div>
 
-                      <button onClick={(e) => { e.stopPropagation(); handleSaveCardEdit(item.barcode); }} style={{ marginTop: 'auto', backgroundColor: '#007aff', color: '#fff', padding: '10px', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}>💾 Save Changes</button>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Vendor Route Email (PO generation)</label>
+                        <input value={editForms[item.barcode]?.vendorEmail ?? item.vendorEmail ?? ""} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), vendorEmail: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                      </div>
+
+                      <button onClick={(e) => { e.stopPropagation(); handleSaveCardEdit(item.barcode); }} style={{ marginTop: 'auto', backgroundColor: '#007aff', color: '#fff', padding: '10px', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}>💾 Save</button>
                     </div>
                   ) : (
                     // STATS MODE
@@ -411,18 +446,23 @@ export default function Inventory({ user }) {
                         <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>90-Day Burn</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#ffffff', marginTop: '2px' }}>{quarterlyBurn} <span style={{fontSize: '12px', color:'#8e8e93'}}>bx</span></div></div>
                         <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Est. Run-Out Date</div><div style={{ fontSize: '18px', fontWeight: '700', color: item.quantity === 0 ? '#ff3b30' : '#34c759', marginTop: '2px' }}>{item.quantity === 0 ? "Depleted" : runOutDate}</div></div>
                       </div>
-                      <button 
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          requireManager(() => {
-                            setEditForms(prev => ({...prev, [item.barcode]: item}));
-                            setEditModes(prev => ({...prev, [item.barcode]: true})); 
-                          });
-                        }} 
-                        style={{ marginTop: '16px', backgroundColor: '#1c1c1e', color: '#ffffff', border: '1px solid #3a3a3c', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
-                      >
-                        🔒 Edit Product Details
-                      </button>
+                      
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                        {/* 🔥 NEW VISUAL: LABEL PRINTER BUTTON */}
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setPrintLabelItem(item); }} 
+                          style={{ flex: 1, backgroundColor: '#2c2c2e', color: '#ffffff', border: '1px solid #3a3a3c', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
+                        >
+                          🖨️ Print Label
+                        </button>
+
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); requireManager(() => { setEditForms(prev => ({...prev, [item.barcode]: item})); setEditModes(prev => ({...prev, [item.barcode]: true})); }); }} 
+                          style={{ flex: 1, backgroundColor: '#1c1c1e', color: '#ffffff', border: '1px solid #3a3a3c', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
+                        >
+                          🔒 Edit Details
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -431,6 +471,37 @@ export default function Inventory({ user }) {
           );
         })}
       </div>
+
+      {/* 🔥 NEW MODAL: PRINT PREVIEW ENGINE */}
+      {printLabelItem && (
+        <div className="no-print" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10002, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", width: "100%", maxWidth: "400px", marginBottom: "16px" }}>
+            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: "700" }}>🖨️ Print Preview</h3>
+            <button onClick={() => setPrintLabelItem(null)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
+          </div>
+          
+          {/* THE ACTUAL PRINTABLE THERMAL LABEL */}
+          <div id="printable-label" style={{ width: "100%", maxWidth: "400px", aspectRatio: "4/6", backgroundColor: "#ffffff", padding: "32px", borderRadius: "12px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#000", textAlign: "center", boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}>
+            <h2 style={{ margin: "0 0 4px 0", fontSize: "24px", fontWeight: "800", textTransform: "uppercase" }}>{printLabelItem.brand}</h2>
+            <h3 style={{ margin: "0 0 24px 0", fontSize: "18px", fontWeight: "600" }}>{printLabelItem.flavor}</h3>
+            
+            {/* Dynamic QR API Call */}
+            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${printLabelItem.barcode}`} alt="QR Code" style={{ marginBottom: "16px" }} />
+            
+            <div style={{ fontSize: "18px", fontWeight: "700", letterSpacing: "4px", marginBottom: "24px" }}>{printLabelItem.barcode}</div>
+            
+            <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: "14px", fontWeight: "700", borderTop: "2px solid #000", paddingTop: "12px" }}>
+              <span>ZNE: {printLabelItem.zone}</span>
+              <span>LOT: {printLabelItem.lotNumber}</span>
+              <span>EXP: {printLabelItem.expiryDate || 'N/A'}</span>
+            </div>
+          </div>
+          
+          <button className="no-print" onClick={() => window.print()} style={{ width: "100%", maxWidth: "400px", backgroundColor: "#007aff", color: "#fff", padding: "16px", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", marginTop: "24px", fontSize: "16px", boxShadow: "0 4px 15px rgba(0,122,255,0.4)" }}>
+            Send to Zebra Thermal Printer
+          </button>
+        </div>
+      )}
 
       {/* RBAC SECURITY PIN MODAL */}
       {pinModal.isOpen && (
@@ -452,32 +523,6 @@ export default function Inventory({ user }) {
       )}
 
       {/* SCANNER MODAL & FIFO INJECTION */}
-      {showNewItemModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "12px" }}>
-              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: "700" }}>➕ Register New Product</h3>
-              <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <input placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={e => setNewItemForm(prev => ({...prev, barcode: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-              <input placeholder="Brand (e.g. Citrus Springs)" value={newItemForm.brand} onChange={e => setNewItemForm(prev => ({...prev, brand: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-              <input placeholder="Flavor Profile" value={newItemForm.flavor} onChange={e => setNewItemForm(prev => ({...prev, flavor: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-              <input placeholder="Packaging Type" value={newItemForm.type} onChange={e => setNewItemForm(prev => ({...prev, type: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-              <div style={{ display: "flex", gap: "8px" }}>
-                <input placeholder="Lot Number" value={newItemForm.lotNumber} onChange={e => setNewItemForm(prev => ({...prev, lotNumber: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-                <input type="date" value={newItemForm.expiryDate} onChange={e => setNewItemForm(prev => ({...prev, expiryDate: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px", colorScheme: "dark" }} />
-              </div>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <input type="number" placeholder="Initial QTY" value={newItemForm.quantity} onChange={e => setNewItemForm(prev => ({...prev, quantity: parseInt(e.target.value) || 0}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-                <input placeholder="Placement Zone" value={newItemForm.zone} onChange={e => setNewItemForm(prev => ({...prev, zone: e.target.value}))} style={{ flex: 2, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-              </div>
-            </div>
-            <button onClick={handleSaveNewItem} style={{ width: "100%", backgroundColor: "#34c759", color: "#fff", padding: "14px", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", marginTop: "8px" }}>Proceed to Registration</button>
-          </div>
-        </div>
-      )}
-      
       {showConfirmModal && pendingAction && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -499,6 +544,39 @@ export default function Inventory({ user }) {
               <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "16px", borderRadius: "12px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
               <button onClick={handleConfirmAction} style={{ flex: 2, backgroundColor: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", color: "#ffffff", border: "none", padding: "16px", borderRadius: "12px", fontWeight: "700", cursor: "pointer" }}>{pendingAction.fifoWarningItem ? "Force Ship Anyway" : "Commit Action"}</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* RESTORED NEW ITEM REGISTRATION MODAL WITH VENDOR PO ROUTING */}
+      {showNewItemModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "12px" }}>
+              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: "700" }}>➕ Register New Product</h3>
+              <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <input placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={e => setNewItemForm(prev => ({...prev, barcode: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input placeholder="Brand (e.g. Citrus Springs)" value={newItemForm.brand} onChange={e => setNewItemForm(prev => ({...prev, brand: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+                <input placeholder="Flavor Profile" value={newItemForm.flavor} onChange={e => setNewItemForm(prev => ({...prev, flavor: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              </div>
+              <input placeholder="Packaging Type" value={newItemForm.type} onChange={e => setNewItemForm(prev => ({...prev, type: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input placeholder="Lot Number" value={newItemForm.lotNumber} onChange={e => setNewItemForm(prev => ({...prev, lotNumber: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+                <input type="date" value={newItemForm.expiryDate} onChange={e => setNewItemForm(prev => ({...prev, expiryDate: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px", colorScheme: "dark" }} />
+              </div>
+              
+              {/* 🔥 NEW VISUAL: VENDOR EMAIL ROUTING */}
+              <input placeholder="Vendor Email (Auto-PO Routing)" value={newItemForm.vendorEmail} onChange={e => setNewItemForm(prev => ({...prev, vendorEmail: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input type="number" placeholder="Initial QTY" value={newItemForm.quantity} onChange={e => setNewItemForm(prev => ({...prev, quantity: parseInt(e.target.value) || 0}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+                <input placeholder="Placement Zone" value={newItemForm.zone} onChange={e => setNewItemForm(prev => ({...prev, zone: e.target.value}))} style={{ flex: 2, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              </div>
+            </div>
+            <button onClick={handleSaveNewItem} style={{ width: "100%", backgroundColor: "#34c759", color: "#fff", padding: "14px", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", marginTop: "8px" }}>Proceed to Registration</button>
           </div>
         </div>
       )}
@@ -567,7 +645,6 @@ export default function Inventory({ user }) {
               <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px" }}>📷 Viewfinder</h3>
               <button onClick={() => setIsScanning(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer" }}>Cancel ✕</button>
             </div>
-            {/* The raw Html5Qrcode engine automatically mounts the video stream exactly here */}
             <div id="reader" style={{ width: "100%", minHeight: "250px" }}></div>
           </div>
         </div>
