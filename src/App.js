@@ -1091,11 +1091,13 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           <div style={{ 
             display: "flex", 
             justifyContent: "center", 
-            backgroundColor: "#1c1c1e", 
-            padding: activePortal === "inventory" ? "0 12px 24px 12px" : "12px", 
-            borderBottom: "1px solid #3a3a3c" 
+            backgroundColor: activePortal === "inventory" ? "#1c1c1e" : "transparent", 
+            borderRadius: activePortal === "inventory" ? "0 0 14px 14px" : "0",
+            padding: activePortal === "inventory" ? "0 12px 24px 12px" : "16px 12px 0 12px", 
+            borderBottom: activePortal === "inventory" ? "1px solid #3a3a3c" : "none",
+            boxShadow: activePortal === "inventory" ? "0 4px 30px rgba(0, 0, 0, 0.15)" : "none"
           }}>
-            <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: activePortal === "inventory" ? "0 4px 14px rgba(0,0,0,0.4)" : "none" }}>
+            <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.15)" }}>
               <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📡 Live GPS Fleet</button>
               <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📦 CS Group Inventory</button>
             </div>
