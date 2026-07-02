@@ -150,7 +150,14 @@ function App() {
       if (activeGroupFilter !== "all" && a.group !== activeGroupFilter) return false;
 
       if (namingFilter === "named" && !a.tag) return false;
-      if (namingFilter === "unnamed" && !!a.tag) return false;
+      if (namingFilter === "unnamed_global" && !!a.tag) return false;
+      if (namingFilter === "unnamed_local") {
+        if (!!a.tag) return false;
+        const todayStr = new Date().toISOString().split("T")[0];
+        const isAddedToday = a.lastSeen && a.lastSeen.includes(todayStr);
+        const isLocalArea = a.city && a.city.toLowerCase() === "las vegas";
+        if (!isAddedToday || !isLocalArea) return false;
+      }
 
       return true;
     });
@@ -1162,7 +1169,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
               <div className="responsive-pill-options-sub-block">
                 <button onClick={() => setNamingFilter("all")} style={getPillStyle(namingFilter === "all")}>All</button>
                 <button onClick={() => setNamingFilter("named")} style={getPillStyle(namingFilter === "named")}>📝 Named</button>
-                <button onClick={() => setNamingFilter("unnamed")} style={getPillStyle(namingFilter === "unnamed")}>🔎 Unnamed</button>
+                <button onClick={() => setNamingFilter("unnamed_global")} style={getPillStyle(namingFilter === "unnamed_global")}>🔎 UnNamed Global</button>
+                <button onClick={() => setNamingFilter("unnamed_local")} style={getPillStyle(namingFilter === "unnamed_local")}>📍 UnNamed Local</button>
               </div>
             </div>
           </div>
