@@ -28,7 +28,14 @@ async function getLocationInfo(lat, lon) {
   try {
     const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
     const data = await response.json();
-    const cityStr = data.address?.city || data.address?.town || data.address?.village || data.address?.county || "Unknown";
+    let cityStr = data.address?.city || data.address?.town || data.address?.village || data.address?.county || "Unknown";
+    
+    // 🎰 Las Vegas Override Filter: Map local townships back to what clients actually call them
+    const vegasTownships = ["winchester", "whitney", "paradise", "spring valley", "enterprise", "sunrise manor", "clark"];
+    if (vegasTownships.includes(cityStr.toLowerCase())) {
+        cityStr = "Las Vegas";
+    }
+    
     const result = { zip: data.address?.postcode || "Unknown", city: cityStr };
     locationCache.set(cacheKey, result);
     return result;
