@@ -16,8 +16,6 @@ export default function Inventory({ user }) {
   const [isPalletMode, setIsPalletMode] = useState(false);
   const [scanMode, setScanMode] = useState("receive");
   const [activeZone, setActiveZone] = useState("Unassigned Warehouse");
-  
-  // New Camera Hardware States
   const [isScanning, setIsScanning] = useState(false);
   const [scanFeedback, setScanFeedback] = useState("");
 
@@ -31,10 +29,51 @@ export default function Inventory({ user }) {
     item.zone.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Initialize and mount the camera hardware when the modal opens
+  // 1. DEFINE THE FUNCTION FIRST (Fixes the White Screen crash)
+  const processScannedCode = (rawScan) => {
+    const cleanScan = String(rawScan).trim();
+    
+    if (cleanScan.startsWith("ZONE-") || cleanScan.startsWith("BAY-")) {
+      setActiveZone(cleanScan);
+      setScanFeedback(`📍 Location Locked: New items will be routed to ${cleanScan}`);
+      setTimeout(() => setScanFeedback(""), 4000);
+      return;
+    }
+
+    const boxAdjustment = isPalletMode ? 70 : 1;
+    
+    // Aggressive fuzzy match to handle camera check-digits and ghost characters
+    const targetItem = stock.find(item => 
+      item.barcode === cleanScan || 
+      cleanScan.includes(item.barcode) || 
+      item.barcode.includes(cleanScan)
+    );
+
+    if (targetItem) {
+      setStock(prevStock => prevStock.map(item => {
+        if (item.barcode === targetItem.barcode) {
+          if (scanMode === "receive") {
+            return { ...item, quantity: item.quantity + boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : item.zone };
+          } else if (scanMode === "ship") {
+            return { ...item, quantity: Math.max(0, item.quantity - boxAdjustment) };
+          }
+        }
+        return item;
+      }));
+      
+      const action = scanMode === "receive" ? "📥 Received" : "🚚 Shipped";
+      setScanFeedback(`✅ ${action} ${boxAdjustment} boxes of ${targetItem.flavor}`);
+    } else {
+      setScanFeedback(`⚠️ Unrecognized Barcode: ${cleanScan} (Not in database)`);
+    }
+    setTimeout(() => setScanFeedback(""), 4000);
+  };
+
+  // 2. ATTACH THE REFERENCE AFTER DEFINITION
   const processRef = useRef();
   processRef.current = processScannedCode;
 
+  // 3. FIRE THE CAMERA HARDWARE
   useEffect(() => {
     if (isScanning) {
       const scanner = new Html5QrcodeScanner("reader", { 
@@ -58,45 +97,6 @@ export default function Inventory({ user }) {
     }
   }, [isScanning]);
 
-  const processScannedCode = (rawScan) => {
-    const cleanScan = String(rawScan).trim();
-    
-    if (cleanScan.startsWith("ZONE-") || cleanScan.startsWith("BAY-")) {
-      setActiveZone(cleanScan);
-      setScanFeedback(`📍 Location Locked: New items will be routed to ${cleanScan}`);
-      setTimeout(() => setScanFeedback(""), 4000);
-      return;
-    }
-
-    const boxAdjustment = isPalletMode ? 70 : 1;
-    
-    // Aggressive fuzzy match to ignore ghost characters or check-digits
-    const targetItem = stock.find(item => 
-      item.barcode === cleanScan || 
-      cleanScan.includes(item.barcode) || 
-      item.barcode.includes(cleanScan)
-    );
-
-    if (targetItem) {
-      setStock(prevStock => prevStock.map(item => {
-        if (item.barcode === cleanScan) {
-          if (scanMode === "receive") {
-            return { ...item, quantity: item.quantity + boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : item.zone };
-          } else if (scanMode === "ship") {
-            return { ...item, quantity: Math.max(0, item.quantity - boxAdjustment) };
-          }
-        }
-        return item;
-      }));
-      
-      const action = scanMode === "receive" ? "📥 Received" : "🚚 Shipped";
-      setScanFeedback(`✅ ${action} ${boxAdjustment} boxes of ${targetItem.flavor}`);
-    } else {
-      setScanFeedback(`⚠️ Unrecognized Barcode: ${cleanScan} (Not in database)`);
-    }
-    setTimeout(() => setScanFeedback(""), 4000);
-  };
-
   return (
     <div className="inventory-container" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
       
@@ -117,11 +117,10 @@ export default function Inventory({ user }) {
           .responsive-table td:last-child button { width: 100%; padding: 12px !important; font-size: 14px !important; }
         }
         
-        /* Custom UI overrides for the injected QR Scanner DOM */
         #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         #reader button { background-color: #007aff; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-family: inherit; }
         #reader select { padding: 8px; border-radius: 8px; margin-bottom: 10px; font-family: inherit; background-color: #2c2c2e; color: white; border: 1px solid #3a3a3c; }
-        #reader a { display: none !important; } /* Hide the library watermark */
+        #reader a { display: none !important; }
       `}</style>
 
       {/* HEADER BAR */}
@@ -145,7 +144,6 @@ export default function Inventory({ user }) {
               <button onClick={() => setIsScanning(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontSize: "16px", fontWeight: "bold", cursor: "pointer", padding: "8px" }}>Cancel ✕</button>
             </div>
             
-            {/* Target DOM Element for Camera Library */}
             <div id="reader" style={{ width: "100%" }}></div>
             
             <div style={{ color: "#8e8e93", fontSize: "13px", textAlign: "center", lineHeight: "1.4" }}>
