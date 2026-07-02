@@ -20,8 +20,14 @@ export default function Inventory({ user }) {
   const [activeZone, setActiveZone] = useState("Unassigned Warehouse");
   const [isScanning, setIsScanning] = useState(false);
   const [scanFeedback, setScanFeedback] = useState("");
+  
+  // Learning Modal States
   const [showNewItemModal, setShowNewItemModal] = useState(false);
   const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", quantity: 1, zone: "" });
+
+  // Confirmation Intercept States
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
 
   const totalBoxes = stock.reduce((acc, item) => acc + item.quantity, 0);
   const activeFlavorsCount = new Set(stock.map(item => item.flavor)).size;
@@ -33,16 +39,13 @@ export default function Inventory({ user }) {
     item.zone.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ☁️ LIVE CLOUD FETCH & AUTO-SEED
   const fetchInventory = async () => {
     try {
       const response = await docClient.send(new ScanCommand({ TableName: "BeverageInventoryData" }));
       if (response.Items && response.Items.length > 0) {
         setStock(response.Items);
       } else {
-        await Promise.all(initialMockData.map(item => 
-          docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: item }))
-        ));
+        await Promise.all(initialMockData.map(item => docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: item }))));
         setStock(initialMockData);
       }
     } catch (err) {
@@ -50,7 +53,6 @@ export default function Inventory({ user }) {
     }
   };
 
-  // Poll database every 3 seconds to keep all screens in perfect sync
   useEffect(() => {
     fetchInventory();
     const interval = setInterval(fetchInventory, 3000);
@@ -67,36 +69,25 @@ export default function Inventory({ user }) {
       return;
     }
 
-    const boxAdjustment = isPalletMode ? 70 : (parseInt(customQty) || 1);
+    const parsedQty = parseInt(customQty) || 1;
+    const boxAdjustment = isPalletMode ? 70 * parsedQty : parsedQty;
     const targetItem = stock.find(item => item.barcode === cleanScan || cleanScan.includes(item.barcode) || item.barcode.includes(cleanScan));
 
     if (targetItem) {
       const newQuantity = scanMode === "receive" ? targetItem.quantity + boxAdjustment : Math.max(0, targetItem.quantity - boxAdjustment);
       const newZone = (scanMode === "receive" && activeZone !== "Unassigned Warehouse") ? activeZone : targetItem.zone;
 
-      // 1. Optimistic UI Update (Instant feedback for the worker)
-      setStock(prevStock => prevStock.map(item => 
-        item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone } : item
-      ));
-      
-      const action = scanMode === "receive" ? "📥 Received" : "🚚 Shipped";
-      setScanFeedback(`✅ ${action} ${boxAdjustment} boxes of ${targetItem.flavor}`);
-
-      // 2. Background Cloud Update (Sends exact math to DynamoDB)
-      try {
-        await docClient.send(new UpdateCommand({
-          TableName: "BeverageInventoryData",
-          Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber },
-          UpdateExpression: "SET quantity = :q, #z = :z",
-          ExpressionAttributeNames: { "#z": "zone" },
-          ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone }
-        }));
-      } catch (err) {
-        console.error("Failed to update cloud inventory:", err);
-      }
+      // INTERCEPT: Do not push to DB yet. Trigger Confirmation Modal instead.
+      setPendingAction({
+        targetItem,
+        boxAdjustment,
+        newQuantity,
+        newZone,
+        actionName: scanMode === "receive" ? "📥 Receive" : "🚚 Ship"
+      });
+      setShowConfirmModal(true);
       
     } else {
-      // Trigger the Learning Workflow
       setNewItemForm({
         barcode: cleanScan,
         brand: "Citrus Springs",
@@ -108,10 +99,35 @@ export default function Inventory({ user }) {
       });
       setShowNewItemModal(true);
     }
-    // Only clear feedback if we aren't showing a modal
-    if (targetItem) setTimeout(() => setScanFeedback(""), 4000);
   };
 
+  const handleConfirmAction = async () => {
+    if (!pendingAction) return;
+    const { targetItem, boxAdjustment, newQuantity, newZone, actionName } = pendingAction;
+
+    // 1. Execute Optimistic UI Update
+    setStock(prevStock => prevStock.map(item => 
+      item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone } : item
+    ));
+    
+    setScanFeedback(`✅ ${actionName} ${boxAdjustment} boxes of ${targetItem.flavor}`);
+    setShowConfirmModal(false);
+    setPendingAction(null);
+
+    // 2. Fire to Cloud
+    try {
+      await docClient.send(new UpdateCommand({
+        TableName: "BeverageInventoryData",
+        Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber },
+        UpdateExpression: "SET quantity = :q, #z = :z",
+        ExpressionAttributeNames: { "#z": "zone" },
+        ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone }
+      }));
+    } catch (err) {
+      console.error("Failed to update cloud inventory:", err);
+    }
+    setTimeout(() => setScanFeedback(""), 4000);
+  };
 
   const handleSaveNewItem = async () => {
     if (!newItemForm.flavor || !newItemForm.lotNumber) {
@@ -119,13 +135,11 @@ export default function Inventory({ user }) {
       return;
     }
     
-    // 1. Optimistic UI Update
     setStock(prev => [...prev, newItemForm]);
     setShowNewItemModal(false);
     setScanFeedback(`✅ 📥 Registered & Received ${newItemForm.quantity} boxes of ${newItemForm.flavor}`);
     setTimeout(() => setScanFeedback(""), 4000);
 
-    // 2. Push to DynamoDB
     try {
       await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: newItemForm }));
     } catch (err) {
@@ -149,6 +163,7 @@ export default function Inventory({ user }) {
 
   return (
     <div className="inventory-container" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
+      
       <style>{`
         @media (max-width: 768px) {
           .inventory-container { padding: 16px !important; }
@@ -162,8 +177,6 @@ export default function Inventory({ user }) {
           .responsive-table tr { margin-bottom: 16px; border: 1px solid #3a3a3c !important; border-radius: 12px; background-color: #242426; overflow: hidden; padding: 8px 0; }
           .responsive-table td { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px !important; border: none !important; text-align: right; }
           .responsive-table td::before { content: attr(data-label); font-weight: 600; color: #8e8e93; font-size: 12px; text-transform: uppercase; margin-right: 16px; text-align: left; }
-          .responsive-table td:last-child { display: flex; justify-content: stretch; padding-top: 16px !important; border-top: 1px dashed #3a3a3c !important; margin-top: 4px; }
-          .responsive-table td:last-child button { width: 100%; padding: 12px !important; font-size: 14px !important; }
         }
         
         #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -184,20 +197,124 @@ export default function Inventory({ user }) {
         </div>
       </div>
 
+      {/* CONFIRMATION INTERCEPT MODAL */}
+      {showConfirmModal && pendingAction && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "24px", textAlign: "center", boxShadow: "0 20px 40px rgba(0,0,0,0.6)" }}>
+            
+            <div>
+              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>⚠️ Confirm Inventory Update</h3>
+              <p style={{ margin: "8px 0 0 0", color: "#8e8e93", fontSize: "15px" }}>Please verify the scan data before committing to the cloud.</p>
+            </div>
+
+            <div style={{ backgroundColor: "#242426", padding: "20px", borderRadius: "16px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "12px", textAlign: "left" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #3a3a3c", paddingBottom: "8px" }}>
+                <span style={{ color: "#8e8e93", fontWeight: "600", fontSize: "14px" }}>Action Route</span>
+                <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "700", fontSize: "16px" }}>{pendingAction.actionName}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #3a3a3c", paddingBottom: "8px" }}>
+                <span style={{ color: "#8e8e93", fontWeight: "600", fontSize: "14px" }}>Product Detected</span>
+                <span style={{ color: "#ffffff", fontWeight: "600", fontSize: "14px", textAlign: "right", maxWidth: "200px" }}>{pendingAction.targetItem.flavor}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #3a3a3c", paddingBottom: "8px" }}>
+                <span style={{ color: "#8e8e93", fontWeight: "600", fontSize: "14px" }}>Quantity Adjustment</span>
+                <span style={{ color: "#ffffff", fontWeight: "700", fontSize: "18px" }}>{pendingAction.boxAdjustment} Boxes</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#8e8e93", fontWeight: "600", fontSize: "14px" }}>New Cloud Total</span>
+                <span style={{ color: "#007aff", fontWeight: "700", fontSize: "18px" }}>{pendingAction.newQuantity} Boxes</span>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button onClick={() => { setShowConfirmModal(false); setPendingAction(null); }} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "16px", borderRadius: "12px", fontSize: "16px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>
+                Cancel
+              </button>
+              <button onClick={handleConfirmAction} style={{ flex: 2, backgroundColor: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", color: "#ffffff", border: "none", padding: "16px", borderRadius: "12px", fontSize: "16px", fontWeight: "700", cursor: "pointer", boxShadow: pendingAction.actionName.includes("Ship") ? "0 4px 14px rgba(255, 59, 48, 0.3)" : "0 4px 14px rgba(52, 199, 89, 0.3)" }}>
+                Commit {pendingAction.actionName.includes("Ship") ? "Shipment" : "Receiving"}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* CAMERA SCANNER OVERLAY MODAL */}
       {isScanning && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", zIndex: 9998, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "#1c1c1e", padding: "24px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px" }}>📷 {scanMode === "receive" ? "Receiving" : "Shipping"} Viewfinder</h3>
               <button onClick={() => setIsScanning(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontSize: "16px", fontWeight: "bold", cursor: "pointer", padding: "8px" }}>Cancel ✕</button>
             </div>
-            
             <div id="reader" style={{ width: "100%" }}></div>
-            
             <div style={{ color: "#8e8e93", fontSize: "13px", textAlign: "center", lineHeight: "1.4" }}>
-              Center standard 1D product barcode or Zone QR block inside the crosshairs. The scanner will capture automatically.
+              Center standard 1D product barcode or Zone QR block inside the crosshairs.
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* NEW ITEM REGISTRATION MODAL */}
+      {showNewItemModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "20px" }}>
+            
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
+              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "22px" }}>✨ Register New Product</h3>
+              <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#8e8e93", border: "none", fontSize: "16px", cursor: "pointer" }}>Cancel ✕</button>
+            </div>
+            
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Barcode ID (Scanned)</label>
+                <input disabled value={newItemForm.barcode} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "10px", color: "#8e8e93", fontSize: "14px", cursor: "not-allowed" }} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Initial Stock QTY</label>
+                <input disabled value={newItemForm.quantity} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "10px", color: "#8e8e93", fontSize: "14px", cursor: "not-allowed" }} />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Brand Name</label>
+              <select value={newItemForm.brand} onChange={e => setNewItemForm({...newItemForm, brand: e.target.value})} style={{ backgroundColor: "#1c1c1e", border: "1px solid #007aff", borderRadius: "8px", padding: "12px", color: "#ffffff", fontSize: "15px", cursor: "pointer", outline: "none" }}>
+                <option value="Citrus Springs">Citrus Springs</option>
+                <option value="Cool Attitudes">Cool Attitudes</option>
+                <option value="Twisted Branch">Twisted Branch</option>
+                <option value="Madrinas Coffee">Madrinas Coffee</option>
+              </select>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Packaging Format</label>
+              <select value={newItemForm.type} onChange={e => setNewItemForm({...newItemForm, type: e.target.value})} style={{ backgroundColor: "#1c1c1e", border: "1px solid #007aff", borderRadius: "8px", padding: "12px", color: "#ffffff", fontSize: "15px", cursor: "pointer", outline: "none" }}>
+                <option value="3G Bag-in-Box">3G Bag-in-Box</option>
+                <option value="1G Jug Case">1G Jug Case</option>
+                <option value="24-Can Case">24-Can Case</option>
+              </select>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "12px", color: "#ff9500", fontWeight: "600", textTransform: "uppercase" }}>Flavor / Liquid Profile *</label>
+              <input autoFocus placeholder="e.g. Strawberry Puree" value={newItemForm.flavor} onChange={e => setNewItemForm({...newItemForm, flavor: e.target.value})} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "12px", color: "#ffffff", fontSize: "15px", outline: "none" }} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label style={{ fontSize: "12px", color: "#ff9500", fontWeight: "600", textTransform: "uppercase" }}>Lot Number *</label>
+                <input placeholder="e.g. LOT-104" value={newItemForm.lotNumber} onChange={e => setNewItemForm({...newItemForm, lotNumber: e.target.value})} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "10px", color: "#ffffff", fontSize: "14px", outline: "none" }} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Storage Zone</label>
+                <input disabled value={newItemForm.zone} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "10px", color: "#8e8e93", fontSize: "14px", cursor: "not-allowed" }} />
+              </div>
+            </div>
+
+            <button onClick={handleSaveNewItem} style={{ backgroundColor: "#34c759", color: "#ffffff", border: "none", padding: "16px", borderRadius: "12px", fontSize: "16px", fontWeight: "700", cursor: "pointer", marginTop: "8px", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>
+              📥 Save & Receive Item
+            </button>
+
           </div>
         </div>
       )}
@@ -238,13 +355,13 @@ export default function Inventory({ user }) {
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", flex: "1" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "4px 12px", transition: "all 0.2s" }}>
             <span style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
-            <input type="number" min="1" value={customQty} onChange={(e) => { setCustomQty(e.target.value); setIsPalletMode(false); }} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} />
+            <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} />
           </div>
           <button 
             onClick={() => setIsPalletMode(!isPalletMode)} 
             style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#1c1c1e", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 20px", borderRadius: "12px", cursor: "pointer", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", transition: "all 0.2s", flex: "1", whiteSpace: "nowrap" }}
           >
-            <span style={{ fontSize: "16px" }}>🪵</span> {isPalletMode ? "Pallet Mode: 70" : "Single Box"}
+            <span style={{ fontSize: "16px" }}>🪵</span> {isPalletMode ? `Pallet Mode: ${70 * (parseInt(customQty) || 1)} Boxes` : "Single Box"}
           </button>
           
           <button 
@@ -266,7 +383,6 @@ export default function Inventory({ user }) {
               <th style={{ padding: "16px" }}>Packaging Type</th>
               <th style={{ padding: "16px" }}>Current Count</th>
               <th style={{ padding: "16px" }}>Warehouse Zone</th>
-              
             </tr>
           </thead>
           <tbody>
@@ -281,80 +397,11 @@ export default function Inventory({ user }) {
                   </span>
                 </td>
                 <td data-label="Zone" style={{ padding: "16px" }}>📍 {item.zone}</td>
-
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-
-      {/* NEW ITEM REGISTRATION MODAL */}
-      {showNewItemModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "20px" }}>
-            
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
-              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "22px" }}>✨ Register New Product</h3>
-              <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#8e8e93", border: "none", fontSize: "16px", cursor: "pointer" }}>Cancel ✕</button>
-            </div>
-            
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              {/* Auto-Captured & Defaulted Fields */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Barcode ID (Scanned)</label>
-                <input disabled value={newItemForm.barcode} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "10px", color: "#8e8e93", fontSize: "14px", cursor: "not-allowed" }} />
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Initial Stock QTY</label>
-                <input disabled value={newItemForm.quantity} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "10px", color: "#8e8e93", fontSize: "14px", cursor: "not-allowed" }} />
-              </div>
-            </div>
-
-            {/* Manual Dropdowns */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Brand Name</label>
-              <select value={newItemForm.brand} onChange={e => setNewItemForm({...newItemForm, brand: e.target.value})} style={{ backgroundColor: "#1c1c1e", border: "1px solid #007aff", borderRadius: "8px", padding: "12px", color: "#ffffff", fontSize: "15px", cursor: "pointer", outline: "none" }}>
-                <option value="Citrus Springs">Citrus Springs</option>
-                <option value="Cool Attitudes">Cool Attitudes</option>
-                <option value="Twisted Branch">Twisted Branch</option>
-                <option value="Madrinas Coffee">Madrinas Coffee</option>
-              </select>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Packaging Format</label>
-              <select value={newItemForm.type} onChange={e => setNewItemForm({...newItemForm, type: e.target.value})} style={{ backgroundColor: "#1c1c1e", border: "1px solid #007aff", borderRadius: "8px", padding: "12px", color: "#ffffff", fontSize: "15px", cursor: "pointer", outline: "none" }}>
-                <option value="3G Bag-in-Box">3G Bag-in-Box</option>
-                <option value="1G Jug Case">1G Jug Case</option>
-                <option value="24-Can Case">24-Can Case</option>
-              </select>
-            </div>
-
-            {/* Manual Text Inputs */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "12px", color: "#ff9500", fontWeight: "600", textTransform: "uppercase" }}>Flavor / Liquid Profile *</label>
-              <input autoFocus placeholder="e.g. Strawberry Puree" value={newItemForm.flavor} onChange={e => setNewItemForm({...newItemForm, flavor: e.target.value})} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "12px", color: "#ffffff", fontSize: "15px", outline: "none" }} />
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label style={{ fontSize: "12px", color: "#ff9500", fontWeight: "600", textTransform: "uppercase" }}>Lot Number *</label>
-                <input placeholder="e.g. LOT-104" value={newItemForm.lotNumber} onChange={e => setNewItemForm({...newItemForm, lotNumber: e.target.value})} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "10px", color: "#ffffff", fontSize: "14px", outline: "none" }} />
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Storage Zone</label>
-                <input disabled value={newItemForm.zone} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "10px", color: "#8e8e93", fontSize: "14px", cursor: "not-allowed" }} />
-              </div>
-            </div>
-
-            <button onClick={handleSaveNewItem} style={{ backgroundColor: "#34c759", color: "#ffffff", border: "none", padding: "16px", borderRadius: "12px", fontSize: "16px", fontWeight: "700", cursor: "pointer", marginTop: "8px", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>
-              📥 Save & Receive Item
-            </button>
-
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
