@@ -1208,7 +1208,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
              </div>
              {isAdmin && (<><button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>✉️ Feedback</button> <button onClick={() => alert("Español localization is currently in development.")} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>🌐 Español</button> <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button></>)}
              <button onClick={() => { fetchDevices(); alert("Data successfully synced with live database."); }} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#34c759", color: "#34c759" }}>🔄 Sync Data</button>
-             <button onClick={() => setShowGuide(true)} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>📖 Quick Guide</button> <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>Reset</button>
+             <button onClick={() => setShowGuide(true)} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>📖 Operations Guide</button> <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>Reset</button>
           </div>
         </div>
 
@@ -1444,13 +1444,23 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
               <button onClick={() => setShowGuide(false)} style={{ background: "transparent", border: "none", fontSize: "20px", cursor: "pointer", color: "#86868b" }}>✕</button>
             </div>
             <div style={{ fontSize: "14px", color: "#1d1d1f", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "14px" }}>
-              <div><strong>Step 1: Name It</strong><br/><span style={{ color: "#86868b" }}>Type a friendly name into <em>Rename Asset...</em> and click <strong>Save</strong>. (e.g., McDonalds-1)</span></div>
-              <div><strong>Step 2: Lock Home</strong><br/><span style={{ color: "#86868b" }}>With the tracking device sitting at its base station location, click <strong>Set Home</strong> to drop the reference anchor.</span></div>
-              <div><strong>Step 3: Arm Watchdog</strong><br/><span style={{ color: "#86868b" }}>Toggle the status switch to <strong style={{ color: "#34c759" }}>Watchdog active</strong>. The green animation ring will pulse to indicate live perimeter monitoring.</span></div>
-              <div style={{ borderTop: "1px dashed #d2d2d7", paddingTop: "10px" }}><strong>Step 4: Group It <span style={{ color: "#86868b", fontStyle: "italic", fontWeight: "normal" }}>(Optional)</span></strong><br/><span style={{ color: "#86868b" }}>If deploying multiple units: Check asset boxes &rarr; select a folder from the bottom drawer dropdown &rarr; click <strong>Move</strong>.</span></div>
-              <div><strong>Step 5: Log Installation <span style={{ color: "#86868b", fontStyle: "italic", fontWeight: "normal" }}>(Optional)</span></strong><br/><span style={{ color: "#86868b" }}>With your asset checkboxes active, type <em>"Gps devices installed"</em> into the bulk logging field &rarr; click <strong>Post log to Group</strong>.</span></div>
-            </div>
-            <button onClick={() => setShowGuide(false)} style={{ ...primaryButtonStyle, width: "100%", marginTop: "24px", padding: "14px" }}>Close Guide</button>
+              <div><strong>📱 Section 1: Setting Up a Single Card</strong><br/>
+            <span style={{ color: "#86868b" }}>• <strong>Step 1: Give it a Name</strong> Type a clear name into the <em>Rename Asset...</em> box on the device's card and click <strong>Save</strong>.<br/>
+            • <strong>Step 2: Lock the Home Location</strong> When the Gps Device is magnetically locked into position , click <strong>Set Home</strong> to lock its home base position.<br/>
+            • <strong>Step 3: Turn on the Watchdog Guard</strong> Flip the status switch to <strong>Watchdog Active</strong>. You will see a green light start pulsing to show the device is tracking and guarding that spot in real time.</span></div>
+            
+            <div style={{ borderTop: "1px dashed #d2d2d7", paddingTop: "10px" }}><strong>🛡️ Section 2: Scheduling Service and Opt-Out</strong><br/>
+            <span style={{ color: "#86868b" }}>• <strong>Turn Off Tracking (Service/Transport Mode)</strong> If you need to move a card for a battery swap, maintenance, or shipping, click the switch to turn the <strong>Watchdog Off</strong>. This stops false alarms while it's in transit.<br/>
+            • <strong>Set Up a Service Schedule</strong> Choose how often a card needs regular check-ups from the drop-down menu on the card and click <strong>Schedule Service</strong> to keep track of its upkeep timeline.<br/>
+            • <strong>Choose Opt-Out to Cancel.</strong></span></div>
+            
+            <div style={{ borderTop: "1px dashed #d2d2d7", paddingTop: "10px" }}><strong>📦 Section 3: Doing Actions in Bulk (Bottom Drawer)</strong><br/>
+            <span style={{ color: "#86868b", fontStyle: "italic" }}>Note: To use these options, you must first check the selection boxes on more than one card. This will slide open the menu drawer at the bottom of your screen.</span><br/>
+            <span style={{ color: "#86868b" }}>• <strong>Move Cards into Group Folders:</strong> Type a folder name into <em>Assign to Group...</em> and click <strong>Move</strong> to group your selected cards together.<br/>
+            • <strong>Auto-Number a Batch of Cards:</strong> If you want to name a bunch of cards sequentially, type any name into the box (like Cosmo) and click <strong>Sequence Name</strong>. The system will automatically add a number to them (Cosmo-1, Cosmo-2, Cosmo-3, etc.).<br/>
+            • <strong>Write a Note to a Whole Group:</strong> Type an installation or status update note into the group box and click <strong>Post log to Group</strong> to add that exact message to all selected card timelines at the same time.</span></div>
+          </div>
+          <button onClick={() => setShowGuide(false)} style={{ ...primaryButtonStyle, width: "100%", marginTop: "24px", padding: "14px" }}>Close Guide</button>
           </div>
         </div>
       )}
