@@ -1066,64 +1066,50 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       `}</style>
       
-      {/* DECOUPLED HEADER ARCHITECTURE */}
-      {activePortal === "inventory" ? (
-        
-        <div style={{ width: '100%', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 4px 30px rgba(0, 0, 0, 0.15)', display: 'flex', flexDirection: 'column', backgroundColor: '#1a1a1c' }}>
-          <header style={{ 
-            ...headerStyle, 
-            borderRadius: '0px', 
-            borderBottom: 'none', 
-            boxShadow: 'none', 
-            marginBottom: 0
+      {/* ---------------- DECOUPLED MASTER HEADER ---------------- */}
+      <div style={{ 
+        width: '100%', 
+        backgroundColor: activePortal === "inventory" ? '#1c1c1e' : 'transparent',
+        display: 'flex', 
+        flexDirection: 'column'
+      }}>
+        <header style={{ 
+          ...headerStyle, 
+          borderBottomLeftRadius: activePortal === "inventory" ? '0px' : '14px',
+          borderBottomRightRadius: activePortal === "inventory" ? '0px' : '14px',
+          borderBottom: activePortal === "inventory" ? 'none' : '1px solid #2d2d2f',
+          boxShadow: activePortal === "inventory" ? 'none' : headerStyle.boxShadow,
+          marginBottom: 0
+        }}>
+          <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
+          
+          <div style={{ color: '#ffffff', fontSize: '15px', fontWeight: '500', letterSpacing: '-0.02em', textAlign: 'center' }}>
+              {auth.user?.profile.email} 
+              {isAdmin && <span style={{ color: '#86868b', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}
+          </div>
+          
+          <button onClick={handleSignOut} style={{ backgroundColor: '#ffffff', color: '#000000', border: 'none', padding: '6px 18px', fontSize: '12px', borderRadius: '14px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', marginTop: '4px' }}>
+            Sign Out
+          </button>
+        </header>
+
+        {isAdmin && (
+          <div style={{ 
+            display: "flex", 
+            justifyContent: "center", 
+            padding: activePortal === "inventory" ? "0px 12px 24px 12px" : "16px 12px 0 12px",
+            borderBottom: activePortal === "inventory" ? "1px solid #3a3a3c" : "none"
           }}>
-            <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
-            <div style={{ color: '#ffffff', fontSize: '15px', fontWeight: '500', letterSpacing: '-0.02em', textAlign: 'center' }}>
-                {auth.user?.profile.email} 
-                {isAdmin && <span style={{ color: '#86868b', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}
+            <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.4)" }}>
+              <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📡 Live GPS Fleet</button>
+              <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📦 CS Group Inventory</button>
             </div>
-            <button onClick={handleSignOut} style={{ backgroundColor: '#ffffff', color: '#000000', border: 'none', padding: '6px 18px', fontSize: '12px', borderRadius: '14px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', marginTop: '4px' }}>
-              Sign Out
-            </button>
-          </header>
+          </div>
+        )}
+      </div>
+      {/* --------------------------------------------------------- */}
 
-          {isAdmin && (
-            <div style={{ display: "flex", justifyContent: "center", padding: "0 12px 24px 12px", backgroundColor: "#1a1a1c" }}>
-              <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.3)" }}>
-                <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: "transparent", color: "#8e8e93", transition: "all 0.2s" }}>📡 Live GPS Fleet</button>
-                <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: "#34c759", color: "#ffffff", transition: "all 0.2s" }}>📦 CS Group Inventory</button>
-              </div>
-            </div>
-          )}
-        </div>
-
-      ) : (
-
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-          <header style={{ ...headerStyle, marginBottom: '16px' }}>
-            <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
-            <div style={{ color: '#ffffff', fontSize: '15px', fontWeight: '500', letterSpacing: '-0.02em', textAlign: 'center' }}>
-                {auth.user?.profile.email} 
-                {isAdmin && <span style={{ color: '#86868b', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}
-            </div>
-            <button onClick={handleSignOut} style={{ backgroundColor: '#ffffff', color: '#000000', border: 'none', padding: '6px 18px', fontSize: '12px', borderRadius: '14px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', marginTop: '4px' }}>
-              Sign Out
-            </button>
-          </header>
-
-          {isAdmin && (
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.3)" }}>
-                <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: "#007aff", color: "#ffffff", transition: "all 0.2s" }}>📡 Live GPS Fleet</button>
-                <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: "transparent", color: "#8e8e93", transition: "all 0.2s" }}>📦 CS Group Inventory</button>
-              </div>
-            </div>
-          )}
-        </div>
-
-      )}
-
-      {/* 🔀 THE ROUTING INTERSECTION */}
+{/* 🔀 THE ROUTING INTERSECTION */}
       {activePortal === "inventory" ? (
         <Inventory user={auth.user} />
       ) : (
