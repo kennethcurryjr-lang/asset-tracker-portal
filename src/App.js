@@ -353,8 +353,8 @@ function App() {
            }
         }
 
-        const lastSeen = latest.timestamp !== "LATEST" 
-          ? new Date(latest.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) 
+        const lastSeen = latestRow.lastSeen 
+          ? new Date(latestRow.lastSeen).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) 
           : "Live";
           
         return { ...latest, deviceId: latest.deviceId || id, tag: latest.tag || "", city: loc.city, estTimeRemaining, lastSeen };
