@@ -188,7 +188,13 @@ export default function Inventory({ user }) {
           <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Warehouse Logged in as: {user?.email || "Admin Mode"}</p>
         </div>
         <div style={{ display: "flex", backgroundColor: "#2c2c2e", padding: "4px", borderRadius: "12px", width: "fit-content" }}>
-          <button onClick={() => setScanMode("receive")} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: "#ffffff", flex: 1 }}>📥 Receive</button>
+          <button onClick={() => {
+          if (scanMode !== "receive") {
+            if (window.confirm("⚠️ WARNING: SWITCHING TO RECEIVE MODE\n\nAre you sure you want to switch to Receiving?\n\nAny barcodes scanned will now be ADDED to the live warehouse inventory.")) {
+              setScanMode("receive");
+            }
+          }
+        }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: "#ffffff", flex: 1 }}>📥 Receive</button>
           <button onClick={() => {
           if (scanMode !== "ship") {
             if (window.confirm("⚠️ WARNING: SWITCHING TO SHIP MODE\n\nAre you sure you want to switch to Shipping?\n\nAny barcodes scanned will now be DEDUCTED from the live warehouse inventory.")) {
