@@ -45,7 +45,6 @@ export default function Inventory({ user }) {
   const [pinModal, setPinModal] = useState({ isOpen: false, callback: null, error: false });
   const [pinInput, setPinInput] = useState("");
   
-  // 🔥 NEW: Print Engine State
   const [printLabelItem, setPrintLabelItem] = useState(null);
 
   const totalBoxes = stock.reduce((acc, item) => acc + item.quantity, 0);
@@ -57,6 +56,16 @@ export default function Inventory({ user }) {
     item.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.zone.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // 🔥 DYNAMIC MEMORY ENGINE: Pulls core presets + any email saved to DynamoDB
+  const uniqueVendors = [...new Set([
+    "purchasing@csgroup.com",
+    "orders@citrussprings.com",
+    "wholesale@coolattitudes.com",
+    "distro@twistedbranch.com",
+    "supply@madrinas.com",
+    ...stock.map(item => item.vendorEmail).filter(Boolean)
+  ])];
 
   const requireManager = (callbackAction) => {
     setPinInput("");
@@ -210,7 +219,7 @@ export default function Inventory({ user }) {
               if (processRef.current) processRef.current(decodedText);
             }).catch(e => console.log(e));
           },
-          (error) => { /* Ignore frame-level errors during active scan */ }
+          (error) => { }
         ).catch(err => {
           console.error("Camera start error:", err);
           setIsScanning(false);
@@ -225,7 +234,6 @@ export default function Inventory({ user }) {
     };
   }, [isScanning]);
 
-  // Group Low Stock Items by Vendor for PO Routing
   const vendorsToAlert = [...new Set(lowStockItems.map(i => i.vendorEmail || "purchasing@csgroup.com"))];
 
   return (
@@ -249,7 +257,6 @@ export default function Inventory({ user }) {
         #reader video { border-radius: 14px; object-fit: cover; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
         
-        /* 🔥 NEW PRINT STYLES FOR LABEL GENERATOR */
         @media print {
           body * { visibility: hidden; }
           #printable-label, #printable-label * { visibility: visible; }
@@ -257,6 +264,11 @@ export default function Inventory({ user }) {
           .no-print { display: none !important; }
         }
       `}</style>
+
+      {/* 🔥 DYNAMIC VENDOR DATALIST */}
+      <datalist id="vendor-emails">
+        {uniqueVendors.map(email => <option key={email} value={email} />)}
+      </datalist>
 
       {/* HEADER & ALERTS */}
       <div className="header-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
@@ -270,7 +282,6 @@ export default function Inventory({ user }) {
         </div>
       </div>
 
-      {/* 🔥 UPGRADED LOW STOCK BANNER WITH VENDOR PO ROUTING */}
       {lowStockItems.length > 0 && (
         <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "16px", padding: "20px", marginBottom: "24px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
@@ -428,8 +439,8 @@ export default function Inventory({ user }) {
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Vendor Route Email (PO generation)</label>
-                        <input value={editForms[item.barcode]?.vendorEmail ?? item.vendorEmail ?? ""} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), vendorEmail: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                        <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Vendor Route Email</label>
+                        <input list="vendor-emails" value={editForms[item.barcode]?.vendorEmail ?? item.vendorEmail ?? ""} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), vendorEmail: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
                       </div>
 
                       <button onClick={(e) => { e.stopPropagation(); handleSaveCardEdit(item.barcode); }} style={{ marginTop: 'auto', backgroundColor: '#007aff', color: '#fff', padding: '10px', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}>💾 Save</button>
@@ -448,7 +459,6 @@ export default function Inventory({ user }) {
                       </div>
                       
                       <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                        {/* 🔥 NEW VISUAL: LABEL PRINTER BUTTON */}
                         <button 
                           onClick={(e) => { e.stopPropagation(); setPrintLabelItem(item); }} 
                           style={{ flex: 1, backgroundColor: '#2c2c2e', color: '#ffffff', border: '1px solid #3a3a3c', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
@@ -472,7 +482,7 @@ export default function Inventory({ user }) {
         })}
       </div>
 
-      {/* 🔥 NEW MODAL: PRINT PREVIEW ENGINE */}
+      {/* NEW MODAL: PRINT PREVIEW ENGINE */}
       {printLabelItem && (
         <div className="no-print" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10002, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", width: "100%", maxWidth: "400px", marginBottom: "16px" }}>
@@ -480,16 +490,11 @@ export default function Inventory({ user }) {
             <button onClick={() => setPrintLabelItem(null)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
           </div>
           
-          {/* THE ACTUAL PRINTABLE THERMAL LABEL */}
           <div id="printable-label" style={{ width: "100%", maxWidth: "400px", aspectRatio: "4/6", backgroundColor: "#ffffff", padding: "32px", borderRadius: "12px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#000", textAlign: "center", boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}>
             <h2 style={{ margin: "0 0 4px 0", fontSize: "24px", fontWeight: "800", textTransform: "uppercase" }}>{printLabelItem.brand}</h2>
             <h3 style={{ margin: "0 0 24px 0", fontSize: "18px", fontWeight: "600" }}>{printLabelItem.flavor}</h3>
-            
-            {/* Dynamic QR API Call */}
             <img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${printLabelItem.barcode}`} alt="QR Code" style={{ marginBottom: "16px" }} />
-            
             <div style={{ fontSize: "18px", fontWeight: "700", letterSpacing: "4px", marginBottom: "24px" }}>{printLabelItem.barcode}</div>
-            
             <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: "14px", fontWeight: "700", borderTop: "2px solid #000", paddingTop: "12px" }}>
               <span>ZNE: {printLabelItem.zone}</span>
               <span>LOT: {printLabelItem.lotNumber}</span>
@@ -500,6 +505,38 @@ export default function Inventory({ user }) {
           <button className="no-print" onClick={() => window.print()} style={{ width: "100%", maxWidth: "400px", backgroundColor: "#007aff", color: "#fff", padding: "16px", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", marginTop: "24px", fontSize: "16px", boxShadow: "0 4px 15px rgba(0,122,255,0.4)" }}>
             Send to Zebra Thermal Printer
           </button>
+        </div>
+      )}
+
+      {/* RESTORED NEW ITEM REGISTRATION MODAL WITH VENDOR PO ROUTING */}
+      {showNewItemModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "12px" }}>
+              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: "700" }}>➕ Register New Product</h3>
+              <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <input placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={e => setNewItemForm(prev => ({...prev, barcode: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input placeholder="Brand (e.g. Citrus Springs)" value={newItemForm.brand} onChange={e => setNewItemForm(prev => ({...prev, brand: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+                <input placeholder="Flavor Profile" value={newItemForm.flavor} onChange={e => setNewItemForm(prev => ({...prev, flavor: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              </div>
+              <input placeholder="Packaging Type" value={newItemForm.type} onChange={e => setNewItemForm(prev => ({...prev, type: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input placeholder="Lot Number" value={newItemForm.lotNumber} onChange={e => setNewItemForm(prev => ({...prev, lotNumber: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+                <input type="date" value={newItemForm.expiryDate} onChange={e => setNewItemForm(prev => ({...prev, expiryDate: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px", colorScheme: "dark" }} />
+              </div>
+              
+              <input list="vendor-emails" placeholder="Vendor Email (Auto-PO Routing)" value={newItemForm.vendorEmail} onChange={e => setNewItemForm(prev => ({...prev, vendorEmail: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input type="number" placeholder="Initial QTY" value={newItemForm.quantity} onChange={e => setNewItemForm(prev => ({...prev, quantity: parseInt(e.target.value) || 0}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+                <input placeholder="Placement Zone" value={newItemForm.zone} onChange={e => setNewItemForm(prev => ({...prev, zone: e.target.value}))} style={{ flex: 2, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              </div>
+            </div>
+            <button onClick={handleSaveNewItem} style={{ width: "100%", backgroundColor: "#34c759", color: "#fff", padding: "14px", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", marginTop: "8px" }}>Proceed to Registration</button>
+          </div>
         </div>
       )}
 
@@ -548,40 +585,7 @@ export default function Inventory({ user }) {
         </div>
       )}
 
-      {/* RESTORED NEW ITEM REGISTRATION MODAL WITH VENDOR PO ROUTING */}
-      {showNewItemModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", maxHeight: "90vh", overflowY: "auto" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "12px" }}>
-              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: "700" }}>➕ Register New Product</h3>
-              <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <input placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={e => setNewItemForm(prev => ({...prev, barcode: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-              <div style={{ display: "flex", gap: "8px" }}>
-                <input placeholder="Brand (e.g. Citrus Springs)" value={newItemForm.brand} onChange={e => setNewItemForm(prev => ({...prev, brand: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-                <input placeholder="Flavor Profile" value={newItemForm.flavor} onChange={e => setNewItemForm(prev => ({...prev, flavor: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-              </div>
-              <input placeholder="Packaging Type" value={newItemForm.type} onChange={e => setNewItemForm(prev => ({...prev, type: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-              <div style={{ display: "flex", gap: "8px" }}>
-                <input placeholder="Lot Number" value={newItemForm.lotNumber} onChange={e => setNewItemForm(prev => ({...prev, lotNumber: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-                <input type="date" value={newItemForm.expiryDate} onChange={e => setNewItemForm(prev => ({...prev, expiryDate: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px", colorScheme: "dark" }} />
-              </div>
-              
-              {/* 🔥 NEW VISUAL: VENDOR EMAIL ROUTING */}
-              <input placeholder="Vendor Email (Auto-PO Routing)" value={newItemForm.vendorEmail} onChange={e => setNewItemForm(prev => ({...prev, vendorEmail: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-              
-              <div style={{ display: "flex", gap: "8px" }}>
-                <input type="number" placeholder="Initial QTY" value={newItemForm.quantity} onChange={e => setNewItemForm(prev => ({...prev, quantity: parseInt(e.target.value) || 0}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-                <input placeholder="Placement Zone" value={newItemForm.zone} onChange={e => setNewItemForm(prev => ({...prev, zone: e.target.value}))} style={{ flex: 2, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-              </div>
-            </div>
-            <button onClick={handleSaveNewItem} style={{ width: "100%", backgroundColor: "#34c759", color: "#fff", padding: "14px", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", marginTop: "8px" }}>Proceed to Registration</button>
-          </div>
-        </div>
-      )}
-
-      {/* MODE SWITCH & REGISTER MODALS */}
+      {/* MODE SWITCH MODALS */}
       {pendingModeSwitch && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
@@ -591,20 +595,6 @@ export default function Inventory({ user }) {
             <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
               <button onClick={() => setPendingModeSwitch(null)} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "14px", borderRadius: "12px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Cancel</button>
               <button onClick={() => { setScanMode(pendingModeSwitch); setPendingModeSwitch(null); }} style={{ flex: 2, backgroundColor: pendingModeSwitch === "ship" ? "#ff3b30" : "#34c759", color: "#ffffff", border: "none", padding: "14px", borderRadius: "12px", fontWeight: "700", cursor: "pointer", boxShadow: pendingModeSwitch === "ship" ? "0 4px 15px rgba(255,59,48,0.3)" : "0 4px 15px rgba(52,199,89,0.3)", transition: "all 0.2s" }}>Confirm {pendingModeSwitch === "ship" ? "Ship" : "Receive"}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showRegisterConfirm && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
-            <div style={{ fontSize: "48px", lineHeight: "1", marginBottom: "-8px" }}>☁️</div>
-            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>Register New Product?</h3>
-            <p style={{ margin: 0, color: "#8e8e93", fontSize: "15px", lineHeight: "1.6" }}>Permanently add <strong style={{ color: "#007aff" }}>{newItemForm.flavor}</strong> to the cloud database?</p>
-            <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
-              <button onClick={() => setShowRegisterConfirm(false)} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "14px", borderRadius: "12px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Cancel</button>
-              <button onClick={executeSaveNewItem} style={{ flex: 2, backgroundColor: "#007aff", color: "#ffffff", border: "none", padding: "14px", borderRadius: "12px", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 15px rgba(0,122,255,0.3)", transition: "all 0.2s" }}>Confirm Registration</button>
             </div>
           </div>
         </div>
