@@ -9,6 +9,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { QueryCommand, UpdateCommand, ScanCommand, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient } from './dynamoClient';
 import { useAuth } from "react-oidc-context";
+import Inventory from "./Inventory";
 
 // Helper: Distance calculation (Earth Radius 6371km)
 function getDistanceInKm(lat1, lon1, lat2, lon2) {
@@ -1088,7 +1089,22 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         }}>Sign Out</button>
       </header>
 
-      {dbError && (
+      {/* 👑 MASTER ADMIN PORTAL TOGGLE */}
+      {isAdmin && (
+        <div style={{ display: "flex", justifyContent: "center", backgroundColor: "#1c1c1e", padding: "12px", borderBottom: "1px solid #3a3a3c" }}>
+          <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px" }}>
+            <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📡 Live GPS Fleet</button>
+            <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📦 CS Group Inventory</button>
+          </div>
+        </div>
+      )}
+
+      {/* 🔀 THE ROUTING INTERSECTION */}
+      {activePortal === "inventory" ? (
+        <Inventory user={auth.user} />
+      ) : (
+        <>
+          {dbError && (
         <div style={{ backgroundColor: '#ff3b30', color: '#ffffff', padding: '12px 24px', fontSize: '14px', fontWeight: '600', textAlign: 'center', boxShadow: '0 4px 12px rgba(255,59,48,0.2)' }}>
           ⚠️ {dbError}
         </div>
@@ -1535,6 +1551,9 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           </div>
         </div>
       </div>
+
+        </>
+      )}
 
       <div style={{ textAlign: "center", padding: "20px", color: "#86868b", fontSize: "12px" }}>
         Kinetic Cards v2.1
