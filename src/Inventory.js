@@ -21,17 +21,21 @@ export default function Inventory({ user }) {
   const [isScanning, setIsScanning] = useState(false);
   const [scanFeedback, setScanFeedback] = useState("");
   
-  // Learning Modal States
   const [showNewItemModal, setShowNewItemModal] = useState(false);
   const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", quantity: 1, zone: "" });
 
-  // Confirmation Intercept States
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
 
+  // FEATURE 1: Audit Log State
+  const [showAuditModal, setShowAuditModal] = useState(false);
+  const [auditLog, setAuditLog] = useState([]);
+
   const totalBoxes = stock.reduce((acc, item) => acc + item.quantity, 0);
   const activeFlavorsCount = new Set(stock.map(item => item.flavor)).size;
-  const lowStockCount = stock.filter(item => item.quantity < 50).length;
+  
+  // FEATURE 2: Low Stock Metrics
+  const lowStockItems = stock.filter(item => item.quantity < 50);
 
   const filteredStock = stock.filter(item => 
     item.flavor.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,14 +65,12 @@ export default function Inventory({ user }) {
 
   const processScannedCode = async (rawScan) => {
     const cleanScan = String(rawScan).trim();
-    
     if (cleanScan.startsWith("ZONE-") || cleanScan.startsWith("BAY-")) {
       setActiveZone(cleanScan);
       setScanFeedback(`📍 Location Locked: New items will be routed to ${cleanScan}`);
       setTimeout(() => setScanFeedback(""), 4000);
       return;
     }
-
     const parsedQty = parseInt(customQty) || 1;
     const boxAdjustment = isPalletMode ? 70 * parsedQty : parsedQty;
     const targetItem = stock.find(item => item.barcode === cleanScan || cleanScan.includes(item.barcode) || item.barcode.includes(cleanScan));
@@ -76,28 +78,10 @@ export default function Inventory({ user }) {
     if (targetItem) {
       const newQuantity = scanMode === "receive" ? targetItem.quantity + boxAdjustment : Math.max(0, targetItem.quantity - boxAdjustment);
       const newZone = (scanMode === "receive" && activeZone !== "Unassigned Warehouse") ? activeZone : targetItem.zone;
-
-      setPendingAction({
-        targetItem,
-        boxAdjustment,
-        newQuantity,
-        newZone,
-        actionName: scanMode === "receive" ? "📥 Receive" : "🚚 Ship",
-        isPallet: isPalletMode,
-        rawQty: parsedQty
-      });
+      setPendingAction({ targetItem, boxAdjustment, newQuantity, newZone, actionName: scanMode === "receive" ? "📥 Receive" : "🚚 Ship", isPallet: isPalletMode, rawQty: parsedQty });
       setShowConfirmModal(true);
-      
     } else {
-      setNewItemForm({
-        barcode: cleanScan,
-        brand: "Citrus Springs",
-        flavor: "",
-        type: "3G Bag-in-Box",
-        lotNumber: "",
-        quantity: boxAdjustment,
-        zone: activeZone !== "Unassigned Warehouse" ? activeZone : "Unassigned Warehouse"
-      });
+      setNewItemForm({ barcode: cleanScan, brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", quantity: boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : "Unassigned Warehouse" });
       setShowNewItemModal(true);
     }
   };
@@ -105,11 +89,19 @@ export default function Inventory({ user }) {
   const handleConfirmAction = async () => {
     if (!pendingAction) return;
     const { targetItem, boxAdjustment, newQuantity, newZone, actionName } = pendingAction;
-
-    setStock(prevStock => prevStock.map(item => 
-      item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone } : item
-    ));
     
+    // FEATURE 1: Record to Audit Ledger
+    const logEntry = {
+      id: Date.now(),
+      time: new Date().toLocaleString(),
+      user: user?.email || "Admin Mode",
+      action: actionName.replace(/[^a-zA-Z]/g, ""),
+      qty: boxAdjustment,
+      flavor: targetItem.flavor
+    };
+    setAuditLog(prev => [logEntry, ...prev]);
+
+    setStock(prevStock => prevStock.map(item => item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone } : item));
     setScanFeedback(`✅ ${actionName.replace(/[^a-zA-Z]/g, "")} ${boxAdjustment} boxes of ${targetItem.flavor}`);
     setShowConfirmModal(false);
     setPendingAction(null);
@@ -122,46 +114,43 @@ export default function Inventory({ user }) {
         ExpressionAttributeNames: { "#z": "zone" },
         ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone }
       }));
-    } catch (err) {
-      console.error("Failed to update cloud inventory:", err);
-    }
+    } catch (err) { console.error("Cloud update failed:", err); }
     setTimeout(() => setScanFeedback(""), 4000);
   };
 
   const handleManualAdd = () => {
-    setNewItemForm({ 
-      barcode: "", 
-      brand: "Citrus Springs", 
-      flavor: "", 
-      type: "3G Bag-in-Box", 
-      lotNumber: "", 
-      quantity: 0, 
-      zone: "Unassigned Warehouse" 
-    });
+    setNewItemForm({ barcode: "", brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", quantity: 0, zone: "Unassigned Warehouse" });
     setShowNewItemModal(true);
   };
 
   const handleSaveNewItem = async () => {
-    if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) {
-      alert("Barcode, Flavor, and Lot Number are required fields.");
-      return;
-    }
-    if (!window.confirm(`⚠️ CRITICAL ACTION: Registering New Product\n\nAre you sure you want to permanently add [ ${newItemForm.flavor} ] to the master cloud database?`)) return;
+    if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) return alert("Required fields missing.");
+    if (!window.confirm(`⚠️ Registering New Product\n\nPermanently add [ ${newItemForm.flavor} ] to the cloud?`)) return;
     
-    setStock(prev => {
-      const exists = prev.find(i => i.barcode === newItemForm.barcode);
-      return exists ? prev : [...prev, newItemForm];
-    });
-    
+    setStock(prev => { const exists = prev.find(i => i.barcode === newItemForm.barcode); return exists ? prev : [...prev, newItemForm]; });
     setShowNewItemModal(false);
     setScanFeedback(`✅ 📥 Registered Product: ${newItemForm.flavor}`);
     setTimeout(() => setScanFeedback(""), 4000);
 
-    try {
-      await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: newItemForm }));
-    } catch (err) {
-      console.error("Failed to register new item:", err);
-    }
+    try { await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: newItemForm })); } 
+    catch (err) { console.error("Failed to register:", err); }
+  };
+
+  // FEATURE 3: CSV Export Logic
+  const handleExportCSV = () => {
+    const headers = ["Brand", "Flavor", "Packaging Type", "Current Count", "Warehouse Zone", "Lot Number"];
+    const csvRows = [headers.join(",")];
+    stock.forEach(item => {
+      const row = [ `"${item.brand}"`, `"${item.flavor}"`, `"${item.type}"`, item.quantity, `"${item.zone}"`, `"${item.lotNumber}"` ];
+      csvRows.push(row.join(","));
+    });
+    const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `CS_Inventory_Snapshot_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const processRef = useRef();
@@ -170,10 +159,7 @@ export default function Inventory({ user }) {
   useEffect(() => {
     if (isScanning) {
       const scanner = new Html5QrcodeScanner("reader", { fps: 30, qrbox: { width: 300, height: 150 }, rememberLastUsedCamera: true, aspectRatio: 1.777778 });
-      scanner.render(
-        (decodedText) => { scanner.clear(); setIsScanning(false); if (processRef.current) processRef.current(decodedText); },
-        (error) => {}
-      );
+      scanner.render((decodedText) => { scanner.clear(); setIsScanning(false); if (processRef.current) processRef.current(decodedText); }, (error) => {});
       return () => { scanner.clear().catch(e => console.log(e)); };
     }
   }, [isScanning]);
@@ -186,19 +172,13 @@ export default function Inventory({ user }) {
           .inventory-container { padding: 16px !important; }
           .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; }
           .toolbar-stack { flex-direction: column !important; align-items: stretch !important; }
-          .toolbar-stack input { width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
-          .toolbar-stack button { width: 100% !important; justify-content: center; }
           .responsive-table thead { display: none; }
           .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td { display: block; width: 100%; box-sizing: border-box; }
-          .responsive-table tr { margin-bottom: 16px; border: 1px solid #3a3a3c !important; border-radius: 12px; background-color: #242426; overflow: hidden; padding: 8px 0; }
-          .responsive-table td { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px !important; border: none !important; text-align: right; }
+          .responsive-table tr { margin-bottom: 16px; border: 1px solid #3a3a3c !important; border-radius: 12px; background-color: #242426; padding: 8px 0; }
+          .responsive-table td { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px !important; text-align: right; }
           .responsive-table td::before { content: attr(data-label); font-weight: 600; color: #8e8e93; font-size: 12px; text-transform: uppercase; margin-right: 16px; text-align: left; }
         }
-        
-        #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        #reader button { background-color: #007aff; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-family: inherit; }
-        #reader select { padding: 8px; border-radius: 8px; margin-bottom: 10px; font-family: inherit; background-color: #2c2c2e; color: white; border: 1px solid #3a3a3c; }
-        #reader a { display: none !important; }
+        #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; }
       `}</style>
 
       {/* HEADER BAR */}
@@ -208,128 +188,31 @@ export default function Inventory({ user }) {
           <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Warehouse Logged in as: {user?.email || "Admin Mode"}</p>
         </div>
         <div style={{ display: "flex", backgroundColor: "#2c2c2e", padding: "4px", borderRadius: "12px", width: "fit-content" }}>
-          <button onClick={() => setScanMode("receive")} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>📥 Receive</button>
-          <button onClick={() => setScanMode("ship")} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>🚚 Ship</button>
+          <button onClick={() => setScanMode("receive")} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: "#ffffff", flex: 1 }}>📥 Receive</button>
+          <button onClick={() => setScanMode("ship")} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "transparent", color: "#ffffff", flex: 1 }}>🚚 Ship</button>
         </div>
       </div>
 
-      {/* CONFIRMATION INTERCEPT MODAL */}
-      {showConfirmModal && pendingAction && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "24px", textAlign: "center", boxShadow: "0 20px 40px rgba(0,0,0,0.6)" }}>
-            
+      {/* FEATURE 2: LOW STOCK AUTOMATED ALERT */}
+      {lowStockItems.length > 0 && (
+        <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "16px", padding: "20px", marginBottom: "24px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <span style={{ fontSize: "32px", lineHeight: "1" }}>⚠️</span>
             <div>
-              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>⚠️ Confirm Inventory Update</h3>
-              <p style={{ margin: "16px 0 0 0", color: "#ffffff", fontSize: "17px", lineHeight: "1.5" }}>
-                Are you sure you want to <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "800", textTransform: "uppercase" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")} {pendingAction.isPallet ? `${pendingAction.rawQty} Pallets (${pendingAction.boxAdjustment} Boxes)` : `${pendingAction.boxAdjustment} Boxes`}</span> of <strong style={{color: "#007aff"}}>{pendingAction.targetItem.flavor}</strong>?
-              </p>
+              <h4 style={{ margin: 0, color: "#ff9500", fontSize: "18px", fontWeight: "700" }}>Critical Stock Alert</h4>
+              <p style={{ margin: "4px 0 0 0", color: "#ffffff", fontSize: "14px", lineHeight: "1.4" }}>{lowStockItems.length} flavor lineup(s) have dropped below the safe operational threshold of 50 boxes.</p>
             </div>
-
-            <div style={{ backgroundColor: "#242426", padding: "20px", borderRadius: "16px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "12px", textAlign: "left" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #3a3a3c", paddingBottom: "8px" }}>
-                <span style={{ color: "#8e8e93", fontWeight: "600", fontSize: "14px" }}>Quantity Adjustment</span>
-                <span style={{ color: "#ffffff", fontWeight: "700", fontSize: "18px" }}>{pendingAction.boxAdjustment} Boxes</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#8e8e93", fontWeight: "600", fontSize: "14px" }}>New Cloud Total</span>
-                <span style={{ color: "#007aff", fontWeight: "700", fontSize: "18px" }}>{pendingAction.newQuantity} Boxes</span>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: "12px" }}>
-              <button onClick={() => { setShowConfirmModal(false); setPendingAction(null); }} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "16px", borderRadius: "12px", fontSize: "16px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>
-                Cancel
-              </button>
-              <button onClick={handleConfirmAction} style={{ flex: 2, backgroundColor: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", color: "#ffffff", border: "none", padding: "16px", borderRadius: "12px", fontSize: "16px", fontWeight: "700", cursor: "pointer", boxShadow: pendingAction.actionName.includes("Ship") ? "0 4px 14px rgba(255, 59, 48, 0.3)" : "0 4px 14px rgba(52, 199, 89, 0.3)" }}>
-                Commit {pendingAction.actionName.includes("Ship") ? "Shipment" : "Receiving"}
-              </button>
-            </div>
-
           </div>
+          <button onClick={() => {
+            const body = "Please process a replenishment order for the following low-stock items:%0D%0A%0D%0A" + lowStockItems.map(i => `[ ] ${i.flavor} - Only ${i.quantity} boxes remaining (Zone: ${i.zone})`).join("%0D%0A") + "%0D%0A%0D%0A- Generated by Kinetic Cards Inventory System";
+            window.location.href = `mailto:purchasing@csgroup.com?subject=URGENT: Warehouse Restock Required&body=${body}`;
+          }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "12px 20px", borderRadius: "10px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" }}>
+            ✉️ Email Restock Report
+          </button>
         </div>
       )}
 
-      {/* CAMERA SCANNER OVERLAY MODAL */}
-      {isScanning && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", zIndex: 9998, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "#1c1c1e", padding: "24px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px" }}>📷 {scanMode === "receive" ? "Receiving" : "Shipping"} Viewfinder</h3>
-              <button onClick={() => setIsScanning(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontSize: "16px", fontWeight: "bold", cursor: "pointer", padding: "8px" }}>Cancel ✕</button>
-            </div>
-            <div id="reader" style={{ width: "100%" }}></div>
-            <div style={{ color: "#8e8e93", fontSize: "13px", textAlign: "center", lineHeight: "1.4" }}>
-              Center standard 1D product barcode or Zone QR block inside the crosshairs.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* NEW ITEM REGISTRATION MODAL */}
-      {showNewItemModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "20px" }}>
-            
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
-              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "22px" }}>✨ Register New Product</h3>
-              <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#8e8e93", border: "none", fontSize: "16px", cursor: "pointer" }}>Cancel ✕</button>
-            </div>
-            
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label style={{ fontSize: "12px", color: "#ff9500", fontWeight: "600", textTransform: "uppercase" }}>Barcode ID *</label>
-                <input value={newItemForm.barcode} onChange={e => setNewItemForm({...newItemForm, barcode: e.target.value})} placeholder="Scan or Type UPC..." style={{ backgroundColor: "#1c1c1e", border: "1px solid #007aff", borderRadius: "8px", padding: "10px", color: "#ffffff", fontSize: "14px", outline: "none" }} />
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Initial Stock QTY</label>
-                <input type="number" min="0" value={newItemForm.quantity} onChange={e => setNewItemForm({...newItemForm, quantity: parseInt(e.target.value) || 0})} style={{ backgroundColor: "#1c1c1e", border: "1px solid #007aff", borderRadius: "8px", padding: "10px", color: "#ffffff", fontSize: "14px", outline: "none" }} />
-              </div>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Brand Name</label>
-              <select value={newItemForm.brand} onChange={e => setNewItemForm({...newItemForm, brand: e.target.value})} style={{ backgroundColor: "#1c1c1e", border: "1px solid #007aff", borderRadius: "8px", padding: "12px", color: "#ffffff", fontSize: "15px", cursor: "pointer", outline: "none" }}>
-                <option value="Citrus Springs">Citrus Springs</option>
-                <option value="Cool Attitudes">Cool Attitudes</option>
-                <option value="Twisted Branch">Twisted Branch</option>
-                <option value="Madrinas Coffee">Madrinas Coffee</option>
-              </select>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Packaging Format</label>
-              <select value={newItemForm.type} onChange={e => setNewItemForm({...newItemForm, type: e.target.value})} style={{ backgroundColor: "#1c1c1e", border: "1px solid #007aff", borderRadius: "8px", padding: "12px", color: "#ffffff", fontSize: "15px", cursor: "pointer", outline: "none" }}>
-                <option value="3G Bag-in-Box">3G Bag-in-Box</option>
-                <option value="1G Jug Case">1G Jug Case</option>
-                <option value="24-Can Case">24-Can Case</option>
-              </select>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "12px", color: "#ff9500", fontWeight: "600", textTransform: "uppercase" }}>Flavor / Liquid Profile *</label>
-              <input placeholder="e.g. Strawberry Puree" value={newItemForm.flavor} onChange={e => setNewItemForm({...newItemForm, flavor: e.target.value})} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "12px", color: "#ffffff", fontSize: "15px", outline: "none" }} />
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label style={{ fontSize: "12px", color: "#ff9500", fontWeight: "600", textTransform: "uppercase" }}>Lot Number *</label>
-                <input placeholder="e.g. LOT-104" value={newItemForm.lotNumber} onChange={e => setNewItemForm({...newItemForm, lotNumber: e.target.value})} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "10px", color: "#ffffff", fontSize: "14px", outline: "none" }} />
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Storage Zone</label>
-                <input disabled value={newItemForm.zone} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "10px", color: "#8e8e93", fontSize: "14px", cursor: "not-allowed" }} />
-              </div>
-            </div>
-
-            <button onClick={handleSaveNewItem} style={{ backgroundColor: "#34c759", color: "#ffffff", border: "none", padding: "16px", borderRadius: "12px", fontSize: "16px", fontWeight: "700", cursor: "pointer", marginTop: "8px", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>
-              📥 Save to Database
-            </button>
-
-          </div>
-        </div>
-      )}
-
-      {/* KPI METRIC CARDS ROW */}
+      {/* KPI METRICS */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px", marginBottom: "24px" }}>
         <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "16px", border: "1px solid #3a3a3c" }}>
           <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600" }}>TOTAL WAREHOUSE STOCK</div>
@@ -341,65 +224,52 @@ export default function Inventory({ user }) {
         </div>
         <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "16px", border: "1px solid #3a3a3c" }}>
           <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600" }}>ACTIVE PLACEMENT ZONE</div>
-          <div style={{ fontSize: "28px", fontWeight: "700", marginTop: "12px", color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff", wordBreak: "break-word", lineHeight: "1" }}>{activeZone.replace("ZONE-", "").replace("BAY-", "")}</div>
+          <div style={{ fontSize: "28px", fontWeight: "700", marginTop: "12px", color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff" }}>{activeZone.replace("ZONE-", "").replace("BAY-", "")}</div>
         </div>
       </div>
 
-      {/* SCAN FEEDBACK ALERT */}
-      {scanFeedback && (
-        <div style={{ backgroundColor: scanFeedback.includes("⚠️") ? "rgba(255, 59, 48, 0.15)" : "rgba(52, 199, 89, 0.15)", color: scanFeedback.includes("⚠️") ? "#ff3b30" : "#34c759", padding: "16px 20px", borderRadius: "12px", marginBottom: "24px", fontSize: "15px", fontWeight: "600", display: "flex", alignItems: "center", border: scanFeedback.includes("⚠️") ? "1px solid rgba(255, 59, 48, 0.4)" : "1px solid rgba(52, 199, 89, 0.4)" }}>
-          {scanFeedback}
-        </div>
-      )}
-
-      {/* TOOLBAR CONTROLS */}
+      {/* TOOLBAR */}
       <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "16px", border: "1px solid #3a3a3c" }}>
-        <input 
-          type="text" 
-          placeholder="🔎 Filter by Flavor, Brand, or Zone..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "14px 16px", width: "100%", maxWidth: "340px", color: "#ffffff", fontSize: "14px" }}
-        />
+        <input type="text" placeholder="🔎 Filter Inventory..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "14px 16px", width: "100%", maxWidth: "260px", color: "#ffffff" }} />
         
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", flex: "1" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "4px 12px", transition: "all 0.2s" }}>
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", flex: "1", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "4px 12px" }}>
             <span style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
             <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} />
           </div>
-          <button 
-            onClick={() => setIsPalletMode(!isPalletMode)} 
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#1c1c1e", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 20px", borderRadius: "12px", cursor: "pointer", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", transition: "all 0.2s", flex: "1", whiteSpace: "nowrap" }}
-          >
-            <span style={{ fontSize: "16px" }}>🪵</span> {isPalletMode ? `Pallet Mode: ${70 * (parseInt(customQty) || 1)} Boxes` : "Single Box"}
+          
+          <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#1c1c1e", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer" }}>
+            🪵 {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}
           </button>
           
-          <button 
-            onClick={handleManualAdd} 
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", cursor: "pointer", color: "#ffffff", fontWeight: "600", transition: "all 0.2s", flex: "1", whiteSpace: "nowrap" }}
-          >
-            <span style={{ fontSize: "16px" }}>➕</span> Add Product
+          <button onClick={() => setShowAuditModal(true)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer" }}>
+            📋 Audit
+          </button>
+          
+          <button onClick={handleExportCSV} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer" }}>
+            📥 CSV
           </button>
 
-          <button 
-            onClick={() => setIsScanning(true)} 
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "12px", cursor: "pointer", color: "#ffffff", fontWeight: "700", boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)", flex: "1", fontSize: "15px", whiteSpace: "nowrap" }}
-          >
-            <span style={{ fontSize: "20px" }}>📷</span> SCAN
+          <button onClick={handleManualAdd} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer" }}>
+            ➕ Add
+          </button>
+
+          <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "12px", color: "#ffffff", fontWeight: "700", cursor: "pointer" }}>
+            📷 SCAN
           </button>
         </div>
       </div>
 
-      {/* MAIN INVENTORY MATRIX TABLE */}
-      <div style={{ backgroundColor: "#2c2c2e", borderRadius: "16px", border: "none", overflow: "hidden" }}>
+      {/* INVENTORY MATRIX */}
+      <div style={{ backgroundColor: "#2c2c2e", borderRadius: "16px", overflow: "hidden" }}>
         <table className="responsive-table" style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "14px" }}>
           <thead>
             <tr style={{ borderBottom: "1px solid #3a3a3c", color: "#8e8e93", backgroundColor: "#242426" }}>
               <th style={{ padding: "16px" }}>Brand</th>
               <th style={{ padding: "16px" }}>Flavor Lineup</th>
-              <th style={{ padding: "16px" }}>Packaging Type</th>
+              <th style={{ padding: "16px" }}>Packaging</th>
               <th style={{ padding: "16px" }}>Current Count</th>
-              <th style={{ padding: "16px" }}>Warehouse Zone</th>
+              <th style={{ padding: "16px" }}>Zone</th>
             </tr>
           </thead>
           <tbody>
@@ -408,17 +278,83 @@ export default function Inventory({ user }) {
                 <td data-label="Brand" style={{ padding: "16px", fontWeight: "600" }}>{item.brand}</td>
                 <td data-label="Flavor Lineup" style={{ padding: "16px" }}>{item.flavor} <br/><span style={{ fontSize: "11px", color: "#8e8e93" }}>Lot: {item.lotNumber}</span></td>
                 <td data-label="Packaging" style={{ padding: "16px", color: "#8e8e93" }}>{item.type}</td>
-                <td data-label="In Stock" style={{ padding: "16px" }}>
-                  <span style={{ padding: "4px 10px", borderRadius: "8px", fontWeight: "700", backgroundColor: item.quantity < 50 ? "rgba(255, 59, 48, 0.15)" : "rgba(52, 199, 89, 0.15)", color: item.quantity < 50 ? "#ff3b30" : "#34c759" }}>
-                    {item.quantity} boxes
-                  </span>
-                </td>
+                <td data-label="In Stock" style={{ padding: "16px" }}><span style={{ padding: "4px 10px", borderRadius: "8px", fontWeight: "700", backgroundColor: item.quantity < 50 ? "rgba(255, 59, 48, 0.15)" : "rgba(52, 199, 89, 0.15)", color: item.quantity < 50 ? "#ff3b30" : "#34c759" }}>{item.quantity} boxes</span></td>
                 <td data-label="Zone" style={{ padding: "16px" }}>📍 {item.zone}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* CONFIRMATION INTERCEPT MODAL */}
+      {showConfirmModal && pendingAction && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
+            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>⚠️ Confirm Update</h3>
+            <p style={{ margin: 0, color: "#ffffff", fontSize: "17px", lineHeight: "1.5" }}>
+              Action: <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "800" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")} {pendingAction.boxAdjustment} Boxes</span> of <strong style={{color: "#007aff"}}>{pendingAction.targetItem.flavor}</strong>
+            </p>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "16px", borderRadius: "12px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+              <button onClick={handleConfirmAction} style={{ flex: 2, backgroundColor: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", color: "#ffffff", border: "none", padding: "16px", borderRadius: "12px", fontWeight: "700", cursor: "pointer" }}>Commit Action</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FEATURE 1: AUDIT LOG MODAL */}
+      {showAuditModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "700px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "20px", maxHeight: "80vh" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
+              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "22px" }}>📋 Session Transaction Audit</h3>
+              <button onClick={() => setShowAuditModal(false)} style={{ background: "transparent", color: "#8e8e93", border: "none", fontSize: "16px", cursor: "pointer" }}>Close ✕</button>
+            </div>
+            <div style={{ overflowY: "auto", flex: 1, paddingRight: "8px" }}>
+              {auditLog.length === 0 ? (
+                <div style={{ color: "#8e8e93", textAlign: "center", padding: "40px" }}>No transactions recorded in this session.</div>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "14px", color: "#ffffff" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid #3a3a3c", color: "#8e8e93" }}>
+                      <th style={{ padding: "12px 8px" }}>Time</th>
+                      <th style={{ padding: "12px 8px" }}>Operator</th>
+                      <th style={{ padding: "12px 8px" }}>Action</th>
+                      <th style={{ padding: "12px 8px" }}>Product Identity</th>
+                      <th style={{ padding: "12px 8px", textAlign: "right" }}>Qty</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {auditLog.map(log => (
+                      <tr key={log.id} style={{ borderBottom: "1px solid #2c2c2e" }}>
+                        <td style={{ padding: "12px 8px", fontSize: "12px", color: "#8e8e93" }}>{log.time}</td>
+                        <td style={{ padding: "12px 8px" }}>{log.user.split('@')[0]}</td>
+                        <td style={{ padding: "12px 8px", color: log.action === "Ship" ? "#ff3b30" : "#34c759", fontWeight: "700" }}>{log.action}</td>
+                        <td style={{ padding: "12px 8px" }}>{log.flavor}</td>
+                        <td style={{ padding: "12px 8px", textAlign: "right", fontWeight: "700" }}>{log.qty}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SCANNER OVERLAY */}
+      {isScanning && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.9)", zIndex: 9998, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "#1c1c1e", padding: "24px", borderRadius: "24px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
+              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px" }}>📷 Viewfinder</h3>
+              <button onClick={() => setIsScanning(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer" }}>Cancel ✕</button>
+            </div>
+            <div id="reader" style={{ width: "100%" }}></div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
