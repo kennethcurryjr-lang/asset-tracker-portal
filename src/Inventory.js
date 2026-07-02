@@ -15,6 +15,7 @@ export default function Inventory({ user }) {
   const [stock, setStock] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isPalletMode, setIsPalletMode] = useState(false);
+  const [customQty, setCustomQty] = useState(1);
   const [scanMode, setScanMode] = useState("receive");
   const [activeZone, setActiveZone] = useState("Unassigned Warehouse");
   const [isScanning, setIsScanning] = useState(false);
@@ -66,7 +67,7 @@ export default function Inventory({ user }) {
       return;
     }
 
-    const boxAdjustment = isPalletMode ? 70 : 1;
+    const boxAdjustment = isPalletMode ? 70 : (parseInt(customQty) || 1);
     const targetItem = stock.find(item => item.barcode === cleanScan || cleanScan.includes(item.barcode) || item.barcode.includes(cleanScan));
 
     if (targetItem) {
@@ -235,6 +236,10 @@ export default function Inventory({ user }) {
         />
         
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", flex: "1" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "4px 12px", transition: "all 0.2s" }}>
+            <span style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
+            <input type="number" min="1" value={customQty} onChange={(e) => { setCustomQty(e.target.value); setIsPalletMode(false); }} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} />
+          </div>
           <button 
             onClick={() => setIsPalletMode(!isPalletMode)} 
             style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#1c1c1e", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 20px", borderRadius: "12px", cursor: "pointer", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", transition: "all 0.2s", flex: "1", whiteSpace: "nowrap" }}
