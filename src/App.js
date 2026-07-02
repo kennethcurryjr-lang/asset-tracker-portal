@@ -366,7 +366,7 @@ function App() {
   useEffect(() => {
     if (auth.isAuthenticated) {
       fetchDevices();
-      const interval = setInterval(fetchDevices, 60000);
+      const interval = setInterval(fetchDevices, 5000);
       return () => clearInterval(interval);
     }
   }, [auth.isAuthenticated, fetchDevices]);
