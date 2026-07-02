@@ -270,8 +270,18 @@ function App() {
       });
 
       const processed = await Promise.all(Object.keys(grouped).map(async (id) => {
-        const history = grouped[id].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        const latest = { ...history[0] }; ["homeLat", "homeLon", "isServiceMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag"].forEach(k => { if (latest[k] === undefined) { const prev = history.find(h => h[k] !== undefined); if (prev) latest[k] = (prev[k] === "CLEARED" ? undefined : prev[k]); } }); const allNotes = []; history.forEach(h => { if (h.notesList) { h.notesList.forEach(n => { if (!allNotes.some(e => e.text === n.text && e.time === n.time)) { allNotes.push({...n, rowTimestamp: h.timestamp}); } }); } }); latest.notesList = allNotes;
+        const rawGroup = grouped[id];
+        
+        // 1. Isolate the LATEST master row so the word "LATEST" doesn't break the Date math
+        const latestRow = rawGroup.find(i => i.timestamp === "LATEST") || {};
+        
+        // 2. Sort only the actual historical timestamps safely
+        const history = rawGroup.filter(i => i.timestamp !== "LATEST").sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        // 3. Base the state entirely on the master LATEST row, using history only for raw coordinates
+        const latest = { ...(history[0] || {}), ...latestRow };
+        
+        const allNotes = []; history.forEach(h => { if (h.notesList) { h.notesList.forEach(n => { if (!allNotes.some(e => e.text === n.text && e.time === n.time)) { allNotes.push({...n, rowTimestamp: h.timestamp}); } }); } }); latest.notesList = allNotes;
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
         latest.path = history.slice(0, 10).filter(p => p.latitude && p.longitude).map(p => [Number(p.latitude), Number(p.longitude)]);
         
