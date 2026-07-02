@@ -196,8 +196,7 @@ function App() {
         const response = await docClient.send(new QueryCommand({
           TableName: "AssetTrackerData",
           KeyConditionExpression: "deviceId = :id",
-          FilterExpression: "shareToken = :tok",
-          ExpressionAttributeValues: { ":id": targetId, ":tok": shareTokenParam }
+          ExpressionAttributeValues: { ":id": targetId }
         }));
 
         if (!response.Items || response.Items.length === 0) {
@@ -205,12 +204,19 @@ function App() {
           return;
         }
 
-        const activeNode = response.Items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+        const latestRow = response.Items.find(i => i.timestamp === "LATEST");
+        if (!latestRow || latestRow.shareToken !== shareTokenParam) {
+          setShareError("Invalid tracking configuration signature or resource missing.");
+          return;
+        }
 
-        if (activeNode.shareExpires && Date.now() > activeNode.shareExpires) {
+        if (latestRow.shareExpires && Date.now() > latestRow.shareExpires) {
           setShareError("This secure tracking validation window has expired and self-terminated.");
           return;
         }
+
+        const history = response.Items.filter(i => i.timestamp !== "LATEST").sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        const activeNode = { ...(history[0] || {}), ...latestRow };
 
         const loc = await getLocationInfo(activeNode.latitude, activeNode.longitude);
         setSharedAsset({
@@ -347,7 +353,7 @@ function App() {
            }
         }
 
-        return { ...latest, deviceId: latest.deviceId, tag: history.find(i => i.tag)?.tag || "", city: loc.city, estTimeRemaining };
+        return { ...latest, deviceId: latest.deviceId || id, tag: latest.tag || "", city: loc.city, estTimeRemaining };
       }));
       setAssets(processed);
     } catch (err) { setDbError(err.message); }
@@ -400,7 +406,8 @@ function App() {
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId, timestamp: targetTimestamp },
-        UpdateExpression: "REMOVE maintenanceInterval, maintenanceDueDate"
+        UpdateExpression: "SET maintenanceInterval = :c, maintenanceDueDate = :c",
+        ExpressionAttributeValues: { ":c": "CLEARED" }
       }));
       await addNote(deviceId, targetTimestamp, "🗓️ Maintenance schedule cleared (Opted Out).");
     } else if (actionOrMonths === "LOG_RESET") {
@@ -466,7 +473,7 @@ function App() {
           ":empty_list": []
         }
       }));
-      setNoteInputs(prev => ({...prev, [deviceId]: ""}));
+      setNoteInputs(prev => ({...prev, [deviceId.slice(-5)]: ""}));
       fetchDevices();
     } catch (err) { console.error("Database note array error:", err); }
   };
@@ -639,7 +646,8 @@ function App() {
   await docClient.send(new UpdateCommand({
     TableName: "AssetTrackerData",
     Key: { deviceId, timestamp: "LATEST" },
-    UpdateExpression: "REMOVE homeLat, homeLon"
+    UpdateExpression: "SET homeLat = :c, homeLon = :c",
+    ExpressionAttributeValues: { ":c": "CLEARED" }
   }));
   await addNote(deviceId, "LATEST", `🚫 Home Anchor Cleared`);
   fetchDevices();
@@ -654,7 +662,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     ExpressionAttributeValues: { ":lat": lat, ":lon": lon }
   }));
   await addNote(deviceId, "LATEST", logMsg);
-  alert("Home location saved and logged!");
+  
   fetchDevices();
 };
 
@@ -731,7 +739,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
         if (!dev) return;
         const sequentialName = `${baseName}-${startIndex + index}`;
-        await updateAttribute(dev.deviceId, dev.timestamp, 'tag', sequentialName, '#t');
+        await updateAttribute(dev.deviceId, 'LATEST', 'tag', sequentialName, '#t');
       }));
       alert(`Successfully generated sequential tags for ${selectedDevices.length} assets!`);
       resetAllInputs();
@@ -755,17 +763,19 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
   };
 
   const revokeLiveShare = async (deviceId, timestamp) => {
-    if (!isAdmin) return;
-    if (!window.confirm("Immediately terminate the active tracking link and revoke access?")) return;
-    try {
-      await docClient.send(new UpdateCommand({
-        TableName: "AssetTrackerData",
-        Key: { deviceId, timestamp: "LATEST" },
-        UpdateExpression: "SET shareToken = :c, shareExpires = :c, shareEmail = :c, isStolenFlag = :c", ExpressionAttributeValues: { ":c": "CLEARED" }
-      }));
-      alert("Tracking link revoked successfully.");
-      fetchDevices();
-    } catch (err) {
+  if (!isAdmin) return;
+  if (!window.confirm("Immediately terminate the active tracking link and revoke access?")) return;
+  try {
+    await docClient.send(new UpdateCommand({
+      TableName: "AssetTrackerData",
+      Key: { deviceId, timestamp: "LATEST" },
+      UpdateExpression: "SET shareToken = :c, shareExpires = :c, shareEmail = :c, isStolenFlag = :c", 
+      ExpressionAttributeValues: { ":c": "CLEARED" }
+    }));
+    await addNote(deviceId, "LATEST", "🔒 Secure tracking link manually revoked.");
+    alert("Tracking link revoked successfully.");
+    fetchDevices();
+  } catch (err) {
       console.error("Failed to revoke link:", err);
       alert("System update failure.");
     }
