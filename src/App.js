@@ -1065,10 +1065,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         }
 
       `}</style>
-
+      
       {/* DYNAMIC HEADER ARCHITECTURE */}
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-        {/* DYNAMIC HEADER ARCHITECTURE */}
       <div style={{ 
         display: 'flex', 
         flexDirection: 'column', 
