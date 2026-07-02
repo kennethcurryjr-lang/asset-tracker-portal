@@ -12,7 +12,7 @@ const initialMockData = [
   { barcode: "082123456785", lotNumber: "LOT-2026-05", expiryDate: "2027-03-10", brand: "Madrinas Coffee", flavor: "Vanilla Cold Brew RTD", type: "24-Can Case", quantity: 300, zone: "Dry Aisle C" }
 ];
 
-const MANAGER_PIN = "2026"; // Hardcoded RBAC PIN for Demo
+const MANAGER_PIN = "1234"; // Hardcoded RBAC PIN for Demo
 
 export default function Inventory({ user }) {
   const [stock, setStock] = useState([]);
