@@ -77,7 +77,6 @@ export default function Inventory({ user }) {
       const newQuantity = scanMode === "receive" ? targetItem.quantity + boxAdjustment : Math.max(0, targetItem.quantity - boxAdjustment);
       const newZone = (scanMode === "receive" && activeZone !== "Unassigned Warehouse") ? activeZone : targetItem.zone;
 
-      // INTERCEPT: Do not push to DB yet. Trigger Confirmation Modal instead.
       setPendingAction({
         targetItem,
         boxAdjustment,
@@ -107,16 +106,14 @@ export default function Inventory({ user }) {
     if (!pendingAction) return;
     const { targetItem, boxAdjustment, newQuantity, newZone, actionName } = pendingAction;
 
-    // 1. Execute Optimistic UI Update
     setStock(prevStock => prevStock.map(item => 
       item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone } : item
     ));
     
-    setScanFeedback(`✅ ${actionName} ${boxAdjustment} boxes of ${targetItem.flavor}`);
+    setScanFeedback(`✅ ${actionName.replace(/[^a-zA-Z]/g, "")} ${boxAdjustment} boxes of ${targetItem.flavor}`);
     setShowConfirmModal(false);
     setPendingAction(null);
 
-    // 2. Fire to Cloud
     try {
       await docClient.send(new UpdateCommand({
         TableName: "BeverageInventoryData",
@@ -131,16 +128,33 @@ export default function Inventory({ user }) {
     setTimeout(() => setScanFeedback(""), 4000);
   };
 
+  const handleManualAdd = () => {
+    setNewItemForm({ 
+      barcode: "", 
+      brand: "Citrus Springs", 
+      flavor: "", 
+      type: "3G Bag-in-Box", 
+      lotNumber: "", 
+      quantity: 0, 
+      zone: "Unassigned Warehouse" 
+    });
+    setShowNewItemModal(true);
+  };
+
   const handleSaveNewItem = async () => {
-    if (!newItemForm.flavor || !newItemForm.lotNumber) {
-      alert("Flavor and Lot Number are required.");
+    if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) {
+      alert("Barcode, Flavor, and Lot Number are required fields.");
       return;
     }
     if (!window.confirm(`⚠️ CRITICAL ACTION: Registering New Product\n\nAre you sure you want to permanently add [ ${newItemForm.flavor} ] to the master cloud database?`)) return;
     
-    setStock(prev => [...prev, newItemForm]);
+    setStock(prev => {
+      const exists = prev.find(i => i.barcode === newItemForm.barcode);
+      return exists ? prev : [...prev, newItemForm];
+    });
+    
     setShowNewItemModal(false);
-    setScanFeedback(`✅ 📥 Registered & Received ${newItemForm.quantity} boxes of ${newItemForm.flavor}`);
+    setScanFeedback(`✅ 📥 Registered Product: ${newItemForm.flavor}`);
     setTimeout(() => setScanFeedback(""), 4000);
 
     try {
@@ -174,7 +188,6 @@ export default function Inventory({ user }) {
           .toolbar-stack { flex-direction: column !important; align-items: stretch !important; }
           .toolbar-stack input { width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
           .toolbar-stack button { width: 100% !important; justify-content: center; }
-          
           .responsive-table thead { display: none; }
           .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td { display: block; width: 100%; box-sizing: border-box; }
           .responsive-table tr { margin-bottom: 16px; border: 1px solid #3a3a3c !important; border-radius: 12px; background-color: #242426; overflow: hidden; padding: 8px 0; }
@@ -208,19 +221,11 @@ export default function Inventory({ user }) {
             <div>
               <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>⚠️ Confirm Inventory Update</h3>
               <p style={{ margin: "16px 0 0 0", color: "#ffffff", fontSize: "17px", lineHeight: "1.5" }}>
-              Are you sure you want to <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "800", textTransform: "uppercase" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")} {pendingAction.isPallet ? `${pendingAction.rawQty} Pallets (${pendingAction.boxAdjustment} Boxes)` : `${pendingAction.boxAdjustment} Boxes`}</span> of <strong style={{color: "#007aff"}}>{pendingAction.targetItem.flavor}</strong>?
-            </p>
+                Are you sure you want to <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "800", textTransform: "uppercase" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")} {pendingAction.isPallet ? `${pendingAction.rawQty} Pallets (${pendingAction.boxAdjustment} Boxes)` : `${pendingAction.boxAdjustment} Boxes`}</span> of <strong style={{color: "#007aff"}}>{pendingAction.targetItem.flavor}</strong>?
+              </p>
             </div>
 
             <div style={{ backgroundColor: "#242426", padding: "20px", borderRadius: "16px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "12px", textAlign: "left" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #3a3a3c", paddingBottom: "8px" }}>
-                <span style={{ color: "#8e8e93", fontWeight: "600", fontSize: "14px" }}>Action Route</span>
-                <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "700", fontSize: "16px" }}>{pendingAction.actionName}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #3a3a3c", paddingBottom: "8px" }}>
-                <span style={{ color: "#8e8e93", fontWeight: "600", fontSize: "14px" }}>Product Detected</span>
-                <span style={{ color: "#ffffff", fontWeight: "600", fontSize: "14px", textAlign: "right", maxWidth: "200px" }}>{pendingAction.targetItem.flavor}</span>
-              </div>
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #3a3a3c", paddingBottom: "8px" }}>
                 <span style={{ color: "#8e8e93", fontWeight: "600", fontSize: "14px" }}>Quantity Adjustment</span>
                 <span style={{ color: "#ffffff", fontWeight: "700", fontSize: "18px" }}>{pendingAction.boxAdjustment} Boxes</span>
@@ -272,12 +277,12 @@ export default function Inventory({ user }) {
             
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Barcode ID (Scanned)</label>
-                <input disabled value={newItemForm.barcode} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "10px", color: "#8e8e93", fontSize: "14px", cursor: "not-allowed" }} />
+                <label style={{ fontSize: "12px", color: "#ff9500", fontWeight: "600", textTransform: "uppercase" }}>Barcode ID *</label>
+                <input value={newItemForm.barcode} onChange={e => setNewItemForm({...newItemForm, barcode: e.target.value})} placeholder="Scan or Type UPC..." style={{ backgroundColor: "#1c1c1e", border: "1px solid #007aff", borderRadius: "8px", padding: "10px", color: "#ffffff", fontSize: "14px", outline: "none" }} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 <label style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "600", textTransform: "uppercase" }}>Initial Stock QTY</label>
-                <input disabled value={newItemForm.quantity} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "10px", color: "#8e8e93", fontSize: "14px", cursor: "not-allowed" }} />
+                <input type="number" min="0" value={newItemForm.quantity} onChange={e => setNewItemForm({...newItemForm, quantity: parseInt(e.target.value) || 0})} style={{ backgroundColor: "#1c1c1e", border: "1px solid #007aff", borderRadius: "8px", padding: "10px", color: "#ffffff", fontSize: "14px", outline: "none" }} />
               </div>
             </div>
 
@@ -302,7 +307,7 @@ export default function Inventory({ user }) {
 
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <label style={{ fontSize: "12px", color: "#ff9500", fontWeight: "600", textTransform: "uppercase" }}>Flavor / Liquid Profile *</label>
-              <input autoFocus placeholder="e.g. Strawberry Puree" value={newItemForm.flavor} onChange={e => setNewItemForm({...newItemForm, flavor: e.target.value})} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "12px", color: "#ffffff", fontSize: "15px", outline: "none" }} />
+              <input placeholder="e.g. Strawberry Puree" value={newItemForm.flavor} onChange={e => setNewItemForm({...newItemForm, flavor: e.target.value})} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "12px", color: "#ffffff", fontSize: "15px", outline: "none" }} />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
@@ -317,7 +322,7 @@ export default function Inventory({ user }) {
             </div>
 
             <button onClick={handleSaveNewItem} style={{ backgroundColor: "#34c759", color: "#ffffff", border: "none", padding: "16px", borderRadius: "12px", fontSize: "16px", fontWeight: "700", cursor: "pointer", marginTop: "8px", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>
-              📥 Save & Receive Item
+              📥 Save to Database
             </button>
 
           </div>
@@ -370,10 +375,17 @@ export default function Inventory({ user }) {
           </button>
           
           <button 
-            onClick={() => setIsScanning(true)} 
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "12px", cursor: "pointer", color: "#ffffff", fontWeight: "700", boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)", flex: "2", fontSize: "15px", whiteSpace: "nowrap" }}
+            onClick={handleManualAdd} 
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", cursor: "pointer", color: "#ffffff", fontWeight: "600", transition: "all 0.2s", flex: "1", whiteSpace: "nowrap" }}
           >
-            <span style={{ fontSize: "20px" }}>📷</span> OPEN CAMERA SCANNER
+            <span style={{ fontSize: "16px" }}>➕</span> Add Product
+          </button>
+
+          <button 
+            onClick={() => setIsScanning(true)} 
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "12px", cursor: "pointer", color: "#ffffff", fontWeight: "700", boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)", flex: "1", fontSize: "15px", whiteSpace: "nowrap" }}
+          >
+            <span style={{ fontSize: "20px" }}>📷</span> SCAN
           </button>
         </div>
       </div>
