@@ -353,7 +353,11 @@ function App() {
            }
         }
 
-        return { ...latest, deviceId: latest.deviceId || id, tag: latest.tag || "", city: loc.city, estTimeRemaining };
+        const lastSeen = latest.timestamp !== "LATEST" 
+          ? new Date(latest.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) 
+          : "Live";
+          
+        return { ...latest, deviceId: latest.deviceId || id, tag: latest.tag || "", city: loc.city, estTimeRemaining, lastSeen };
       }));
       setAssets(processed);
     } catch (err) { setDbError(err.message); }
