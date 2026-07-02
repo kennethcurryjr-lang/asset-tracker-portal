@@ -18,7 +18,7 @@ export default function Inventory({ user }) {
 
   // Dynamic calculations to solve the 3 golden client questions instantly
   const totalBoxes = stock.reduce((acc, item) => acc + item.quantity, 0);
-  const activeFlavorsCount = new Set(stock.map(item) => item.flavor).size;
+  const activeFlavorsCount = new Set(stock.map(item => item.flavor)).size;
   const lowStockCount = stock.filter(item => item.quantity < 50).length;
 
   // Filter logic for quick searching by flavor family or zone
