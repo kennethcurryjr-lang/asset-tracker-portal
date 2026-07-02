@@ -32,8 +32,9 @@ export default function Inventory({ user }) {
   const [showAuditModal, setShowAuditModal] = useState(false);
   const [auditLog, setAuditLog] = useState([]);
 
-  // NEW: State to track which card is currently flipped
-  const [flippedCard, setFlippedCard] = useState(null);
+  // 🔥 NEW: Array State for Multi-Flip and the Toggle Button State
+  const [flippedCards, setFlippedCards] = useState([]);
+  const [isMultiFlipMode, setIsMultiFlipMode] = useState(false);
 
   const totalBoxes = stock.reduce((acc, item) => acc + item.quantity, 0);
   const activeFlavorsCount = new Set(stock.map(item => item.flavor)).size;
@@ -137,7 +138,6 @@ export default function Inventory({ user }) {
       <style>{`
         @media (max-width: 768px) { .inventory-container { padding: 16px !important; } .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } .toolbar-stack { flex-direction: column !important; align-items: stretch !important; } }
         #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; }
-        /* Hide scrollbar for clean card UI */
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
       `}</style>
 
@@ -171,7 +171,17 @@ export default function Inventory({ user }) {
       <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "16px", border: "1px solid #3a3a3c" }}>
         <input type="text" placeholder="🔎 Filter Inventory..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "14px 16px", width: "100%", maxWidth: "260px", color: "#ffffff" }} />
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", flex: "1", justifyContent: "flex-end" }}>
+          
           <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "12px", padding: "4px 12px" }}><span style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span><input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} /></div>
+          
+          {/* 🔥 NEW TOGGLE: Multi-Flip Mode */}
+          <button onClick={() => { 
+            setIsMultiFlipMode(!isMultiFlipMode); 
+            if (isMultiFlipMode) setFlippedCards([]); // Clears open cards when turning off
+          }} style={{ backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}>
+            🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
+          </button>
+
           <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#1c1c1e", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer" }}>🪵 {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
           <button onClick={() => setShowAuditModal(true)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer" }}>📋 Audit</button>
           <button onClick={handleExportCSV} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer" }}>📥 CSV</button>
@@ -184,9 +194,10 @@ export default function Inventory({ user }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
         {filteredStock.map((item) => {
           const isLowStock = item.quantity < 50;
-          const isFlipped = flippedCard === item.barcode;
           
-          // Math to generate realistic mock historical stats based on current volume
+          // 🔥 NEW ARRAY CHECK LOGIC
+          const isFlipped = flippedCards.includes(item.barcode);
+          
           const monthlyBurn = Math.round(item.quantity * 0.35) + 14;
           const quarterlyBurn = monthlyBurn * 3;
           const daysRemaining = item.quantity === 0 ? 0 : Math.max(1, Math.round(item.quantity / (monthlyBurn / 30)));
@@ -196,7 +207,13 @@ export default function Inventory({ user }) {
             <div 
               key={`${item.barcode}-${item.lotNumber}`} 
               style={{ perspective: '1200px', cursor: 'pointer' }}
-              onClick={() => setFlippedCard(isFlipped ? null : item.barcode)}
+              onClick={() => {
+                if (isMultiFlipMode) {
+                  setFlippedCards(prev => prev.includes(item.barcode) ? prev.filter(id => id !== item.barcode) : [...prev, item.barcode]);
+                } else {
+                  setFlippedCards(prev => prev.includes(item.barcode) && prev.length === 1 ? [] : [item.barcode]);
+                }
+              }}
             >
               <div style={{
                 width: '100%',
@@ -206,74 +223,42 @@ export default function Inventory({ user }) {
                 transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
               }}>
                 
-                {/* 🟢 FRONT SIDE (Dictates actual height in DOM) */}
+                {/* 🟢 FRONT SIDE */}
                 <div style={{ 
-                  backfaceVisibility: 'hidden', 
-                  backgroundColor: '#2c2c2e', borderRadius: '16px', padding: '24px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
-                  minHeight: '220px'
+                  backfaceVisibility: 'hidden', backgroundColor: '#2c2c2e', borderRadius: '16px', padding: '24px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)', minHeight: '220px'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{item.brand}</div>
-                      <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', marginTop: '4px', lineHeight: '1.2' }}>{item.flavor}</div>
-                    </div>
+                    <div><div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{item.brand}</div><div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', marginTop: '4px', lineHeight: '1.2' }}>{item.flavor}</div></div>
                     <div style={{ fontSize: '11px', color: '#8e8e93', backgroundColor: '#1c1c1e', padding: '4px 8px', borderRadius: '8px', border: '1px solid #3a3a3c', whiteSpace: 'nowrap', marginLeft: '12px' }}>Lot: {item.lotNumber}</div>
                   </div>
-
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: '#1c1c1e', color: '#8e8e93', borderRadius: '8px', border: '1px solid #3a3a3c' }}>📦 {item.type}</span>
-                    {isLowStock && <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: '#ff3b30', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}
-                  </div>
-
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: '#1c1c1e', color: '#8e8e93', borderRadius: '8px', border: '1px solid #3a3a3c' }}>📦 {item.type}</span>{isLowStock && <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: '#ff3b30', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid #3a3a3c' }}>
-                    <div>
-                      <div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>Placement Zone</div>
-                      <div style={{ fontSize: '14px', color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff", fontWeight: '600' }}>📍 {item.zone}</div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '4px', textTransform: 'uppercase' }}>In Stock</div>
-                      <div style={{ fontSize: '28px', fontWeight: '700', color: isLowStock ? '#ff3b30' : '#34c759', lineHeight: '1' }}>{item.quantity} <span style={{ fontSize: '14px', fontWeight: '600', color: '#8e8e93' }}>box</span></div>
-                    </div>
+                    <div><div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>Placement Zone</div><div style={{ fontSize: '14px', color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff", fontWeight: '600' }}>📍 {item.zone}</div></div>
+                    <div style={{ textAlign: 'right' }}><div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '4px', textTransform: 'uppercase' }}>In Stock</div><div style={{ fontSize: '28px', fontWeight: '700', color: isLowStock ? '#ff3b30' : '#34c759', lineHeight: '1' }}>{item.quantity} <span style={{ fontSize: '14px', fontWeight: '600', color: '#8e8e93' }}>box</span></div></div>
                   </div>
                 </div>
 
-                {/* 🔵 BACK SIDE (Historical Stats) */}
+                {/* 🔵 BACK SIDE */}
                 <div style={{ 
-                  backfaceVisibility: 'hidden', transform: 'rotateY(180deg)',
-                  position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                  backgroundColor: '#1a1a1c', borderRadius: '16px', padding: '24px', border: '1px solid #007aff', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 30px rgba(0, 122, 255, 0.15)',
-                  boxSizing: 'border-box'
+                  backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#1a1a1c', borderRadius: '16px', padding: '24px', border: '1px solid #007aff', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 30px rgba(0, 122, 255, 0.15)', boxSizing: 'border-box'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '12px', marginBottom: '16px' }}>
                     <div style={{ fontSize: '15px', fontWeight: '700', color: '#ffffff' }}>📊 Historical Velocity</div>
                     <div style={{ fontSize: '10px', color: '#007aff', fontWeight: '700', backgroundColor: 'rgba(0,122,255,0.15)', padding: '4px 8px', borderRadius: '6px' }}>TAP TO REVERT</div>
                   </div>
-                  
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', flex: 1 }}>
-                    <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>30-Day Burn</div>
-                      <div style={{ fontSize: '22px', fontWeight: '700', color: '#ffffff', marginTop: '2px' }}>{monthlyBurn} <span style={{fontSize: '12px', color:'#8e8e93'}}>bx</span></div>
-                    </div>
-                    <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>90-Day Burn</div>
-                      <div style={{ fontSize: '22px', fontWeight: '700', color: '#ffffff', marginTop: '2px' }}>{quarterlyBurn} <span style={{fontSize: '12px', color:'#8e8e93'}}>bx</span></div>
-                    </div>
-                    <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Est. Run-Out Date</div>
-                      <div style={{ fontSize: '18px', fontWeight: '700', color: item.quantity === 0 ? '#ff3b30' : '#34c759', marginTop: '2px' }}>
-                        {item.quantity === 0 ? "Depleted" : runOutDate}
-                      </div>
-                    </div>
+                    <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>30-Day Burn</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#ffffff', marginTop: '2px' }}>{monthlyBurn} <span style={{fontSize: '12px', color:'#8e8e93'}}>bx</span></div></div>
+                    <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>90-Day Burn</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#ffffff', marginTop: '2px' }}>{quarterlyBurn} <span style={{fontSize: '12px', color:'#8e8e93'}}>bx</span></div></div>
+                    <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Est. Run-Out Date</div><div style={{ fontSize: '18px', fontWeight: '700', color: item.quantity === 0 ? '#ff3b30' : '#34c759', marginTop: '2px' }}>{item.quantity === 0 ? "Depleted" : runOutDate}</div></div>
                   </div>
                 </div>
-
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* ALL PREVIOUS MODALS STAY INTACT BELOW */}
+      {/* MODALS */}
       {showConfirmModal && pendingAction && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
