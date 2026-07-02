@@ -22,20 +22,21 @@ export default function Inventory({ user }) {
   const [scanFeedback, setScanFeedback] = useState("");
   
   const [showNewItemModal, setShowNewItemModal] = useState(false);
-  const [showRegisterConfirm, setShowRegisterConfirm] = useState(false);
   const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "Citrus Springs", flavor: "", type: "3G Bag-in-Box", lotNumber: "", quantity: 1, zone: "" });
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+  
+  // Custom Frosted Glass Modal States
+  const [pendingModeSwitch, setPendingModeSwitch] = useState(null);
+  const [showRegisterConfirm, setShowRegisterConfirm] = useState(false);
 
-  // FEATURE 1: Audit Log State
   const [showAuditModal, setShowAuditModal] = useState(false);
   const [auditLog, setAuditLog] = useState([]);
 
   const totalBoxes = stock.reduce((acc, item) => acc + item.quantity, 0);
   const activeFlavorsCount = new Set(stock.map(item => item.flavor)).size;
   
-  // FEATURE 2: Low Stock Metrics
   const lowStockItems = stock.filter(item => item.quantity < 50);
 
   const filteredStock = stock.filter(item => 
@@ -91,7 +92,6 @@ export default function Inventory({ user }) {
     if (!pendingAction) return;
     const { targetItem, boxAdjustment, newQuantity, newZone, actionName } = pendingAction;
     
-    // FEATURE 1: Record to Audit Ledger
     const logEntry = {
       id: Date.now(),
       time: new Date().toLocaleString(),
@@ -126,13 +126,13 @@ export default function Inventory({ user }) {
 
   const handleSaveNewItem = () => {
     if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) return alert("Required fields missing.");
-    setShowRegisterConfirm(true); // Trigger stylish modal instead of native alert
+    setShowRegisterConfirm(true); 
   };
 
   const executeSaveNewItem = async () => {
     setStock(prev => { const exists = prev.find(i => i.barcode === newItemForm.barcode); return exists ? prev : [...prev, newItemForm]; });
     setShowNewItemModal(false);
-    setShowRegisterConfirm(false); // Close modal
+    setShowRegisterConfirm(false); 
     setScanFeedback(`✅ 📥 Registered Product: ${newItemForm.flavor}`);
     setTimeout(() => setScanFeedback(""), 4000);
 
@@ -140,7 +140,6 @@ export default function Inventory({ user }) {
     catch (err) { console.error("Failed to register:", err); }
   };
 
-  // FEATURE 3: CSV Export Logic
   const handleExportCSV = () => {
     const headers = ["Brand", "Flavor", "Packaging Type", "Current Count", "Warehouse Zone", "Lot Number"];
     const csvRows = [headers.join(",")];
@@ -192,24 +191,11 @@ export default function Inventory({ user }) {
           <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Warehouse Logged in as: {user?.email || "Admin Mode"}</p>
         </div>
         <div style={{ display: "flex", backgroundColor: "#2c2c2e", padding: "4px", borderRadius: "12px", width: "fit-content" }}>
-          <button onClick={() => {
-          if (scanMode !== "receive") {
-            if (window.confirm("⚠️ WARNING: SWITCHING TO RECEIVE MODE\n\nAre you sure you want to switch to Receiving?\n\nAny barcodes scanned will now be ADDED to the live warehouse inventory.")) {
-              setScanMode("receive");
-            }
-          }
-        }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: "#ffffff", flex: 1 }}>📥 Receive</button>
-          <button onClick={() => {
-          if (scanMode !== "ship") {
-            if (window.confirm("⚠️ WARNING: SWITCHING TO SHIP MODE\n\nAre you sure you want to switch to Shipping?\n\nAny barcodes scanned will now be DEDUCTED from the live warehouse inventory.")) {
-              setScanMode("ship");
-            }
-          }
-        }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "transparent", color: "#ffffff", flex: 1 }}>🚚 Ship</button>
+          <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>📥 Receive</button>
+          <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>🚚 Ship</button>
         </div>
       </div>
 
-      {/* FEATURE 2: LOW STOCK AUTOMATED ALERT */}
       {lowStockItems.length > 0 && (
         <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "16px", padding: "20px", marginBottom: "24px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
@@ -302,7 +288,7 @@ export default function Inventory({ user }) {
         </table>
       </div>
 
-      {/* CONFIRMATION INTERCEPT MODAL */}
+      {/* ACTION CONFIRM MODAL */}
       {showConfirmModal && pendingAction && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -318,7 +304,41 @@ export default function Inventory({ user }) {
         </div>
       )}
 
-      {/* FEATURE 1: AUDIT LOG MODAL */}
+      {/* MODE SWITCH STYLED MODAL */}
+      {pendingModeSwitch && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+            <div style={{ fontSize: "48px", lineHeight: "1", marginBottom: "-8px" }}>{pendingModeSwitch === "ship" ? "🚚" : "📥"}</div>
+            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>Switch to {pendingModeSwitch === "ship" ? "Shipping" : "Receiving"}?</h3>
+            <p style={{ margin: 0, color: "#8e8e93", fontSize: "15px", lineHeight: "1.6" }}>
+              Any barcodes scanned will now be <strong style={{ color: pendingModeSwitch === "ship" ? "#ff3b30" : "#34c759" }}>{pendingModeSwitch === "ship" ? "DEDUCTED from" : "ADDED to"}</strong> the live warehouse inventory.
+            </p>
+            <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
+              <button onClick={() => setPendingModeSwitch(null)} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "14px", borderRadius: "12px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Cancel</button>
+              <button onClick={() => { setScanMode(pendingModeSwitch); setPendingModeSwitch(null); }} style={{ flex: 2, backgroundColor: pendingModeSwitch === "ship" ? "#ff3b30" : "#34c759", color: "#ffffff", border: "none", padding: "14px", borderRadius: "12px", fontWeight: "700", cursor: "pointer", boxShadow: pendingModeSwitch === "ship" ? "0 4px 15px rgba(255,59,48,0.3)" : "0 4px 15px rgba(52,199,89,0.3)", transition: "all 0.2s" }}>Confirm {pendingModeSwitch === "ship" ? "Ship" : "Receive"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NEW ITEM REGISTRATION STYLED MODAL */}
+      {showRegisterConfirm && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+            <div style={{ fontSize: "48px", lineHeight: "1", marginBottom: "-8px" }}>☁️</div>
+            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>Register New Product?</h3>
+            <p style={{ margin: 0, color: "#8e8e93", fontSize: "15px", lineHeight: "1.6" }}>
+              Permanently add <strong style={{ color: "#007aff" }}>{newItemForm.flavor}</strong> to the cloud database?
+            </p>
+            <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
+              <button onClick={() => setShowRegisterConfirm(false)} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "14px", borderRadius: "12px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Cancel</button>
+              <button onClick={executeSaveNewItem} style={{ flex: 2, backgroundColor: "#007aff", color: "#ffffff", border: "none", padding: "14px", borderRadius: "12px", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 15px rgba(0,122,255,0.3)", transition: "all 0.2s" }}>Confirm Registration</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AUDIT LOG MODAL */}
       {showAuditModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "700px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "20px", maxHeight: "80vh" }}>
