@@ -1067,12 +1067,15 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       `}</style>
 
       {/* DYNAMIC HEADER ARCHITECTURE */}
-      <>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
         <header style={{ 
           ...headerStyle, 
-          borderRadius: activePortal === "inventory" ? "14px 14px 0 0" : "14px",
+          borderBottomLeftRadius: activePortal === "inventory" ? "0px" : "14px",
+          borderBottomRightRadius: activePortal === "inventory" ? "0px" : "14px",
           borderBottom: activePortal === "inventory" ? "none" : "1px solid #2d2d2f",
           boxShadow: activePortal === "inventory" ? "none" : headerStyle.boxShadow,
+          marginBottom: 0,
+          zIndex: 2
         }}>
           <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
           
@@ -1081,7 +1084,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
               {isAdmin && <span style={{ color: '#86868b', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}
           </div>
           
-          <button onClick={handleSignOut} style={{ backgroundColor: '#ffffff', color: '#000000', border: 'none', padding: '6px 18px', fontSize: '12px', borderRadius: '14px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s' }}>
+          <button onClick={handleSignOut} style={{ backgroundColor: '#ffffff', color: '#000000', border: 'none', padding: '6px 18px', fontSize: '12px', borderRadius: '14px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', marginTop: '4px' }}>
             Sign Out
           </button>
         </header>
@@ -1091,19 +1094,24 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           <div style={{ 
             display: "flex", 
             justifyContent: "center", 
-            backgroundColor: activePortal === "inventory" ? "#1c1c1e" : "transparent", 
-            borderRadius: activePortal === "inventory" ? "0 0 14px 14px" : "0",
-            padding: activePortal === "inventory" ? "0 12px 24px 12px" : "16px 12px 0 12px", 
+            backgroundColor: activePortal === "inventory" ? "#1a1a1c" : "transparent", 
+            borderBottomLeftRadius: activePortal === "inventory" ? "14px" : "0px",
+            borderBottomRightRadius: activePortal === "inventory" ? "14px" : "0px",
+            borderTopLeftRadius: "0px",
+            borderTopRightRadius: "0px",
+            padding: activePortal === "inventory" ? "0px 12px 24px 12px" : "16px 12px 0 12px", 
             borderBottom: activePortal === "inventory" ? "1px solid #3a3a3c" : "none",
-            boxShadow: activePortal === "inventory" ? "0 4px 30px rgba(0, 0, 0, 0.15)" : "none"
+            boxShadow: activePortal === "inventory" ? "0 10px 30px rgba(0, 0, 0, 0.15)" : "none",
+            marginTop: activePortal === "inventory" ? "-1px" : "0",
+            zIndex: 1
           }}>
-            <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.15)" }}>
+            <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.3)" }}>
               <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📡 Live GPS Fleet</button>
               <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📦 CS Group Inventory</button>
             </div>
           </div>
         )}
-      </>
+      </div>
 
       {/* 🔀 THE ROUTING INTERSECTION */}
       {activePortal === "inventory" ? (
