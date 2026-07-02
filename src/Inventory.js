@@ -103,7 +103,7 @@ export default function Inventory({ user }) {
 
   useEffect(() => {
     if (isScanning) {
-      const scanner = new Html5QrcodeScanner("reader", { qrbox: { width: 250, height: 250 }, fps: 10, rememberLastUsedCamera: true });
+      const scanner = new Html5QrcodeScanner("reader", { fps: 30, qrbox: { width: 300, height: 150 }, rememberLastUsedCamera: true, aspectRatio: 1.777778 });
       scanner.render(
         (decodedText) => { scanner.clear(); setIsScanning(false); if (processRef.current) processRef.current(decodedText); },
         (error) => {}
