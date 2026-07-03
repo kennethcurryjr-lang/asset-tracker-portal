@@ -1565,8 +1565,9 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         </>
       )}
 
-      <div style={{ textAlign: "center", padding: "20px", color: "#86868b", fontSize: "12px" }}>
+      <div style={{ textAlign: "center", padding: "20px", color: "#86868b", fontSize: "12px", backgroundColor: "#121212", width: "100%" }}>
         Kinetic Cards v2.1
+        <style>{`#root, .App { background-color: #121212 !important; min-height: 100vh; }`}</style>
       </div>
     </div>
   );
