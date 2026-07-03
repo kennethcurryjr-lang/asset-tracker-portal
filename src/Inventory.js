@@ -15,6 +15,7 @@ const initialMockData = [
 const MANAGER_PIN = "1234";
 
 export default function Inventory({ user }) {
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const [stock, setStock] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isPalletMode, setIsPalletMode] = useState(false);
