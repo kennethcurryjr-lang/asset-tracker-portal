@@ -355,6 +355,7 @@ export default function Inventory({ user }) {
           const runOutDate = new Date(Date.now() + (daysRemaining * 24 * 60 * 60 * 1000)).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
           const healthPercent = Math.min(100, Math.round((item.quantity / targetStock) * 100));
+          const recentLog = auditLog.find(log => log.flavor === item.flavor);
           let healthColor = "#007aff"; 
           if (item.quantity < 50) { healthColor = "#ff3b30"; } 
           else if (daysRemaining >= 30) { healthColor = "#34c759"; }
@@ -394,7 +395,17 @@ export default function Inventory({ user }) {
                     <div style={{ width: '100%', height: '10px', backgroundColor: '#1c1c1e', borderRadius: '5px', overflow: 'hidden', border: '1px solid #3a3a3c' }}>
                       <div style={{ width: `${healthPercent}%`, height: '100%', backgroundColor: healthColor, boxShadow: `0 0 10px ${healthColor}80`, transition: 'width 0.5s ease-out' }}></div>
                     </div>
-                    <div style={{ fontSize: '10px', color: '#8e8e93', marginTop: '8px', textAlign: 'right' }}>Target Stock: {targetStock} bx</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                    {recentLog ? (
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '4px 8px', borderRadius: '6px', border: '1px solid #3a3a3c' }}>
+                        <span style={{ fontSize: '9px', color: '#8e8e93', fontWeight: '700', letterSpacing: '0.05em' }}>LAST SCAN:</span>
+                        <span style={{ fontSize: '11px', fontWeight: '700', color: recentLog.action.includes('Receive') ? '#34c759' : (recentLog.action.includes('Ship') ? '#ff3b30' : '#007aff') }}>
+                          {recentLog.action === 'Receive' ? '📥' : (recentLog.action === 'Ship' ? '🚚' : '⚙️')} {recentLog.action} {recentLog.qty}
+                        </span>
+                      </div>
+                    ) : <div />}
+                    <div style={{ fontSize: '10px', color: '#8e8e93', textAlign: 'right' }}>Target: {targetStock} bx</div>
+                  </div>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid #3a3a3c' }}>
