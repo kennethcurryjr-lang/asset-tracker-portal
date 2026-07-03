@@ -61,8 +61,7 @@ export default function Inventory({ user }) {
   const [showNewItemModal, setShowNewItemModal] = useState(false);
   const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "", flavor: "", type: "", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 1, zone: "" });
 
-  const [showTransferConfirm, setShowTransferConfirm] = useState(false);
-  const [showHelpModal, setShowHelpModal] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [lastScan, setLastScan] = useState({ code: null, time: 0 });
   const [pendingAction, setPendingAction] = useState(null);
@@ -412,7 +411,7 @@ export default function Inventory({ user }) {
         <div style={{ display: "flex", backgroundColor: "#2c2c2e", padding: "4px", borderRadius: "12px", width: "fit-content" }}>
           <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>📥 Receive</button>
           <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>🚚 Ship</button>
-        <button onClick={() => setShowTransferConfirm(true)} style={{ backgroundColor: typeof scanMode !== "undefined" && scanMode === "transfer" ? "#007aff" : "transparent", color: typeof scanMode !== "undefined" && scanMode === "transfer" ? "#fff" : "#8e8e93", border: "1px solid #3a3a3c", padding: "8px 16px", borderRadius: "20px", fontWeight: "bold", cursor: "pointer", marginLeft: "8px" }}>🔄 Transfer</button>
+        <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ backgroundColor: typeof scanMode !== "undefined" && scanMode === "transfer" ? "#007aff" : "transparent", color: typeof scanMode !== "undefined" && scanMode === "transfer" ? "#fff" : "#8e8e93", border: "1px solid #3a3a3c", padding: "8px 16px", borderRadius: "20px", fontWeight: "bold", cursor: "pointer", marginLeft: "8px" }}>🔄 Transfer</button>
         </div>
       </div>
 
@@ -735,20 +734,7 @@ export default function Inventory({ user }) {
 
       {/* SCANNER MODAL & FIFO INJECTION */}
       
-      {showTransferConfirm && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.8)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000, backdropFilter: "blur(4px)" }}>
-          <div style={{ backgroundColor: "#1c1c1e", padding: "24px", borderRadius: "16px", border: "1px solid #3a3a3c", textAlign: "center", maxWidth: "320px", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
-            <h3 style={{ color: "#fff", marginTop: 0, fontSize: "20px" }}>🔄 Switch to Transfer?</h3>
-            <p style={{ color: "#8e8e93", fontSize: "14px", lineHeight: "1.5", marginBottom: "24px" }}>
-              You are about to switch the master scanner into <strong>Transfer Mode</strong>. Scanning will not deduct inventory, but will allow you to update the physical placement zones of the freight.
-            </p>
-            <div style={{ display: "flex", gap: "12px" }}>
-              <button onClick={() => setShowTransferConfirm(false)} style={{ flex: 1, padding: "14px", backgroundColor: "#2c2c2e", color: "#fff", border: "1px solid #3a3a3c", borderRadius: "10px", cursor: "pointer", fontWeight: "bold", fontSize: "14px", transition: "all 0.2s" }}>Cancel</button>
-              <button onClick={() => { setScanMode("transfer"); setShowTransferConfirm(false); }} style={{ flex: 1, padding: "14px", backgroundColor: "#007aff", color: "#fff", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "bold", fontSize: "14px", transition: "all 0.2s" }}>Confirm Switch</button>
-            </div>
-          </div>
-        </div>
-      )}
+      
 
       
       {showHelpModal && (
@@ -817,12 +803,12 @@ export default function Inventory({ user }) {
       {pendingModeSwitch && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
-            <div style={{ fontSize: "48px", lineHeight: "1", marginBottom: "-8px" }}>{pendingModeSwitch === "ship" ? "🚚" : "📥"}</div>
-            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>Switch to {pendingModeSwitch === "ship" ? "Shipping" : "Receiving"}?</h3>
-            <p style={{ margin: 0, color: "#8e8e93", fontSize: "15px", lineHeight: "1.6" }}>Any barcodes scanned will now be <strong style={{ color: pendingModeSwitch === "ship" ? "#ff3b30" : "#34c759" }}>{pendingModeSwitch === "ship" ? "DEDUCTED from" : "ADDED to"}</strong> the live warehouse inventory.</p>
+            <div style={{ fontSize: "48px", lineHeight: "1", marginBottom: "-8px" }}>{pendingModeSwitch === "ship" ? "🚚" : pendingModeSwitch === "transfer" ? "🔄" : "📥"}</div>
+            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>Switch to {pendingModeSwitch === "ship" ? "Shipping" : pendingModeSwitch === "transfer" ? "Transfer Mode" : "Receiving"}?</h3>
+            <p style={{ margin: 0, color: "#8e8e93", fontSize: "15px", lineHeight: "1.6" }}>Any barcodes scanned will now be <strong style={{ color: pendingModeSwitch === "ship" ? "#ff3b30" : pendingModeSwitch === "transfer" ? "#007aff" : "#34c759" }}>{pendingModeSwitch === "ship" ? "DEDUCTED from" : pendingModeSwitch === "transfer" ? "MOVED within" : "ADDED to"}</strong> the live warehouse inventory.</p>
             <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
               <button onClick={() => setPendingModeSwitch(null)} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "14px", borderRadius: "12px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Cancel</button>
-              <button onClick={() => { setScanMode(pendingModeSwitch); setPendingModeSwitch(null); }} style={{ flex: 2, backgroundColor: pendingModeSwitch === "ship" ? "#ff3b30" : "#34c759", color: "#ffffff", border: "none", padding: "14px", borderRadius: "12px", fontWeight: "700", cursor: "pointer", boxShadow: pendingModeSwitch === "ship" ? "0 4px 15px rgba(255,59,48,0.3)" : "0 4px 15px rgba(52,199,89,0.3)", transition: "all 0.2s" }}>Confirm {pendingModeSwitch === "ship" ? "Ship" : "Receive"}</button>
+              <button onClick={() => { setScanMode(pendingModeSwitch); setPendingModeSwitch(null); }} style={{ flex: 2, backgroundColor: pendingModeSwitch === "ship" ? "#ff3b30" : pendingModeSwitch === "transfer" ? "#007aff" : "#34c759", color: "#ffffff", border: "none", padding: "14px", borderRadius: "12px", fontWeight: "700", cursor: "pointer", boxShadow: pendingModeSwitch === "ship" ? "0 4px 15px rgba(255,59,48,0.3)" : pendingModeSwitch === "transfer" ? "0 4px 15px rgba(0,122,255,0.3)" : "0 4px 15px rgba(52,199,89,0.3)", transition: "all 0.2s" }}>Confirm {pendingModeSwitch === "ship" ? "Ship" : pendingModeSwitch === "transfer" ? "Transfer" : "Receive"}</button>
             </div>
           </div>
         </div>
