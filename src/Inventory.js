@@ -403,7 +403,7 @@ export default function Inventory({ user }) {
           #printable-label { position: absolute; left: 0; top: 0; width: 100%; max-width: 4in; height: 6in; margin: 0; padding: 16px; background: white; color: black; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box;}
           .no-print { display: none !important; }
         }
-      `}
+      
         @media (min-width: 769px) {
           .toolbar-stack {
             display: grid !important;
@@ -411,7 +411,7 @@ export default function Inventory({ user }) {
             align-items: flex-start !important;
           }
         }
-      </style>
+      `}</style>
 
       {/* 🔥 DYNAMIC VENDOR DATALIST */}
       <datalist id="vendor-emails">
@@ -434,7 +434,7 @@ export default function Inventory({ user }) {
   details.hide-summary-marker > summary::-webkit-details-marker { display: none; }
   details.hide-summary-marker .accordion-toggle::after { content: "Tap to view details ▾"; }
   details.hide-summary-marker[open] .accordion-toggle::after { content: "Tap to Close ▴"; }
-`}
+
         @media (min-width: 769px) {
           .toolbar-stack {
             display: grid !important;
@@ -442,7 +442,7 @@ export default function Inventory({ user }) {
             align-items: flex-start !important;
           }
         }
-      </style>
+      `}</style>
             <details style={{ cursor: "pointer" }} className="hide-summary-marker">
               <summary style={{ display: "flex", alignItems: "center", gap: "12px", outline: "none", listStyle: "none" }}>
                 <span style={{ fontSize: "28px", lineHeight: "1" }}>⚠️</span>
