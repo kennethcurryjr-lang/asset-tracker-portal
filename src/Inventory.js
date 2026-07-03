@@ -246,7 +246,7 @@ export default function Inventory({ user }) {
   };
 
   const handleManualAdd = () => { setNewItemForm({ barcode: "", brand: "", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 0, zone: "Unassigned Warehouse" }); setShowNewItemModal(true); };
-  const handleSaveNewItem = () => { if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) return alert("Required fields missing."); setShowRegisterConfirm(true); };
+  const handleSaveNewItem = () => { if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) return alert("Required fields missing."); executeSaveNewItem(); };
 
   const executeSaveNewItem = async () => {
     setStock(prev => { const exists = prev.find(i => i.barcode === newItemForm.barcode); return exists ? prev : [...prev, newItemForm]; });
