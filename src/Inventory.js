@@ -644,7 +644,11 @@ export default function Inventory({ user }) {
               <option value="Single Unit" />
               {[...new Set(stock.map(i => i.type))].filter(Boolean).map(x => <option key={x} value={x} />)}
             </datalist>
-              <datalist id="stock-lots">{[...new Set(stock.map(i => i.lotNumber))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
+              <datalist id="stock-lots">
+              {Array.from(new Map(stock.filter(i => i.lotNumber).map(i => [i.lotNumber, i])).values()).map(i => (
+                <option key={i.barcode} value={i.lotNumber}>{i.brand} {i.flavor}</option>
+              ))}
+            </datalist>
               <datalist id="stock-zones">{[...new Set(stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone]))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
               <input placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={e => setNewItemForm(prev => ({...prev, barcode: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
               <div style={{ display: "flex", gap: "8px" }}>
