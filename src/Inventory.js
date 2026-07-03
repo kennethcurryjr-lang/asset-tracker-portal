@@ -259,11 +259,13 @@ export default function Inventory({ user }) {
   const handleSaveCardEdit = async (barcode) => {
     const form = editForms[barcode];
     const originalItem = stock.find(i => i.barcode === barcode);
-    if (!form || !originalItem) return;
+    if (!form) { alert("Error: Form is empty."); return; }
+    if (!originalItem) { alert("Error: Item not found."); return; }
 
     // Reconcile Multi-Zone Arrays with the manual quantity edit
-    let updatedLocs = JSON.parse(JSON.stringify(originalItem.locations || [{name: originalItem.zone || "Unassigned", qty: originalItem.quantity}]));
-    let diff = form.quantity - originalItem.quantity;
+    let locSource = Array.isArray(originalItem.locations) ? originalItem.locations : [{name: originalItem.zone || "Unassigned", qty: originalItem.quantity}];
+    let updatedLocs = JSON.parse(JSON.stringify(locSource));
+    let diff = (parseInt(form.quantity) || 0) - (parseInt(originalItem.quantity) || 0);
     if (diff !== 0) {
         let targetLoc = updatedLocs.find(l => l.name === form.zone);
         if (targetLoc) targetLoc.qty = Math.max(0, targetLoc.qty + diff);
@@ -551,7 +553,7 @@ export default function Inventory({ user }) {
                         <input list="vendor-emails" value={editForms[item.barcode]?.vendorEmail ?? item.vendorEmail ?? ""} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), vendorEmail: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
                       </div>
 
-                      <button onClick={() => handleSaveCardEdit(item.barcode)} style={{ marginTop: 'auto', backgroundColor: '#007aff', color: '#fff', padding: '10px', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}>💾 Save</button>
+                      <button onClick={(e) => { e.stopPropagation(); handleSaveCardEdit(item.barcode); }} style={{ marginTop: 'auto', backgroundColor: '#007aff', color: '#fff', padding: '10px', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}>💾 Save</button>
                     </div>
                   ) : (
                     // STATS MODE
