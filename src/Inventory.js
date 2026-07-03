@@ -382,6 +382,8 @@ export default function Inventory({ user }) {
           .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } 
           .toolbar-stack { flex-direction: column !important; align-items: stretch !important; } 
           .search-group { max-width: 100% !important; }
+          .mode-switch-group { margin: 16px 0 !important; max-width: 100% !important; width: 100% !important; box-sizing: border-box; }
+          .mode-switch-group button { padding: 12px 4px !important; font-size: 14px !important; }
           .action-group-right { width: 100% !important; align-items: stretch !important; }
           .primary-row { justify-content: space-between !important; gap: 6px !important; flex-wrap: nowrap !important; width: 100% !important; }
           .primary-row > * { padding: 10px 8px !important; font-size: 13px !important; flex: 1; display: flex; justify-content: center; }
@@ -414,11 +416,7 @@ export default function Inventory({ user }) {
           <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "700", letterSpacing: "-0.02em" }}>📦 Inventory <button onClick={() => setShowHelpModal(true)} style={{ marginLeft: '16px', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#007aff', padding: '4px 12px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', verticalAlign: 'middle' }}>📖 Guide</button></h1>
           <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Active Operator: {user?.email || "Scanner Mode Active"}</p>
         </div>
-        <div style={{ display: "flex", backgroundColor: "#2c2c2e", padding: "4px", borderRadius: "12px", width: "fit-content" }}>
-          <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>📥 Receive</button>
-          <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>🚚 Ship</button>
-        <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ backgroundColor: typeof scanMode !== "undefined" && scanMode === "transfer" ? "#007aff" : "transparent", color: typeof scanMode !== "undefined" && scanMode === "transfer" ? "#fff" : "#8e8e93", border: "1px solid #3a3a3c", padding: "8px 16px", borderRadius: "20px", fontWeight: "bold", cursor: "pointer", marginLeft: "8px" }}>🔄 Transfer</button>
-        </div>
+        
       </div>
 
       {lowStockItems.length > 0 && (
@@ -483,6 +481,11 @@ export default function Inventory({ user }) {
             🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
           </button>
           <button onClick={handleManualAdd} style={{ backgroundColor: "#34c759", border: "none", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "700", cursor: "pointer", transition: "all 0.2s", width: "100%", marginTop: "4px", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>➕ Register New Product</button>
+        </div>
+        <div className="mode-switch-group" style={{ display: "flex", backgroundColor: "#1c1c1e", padding: "8px", borderRadius: "16px", border: "1px solid #3a3a3c", flex: "1 1 auto", justifyContent: "space-between", alignSelf: "center", margin: "0 16px", gap: "8px", maxWidth: "500px" }}>
+          <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: scanMode === "receive" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>📥 Receive</button>
+          <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "transparent", color: scanMode === "ship" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>🚚 Ship</button>
+          <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", backgroundColor: scanMode === "transfer" ? "#007aff" : "transparent", color: scanMode === "transfer" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>🔄 Transfer</button>
         </div>
         <div className="action-group-right" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1", alignItems: "flex-end" }}>
           <div className="primary-row" style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "flex-end" }}>
