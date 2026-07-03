@@ -631,7 +631,11 @@ export default function Inventory({ user }) {
               <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <datalist id="stock-barcodes">{[...new Set(stock.map(i => i.barcode))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
+              <datalist id="stock-barcodes">
+              {Array.from(new Map(stock.filter(i => i.barcode).map(i => [i.barcode, i])).values()).map(i => (
+                <option key={i.barcode} value={i.barcode}>{i.brand} {i.flavor}</option>
+              ))}
+            </datalist>
               <datalist id="stock-brands">{[...new Set(stock.map(i => i.brand))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
               <datalist id="stock-flavors">{[...new Set(stock.map(i => i.flavor))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
               <datalist id="stock-types">
