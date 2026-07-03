@@ -769,7 +769,7 @@ export default function Inventory({ user }) {
                 <h4 style={{ color: "#fff", fontSize: "18px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "12px", marginTop: 0 }}>3. Database & Administration</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <div><strong style={{ color: "#34c759" }}>➕ Register New Product:</strong> Use this ONLY for brand new SKUs that have never been in the system.</div>
-                  <div><strong style={{ color: "#007aff" }}>🔄 Multi-Flip:</strong> Instantly flip all inventory cards at once to access the manual "Edit Details" and "Print Label" buttons.</div>
+                  <div><strong style={{ color: "#007aff" }}>🔄 Multi-Flip:</strong> Allows you to flip multiple cards open at the same time without them automatically closing. Perfect for comparing back-of-card info side-by-side.</div>
                   <div><strong style={{ color: "#fff" }}>📋 Security Audit:</strong> View the immutable cloud ledger of every scan, shipment, and manual edit (Manager PIN required).</div>
                 </div>
               </div>
