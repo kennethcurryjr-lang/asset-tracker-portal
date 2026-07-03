@@ -29,6 +29,7 @@ export default function Inventory({ user }) {
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+  const [modalQty, setModalQty] = useState(1);
   
   const [pendingModeSwitch, setPendingModeSwitch] = useState(null);
   const [showRegisterConfirm, setShowRegisterConfirm] = useState(false);
@@ -166,6 +167,7 @@ export default function Inventory({ user }) {
         }
       }
 
+      setModalQty(boxAdjustment);
       setPendingAction({ targetItem, boxAdjustment, newQuantity, newZone, actionName: scanMode === "receive" ? "📥 Receive" : "🚚 Ship", fifoWarningItem });
       setShowConfirmModal(true);
     } else {
@@ -176,7 +178,9 @@ export default function Inventory({ user }) {
 
   const handleConfirmAction = async () => {
     if (!pendingAction) return;
-    const { targetItem, boxAdjustment, newQuantity, newZone, actionName } = pendingAction;
+    let { targetItem, newZone, actionName } = pendingAction;
+    const boxAdjustment = modalQty;
+    const newQuantity = scanMode === "receive" ? targetItem.quantity + boxAdjustment : Math.max(0, targetItem.quantity - boxAdjustment);
     
     const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor };
     setAuditLog(prev => [logEntry, ...prev]);
@@ -610,7 +614,12 @@ export default function Inventory({ user }) {
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
             <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>⚠️ Confirm Update</h3>
-            <p style={{ margin: 0, color: "#ffffff", fontSize: "17px", lineHeight: "1.5" }}>Action: <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "800" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")} {pendingAction.boxAdjustment} Boxes</span> of <strong style={{color: "#007aff"}}>{pendingAction.targetItem.flavor}</strong></p>
+            <p style={{ margin: 0, color: "#ffffff", fontSize: "17px", lineHeight: "1.5" }}>Action: <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "800" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")}</span> <strong style={{color: "#007aff"}}>{pendingAction.targetItem.flavor}</strong></p>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", margin: "16px 0" }}>
+              <button onClick={() => setModalQty(Math.max(1, modalQty - 1))} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "12px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>-</button>
+              <input type="number" min="1" value={modalQty} onChange={(e) => setModalQty(parseInt(e.target.value) || 1)} style={{ backgroundColor: "#1c1c1e", border: "2px solid #007aff", color: "#fff", fontSize: "28px", fontWeight: "800", textAlign: "center", width: "90px", padding: "8px", borderRadius: "12px", outline: "none" }} />
+              <button onClick={() => setModalQty(modalQty + 1)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "12px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>+</button>
+            </div>
             
             {pendingAction.fifoWarningItem && (
               <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid #ff9500", padding: "16px", borderRadius: "12px", textAlign: "left", display: "flex", flexDirection: "column", gap: "8px" }}>
