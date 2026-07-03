@@ -51,11 +51,32 @@ export default function Inventory({ user }) {
   const activeFlavorsCount = new Set(stock.map(item => item.flavor)).size;
   const lowStockItems = stock.filter(item => item.quantity < 50);
 
-  const filteredStock = stock.filter(item => 
-    item.flavor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.zone.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStock = stock.filter(item => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase().trim();
+    
+    // 1. Deep Text Sweep (Checks literally every string field on the card)
+    const textMatch = [
+      item.flavor, item.brand, item.zone, item.barcode, 
+      item.type, item.lotNumber, item.vendorEmail, item.expiryDate
+    ].some(field => field && String(field).toLowerCase().includes(term));
+    
+    if (textMatch) return true;
+
+    // 2. Smart "Today" & Time Engine
+    if (term.includes("today") || term.includes("recent")) {
+      const todayString = new Date().toDateString();
+      if (item.recentScans && item.recentScans.some(scan => new Date(scan.timestamp).toDateString() === todayString)) {
+        return true;
+      }
+    }
+
+    // 3. Status & KPI Keywords
+    if ((term === "low" || term === "low stock" || term === "warning") && item.quantity > 0 && item.quantity < 50) return true;
+    if ((term === "out" || term === "empty" || term === "depleted") && item.quantity === 0) return true;
+
+    return false;
+  });
 
   // 🔥 DYNAMIC MEMORY ENGINE: Pulls core presets + any email saved to DynamoDB
   const uniqueVendors = [...new Set([
