@@ -413,7 +413,7 @@ export default function Inventory({ user }) {
                 <div key={idx} style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
                   {scan.time} 
                   <span style={{ fontWeight: '800', marginLeft: '6px', fontSize: '13px', color: scan.action === 'Receive' ? '#34c759' : (scan.action === 'Ship' ? '#ff3b30' : '#007aff') }}>
-                    {scan.action === 'Receive' ? 'R' : (scan.action === 'Ship' ? 'S' : 'O')}
+                    {scan.qty}{scan.action === 'Receive' ? 'R' : (scan.action === 'Ship' ? 'S' : 'O')}
                   </span>
                 </div>
               ))}
