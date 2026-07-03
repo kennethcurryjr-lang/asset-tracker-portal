@@ -776,7 +776,7 @@ export default function Inventory({ user }) {
 
             </div>
             
-            <button onClick={() => setShowHelpModal(false)} style={{ width: "100%", marginTop: "32px", padding: "16px", backgroundColor: "#007aff", color: "#fff", border: "none", borderRadius: "12px", cursor: "pointer", fontWeight: "bold", fontSize: "16px", transition: "all 0.2s" }}>Got it! Back to Scanner</button>
+            <button onClick={() => setShowHelpModal(false)} style={{ width: "100%", marginTop: "32px", padding: "16px", backgroundColor: "#007aff", color: "#fff", border: "none", borderRadius: "12px", cursor: "pointer", fontWeight: "bold", fontSize: "16px", transition: "all 0.2s" }}>Close</button>
           </div>
         </div>
       )}
