@@ -159,11 +159,15 @@ export default function Inventory({ user }) {
     
     const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor };
     setAuditLog(prev => [logEntry, ...prev]);
-    setStock(prevStock => prevStock.map(item => item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone, lastScanAction: actionName.replace(/[^a-zA-Z]/g, ""), lastScanQty: boxAdjustment, lastScanTime: logEntry.time, lastScanTimestamp: logEntry.id } : item));
-    setScanFeedback(`✅ ${actionName.replace(/[^a-zA-Z]/g, "")} ${boxAdjustment} boxes of ${targetItem.flavor}`);
+
+    const newScan = { action: logEntry.action, qty: boxAdjustment, time: logEntry.time, timestamp: logEntry.id };
+    const updatedScans = [newScan, ...(targetItem.recentScans || [])].slice(0, 5);
+
+    setStock(prevStock => prevStock.map(item => item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone, recentScans: updatedScans } : item));
+    setScanFeedback(`✅ ${logEntry.action} ${boxAdjustment} boxes of ${targetItem.flavor}`);
     setShowConfirmModal(false); setPendingAction(null);
 
-    try { await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, lastScanAction = :lsa, lastScanQty = :lsq, lastScanTime = :lst, lastScanTimestamp = :lsts", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone, ":lsa": actionName.replace(/[^a-zA-Z]/g, ""), ":lsq": boxAdjustment, ":lst": logEntry.time, ":lsts": logEntry.id } })); } 
+    try { await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, recentScans = :rs", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone, ":rs": updatedScans } })); } 
     catch (err) { console.error("Inventory cloud update failed:", err); }
     try { await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: logEntry })); } 
     catch (err) { console.error("Audit log cloud sync failed:", err); }
@@ -404,17 +408,16 @@ export default function Inventory({ user }) {
                       <div style={{ width: `${healthPercent}%`, height: '100%', backgroundColor: healthColor, boxShadow: `0 0 10px ${healthColor}80`, transition: 'width 0.5s ease-out' }}></div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '8px' }}>
-                {(item.lastScanTimestamp && (Date.now() - item.lastScanTimestamp < 86400000)) ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '4px 8px', borderRadius: '6px', border: '1px solid #3a3a3c', width: 'fit-content' }}>
-                      <span style={{ fontSize: '9px', color: '#8e8e93', fontWeight: '700', letterSpacing: '0.05em' }}>LAST SCAN:</span>
-                      <span style={{ fontSize: '11px', fontWeight: '700', color: item.lastScanAction === 'Receive' ? '#34c759' : (item.lastScanAction === 'Ship' ? '#ff3b30' : '#007aff') }}>
-                        {item.lastScanAction === 'Receive' ? '📥' : (item.lastScanAction === 'Ship' ? '🚚' : '⚙️')} {item.lastScanAction} {item.lastScanQty}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '9px', color: '#8e8e93', paddingLeft: '4px', fontWeight: '600' }}>{item.lastScanTime}</div>
-                  </div>
-                ) : <div />}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              {(item.recentScans || []).filter(scan => (Date.now() - scan.timestamp < 43200000)).map((scan, idx) => (
+                <div key={idx} style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
+                  {scan.time} 
+                  <span style={{ fontWeight: '800', marginLeft: '6px', fontSize: '13px', color: scan.action === 'Receive' ? '#34c759' : (scan.action === 'Ship' ? '#ff3b30' : '#007aff') }}>
+                    {scan.action === 'Receive' ? 'R' : (scan.action === 'Ship' ? 'S' : 'O')}
+                  </span>
+                </div>
+              ))}
+            </div>
                 <div style={{ fontSize: '10px', color: '#8e8e93', textAlign: 'right', marginTop: '4px' }}>Target: {targetStock} bx</div>
               </div>
                   </div>
