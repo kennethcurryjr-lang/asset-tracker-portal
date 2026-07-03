@@ -245,7 +245,7 @@ export default function Inventory({ user }) {
     setTimeout(() => setScanFeedback(""), 4000);
   };
 
-  const handleManualAdd = () => { setNewItemForm({ barcode: "", brand: "", flavor: "", type: "", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 0, zone: "Unassigned Warehouse" }); setShowNewItemModal(true); };
+  const handleManualAdd = () => { setNewItemForm({ barcode: "", brand: "", flavor: "", type: "", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 0, zone: "" }); setShowNewItemModal(true); };
   const handleSaveNewItem = () => { if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) return alert("Required fields missing."); executeSaveNewItem(); };
 
   const executeSaveNewItem = async () => {
@@ -630,6 +630,7 @@ export default function Inventory({ user }) {
               <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <datalist id="stock-barcodes">{[...new Set(stock.map(i => i.barcode))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
               <datalist id="stock-brands">{[...new Set(stock.map(i => i.brand))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
               <datalist id="stock-flavors">{[...new Set(stock.map(i => i.flavor))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
               <datalist id="stock-types">
@@ -650,7 +651,7 @@ export default function Inventory({ user }) {
               ))}
             </datalist>
               <datalist id="stock-zones">{[...new Set(stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone]))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
-              <input placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={e => setNewItemForm(prev => ({...prev, barcode: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              <input list="stock-barcodes" placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={e => setNewItemForm(prev => ({...prev, barcode: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
               <div style={{ display: "flex", gap: "8px" }}>
                 <input list="stock-brands" placeholder="Brand (e.g. Citrus Springs)" value={newItemForm.brand} onChange={e => setNewItemForm(prev => ({...prev, brand: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
                 <input list="stock-flavors" placeholder="Flavor Profile" value={newItemForm.flavor} onChange={e => setNewItemForm(prev => ({...prev, flavor: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
