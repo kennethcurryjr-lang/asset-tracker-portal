@@ -285,7 +285,10 @@ export default function Inventory({ user }) {
         await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: { ...originalItem, ...form } }));
         await docClient.send(new DeleteCommand({ TableName: "BeverageInventoryData", Key: { barcode: originalItem.barcode, lotNumber: originalItem.lotNumber } }));
       } else {
-        await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: originalItem.barcode, lotNumber: originalItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, locations = :locs, expiryDate = :e, vendorEmail = :v", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": form.quantity, ":z": form.zone, ":e": form.expiryDate, ":v": form.vendorEmail, ":locs": updatedLocs } }));
+        // Scrub undefined variables that cause DynamoDB to crash and save the whole item
+        const itemToSave = { ...originalItem, ...form };
+        Object.keys(itemToSave).forEach(key => itemToSave[key] === undefined && delete itemToSave[key]);
+        await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: itemToSave }));
       }
       await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: logEntry }));
     } catch (err) { console.error("Admin edit cloud update failed:", err); }
