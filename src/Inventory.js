@@ -4,11 +4,11 @@ import { ScanCommand, UpdateCommand, PutCommand, DeleteCommand } from "@aws-sdk/
 import { docClient } from './dynamoClient';
 
 const initialMockData = [
-  { barcode: "082123456781", lotNumber: "LOT-2026-01", expiryDate: "2026-10-15", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", type: "3G Bag-in-Box", quantity: 420, zone: "Cooler Bay-01" },
-  { barcode: "082123456782", lotNumber: "LOT-2026-02", expiryDate: "2026-11-01", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "Apple Juice Premium", type: "3G Bag-in-Box", quantity: 180, zone: "Cooler Bay-01" },
+  { barcode: "082123456781", lotNumber: "LOT-2026-01", expiryDate: "2026-10-15", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", type: "", quantity: 420, zone: "Cooler Bay-01" },
+  { barcode: "082123456782", lotNumber: "LOT-2026-02", expiryDate: "2026-11-01", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "Apple Juice Premium", type: "", quantity: 180, zone: "Cooler Bay-01" },
   { barcode: "082123456783", lotNumber: "LOT-2026-03", expiryDate: "2027-01-20", vendorEmail: "wholesale@coolattitudes.com", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 310, zone: "Dry Aisle A" },
   { barcode: "082123456783-OLD", lotNumber: "LOT-2025-11", expiryDate: "2026-08-10", vendorEmail: "wholesale@coolattitudes.com", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 45, zone: "Dry Aisle B" },
-  { barcode: "082123456784", lotNumber: "LOT-2026-04", expiryDate: "2026-12-05", vendorEmail: "distro@twistedbranch.com", brand: "Twisted Branch", flavor: "Craft Lemonade Base", type: "3G Bag-in-Box", quantity: 35, zone: "Dry Aisle B" },
+  { barcode: "082123456784", lotNumber: "LOT-2026-04", expiryDate: "2026-12-05", vendorEmail: "distro@twistedbranch.com", brand: "Twisted Branch", flavor: "Craft Lemonade Base", type: "", quantity: 35, zone: "Dry Aisle B" },
   { barcode: "082123456785", lotNumber: "LOT-2026-05", expiryDate: "2027-03-10", vendorEmail: "supply@madrinas.com", brand: "Madrinas Coffee", flavor: "Vanilla Cold Brew RTD", type: "24-Can Case", quantity: 300, zone: "Dry Aisle C" }
 ];
 
@@ -25,7 +25,7 @@ export default function Inventory({ user }) {
   const [scanFeedback, setScanFeedback] = useState("");
   
   const [showNewItemModal, setShowNewItemModal] = useState(false);
-  const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 1, zone: "" });
+  const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "", flavor: "", type: "", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 1, zone: "" });
 
   const [showTransferConfirm, setShowTransferConfirm] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
@@ -177,7 +177,7 @@ export default function Inventory({ user }) {
       setPendingAction({ targetItem, boxAdjustment, newQuantity, newZone, actionName: scanMode === "receive" ? "📥 Receive" : (scanMode === "transfer" ? "🔄 Transfer" : "🚚 Ship"), fifoWarningItem, isShrinkage: false });
       setShowConfirmModal(true);
     } else {
-      setNewItemForm({ barcode: cleanScan, brand: "", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : "Unassigned Warehouse" });
+      setNewItemForm({ barcode: cleanScan, brand: "", flavor: "", type: "", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : "Unassigned Warehouse" });
       setShowNewItemModal(true);
     }
   };
@@ -245,7 +245,7 @@ export default function Inventory({ user }) {
     setTimeout(() => setScanFeedback(""), 4000);
   };
 
-  const handleManualAdd = () => { setNewItemForm({ barcode: "", brand: "", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 0, zone: "Unassigned Warehouse" }); setShowNewItemModal(true); };
+  const handleManualAdd = () => { setNewItemForm({ barcode: "", brand: "", flavor: "", type: "", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 0, zone: "Unassigned Warehouse" }); setShowNewItemModal(true); };
   const handleSaveNewItem = () => { if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) return alert("Required fields missing."); executeSaveNewItem(); };
 
   const executeSaveNewItem = async () => {
@@ -632,7 +632,18 @@ export default function Inventory({ user }) {
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <datalist id="stock-brands">{[...new Set(stock.map(i => i.brand))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
               <datalist id="stock-flavors">{[...new Set(stock.map(i => i.flavor))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
-              <datalist id="stock-types">{[...new Set(stock.map(i => i.type))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
+              <datalist id="stock-types">
+              <option value="3G Bag-in-Box" />
+              <option value="5G Bag-in-Box" />
+              <option value="24-Can Case" />
+              <option value="12-Can Case" />
+              <option value="1G Jug Case" />
+              <option value="1/2 BBL Keg" />
+              <option value="1/6 BBL Keg" />
+              <option value="Pallet" />
+              <option value="Single Unit" />
+              {[...new Set(stock.map(i => i.type))].filter(Boolean).map(x => <option key={x} value={x} />)}
+            </datalist>
               <datalist id="stock-lots">{[...new Set(stock.map(i => i.lotNumber))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
               <datalist id="stock-zones">{[...new Set(stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone]))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
               <input placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={e => setNewItemForm(prev => ({...prev, barcode: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
