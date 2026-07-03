@@ -168,7 +168,7 @@ export default function Inventory({ user }) {
       }
 
       setModalQty(boxAdjustment);
-      setPendingAction({ targetItem, boxAdjustment, newQuantity, newZone, actionName: scanMode === "receive" ? "📥 Receive" : "🚚 Ship", fifoWarningItem });
+      setPendingAction({ targetItem, boxAdjustment, newQuantity, newZone, actionName: scanMode === "receive" ? "📥 Receive" : (scanMode === "transfer" ? "🔄 Transfer" : "🚚 Ship"), fifoWarningItem, isShrinkage: false });
       setShowConfirmModal(true);
     } else {
       setNewItemForm({ barcode: cleanScan, brand: "", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : "Unassigned Warehouse" });
@@ -178,9 +178,10 @@ export default function Inventory({ user }) {
 
   const handleConfirmAction = async () => {
     if (!pendingAction) return;
-    let { targetItem, newZone, actionName } = pendingAction;
+    let { targetItem, newZone, actionName, isShrinkage } = pendingAction;
+    if (isShrinkage) actionName = "💥 Shrinkage";
     const boxAdjustment = modalQty;
-    const newQuantity = scanMode === "receive" ? targetItem.quantity + boxAdjustment : Math.max(0, targetItem.quantity - boxAdjustment);
+    const newQuantity = actionName === "🔄 Transfer" ? targetItem.quantity : (scanMode === "receive" ? targetItem.quantity + boxAdjustment : Math.max(0, targetItem.quantity - boxAdjustment));
     
     const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor };
     setAuditLog(prev => [logEntry, ...prev]);
@@ -316,6 +317,7 @@ export default function Inventory({ user }) {
         <div style={{ display: "flex", backgroundColor: "#2c2c2e", padding: "4px", borderRadius: "12px", width: "fit-content" }}>
           <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>📥 Receive</button>
           <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>🚚 Ship</button>
+        <button onClick={() => setScanMode && setScanMode("transfer")} style={{ backgroundColor: typeof scanMode !== "undefined" && scanMode === "transfer" ? "#007aff" : "transparent", color: typeof scanMode !== "undefined" && scanMode === "transfer" ? "#fff" : "#8e8e93", border: "1px solid #3a3a3c", padding: "8px 16px", borderRadius: "20px", fontWeight: "bold", cursor: "pointer", marginLeft: "8px" }}>🔄 Transfer</button>
         </div>
       </div>
 
@@ -615,10 +617,25 @@ export default function Inventory({ user }) {
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
             <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>⚠️ Confirm Update</h3>
             <p style={{ margin: 0, color: "#ffffff", fontSize: "17px", lineHeight: "1.5" }}>Action: <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "800" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")}</span> <strong style={{color: "#007aff"}}>{pendingAction.targetItem.flavor}</strong></p>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", margin: "16px 0" }}>
-              <button onClick={() => setModalQty(Math.max(1, modalQty - 1))} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "12px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>-</button>
-              <input type="number" min="1" value={modalQty} onChange={(e) => setModalQty(parseInt(e.target.value) || 1)} style={{ backgroundColor: "#1c1c1e", border: "2px solid #007aff", color: "#fff", fontSize: "28px", fontWeight: "800", textAlign: "center", width: "90px", padding: "8px", borderRadius: "12px", outline: "none" }} />
-              <button onClick={() => setModalQty(modalQty + 1)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "12px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>+</button>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", margin: "16px 0" }}>
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px" }}>
+                <button onClick={() => setModalQty(Math.max(1, modalQty - 1))} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "12px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>-</button>
+                <input type="number" min="1" value={modalQty} onChange={(e) => setModalQty(parseInt(e.target.value) || 1)} style={{ backgroundColor: "#1c1c1e", border: "2px solid #007aff", color: "#fff", fontSize: "28px", fontWeight: "800", textAlign: "center", width: "90px", padding: "8px", borderRadius: "12px", outline: "none" }} />
+                <button onClick={() => setModalQty(modalQty + 1)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "12px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>+</button>
+              </div>
+              
+              {pendingAction.actionName === '🔄 Transfer' && (
+                <div style={{ marginTop: '8px', textAlign: 'left' }}>
+                  <label style={{ fontSize: '11px', color: '#8e8e93', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>New Placement Zone:</label>
+                  <input type="text" value={pendingAction.newZone || ''} onChange={(e) => setPendingAction({...pendingAction, newZone: e.target.value})} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#fff', padding: '12px', borderRadius: '8px', outline: 'none', fontSize: '14px' }} placeholder="e.g. Cooler Bay-02" />
+                </div>
+              )}
+
+              {pendingAction.actionName === '🚚 Ship' && (
+                <button onClick={() => setPendingAction({...pendingAction, isShrinkage: !pendingAction.isShrinkage})} style={{ marginTop: '8px', backgroundColor: pendingAction.isShrinkage ? '#ff3b30' : '#2c2c2e', border: '1px solid #3a3a3c', color: '#fff', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}>
+                  {pendingAction.isShrinkage ? '💥 MARKED AS SHRINKAGE / DAMAGE' : 'Flag as Damaged / Shrinkage'}
+                </button>
+              )}
             </div>
             
             {pendingAction.fifoWarningItem && (
