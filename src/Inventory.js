@@ -29,6 +29,7 @@ export default function Inventory({ user }) {
 
   const [showTransferConfirm, setShowTransferConfirm] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [lastScan, setLastScan] = useState({ code: null, time: 0 });
   const [pendingAction, setPendingAction] = useState(null);
   const [modalQty, setModalQty] = useState(1);
   
@@ -77,6 +78,9 @@ export default function Inventory({ user }) {
     if ((term === "low" || term === "low stock" || term === "warning") && item.quantity > 0 && item.quantity < 50) return true;
     if ((term === "out" || term === "empty" || term === "depleted") && item.quantity === 0) return true;
 
+    // 4. Auto-Archive Engine (Hides cards at 0 stock for > 24hrs)
+    if (item.quantity === 0 && item.lastScanTimestamp && (Date.now() - item.lastScanTimestamp > 86400000)) return false;
+    
     return false;
   });
 
@@ -187,6 +191,19 @@ export default function Inventory({ user }) {
     let updatedLocations = targetItem.locations || [{ name: targetItem.zone || "Unassigned Warehouse", qty: targetItem.quantity }];
 
     if (actionName === "🔄 Transfer" && newZone) {
+        // Strict FIFO Check: Does this zone contain an older lot?
+        const fifoViolation = stock.some(s => 
+            s.flavor === targetItem.flavor && 
+            s.barcode !== targetItem.barcode && 
+            s.quantity > 0 &&
+            (s.locations || []).some(l => l.name === newZone) && 
+            new Date(s.expiryDate || "2099-12-31") < new Date(targetItem.expiryDate || "2099-12-31")
+        );
+        
+        if (fifoViolation) {
+            alert("🛑 FIFO VIOLATION: " + newZone + " already contains an older lot of " + targetItem.flavor + ". Please select a different placement zone to prevent pallet trapping.");
+            return; // Hard stop
+        }
         // Find the largest pool of stock to deduct from automatically
         let source = updatedLocations.reduce((prev, current) => (prev.qty > current.qty) ? prev : current);
         source.qty = Math.max(0, source.qty - boxAdjustment);
