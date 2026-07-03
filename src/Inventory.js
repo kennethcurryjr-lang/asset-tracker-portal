@@ -384,12 +384,28 @@ export default function Inventory({ user }) {
 
       {lowStockItems.length > 0 && (
         <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "16px", padding: "20px", marginBottom: "24px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "16px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <span style={{ fontSize: "32px", lineHeight: "1" }}>⚠️</span>
-            <div>
-              <h4 style={{ margin: 0, color: "#ff9500", fontSize: "18px", fontWeight: "700" }}>Critical Stock Alert</h4>
-              <p style={{ margin: "4px 0 0 0", color: "#ffffff", fontSize: "14px", lineHeight: "1.4" }}>Action Required: <strong style={{ color: "#ff9500" }}>{lowStockItems.map(i => i.flavor).join(", ")}</strong> dropped below 50 boxes.</p>
-            </div>
+          <div style={{ width: "100%" }}>
+            <style>{`details.hide-summary-marker > summary::-webkit-details-marker { display: none; }`}</style>
+            <details style={{ cursor: "pointer" }} className="hide-summary-marker">
+              <summary style={{ display: "flex", alignItems: "center", gap: "12px", outline: "none", listStyle: "none" }}>
+                <span style={{ fontSize: "28px", lineHeight: "1" }}>⚠️</span>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <h4 style={{ margin: 0, color: "#ff9500", fontSize: "18px", fontWeight: "700" }}>Critical Stock Alert</h4>
+                  <span style={{ color: "#ffffff", fontSize: "14px", marginTop: "2px" }}>
+                    <strong style={{ color: "#ff9500" }}>{lowStockItems.length}</strong> items require attention. <span style={{ color: "#ff9500", marginLeft: "4px" }}>Tap to view details ▾</span>
+                  </span>
+                </div>
+              </summary>
+              <div style={{ marginTop: "16px", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "8px" }}>
+                {lowStockItems.map(i => (
+                  <div key={i.barcode} style={{ backgroundColor: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,149,0,0.2)", padding: "10px", borderRadius: "8px", display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "11px", color: "#8e8e93", textTransform: "uppercase", letterSpacing: "0.5px" }}>{i.brand}</span>
+                    <strong style={{ color: "#ffffff", fontSize: "14px" }}>{i.flavor}</strong>
+                    <span style={{ color: "#ff3b30", fontSize: "13px", fontWeight: "bold", marginTop: "4px" }}>{i.quantity} bx remaining</span>
+                  </div>
+                ))}
+              </div>
+            </details>
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             {vendorsToAlert.map(vendorEmail => {
