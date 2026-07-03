@@ -182,7 +182,33 @@ export default function Inventory({ user }) {
     let { targetItem, newZone, actionName, isShrinkage } = pendingAction;
     if (isShrinkage) actionName = "💥 Shrinkage";
     const boxAdjustment = modalQty;
-    const newQuantity = actionName === "🔄 Transfer" ? targetItem.quantity : (scanMode === "receive" ? targetItem.quantity + boxAdjustment : Math.max(0, targetItem.quantity - boxAdjustment));
+
+    // Initialize the locations array if it's an older single-zone card
+    let updatedLocations = targetItem.locations || [{ name: targetItem.zone || "Unassigned Warehouse", qty: targetItem.quantity }];
+
+    if (actionName === "🔄 Transfer" && newZone) {
+        // Find the largest pool of stock to deduct from automatically
+        let source = updatedLocations.reduce((prev, current) => (prev.qty > current.qty) ? prev : current);
+        source.qty = Math.max(0, source.qty - boxAdjustment);
+        
+        // Add the stock to the new zone
+        let dest = updatedLocations.find(loc => loc.name === newZone);
+        if (dest) dest.qty += boxAdjustment;
+        else updatedLocations.push({ name: newZone, qty: boxAdjustment });
+    } else if (scanMode === "receive") {
+        let destName = newZone || targetItem.zone || "Unassigned Warehouse";
+        let dest = updatedLocations.find(loc => loc.name === destName);
+        if (dest) dest.qty += boxAdjustment;
+        else updatedLocations.push({ name: destName, qty: boxAdjustment });
+    } else {
+        // Shipping or Shrinkage: Deduct from the primary zone
+        let source = updatedLocations.reduce((prev, current) => (prev.qty > current.qty) ? prev : current);
+        source.qty = Math.max(0, source.qty - boxAdjustment);
+    }
+
+    // Clean up empty zones so they disappear from the UI
+    updatedLocations = updatedLocations.filter(loc => loc.qty > 0);
+    const newQuantity = updatedLocations.reduce((sum, loc) => sum + loc.qty, 0);
     
     const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor };
     setAuditLog(prev => [logEntry, ...prev]);
@@ -190,11 +216,11 @@ export default function Inventory({ user }) {
     const newScan = { action: logEntry.action, qty: boxAdjustment, time: logEntry.time, timestamp: logEntry.id };
     const updatedScans = [newScan, ...(targetItem.recentScans || [])].slice(0, 5);
 
-    setStock(prevStock => prevStock.map(item => item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, zone: newZone, recentScans: updatedScans } : item));
+    setStock(prevStock => prevStock.map(item => item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, locations: updatedLocations, zone: newZone || item.zone, recentScans: updatedScans } : item));
     setScanFeedback(`✅ ${logEntry.action} ${boxAdjustment} boxes of ${targetItem.flavor}`);
     setShowConfirmModal(false); setPendingAction(null);
 
-    try { await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, recentScans = :rs", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone, ":rs": updatedScans } })); } 
+    try { await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, recentScans = :rs, locations = :locs", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone || targetItem.zone, ":rs": updatedScans, ":locs": updatedLocations } })); } 
     catch (err) { console.error("Inventory cloud update failed:", err); }
     try { await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: logEntry })); } 
     catch (err) { console.error("Audit log cloud sync failed:", err); }
