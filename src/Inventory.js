@@ -738,19 +738,45 @@ export default function Inventory({ user }) {
 
       
       {showHelpModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.8)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000, backdropFilter: "blur(4px)" }}>
-          <div style={{ backgroundColor: "#1c1c1e", padding: "24px", borderRadius: "16px", border: "1px solid #3a3a3c", maxWidth: "500px", width: "90%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", borderBottom: "1px solid #3a3a3c", paddingBottom: "12px" }}>
-              <h3 style={{ color: "#fff", margin: 0, fontSize: "20px" }}>📖 Scanner Operations Guide</h3>
-              <button onClick={() => setShowHelpModal(false)} style={{ backgroundColor: "transparent", border: "none", color: "#8e8e93", fontSize: "24px", cursor: "pointer" }}>&times;</button>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 10000, backdropFilter: "blur(10px)" }}>
+          <div style={{ backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "20px", border: "1px solid #3a3a3c", maxWidth: "600px", width: "90%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 20px 50px rgba(0,0,0,0.8)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
+              <h3 style={{ color: "#fff", margin: 0, fontSize: "24px", fontWeight: "700" }}>📖 Kinetic Asset Tracker Guide</h3>
+              <button onClick={() => setShowHelpModal(false)} style={{ backgroundColor: "transparent", border: "none", color: "#8e8e93", fontSize: "28px", cursor: "pointer", transition: "color 0.2s" }}>&times;</button>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px", color: "#d1d1d6", fontSize: "14px", lineHeight: "1.5" }}>
-              <div><strong style={{ color: "#34c759", fontSize: "16px", display: "block", marginBottom: "4px" }}>📥 Receive Mode</strong> Use this when new freight arrives. Scanning ADDS boxes.</div>
-              <div><strong style={{ color: "#ff3b30", fontSize: "16px", display: "block", marginBottom: "4px" }}>🚚 Ship Mode</strong> Use this when loading trucks. Scanning DEDUCTS boxes.</div>
-              <div><strong style={{ color: "#ff9500", fontSize: "16px", display: "block", marginBottom: "4px" }}>🔄 Transfer Mode</strong> Move pallets between aisles without deducting stock.</div>
-              <div><strong style={{ color: "#af52de", fontSize: "16px", display: "block", marginBottom: "4px" }}>💥 Shrinkage / Damage</strong> In Ship Mode, scan and click "Flag as Damaged" to remove broken stock safely.</div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "24px", color: "#d1d1d6", fontSize: "14px", lineHeight: "1.6" }}>
+              
+              <div>
+                <h4 style={{ color: "#fff", fontSize: "18px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "12px", marginTop: 0 }}>1. Core Scanning Modes</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div><strong style={{ color: "#34c759" }}>📥 Receive Mode:</strong> Used when new freight arrives. Scanning a barcode <strong>adds</strong> stock.</div>
+                  <div><strong style={{ color: "#ff3b30" }}>🚚 Ship Mode:</strong> Used when loading trucks out. Scanning a barcode <strong>deducts</strong> stock.</div>
+                  <div><strong style={{ color: "#007aff" }}>🔄 Transfer Mode:</strong> Used for internal warehouse moves. Changes the placement zone without changing total inventory counts.</div>
+                  <div><strong style={{ color: "#ff9500" }}>💥 Shrinkage / Damage:</strong> While in Ship Mode, scan an item and click "Flag as Damaged" to safely remove broken stock.</div>
+                </div>
+              </div>
+
+              <div>
+                <h4 style={{ color: "#fff", fontSize: "18px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "12px", marginTop: 0 }}>2. Scanner Modifiers (Set BEFORE Scanning)</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div><strong style={{ color: "#ff9500" }}>🪵 Single vs 🧱 Pallet:</strong> Tap to toggle between counting individual units or entire pallets.</div>
+                  <div><strong style={{ color: "#fff" }}>QTY Multiplier:</strong> Change this number to scan multiple pallets or cases in a single scan trigger.</div>
+                </div>
+              </div>
+
+              <div>
+                <h4 style={{ color: "#fff", fontSize: "18px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "12px", marginTop: 0 }}>3. Database & Administration</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div><strong style={{ color: "#34c759" }}>➕ Register New Product:</strong> Use this ONLY for brand new SKUs that have never been in the system.</div>
+                  <div><strong style={{ color: "#007aff" }}>🔄 Multi-Flip:</strong> Instantly flip all inventory cards at once to access the manual "Edit Details" and "Print Label" buttons.</div>
+                  <div><strong style={{ color: "#fff" }}>📋 Security Audit:</strong> View the immutable cloud ledger of every scan, shipment, and manual edit (Manager PIN required).</div>
+                </div>
+              </div>
+
             </div>
-            <button onClick={() => setShowHelpModal(false)} style={{ width: "100%", marginTop: "24px", padding: "14px", backgroundColor: "#007aff", color: "#fff", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "bold", fontSize: "14px", transition: "all 0.2s" }}>Got it! Back to Scanner</button>
+            
+            <button onClick={() => setShowHelpModal(false)} style={{ width: "100%", marginTop: "32px", padding: "16px", backgroundColor: "#007aff", color: "#fff", border: "none", borderRadius: "12px", cursor: "pointer", fontWeight: "bold", fontSize: "16px", transition: "all 0.2s" }}>Got it! Back to Scanner</button>
           </div>
         </div>
       )}
