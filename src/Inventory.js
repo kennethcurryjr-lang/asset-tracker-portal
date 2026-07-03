@@ -48,6 +48,11 @@ export default function Inventory({ user }) {
     let meta = document.querySelector('meta[name="viewport"]');
     if (!meta) { meta = document.createElement('meta'); meta.name = 'viewport'; document.head.appendChild(meta); }
     meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0';
+    document.body.style.backgroundColor = '#121212';
+    document.body.style.color = '#ffffff';
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    document.documentElement.style.backgroundColor = '#121212';
   }, []);
   const [stock, setStock] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
