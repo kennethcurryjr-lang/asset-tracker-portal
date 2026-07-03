@@ -1046,9 +1046,6 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     visibility: visible !important;
     position: relative !important;
             width: 100% !important;
-            height: calc(100% + 40px) !important;
-            margin-left: -100% !important;
-            margin-top: -10px !important;
             border: none !important;
           }
           
