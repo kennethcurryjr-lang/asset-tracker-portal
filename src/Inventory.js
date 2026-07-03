@@ -15,7 +15,6 @@ const initialMockData = [
 const MANAGER_PIN = "1234";
 
 export default function Inventory({ user }) {
-  const [showHelpModal, setShowHelpModal] = useState(false);
   const [stock, setStock] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isPalletMode, setIsPalletMode] = useState(false);
@@ -29,6 +28,7 @@ export default function Inventory({ user }) {
   const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "", flavor: "", type: "3G Bag-in-Box", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 1, zone: "" });
 
   const [showTransferConfirm, setShowTransferConfirm] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [lastScan, setLastScan] = useState({ code: null, time: 0 });
   const [pendingAction, setPendingAction] = useState(null);
@@ -320,16 +320,48 @@ export default function Inventory({ user }) {
   const vendorsToAlert = [...new Set(lowStockItems.map(i => i.vendorEmail || "purchasing@csgroup.com"))];
 
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: "16px" }}>
-          <h2 style={{ margin: 0, color: "#fff", display: "flex", alignItems: "center", gap: "8px", fontSize: "24px" }}>📦 Commercial Beverage Operations</h2>
-          <button onClick={() => setShowHelpModal(true)} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", color: "#007aff", padding: "8px 16px", borderRadius: "12px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.2s" }}>📖 Guide</button>
-        </div>
+    <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
+      <style>{`
+        @media (max-width: 768px) { 
+          .inventory-container { padding: 16px !important; } 
+          .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } 
+          .toolbar-stack { flex-direction: column !important; align-items: stretch !important; } 
+          .search-group { max-width: 100% !important; }
+          .action-group-right { width: 100% !important; align-items: stretch !important; }
+          .primary-row { justify-content: space-between !important; gap: 6px !important; flex-wrap: nowrap !important; width: 100% !important; }
+          .primary-row > * { padding: 10px 8px !important; font-size: 13px !important; flex: 1; display: flex; justify-content: center; }
+          .qty-box { padding: 4px !important; gap: 4px !important; }
+          .hide-mobile { display: none !important; } 
+          .qty-box input { width: 100% !important; max-width: 40px !important; font-size: 14px !important; }
+          .secondary-row { width: 100% !important; justify-content: space-between !important; gap: 8px !important; margin-top: 8px !important; }
+          .secondary-row > button { flex: 1; }
+        }
+        #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; display: flex; justify-content: center; }
+        #reader video { border-radius: 14px; object-fit: cover; }
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
+        
+        @media print {
+          body * { visibility: hidden; }
+          #printable-label, #printable-label * { visibility: visible; }
+          #printable-label { position: absolute; left: 0; top: 0; width: 100%; max-width: 4in; height: 6in; margin: 0; padding: 16px; background: white; color: black; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box;}
+          .no-print { display: none !important; }
+        }
+      `}</style>
+
+      {/* 🔥 DYNAMIC VENDOR DATALIST */}
+      <datalist id="vendor-emails">
+        {uniqueVendors.map(email => <option key={email} value={email} />)}
+      </datalist>
+
+      {/* HEADER & ALERTS */}
+      <div className="header-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "700", letterSpacing: "-0.02em" }}>📦 Commercial Beverage Operations <button onClick={() => setShowHelpModal(true)} style={{ marginLeft: '16px', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#007aff', padding: '4px 12px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', verticalAlign: 'middle' }}>📖 Guide</button></h1>
           <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Active Operator: {user?.email || "Scanner Mode Active"}</p>
         </div>
         <div style={{ display: "flex", backgroundColor: "#2c2c2e", padding: "4px", borderRadius: "12px", width: "fit-content" }}>
           <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>📥 Receive</button>
           <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ padding: "10px 16px", border: "none", borderRadius: "10px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "transparent", color: "#ffffff", flex: 1, transition: "all 0.2s" }}>🚚 Ship</button>
-        <button onClick={() => setScanMode && setScanMode("transfer")} style={{ backgroundColor: typeof scanMode !== "undefined" && scanMode === "transfer" ? "#007aff" : "transparent", color: typeof scanMode !== "undefined" && scanMode === "transfer" ? "#fff" : "#8e8e93", border: "1px solid #3a3a3c", padding: "8px 16px", borderRadius: "20px", fontWeight: "bold", cursor: "pointer", marginLeft: "8px" }}>🔄 Transfer</button>
         <button onClick={() => setShowTransferConfirm(true)} style={{ backgroundColor: typeof scanMode !== "undefined" && scanMode === "transfer" ? "#007aff" : "transparent", color: typeof scanMode !== "undefined" && scanMode === "transfer" ? "#fff" : "#8e8e93", border: "1px solid #3a3a3c", padding: "8px 16px", borderRadius: "20px", fontWeight: "bold", cursor: "pointer", marginLeft: "8px" }}>🔄 Transfer</button>
         </div>
       </div>
@@ -641,6 +673,7 @@ export default function Inventory({ user }) {
         </div>
       )}
 
+      
       {showHelpModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.8)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000, backdropFilter: "blur(4px)" }}>
           <div style={{ backgroundColor: "#1c1c1e", padding: "24px", borderRadius: "16px", border: "1px solid #3a3a3c", maxWidth: "500px", width: "90%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
@@ -658,7 +691,7 @@ export default function Inventory({ user }) {
           </div>
         </div>
       )}
-      {showConfirmModal && pendingAction && (
+{showConfirmModal && pendingAction && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "24px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
             <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "700" }}>⚠️ Confirm Update</h3>
