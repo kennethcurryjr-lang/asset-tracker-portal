@@ -939,7 +939,6 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         .custom-scrollbar-viewport::-webkit-scrollbar {
           width: 6px !important;
           height: 6px !important;
-          display: block !important;
         }
         .custom-scrollbar-viewport::-webkit-scrollbar-track {
           background: #e5e5ea !important;
@@ -1045,6 +1044,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           .card-column-right-mapping iframe {
     display: block !important;
     visibility: visible !important;
+    position: relative !important;
             width: 100% !important;
             height: calc(100% + 40px) !important;
             margin-left: -100% !important;
