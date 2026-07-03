@@ -1043,6 +1043,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           }
           
           .card-column-right-mapping iframe {
+    display: block !important;
+    visibility: visible !important;
             width: 100% !important;
             height: calc(100% + 40px) !important;
             margin-left: -100% !important;
