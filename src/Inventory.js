@@ -355,7 +355,10 @@ export default function Inventory({ user }) {
       {/* HEADER & ALERTS */}
       <div className="header-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
         <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: "8px" }}>
           <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "700", letterSpacing: "-0.02em" }}>📦 Commercial Beverage Operations</h1>
+          <button onClick={() => setShowHelpModal(true)} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", color: "#007aff", padding: "8px 16px", borderRadius: "12px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.2s" }}>📖 Guide</button>
+        </div>
           <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Active Operator: {user?.email || "Scanner Mode Active"}</p>
         </div>
         <div style={{ display: "flex", backgroundColor: "#2c2c2e", padding: "4px", borderRadius: "12px", width: "fit-content" }}>
