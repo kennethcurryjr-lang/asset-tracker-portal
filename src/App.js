@@ -289,7 +289,7 @@ function App() {
       const grouped = {};
       items.forEach(item => {
         if (item.deviceId) {
-          const id = item.deviceId.slice(-5);
+          const id = item.deviceId; if (id.length < 15) return;
           if (!grouped[id]) grouped[id] = [];
           grouped[id].push(item);
         }
