@@ -105,7 +105,15 @@ export default function Inventory({ user }) {
     fetchInventory();
     fetchAuditLogs();
     const interval = setInterval(() => { fetchInventory(); fetchAuditLogs(); }, 3000);
-    return () => clearInterval(interval);
+    
+    // 🔥 Wake-Up Engine: Force sync when tab regains focus (bypasses browser throttling)
+    const handleFocus = () => { fetchInventory(); fetchAuditLogs(); };
+    window.addEventListener("focus", handleFocus);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   const processScannedCode = async (rawScan) => {
@@ -395,17 +403,20 @@ export default function Inventory({ user }) {
                     <div style={{ width: '100%', height: '10px', backgroundColor: '#1c1c1e', borderRadius: '5px', overflow: 'hidden', border: '1px solid #3a3a3c' }}>
                       <div style={{ width: `${healthPercent}%`, height: '100%', backgroundColor: healthColor, boxShadow: `0 0 10px ${healthColor}80`, transition: 'width 0.5s ease-out' }}></div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
-                    {recentLog ? (
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '4px 8px', borderRadius: '6px', border: '1px solid #3a3a3c' }}>
-                        <span style={{ fontSize: '9px', color: '#8e8e93', fontWeight: '700', letterSpacing: '0.05em' }}>LAST SCAN:</span>
-                        <span style={{ fontSize: '11px', fontWeight: '700', color: recentLog.action.includes('Receive') ? '#34c759' : (recentLog.action.includes('Ship') ? '#ff3b30' : '#007aff') }}>
-                          {recentLog.action === 'Receive' ? '📥' : (recentLog.action === 'Ship' ? '🚚' : '⚙️')} {recentLog.action} {recentLog.qty}
-                        </span>
-                      </div>
-                    ) : <div />}
-                    <div style={{ fontSize: '10px', color: '#8e8e93', textAlign: 'right' }}>Target: {targetStock} bx</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '8px' }}>
+                {(recentLog && (Date.now() - recentLog.id < 86400000)) ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '4px 8px', borderRadius: '6px', border: '1px solid #3a3a3c', width: 'fit-content' }}>
+                      <span style={{ fontSize: '9px', color: '#8e8e93', fontWeight: '700', letterSpacing: '0.05em' }}>LAST SCAN:</span>
+                      <span style={{ fontSize: '11px', fontWeight: '700', color: recentLog.action.includes('Receive') ? '#34c759' : (recentLog.action.includes('Ship') ? '#ff3b30' : '#007aff') }}>
+                        {recentLog.action === 'Receive' ? '📥' : (recentLog.action === 'Ship' ? '🚚' : '⚙️')} {recentLog.action} {recentLog.qty}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '9px', color: '#8e8e93', paddingLeft: '4px', fontWeight: '600' }}>{recentLog.time}</div>
                   </div>
+                ) : <div />}
+                <div style={{ fontSize: '10px', color: '#8e8e93', textAlign: 'right', marginTop: '4px' }}>Target: {targetStock} bx</div>
+              </div>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid #3a3a3c' }}>
