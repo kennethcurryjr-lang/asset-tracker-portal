@@ -301,7 +301,7 @@ function App() {
         const history = rawGroup.filter(i => i.timestamp !== "LATEST").sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         
         const latest = { ...(history[0] || {}) };
-        if (!latest.latitude && latestRow.latitude) { latest.latitude = latestRow.latitude; latest.longitude = latestRow.longitude; latest.battery = latestRow.battery; } const stateKeys = ["homeLat", "homeLon", "isServiceMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag", "group", "tag"];
+        const stateKeys = ["latitude", "longitude", "battery", "homeLat", "homeLon", "isServiceMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag", "group", "tag"];
         
         for (const k of stateKeys) {
             if (latestRow[k] !== undefined) {
