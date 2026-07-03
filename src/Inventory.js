@@ -423,6 +423,7 @@ export default function Inventory({ user }) {
           <button onClick={() => { setIsMultiFlipMode(!isMultiFlipMode); if (isMultiFlipMode) setFlippedCards([]); }} style={{ backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%" }}>
             🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
           </button>
+          <button onClick={handleManualAdd} style={{ backgroundColor: "#34c759", border: "none", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "700", cursor: "pointer", transition: "all 0.2s", width: "100%", marginTop: "4px", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>➕ Register New Product</button>
         </div>
         <div className="action-group-right" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1", alignItems: "flex-end" }}>
           <div className="primary-row" style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -431,7 +432,7 @@ export default function Inventory({ user }) {
               <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "700", outline: "none", textAlign: "center" }} />
             </div>
             <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#1c1c1e", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>🪵 {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
-            <button onClick={handleManualAdd} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "12px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>➕ Add</button>
+            
             <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "12px", color: "#ffffff", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" }}>📷 SCAN</button>
           </div>
           <div className="secondary-row" style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
