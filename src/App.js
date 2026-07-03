@@ -384,6 +384,7 @@ function App() {
   }, [auth.isAuthenticated, fetchDevices]);
 
   const updateAttribute = async (deviceId, timestamp, field, value, attributeAlias) => {
+    console.log("DEBUG: Updating deviceId:", deviceId);
     await docClient.send(new UpdateCommand({
       TableName: "AssetTrackerData",
       Key: { deviceId, timestamp: "LATEST" },
