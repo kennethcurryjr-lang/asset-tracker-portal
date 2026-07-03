@@ -261,6 +261,17 @@ export default function Inventory({ user }) {
     const originalItem = stock.find(i => i.barcode === barcode);
     if (!form || !originalItem) return;
 
+    // Reconcile Multi-Zone Arrays with the manual quantity edit
+    let updatedLocs = JSON.parse(JSON.stringify(originalItem.locations || [{name: originalItem.zone || "Unassigned", qty: originalItem.quantity}]));
+    let diff = form.quantity - originalItem.quantity;
+    if (diff !== 0) {
+        let targetLoc = updatedLocs.find(l => l.name === form.zone);
+        if (targetLoc) targetLoc.qty = Math.max(0, targetLoc.qty + diff);
+        else if (updatedLocs.length > 0) updatedLocs[0].qty = Math.max(0, updatedLocs[0].qty + diff);
+        else updatedLocs.push({name: form.zone || "Unassigned", qty: form.quantity});
+    }
+    form.locations = updatedLocs;
+
     const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || "Manager", action: "Admin Override", qty: form.quantity - originalItem.quantity, flavor: originalItem.flavor };
     setAuditLog(prev => [logEntry, ...prev]);
 
@@ -272,7 +283,7 @@ export default function Inventory({ user }) {
         await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: { ...originalItem, ...form } }));
         await docClient.send(new DeleteCommand({ TableName: "BeverageInventoryData", Key: { barcode: originalItem.barcode, lotNumber: originalItem.lotNumber } }));
       } else {
-        await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: originalItem.barcode, lotNumber: originalItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, expiryDate = :e, vendorEmail = :v", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": form.quantity, ":z": form.zone, ":e": form.expiryDate, ":v": form.vendorEmail } }));
+        await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: originalItem.barcode, lotNumber: originalItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, locations = :locs, expiryDate = :e, vendorEmail = :v", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": form.quantity, ":z": form.zone, ":e": form.expiryDate, ":v": form.vendorEmail, ":locs": updatedLocs } }));
       }
       await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: logEntry }));
     } catch (err) { console.error("Admin edit cloud update failed:", err); }
@@ -540,7 +551,7 @@ export default function Inventory({ user }) {
                         <input list="vendor-emails" value={editForms[item.barcode]?.vendorEmail ?? item.vendorEmail ?? ""} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), vendorEmail: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
                       </div>
 
-                      <button onClick={handleSaveCardEdit} style={{ marginTop: 'auto', backgroundColor: '#007aff', color: '#fff', padding: '10px', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}>💾 Save</button>
+                      <button onClick={() => handleSaveCardEdit(item.barcode)} style={{ marginTop: 'auto', backgroundColor: '#007aff', color: '#fff', padding: '10px', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}>💾 Save</button>
                     </div>
                   ) : (
                     // STATS MODE
