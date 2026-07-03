@@ -14,7 +14,41 @@ const initialMockData = [
 
 const MANAGER_PIN = "1234";
 
+
+const CustomAutocomplete = ({ value, onChange, placeholder, options, style }) => {
+  const [show, setShow] = React.useState(false);
+  return (
+    <div style={{ position: 'relative', flex: style.flex || 'unset', width: '100%' }}>
+      <input 
+        value={value || ''} 
+        onChange={(e) => onChange(e.target.value)} 
+        onFocus={() => setShow(true)} 
+        onBlur={() => setTimeout(() => setShow(false), 200)} 
+        placeholder={placeholder} 
+        style={{ ...style, width: '100%', boxSizing: 'border-box', fontSize: '16px' }} 
+      />
+      {show && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10000, backgroundColor: '#2c2c2e', border: '1px solid #3a3a3c', borderRadius: '12px', maxHeight: '220px', overflowY: 'auto', marginTop: '8px', boxShadow: '0 10px 40px rgba(0,0,0,0.8)' }}>
+          {options.filter(o => (o.label||'').toLowerCase().includes((value||'').toLowerCase())).map((o, i) => (
+            <div key={i} onMouseDown={(e) => { e.preventDefault(); onChange(o.value); setShow(false); }} style={{ padding: '14px 16px', borderBottom: '1px solid #3a3a3c', color: '#fff', fontSize: '15px', cursor: 'pointer', backgroundColor: '#2c2c2e' }}>
+              {o.label}
+            </div>
+          ))}
+          {options.filter(o => (o.label||'').toLowerCase().includes((value||'').toLowerCase())).length === 0 && (
+            <div style={{ padding: '14px 16px', color: '#8e8e93', fontSize: '15px', fontStyle: 'italic' }}>No matches found</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function Inventory({ user }) {
+  React.useEffect(() => {
+    let meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) { meta = document.createElement('meta'); meta.name = 'viewport'; document.head.appendChild(meta); }
+    meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0';
+  }, []);
   const [stock, setStock] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isPalletMode, setIsPalletMode] = useState(false);
@@ -651,39 +685,20 @@ export default function Inventory({ user }) {
               <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <datalist id="stock-barcodes">
-              {Array.from(new Map(stock.filter(i => i.barcode).map(i => [i.barcode, i])).values()).map(i => (
-                <option key={i.barcode} value={i.barcode}>{i.brand} {i.flavor}</option>
-              ))}
-            </datalist>
-              <datalist id="stock-brands">{[...new Set(stock.map(i => i.brand))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
-              <datalist id="stock-flavors">{[...new Set(stock.map(i => i.flavor))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
-              <datalist id="stock-types">
-              <option value="3G Bag-in-Box" />
-              <option value="5G Bag-in-Box" />
-              <option value="24-Can Case" />
-              <option value="12-Can Case" />
-              <option value="1G Jug Case" />
-              <option value="1/2 BBL Keg" />
-              <option value="1/6 BBL Keg" />
-              <option value="Pallet" />
-              <option value="Single Unit" />
-              {[...new Set(stock.map(i => i.type))].filter(Boolean).map(x => <option key={x} value={x} />)}
-            </datalist>
-              <datalist id="stock-lots">
-              {Array.from(new Map(stock.filter(i => i.lotNumber).map(i => [i.lotNumber, i])).values()).map(i => (
-                <option key={i.barcode} value={i.lotNumber}>{i.brand} {i.flavor}</option>
-              ))}
-            </datalist>
-              <datalist id="stock-zones">{[...new Set(stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone]))].filter(Boolean).map(x => <option key={x} value={x} />)}</datalist>
-              <input list="stock-barcodes" placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={e => setNewItemForm(prev => ({...prev, barcode: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              
+              
+              
+              
+              
+              
+              <CustomAutocomplete placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={val => setNewItemForm(prev => ({...prev, barcode: val}))} options={Array.from(new Map(stock.filter(i => i.barcode).map(i => [i.barcode, i])).values()).map(i => ({ value: i.barcode, label: i.barcode + " - " + i.brand + " " + i.flavor }))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} /> setNewItemForm(prev => ({...prev, barcode: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
               <div style={{ display: "flex", gap: "8px" }}>
-                <input list="stock-brands" placeholder="Brand (e.g. Citrus Springs)" value={newItemForm.brand} onChange={e => setNewItemForm(prev => ({...prev, brand: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-                <input list="stock-flavors" placeholder="Flavor Profile" value={newItemForm.flavor} onChange={e => setNewItemForm(prev => ({...prev, flavor: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+                <CustomAutocomplete placeholder="Brand (e.g. Citrus Springs)" value={newItemForm.brand} onChange={val => setNewItemForm(prev => ({...prev, brand: val}))} options={[...new Set(stock.map(i => i.brand))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} /> setNewItemForm(prev => ({...prev, brand: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+                <CustomAutocomplete placeholder="Flavor Profile" value={newItemForm.flavor} onChange={val => setNewItemForm(prev => ({...prev, flavor: val}))} options={[...new Set(stock.map(i => i.flavor))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} /> setNewItemForm(prev => ({...prev, flavor: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
               </div>
-              <input list="stock-types" placeholder="Packaging Type" value={newItemForm.type} onChange={e => setNewItemForm(prev => ({...prev, type: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              <CustomAutocomplete placeholder="Packaging Type" value={newItemForm.type} onChange={val => setNewItemForm(prev => ({...prev, type: val}))} options={["3G Bag-in-Box", "5G Bag-in-Box", "24-Can Case", "12-Can Case", "1G Jug Case", "1/2 BBL Keg", "1/6 BBL Keg", "Pallet", "Single Unit", ...new Set(stock.map(i => i.type))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} /> setNewItemForm(prev => ({...prev, type: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
               <div style={{ display: "flex", gap: "8px" }}>
-                <input list="stock-lots" placeholder="Lot Number" value={newItemForm.lotNumber} onChange={e => setNewItemForm(prev => ({...prev, lotNumber: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+                <CustomAutocomplete placeholder="Lot Number" value={newItemForm.lotNumber} onChange={val => setNewItemForm(prev => ({...prev, lotNumber: val}))} options={Array.from(new Map(stock.filter(i => i.lotNumber).map(i => [i.lotNumber, i])).values()).map(i => ({ value: i.lotNumber, label: i.lotNumber + " (" + i.brand + " " + i.flavor + ")" }))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} /> setNewItemForm(prev => ({...prev, lotNumber: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
                 <input type="date" value={newItemForm.expiryDate} onChange={e => setNewItemForm(prev => ({...prev, expiryDate: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px", colorScheme: "dark" }} />
               </div>
               
@@ -691,7 +706,7 @@ export default function Inventory({ user }) {
               
               <div style={{ display: "flex", gap: "8px" }}>
                 <input type="number" placeholder="Initial QTY" value={newItemForm.quantity || ""} onChange={e => setNewItemForm(prev => ({...prev, quantity: parseInt(e.target.value) || 0}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-                <input list="stock-zones" placeholder="Placement Zone" value={newItemForm.zone} onChange={e => setNewItemForm(prev => ({...prev, zone: e.target.value}))} style={{ flex: 2, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+                <CustomAutocomplete placeholder="Placement Zone" value={newItemForm.zone} onChange={val => setNewItemForm(prev => ({...prev, zone: val}))} options={[...new Set(stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone]))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ flex: 2, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} /> setNewItemForm(prev => ({...prev, zone: e.target.value}))} style={{ flex: 2, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
               </div>
             </div>
             <button onClick={handleSaveNewItem} style={{ width: "100%", backgroundColor: "#34c759", color: "#fff", padding: "14px", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", marginTop: "8px" }}>Proceed to Registration</button>
