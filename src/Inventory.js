@@ -497,7 +497,7 @@ export default function Inventory({ user }) {
       </div>
 
       {/* FLIPPABLE KINETIC CARDS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', alignItems: 'flex-start', width: '100%', boxSizing: 'border-box' }}>
         {filteredStock.map((item) => {
           const isLowStock = item.quantity < 50;
           const isFlipped = flippedCards.includes(item.barcode);
@@ -539,7 +539,7 @@ export default function Inventory({ user }) {
                   
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: '#1c1c1e', color: '#8e8e93', borderRadius: '8px', border: '1px solid #3a3a3c' }}>📦 {item.type}</span>{isLowStock && <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: '#ff3b30', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}</div>
                   
-                  {expandedCards.includes(item.barcode) && ( <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px 0 8px 0', borderTop: '1px solid #3a3a3c', marginTop: '12px' }}>
+                  {(expandedCards.includes(item.barcode) || isFlipped) && ( <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px 0 8px 0', borderTop: '1px solid #3a3a3c', marginTop: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                       <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Pipeline Health</span>
                       <span style={{ fontSize: '12px', color: healthColor, fontWeight: '700' }}>{daysRemaining} Days Supply</span>
@@ -617,13 +617,11 @@ export default function Inventory({ user }) {
                         <div style={{ fontSize: '15px', fontWeight: '700', color: '#ffffff' }}>📊 Historical Velocity</div>
                         <div onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => prev.filter(id => id !== item.barcode)); }} style={{ fontSize: '10px', color: '#007aff', fontWeight: '700', backgroundColor: 'rgba(0,122,255,0.15)', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer' }}>FLIP BACK</div>
                       </div>
-                      {expandedCards.includes(item.barcode) && (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', flex: 1 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', flex: 1 }}>
                         <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>30-Day Burn</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#ffffff', marginTop: '2px' }}>{monthlyBurn} <span style={{fontSize: '12px', color:'#8e8e93'}}>bx</span></div></div>
                         <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>90-Day Burn</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#ffffff', marginTop: '2px' }}>{quarterlyBurn} <span style={{fontSize: '12px', color:'#8e8e93'}}>bx</span></div></div>
                         <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: '10px', gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Est. Run-Out Date</div><div style={{ fontSize: '18px', fontWeight: '700', color: item.quantity === 0 ? '#ff3b30' : '#34c759', marginTop: '2px' }}>{item.quantity === 0 ? "Depleted" : runOutDate}</div></div>
                       </div>
-                      )}
                       
                       <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
                         <button 
