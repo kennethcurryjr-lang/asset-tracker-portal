@@ -328,7 +328,7 @@ function App() {
         
         const currentBattery = latest.batteryLevel !== undefined ? Number(latest.batteryLevel) : 100;
         
-        let estTimeRemaining = "18 months";
+        let estTimeRemaining = "18 mos";
         if (latest.deployedAt) {
             const deployDate = new Date(latest.deployedAt);
             const now = new Date();
@@ -338,7 +338,7 @@ function App() {
             if (monthsRemaining === 0) {
                 estTimeRemaining = "Replace unit";
             } else {
-                estTimeRemaining = `${monthsRemaining} months`;
+                estTimeRemaining = `${monthsRemaining} mos`;
             }
         }
 
@@ -1065,7 +1065,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         .card-flipper.flipped { transform: rotateY(180deg); }
         .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; flex: 1; box-sizing: border-box; }
         .card-front { transform: rotateY(0deg); z-index: 2; position: relative; }
-        .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #1c1c1e; color: #ffffff; border: 1px solid #3a3a3c; border-radius: 14px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
+        .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #1c1c1e; color: #ffffff; border: 1px solid #3a3a3c; border-radius: 14px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); padding: 20px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
         
         @media (max-width: 768px) {
           .marine-home-group { flex-direction: column; width: 100%; gap: 12px; }
@@ -1426,7 +1426,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                 </div>
                 
                 {/* ---------------- BACK FACE: DIAGNOSTICS ---------------- */}
-                <div className="card-face card-back">
+                <div className="card-face card-back custom-scrollbar-viewport">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '16px', marginBottom: '16px' }}>
                     <div style={{ fontSize: '16px', fontWeight: '600', letterSpacing: '-0.01em', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ color: '#007aff' }}>⚙️</span> Diagnostics
