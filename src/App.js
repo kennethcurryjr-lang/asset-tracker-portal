@@ -55,6 +55,7 @@ function App() {
   const auth = useAuth();
   const [assets, setAssets] = useState([]);
   const [marineModes, setMarineModes] = useState({});
+  const [flippedCards, setFlippedCards] = useState({});
   const [maintenanceInputs, setMaintenanceInputs] = useState({});
 
   const [showGuide, setShowGuide] = useState(false);
@@ -1049,6 +1050,13 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           }
         }
         .marine-home-group { display: flex; gap: 20px; flex-direction: row-reverse; }
+        .card-perspective-wrapper { perspective: 1200px; height: 100%; display: flex; }
+        .card-flipper { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; display: flex; flex-direction: column; flex: 1; }
+        .card-flipper.flipped { transform: rotateY(180deg); }
+        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; flex: 1; box-sizing: border-box; }
+        .card-front { transform: rotateY(0deg); z-index: 2; position: relative; }
+        .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #1c1c1e; color: #ffffff; border: 1px solid #3a3a3c; border-radius: 14px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
+        
         @media (max-width: 768px) {
           .marine-home-group { flex-direction: column; width: 100%; gap: 12px; }
           .marine-home-group button { width: 100%; }
@@ -1239,8 +1247,11 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
               const sparkColor = getBatteryStatusColor(batteryLevel);
               
 
+              const isFlipped = !!flippedCards[item.deviceId];
               return (
-                <div key={item.deviceId.slice(-5)} style={{ ...deviceCardStyle, backgroundColor: '#ffffff' }}>
+                <div key={item.deviceId.slice(-5)} className="card-perspective-wrapper">
+                  <div className={`card-flipper ${isFlipped ? 'flipped' : ''}`}>
+                    <div className="card-face card-front" style={{ ...deviceCardStyle, backgroundColor: '#ffffff' }}>
                   
                   {/* Split Responsive Core Row */}
                   <div className="card-split-columns-view">
@@ -1252,6 +1263,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         <div style={{ fontSize: '15px', fontWeight: '600', color: '#1d1d1f', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>
                             {item.tag ? item.tag : 'UNNAMED'}
                         </div>
+                        <button onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ marginLeft: "auto", background: "#f5f5f7", border: "1px solid #d2d2d7", cursor: "pointer", fontSize: "11px", color: "#1d1d1f", zIndex: 30, padding: "4px 10px", borderRadius: "8px", fontWeight: "600", boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }}>Flip ⤹</button>
                       </div>
                       
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '6px' }}>
