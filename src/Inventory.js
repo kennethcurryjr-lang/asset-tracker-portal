@@ -399,6 +399,20 @@ export default function Inventory({ user }) {
         @media (min-width: 1024px) { .masonry-grid { column-count: 3; } }
         @media (min-width: 1440px) { .masonry-grid { column-count: 4; } }
         .masonry-item { break-inside: avoid; margin-bottom: 24px; display: inline-block; width: 100%; box-sizing: border-box; }
+
+        @keyframes expired-attention-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.8); border-color: rgba(255, 59, 48, 0.8); }
+          70% { box-shadow: 0 0 0 12px rgba(255, 59, 48, 0); border-color: rgba(255, 59, 48, 1); }
+          100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); border-color: rgba(255, 59, 48, 0.8); }
+        }
+        .critical-expiry-badge {
+          animation: expired-attention-pulse 2s infinite ease-in-out !important;
+          background-color: rgba(255, 59, 48, 0.15);
+          border: 1px solid rgba(255, 59, 48, 0.8);
+          padding: 4px 8px;
+          border-radius: 8px;
+          display: inline-block;
+        }
         @media print {
           body * { visibility: hidden; }
           #printable-label, #printable-label * { visibility: visible; }
@@ -568,7 +582,7 @@ export default function Inventory({ user }) {
                   
                   {(expandedCards.includes(item.barcode) || isFlipped) && ( <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px 0 8px 0', borderTop: '1px solid #3a3a3c', marginTop: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      {isExpired ? <span style={{ fontSize: '11px', color: '#ff3b30', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🚨 CRITICAL: EXPIRED PRODUCT</span> : <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Pipeline Health</span>}
+                      {isExpired ? <span className="critical-expiry-badge" style={{ fontSize: '11px', color: '#ff3b30', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🚨 CRITICAL: EXPIRED PRODUCT</span> : <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Pipeline Health</span>}
                       <span style={{ fontSize: '12px', color: healthColor, fontWeight: "600" }}>{daysRemaining} Days Supply</span>
                     </div>
                     <div style={{ width: '100%', height: '10px', backgroundColor: '#1c1c1e', borderRadius: '5px', overflow: 'hidden', border: '1px solid #3a3a3c' }}>
