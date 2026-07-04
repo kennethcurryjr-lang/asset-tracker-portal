@@ -547,10 +547,10 @@ export default function Inventory({ user }) {
           const monthlyBurn = baseBurn;
           const quarterlyBurn = monthlyBurn * 3;
           const targetStock = quarterlyBurn; 
-          const daysRemaining = item.quantity === 0 ? 0 : Math.max(1, Math.round(item.quantity / (monthlyBurn / 30)));
-          const runOutDate = new Date(Date.now() + (daysRemaining * 24 * 60 * 60 * 1000)).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+          const daysRemaining = (item.quantity === 0 || isExpired) ? 0 : Math.max(1, Math.round(item.quantity / (monthlyBurn / 30)));
+          const runOutDate = isExpired ? 'Depleted (Expired)' : new Date(Date.now() + (daysRemaining * 24 * 60 * 60 * 1000)).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
-          const healthPercent = Math.min(100, Math.round((item.quantity / targetStock) * 100));
+          const healthPercent = isExpired ? 0 : Math.min(100, Math.round((item.quantity / targetStock) * 100));
                     let healthColor = "#007aff"; 
           if (isExpired) { healthColor = "#ff3b30"; }
           else if (item.quantity < 50) { healthColor = "#ff3b30"; } 
