@@ -1413,10 +1413,25 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         <button onClick={() => addNote(item.deviceId, item.timestamp, noteInputs[item.deviceId.slice(-5)])} style={{ ...primaryButtonStyle, padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }}>Post</button>
                     </div>
                   </div>
-                  
                 </div>
-              );
-            })}
+                
+                {/* ---------------- BACK FACE: DIAGNOSTICS ---------------- */}
+                <div className="card-face card-back">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '16px', marginBottom: '16px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '600', letterSpacing: '-0.01em', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: '#007aff' }}>⚙️</span> Diagnostics
+                    </div>
+                    <button onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ background: '#2c2c2e', border: '1px solid #3a3a3c', cursor: 'pointer', fontSize: '11px', color: '#ffffff', padding: '4px 10px', borderRadius: '8px', fontWeight: '600' }}>⤶ Back</button>
+                  </div>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '12px', color: '#86868b', padding: '20px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '500', color: '#d2d2d7' }}>Expansion Slot Ready</div>
+                    <div style={{ fontSize: '12px', lineHeight: '1.5', maxWidth: '200px' }}>Reserved for real-time BSSID anchors, signal strength, and manual TCP overrides.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
         </div>
       </div>
 
