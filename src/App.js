@@ -301,7 +301,7 @@ function App() {
         const history = rawGroup.filter(i => i.timestamp !== "LATEST").sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         
         const latest = { ...(history[0] || {}) };
-        const stateKeys = ["latitude", "longitude", "battery", "homeLat", "homeLon", "isServiceMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag", "group", "tag"];
+        const stateKeys = ["latitude", "longitude", "batteryLevel", "deployedAt", "homeLat", "homeLon", "isServiceMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag", "group", "tag"];
         
         for (const k of stateKeys) {
             if (latestRow[k] !== undefined) {
@@ -325,44 +325,20 @@ function App() {
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
         latest.path = history.slice(0, 10).filter(p => p.latitude && p.longitude).map(p => [Number(p.latitude), Number(p.longitude)]);
         
-        let estTimeRemaining = "Calculating...";
-        const currentBattery = Number(latest.battery) || 100;
-
-        if (currentBattery <= 0) {
-          estTimeRemaining = "Depleted";
-        } else if (history.length > 1) {
-          const pastPing = history.find(ping => (Number(ping.battery) || 100) > currentBattery);
-          
-          if (pastPing) {
-            const timeDiffMs = new Date(latest.timestamp) - new Date(pastPing.timestamp);
-            const hoursDiff = timeDiffMs / (1000 * 60 * 60);
-            const batteryDrop = Number(pastPing.battery) - currentBattery;
+        const currentBattery = latest.batteryLevel !== undefined ? Number(latest.batteryLevel) : 100;
+        
+        let estTimeRemaining = "18 months";
+        if (latest.deployedAt) {
+            const deployDate = new Date(latest.deployedAt);
+            const now = new Date();
+            const monthsPassed = (now.getFullYear() - deployDate.getFullYear()) * 12 + (now.getMonth() - deployDate.getMonth());
+            const monthsRemaining = Math.max(0, 18 - monthsPassed);
             
-            if (hoursDiff > 0 && batteryDrop > 0) {
-              const dropPerHour = batteryDrop / hoursDiff;
-              const hoursRemaining = currentBattery / dropPerHour;
-              
-              if (hoursRemaining > 48) {
-                estTimeRemaining = `${Math.floor(hoursRemaining / 24)} days`;
-              } else if (hoursRemaining > 1) {
-                estTimeRemaining = `${Math.floor(hoursRemaining)} hrs`;
-              } else {
-                estTimeRemaining = `${Math.floor(hoursRemaining * 60)} mins`;
-              }
+            if (monthsRemaining === 0) {
+                estTimeRemaining = "Replace unit";
+            } else {
+                estTimeRemaining = `${monthsRemaining} months`;
             }
-          }
-        }
-
-        // Failsafe: Align with 12-month IoT hardware baseline (365 days)
-        if (estTimeRemaining === "Calculating...") {
-           const fallbackDays = (currentBattery / 100) * 365;
-           if (fallbackDays >= 60) {
-               estTimeRemaining = `${Math.floor(fallbackDays / 30)} months`;
-           } else if (fallbackDays > 2) {
-               estTimeRemaining = `${Math.floor(fallbackDays)} days`;
-           } else {
-               estTimeRemaining = `${Math.floor(fallbackDays * 24)} hrs`;
-           }
         }
 
         const lastSeen = latestRow.lastSeen 
@@ -806,7 +782,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     filteredAssets.forEach(a => {
       const status = a.isOffline ? "Offline" : a.isGeofenceViolation ? "Geofence Alert" : a.isLowBattery ? "Low Battery" : "Active";
       bodyText += `ID: ${a.deviceId} | Tag: ${a.tag || "UNNAMED"} | Group: ${a.group || "N/A"}\n`;
-      bodyText += `Status: ${status} | Battery: ${a.battery || 100}% (${a.estTimeRemaining || "Unknown"})\n`;
+      bodyText += `Status: ${status} | Battery: ${a.batteryLevel !== undefined ? a.batteryLevel : 100}% (${a.estTimeRemaining || "Unknown"})\n`;
       bodyText += `Location: ${a.city || "Unknown"} [${a.latitude}, ${a.longitude}]\n`;
       bodyText += `--------------------------------------------------\n`;
     });
@@ -1241,7 +1217,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 0.33fr))', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
           {filteredAssets.map(item => {
               const historicalNotes = item.notesList || [];
-              const batteryLevel = item.battery !== undefined ? Number(item.battery) : 100;
+              const batteryLevel = item.batteryLevel !== undefined ? Number(item.batteryLevel) : 100;
               const sparkColor = getBatteryStatusColor(batteryLevel);
               
 
