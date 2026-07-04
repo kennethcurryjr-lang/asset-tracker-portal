@@ -102,7 +102,7 @@ function App() {
   const [activePortal, setActivePortal] = useState(isWarehouseManager && !isAdmin ? "inventory" : "gps");
 
   // Design Tokens: High-Contrast Monochromatic System
-  const appContainerStyle = { backgroundColor: '#f5f5f7', color: '#1d1d1f', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: selectedDevices.length > 0 ? '140px' : '60px', fontSize: '15px', transition: 'padding-bottom 0.3s ease' };
+  const appContainerStyle = { backgroundColor: '#f5f5f7', color: '#1d1d1f', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: selectedDevices.length > 0 ? '140px' : '60px', fontSize: '15px', transition: 'padding-bottom 0.3s ease', overflowX: 'hidden' };
   
   const headerStyle = { 
     width: '100%',
@@ -961,9 +961,9 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         }
         
         @keyframes flip-attention-pulse {
-          0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4); border-color: rgba(0, 122, 255, 0.4); }
-          70% { box-shadow: 0 0 0 6px rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 0.8); }
-          100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 0.4); }
+          0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.8); border-color: rgba(0, 122, 255, 0.8); }
+          70% { box-shadow: 0 0 0 12px rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 1); }
+          100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 0.8); }
         }
         .diagnostic-flip-btn {
           animation: flip-attention-pulse 2s infinite ease-in-out !important;
@@ -1602,7 +1602,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       <div style={{ textAlign: "center", padding: "20px", color: "#86868b", fontSize: "12px", backgroundColor: "#121212", width: "100%" }}>
         Kinetic Cards v2.1
-        <style>{`#root, .App { background-color: #121212 !important; min-height: 100vh; }`}</style>
+        <style>{`html, body { overflow-x: hidden !important; width: 100%; margin: 0; padding: 0; } #root, .App { background-color: #121212 !important; min-height: 100vh; overflow-x: hidden !important; }`}</style>
       </div>
     </div>
   );
