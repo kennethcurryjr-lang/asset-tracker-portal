@@ -51,6 +51,13 @@ export default function Inventory({ user }) {
     if (!meta) { meta = document.createElement('meta'); meta.name = 'viewport'; document.head.appendChild(meta); }
     meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0';
     }, []);
+    const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1024);
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth > 1024);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const [stock, setStock] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isPalletMode, setIsPalletMode] = useState(false);
@@ -580,7 +587,7 @@ export default function Inventory({ user }) {
                   
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: '#1c1c1e', color: '#8e8e93', borderRadius: '8px', border: '1px solid #3a3a3c' }}>📦 {item.type}</span>{isLowStock && <span style={{ fontSize: '11px', fontWeight: "600", padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: '#ff3b30', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}</div>
                   
-                  {(expandedCards.includes(item.barcode) || isFlipped) && ( <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px 0 8px 0', borderTop: '1px solid #3a3a3c', marginTop: '12px' }}>
+                  {(isDesktop || expandedCards.includes(item.barcode) || isFlipped) && ( <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px 0 8px 0', borderTop: '1px solid #3a3a3c', marginTop: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                       {isExpired ? <span className="critical-expiry-badge" style={{ fontSize: '11px', color: '#ff3b30', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🚨 CRITICAL: EXPIRED PRODUCT</span> : <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Pipeline Health</span>}
                       <span style={{ fontSize: '12px', color: healthColor, fontWeight: "600" }}>{daysRemaining} Days Supply</span>
