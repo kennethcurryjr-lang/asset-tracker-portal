@@ -383,7 +383,7 @@ function App() {
     }
   }, [auth.isAuthenticated, fetchDevices]);
 
-  const updateAttribute = async (deviceId, timestamp, field, value, attributeAlias) => {
+  const updateAttribute = async (deviceId, timestamp, field, value, attributeAlias, skipRefresh = false) => {
     console.log("DEBUG: Updating deviceId:", deviceId);
     await docClient.send(new UpdateCommand({
       TableName: "AssetTrackerData",
@@ -392,7 +392,7 @@ function App() {
       ExpressionAttributeNames: { [attributeAlias]: field },
       ExpressionAttributeValues: { ":val": value }
     }));
-    fetchDevices();
+    if (!skipRefresh) fetchDevices();
   };
 
   const toggleServiceMode = async (deviceId, timestamp, currentState) => {
@@ -689,13 +689,13 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       try {
         const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
         if (!dev) throw new Error("Device " + id + " not found");
-        await updateAttribute(dev.deviceId, 'LATEST', 'group', bulkGroupInput.trim(), '#g');
+        await updateAttribute(dev.deviceId, 'LATEST', 'group', bulkGroupInput.trim(), '#g', true);
         return { id, success: true };
       } catch (err) {
         console.error("Failed to update " + id + ":", err);
         return { id, success: false, error: err.message };
       }
-    }));
+    })); fetchDevices();
     const failures = results.filter(r => !r.success);
     if (failures.length > 0) {
       alert(`Bulk group update partial failure: ${failures.map(f => f.id).join(", ")}`);
@@ -756,8 +756,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
         if (!dev) return;
         const sequentialName = `${baseName}-${startIndex + index}`;
-        await updateAttribute(dev.deviceId, 'LATEST', 'tag', sequentialName, '#t');
-      }));
+        await updateAttribute(dev.deviceId, 'LATEST', 'tag', sequentialName, '#t', true);
+      })); fetchDevices();
       alert(`Successfully generated sequential tags for ${selectedDevices.length} assets!`);
       resetAllInputs();
       fetchDevices();
