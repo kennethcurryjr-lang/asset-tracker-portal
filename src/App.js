@@ -1032,10 +1032,13 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           .card-column-right-mapping iframe {
     display: block !important;
     visibility: visible !important;
-    position: relative !important;
-            width: 100% !important;
-            border: none !important;
-          }
+    position: absolute !important;
+    top: -40px !important;
+    left: -40px !important;
+    width: calc(100% + 80px) !important;
+    height: 180px !important;
+    border: none !important;
+  }
           
           .timeline-wrapper-panel {
             margin-top: 8px !important;
@@ -1296,11 +1299,9 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         backgroundColor: '#f5f5f7'
                       }}
                     >
-                      <iframe title="map-thumb" width="100%" height="100%" frameBorder="0" scrolling="no" src={item.latitude && !isNaN(Number(item.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(item.longitude)-0.02}%2C${Number(item.latitude)-0.02}%2C${Number(item.longitude)+0.02}%2C${Number(item.latitude)+0.02}&layer=mapnik&marker=${Number(item.latitude)}%2C${Number(item.longitude)}` : "about:blank"} style={{ pointerEvents: "none", border: "none" }}></iframe>
+                      <iframe title="map-thumb" width="calc(100% + 80px)" height="180px" frameBorder="0" scrolling="no" src={item.latitude && !isNaN(Number(item.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(item.longitude)-0.02}%2C${Number(item.latitude)-0.02}%2C${Number(item.longitude)+0.02}%2C${Number(item.latitude)+0.02}&layer=mapnik&marker=${Number(item.latitude)}%2C${Number(item.longitude)}` : "about:blank"} style={{ pointerEvents: "none", border: "none", position: "absolute", top: "-40px", left: "-40px" }}></iframe>
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'transparent' }}></div>
-                      <div style={{ position: 'absolute', bottom: '4px', right: '4px', zIndex: 20, backgroundColor: 'rgba(29, 29, 31, 0.85)', color: '#ffffff', fontSize: '9px', fontWeight: '600', padding: '2px 4px', borderRadius: '3px' }}>
-                        ⛶ Expand
-                      </div>
+                      
                     </div>
                     
                   </div>
