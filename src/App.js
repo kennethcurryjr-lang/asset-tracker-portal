@@ -301,7 +301,7 @@ function App() {
         const history = rawGroup.filter(i => i.timestamp !== "LATEST").sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         
         const latest = { ...(history[0] || {}) };
-        const stateKeys = ["latitude", "longitude", "batteryLevel", "deployedAt", "homeLat", "homeLon", "isServiceMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag", "group", "tag"];
+        const stateKeys = ["latitude", "longitude", "batteryLevel", "deployedAt", "homeLat", "homeLon", "isServiceMode", "isMarineMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag", "group", "tag"];
         
         for (const k of stateKeys) {
             if (latestRow[k] !== undefined) {
@@ -346,7 +346,7 @@ function App() {
           : "Live";
           
         let isGeofenceViolation = false;
-        if (latest.isServiceMode === false && latest.homeLat && latest.homeLon && latest.latitude && latest.longitude) {
+        if (latest.isServiceMode === false && !latest.isMarineMode && latest.homeLat && latest.homeLon && latest.latitude && latest.longitude) {
             const distKm = getDistanceInKm(Number(latest.homeLat), Number(latest.homeLon), Number(latest.latitude), Number(latest.longitude));
             if (distKm > 0.1) { // 100-meter breach radius tripwire
                 isGeofenceViolation = true;
@@ -1251,7 +1251,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                           {item.isOffline && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#ff3b30', borderRadius: '4px' }}>Offline</span>}
                           {item.isGeofenceViolation && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#ff9500', borderRadius: '4px' }}>Geofence</span>}
                           {item.isLowBattery && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#b7094c', borderRadius: '4px' }}>Low Batt</span>}
-                          {marineModes?.[item.deviceId.slice(-5)] && <span style={{ color: "#ffffff", fontSize: "9px", fontWeight: "700", textTransform: "uppercase", padding: "2px 6px", backgroundColor: "#007aff", borderRadius: "4px" }}>⚓ Marine</span>}
+                          {item.isMarineMode && <span style={{ color: "#ffffff", fontSize: "9px", fontWeight: "700", textTransform: "uppercase", padding: "2px 6px", backgroundColor: "#007aff", borderRadius: "4px" }}>⚓ Marine</span>}
 
                       </div>
 
