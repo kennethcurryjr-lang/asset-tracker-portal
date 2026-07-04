@@ -1249,6 +1249,12 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         <div style={{ fontSize: '10px', color: '#86868b', marginTop: '2px' }}>Last seen: {item.lastSeen}</div>
                         <div style={{ fontSize: '11px' }}>ID: {item.deviceId.slice(-5)}</div>
                         {item.group && <div style={{ fontSize: '11px', fontStyle: 'italic' }}>📦 {item.group}</div>}
+                        {item.homeLat && (
+                          <div style={{ fontSize: '10px', color: '#007aff', marginTop: '4px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#007aff'}}></span>
+                            Anchor: {Number(item.homeLat).toFixed(4)}, {Number(item.homeLon).toFixed(4)}
+                          </div>
+                        )}
                       </div>
 
                       {/* Micro Battery Spark Gauge */}
