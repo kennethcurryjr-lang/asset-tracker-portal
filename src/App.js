@@ -354,7 +354,7 @@ function App() {
         }
         
         const isLowBattery = currentBattery <= 20;
-        const isOffline = latestRow.lastSeen ? (new Date() - new Date(latestRow.lastSeen)).getTime() > (24 * 60 * 60 * 1000) : false; // 24-hour threshold
+        const isOffline = latestRow.lastSeen ? (new Date().getTime() - new Date(latestRow.lastSeen).getTime()) > (24 * 60 * 60 * 1000) : false; // 24-hour threshold
           
         return { ...latest, deviceId: latest.deviceId || id, tag: latest.tag || "", city: loc.city, estTimeRemaining, lastSeen, isGeofenceViolation, isLowBattery, isOffline };
       }));
