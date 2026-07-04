@@ -102,7 +102,7 @@ function App() {
   const [activePortal, setActivePortal] = useState(isWarehouseManager && !isAdmin ? "inventory" : "gps");
 
   // Design Tokens: High-Contrast Monochromatic System
-  const appContainerStyle = { backgroundColor: '#f5f5f7', color: '#1d1d1f', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: selectedDevices.length > 0 ? '140px' : '60px', fontSize: '15px', transition: 'padding-bottom 0.3s ease', overflowX: 'hidden' };
+  const appContainerStyle = { backgroundColor: '#f5f5f7', color: '#1d1d1f', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: selectedDevices.length > 0 ? '140px' : '60px', fontSize: '15px', transition: 'padding-bottom 0.3s ease', overflowX: 'clip' };
   
   const headerStyle = { 
     width: '100%',
@@ -1387,7 +1387,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
                   {/* Interactive Timeline Stepper for Logs */}
                   <div className="timeline-wrapper-panel" style={{ marginTop: '10px', padding: '12px', backgroundColor: '#f5f5f7', borderRadius: '8px', border: '1px solid #d2d2d7' }}>
-                    <div className="custom-scrollbar-viewport timeline-scroll-track-box" style={{ display: 'block', height: '110px', overflowY: 'scroll', overflowX: 'hidden', marginBottom: '8px', paddingRight: '2px', boxSizing: 'border-box' }}>
+                    <div className="custom-scrollbar-viewport timeline-scroll-track-box" style={{ display: 'block', height: '110px', overflowY: 'scroll', overflowX: 'clip', marginBottom: '8px', paddingRight: '2px', boxSizing: 'border-box' }}>
                       {historicalNotes.length > 0 ? (
                         <div style={{ position: 'relative', paddingLeft: '12px', borderLeft: '2px solid #d2d2d7', marginLeft: '4px' }}>
                           {historicalNotes.map((logEntry, index) => {
@@ -1602,7 +1602,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       <div style={{ textAlign: "center", padding: "20px", color: "#86868b", fontSize: "12px", backgroundColor: "#121212", width: "100%" }}>
         Kinetic Cards v2.1
-        <style>{`html, body { overflow-x: hidden !important; width: 100%; margin: 0; padding: 0; } #root, .App { background-color: #121212 !important; min-height: 100vh; overflow-x: hidden !important; }`}</style>
+        <style>{`html, body { overflow-x: clip !important; width: 100%; margin: 0; padding: 0; } #root, .App { background-color: #121212 !important; min-height: 100vh; overflow-x: clip !important; }`}</style>
       </div>
     </div>
   );
