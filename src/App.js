@@ -1033,10 +1033,10 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     display: block !important;
     visibility: visible !important;
     position: absolute !important;
-    top: -40px !important;
-    left: -40px !important;
-    width: calc(100% + 80px) !important;
-    height: 180px !important;
+    top: -60px !important;
+    left: -60px !important;
+    width: calc(100% + 120px) !important;
+    height: calc(100% + 120px) !important;
     border: none !important;
   }
           
@@ -1299,7 +1299,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         backgroundColor: '#f5f5f7'
                       }}
                     >
-                      <iframe title="map-thumb" width="calc(100% + 80px)" height="180px" frameBorder="0" scrolling="no" src={item.latitude && !isNaN(Number(item.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(item.longitude)-0.02}%2C${Number(item.latitude)-0.02}%2C${Number(item.longitude)+0.02}%2C${Number(item.latitude)+0.02}&layer=mapnik&marker=${Number(item.latitude)}%2C${Number(item.longitude)}` : "about:blank"} style={{ pointerEvents: "none", border: "none", position: "absolute", top: "-40px", left: "-40px" }}></iframe>
+                      <iframe title="map-thumb" frameBorder="0" scrolling="no" src={item.latitude && !isNaN(Number(item.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(item.longitude)-0.02}%2C${Number(item.latitude)-0.02}%2C${Number(item.longitude)+0.02}%2C${Number(item.latitude)+0.02}&layer=mapnik&marker=${Number(item.latitude)}%2C${Number(item.longitude)}` : "about:blank"} style={{ pointerEvents: "none", border: "none", position: "absolute", top: "-60px", left: "-60px", width: "calc(100% + 120px)", height: "calc(100% + 120px)" }}></iframe>
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'transparent' }}></div>
                       
                     </div>
