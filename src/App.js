@@ -1229,7 +1229,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 0.33fr))', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
           {filteredAssets.map(item => {
               const historicalNotes = item.notesList || [];
               const batteryLevel = item.batteryLevel !== undefined ? Number(item.batteryLevel) : 100;
