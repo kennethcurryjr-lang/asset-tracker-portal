@@ -1056,7 +1056,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       {/* ---------------- DECOUPLED MASTER HEADER ---------------- */}
       <div style={{ 
         width: '100%', 
-        maxWidth: '1140px',
+        maxWidth: '1440px',
         margin: '0 auto',
         padding: '12px 12px 0 12px',
         boxSizing: 'border-box',
@@ -1111,7 +1111,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         </div>
       )}
       
-      <div style={{ width: '100%', maxWidth: '1140px', margin: '16px auto', padding: '0 12px', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box' }}>
+      <div style={{ width: '100%', maxWidth: '1440px', margin: '16px auto', padding: '0 12px', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box' }}>
         
         {/* Compressed Real-Estate Search Panel Deck */}
         <div className="sticky-search-panel-container" style={stickySearchCardStyle}>
@@ -1503,7 +1503,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         padding: '20px 40px',
         boxSizing: 'border-box'
       }}>
-        <div style={{ maxWidth: '1140px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
+        <div style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             <div style={{ fontSize: '22px', fontWeight: '700', letterSpacing: '-0.01em' }}>{selectedDevices.length} Kinetic Card{selectedDevices.length === 1 ? '' : 's'} Selected</div>
