@@ -959,6 +959,16 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           50% { opacity: 0.3; }
           100% { opacity: 1; }
         }
+        
+        @keyframes flip-attention-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4); border-color: rgba(0, 122, 255, 0.4); }
+          70% { box-shadow: 0 0 0 6px rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 0.8); }
+          100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 0.4); }
+        }
+        .diagnostic-flip-btn {
+          animation: flip-attention-pulse 2s infinite ease-in-out !important;
+          color: #007aff !important;
+        }
         .critical-battery-pulse-animation {
           animation: emergency-battery-flash 1.5s infinite ease-in-out;
         }
@@ -1321,7 +1331,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                   <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
                       <input placeholder="Rename Asset..." value={tagInputs[item.deviceId] || ""} onChange={(e) => setTagInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#f5f5f7' }} />
                       <button onClick={() => updateAttribute(item.deviceId, 'LATEST', 'tag', tagInputs[item.deviceId], '#t')} style={{ ...primaryButtonStyle, padding: '6px 12px', fontSize: '12px', borderRadius: '6px' }}>Save</button>
-                      <button onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ background: "#f5f5f7", border: "1px solid #d2d2d7", cursor: "pointer", fontSize: "11px", color: "#1d1d1f", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>Flip ⤹</button>
+                      <button className="diagnostic-flip-btn" onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ background: "#f5f5f7", border: "1px solid #d2d2d7", cursor: "pointer", fontSize: "11px", color: "#1d1d1f", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>Flip ⤹</button>
                   </div>
 
                   <div style={{ display: 'flex', gap: '4px', width: '100%', flexWrap: 'wrap' }}>
