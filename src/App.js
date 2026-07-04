@@ -345,7 +345,18 @@ function App() {
           ? new Date(latestRow.lastSeen).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) 
           : "Live";
           
-        return { ...latest, deviceId: latest.deviceId || id, tag: latest.tag || "", city: loc.city, estTimeRemaining, lastSeen };
+        let isGeofenceViolation = false;
+        if (latest.isServiceMode === false && latest.homeLat && latest.homeLon && latest.latitude && latest.longitude) {
+            const distKm = getDistanceInKm(Number(latest.homeLat), Number(latest.homeLon), Number(latest.latitude), Number(latest.longitude));
+            if (distKm > 0.1) { // 100-meter breach radius tripwire
+                isGeofenceViolation = true;
+            }
+        }
+        
+        const isLowBattery = currentBattery <= 20;
+        const isOffline = latestRow.lastSeen ? (new Date() - new Date(latestRow.lastSeen)).getTime() > (24 * 60 * 60 * 1000) : false; // 24-hour threshold
+          
+        return { ...latest, deviceId: latest.deviceId || id, tag: latest.tag || "", city: loc.city, estTimeRemaining, lastSeen, isGeofenceViolation, isLowBattery, isOffline };
       }));
       setAssets(processed);
     } catch (err) { setDbError(err.message); }
@@ -1532,7 +1543,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             </div>
 
             {/* Action 3: Dual Set Home Anchors with Confirmation Prompt */}
-            <div className="marine-home-group"><button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#34c759", color: "#34c759" }}>Set Home Anchors</button><button onClick={() => { if (!window.confirm("Are you sure you want to toggle Marine Mode for " + selectedDevices.length + " selected device(s)?")) return; setMarineModes(prev => { const res = {...prev}; selectedDevices.forEach(id => res[id] = !res[id]); return res; }); alert("Marine Mode toggled for " + selectedDevices.length + " device(s)."); setSelectedDevices([]); }} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#007aff", color: "#007aff" }}>⚓ Toggle Marine Mode</button></div>
+            <div className="marine-home-group"><button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#34c759", color: "#34c759" }}>Set Home Anchors</button><button onClick={async () => { if (!window.confirm("Are you sure you want to toggle Marine Mode for " + selectedDevices.length + " selected device(s)?")) return; await Promise.all(selectedDevices.map(id => { const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id); const currentVal = marineModes[id]; return updateAttribute(dev.deviceId, 'LATEST', 'isMarineMode', !currentVal, '#mm', true); })); setMarineModes(prev => { const res = {...prev}; selectedDevices.forEach(id => res[id] = !res[id]); return res; }); alert("Marine Mode permanently updated in database for " + selectedDevices.length + " device(s)."); fetchDevices(); setSelectedDevices([]); }} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#007aff", color: "#007aff" }}>⚓ Toggle Marine Mode</button></div>
 
             {/* Action 4: Dual Clear Home Anchors with Confirmation Prompt */}
             <button onClick={applyBulkClearHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff9500', color: '#ff9500' }}>Clear Home Anchors</button>
