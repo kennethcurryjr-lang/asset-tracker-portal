@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { ScanCommand, UpdateCommand, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient } from './dynamoClient';
+import { useAuth } from 'react-oidc-context';
 
 const initialMockData = [
   { barcode: "082123456781", lotNumber: "LOT-2026-01", expiryDate: "2026-10-15", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", type: "", quantity: 420, zone: "Cooler Bay-01" },
@@ -44,6 +45,7 @@ const CustomAutocomplete = ({ value, onChange, placeholder, options, style }) =>
 };
 
 export default function Inventory({ user }) {
+  const auth = useAuth();
   React.useEffect(() => {
     let meta = document.querySelector('meta[name="viewport"]');
     if (!meta) { meta = document.createElement('meta'); meta.name = 'viewport'; document.head.appendChild(meta); }
@@ -260,7 +262,7 @@ export default function Inventory({ user }) {
     updatedLocations = updatedLocations.filter(loc => loc.qty > 0);
     const newQuantity = updatedLocations.reduce((sum, loc) => sum + loc.qty, 0);
     
-    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor };
+    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor };
     setAuditLog(prev => [logEntry, ...prev]);
 
     const newScan = { action: logEntry.action, qty: boxAdjustment, time: logEntry.time, timestamp: logEntry.id };
@@ -306,7 +308,7 @@ export default function Inventory({ user }) {
     }
     form.locations = updatedLocs;
 
-    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || "Manager", action: "Admin Override", qty: form.quantity - originalItem.quantity, flavor: originalItem.flavor };
+    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Manager", action: "Admin Override", qty: form.quantity - originalItem.quantity, flavor: originalItem.flavor };
     setAuditLog(prev => [logEntry, ...prev]);
 
     setStock(prev => prev.map(item => item.barcode === barcode ? { ...item, ...form } : item));
@@ -391,6 +393,12 @@ export default function Inventory({ user }) {
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
         
         @keyframes inventory-toast-pop { 0% { opacity: 0; transform: translate(-50%, 20px) scale(0.9); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+
+        .masonry-grid { column-count: 1; column-gap: 24px; width: 100%; box-sizing: border-box; }
+        @media (min-width: 768px) { .masonry-grid { column-count: 2; } }
+        @media (min-width: 1024px) { .masonry-grid { column-count: 3; } }
+        @media (min-width: 1440px) { .masonry-grid { column-count: 4; } }
+        .masonry-item { break-inside: avoid; margin-bottom: 24px; display: inline-block; width: 100%; box-sizing: border-box; }
         @media print {
           body * { visibility: hidden; }
           #printable-label, #printable-label * { visibility: visible; }
@@ -416,7 +424,7 @@ export default function Inventory({ user }) {
       <div className="header-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
         <div>
           <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "600", letterSpacing: "-0.02em" }}>📦 Inventory <button onClick={() => setShowHelpModal(true)} style={{ marginLeft: '16px', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#007aff', padding: '4px 12px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', verticalAlign: 'middle' }}>📖 Guide</button></h1>
-          <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Active Operator: {user?.email || "Scanner Mode Active"}</p>
+          <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Active Operator: {user?.email || auth?.user?.profile?.email || "Scanner Mode Active"}</p>
         </div>
         
       </div>
@@ -480,7 +488,7 @@ export default function Inventory({ user }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px", marginBottom: "24px" }}>
         <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c" }}><div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600" }}>TOTAL WAREHOUSE STOCK</div><div style={{ fontSize: "36px", fontWeight: "600", letterSpacing: "-0.01em", marginTop: "8px", color: "#34c759" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "16px", color: "#8e8e93" }}>Boxes</span></div></div>
         <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c" }}><div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600" }}>ACTIVE FLAVOR VARIETIES</div><div style={{ fontSize: "36px", fontWeight: "600", letterSpacing: "-0.01em", marginTop: "8px" }}>{activeFlavorsCount} <span style={{ fontSize: "16px", color: "#8e8e93" }}>Flavors</span></div></div>
-        <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c" }}><div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600" }}>ACTIVE PLACEMENT ZONE</div><div style={{ fontSize: "28px", fontWeight: "600", letterSpacing: "-0.01em", marginTop: "12px", color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff" }}>{activeZone.replace("ZONE-", "").replace("BAY-", "")}</div></div>
+        <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c" }}><div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600" }}>TARGET SCANNER ZONE</div><div style={{ fontSize: "28px", fontWeight: "600", letterSpacing: "-0.01em", marginTop: "12px", color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff" }}>{activeZone.replace("ZONE-", "").replace("BAY-", "")}</div></div>
       </div>
 
       {/* TOOLBAR */}
@@ -515,11 +523,12 @@ export default function Inventory({ user }) {
       </div>
 
       {/* FLIPPABLE KINETIC CARDS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', alignItems: 'flex-start', width: '100%', boxSizing: 'border-box' }}>
+      <div className="masonry-grid">
         {filteredStock.map((item) => {
           const isLowStock = item.quantity < 50;
           const isFlipped = flippedCards.includes(item.barcode);
           
+          const isExpired = item.expiryDate && item.expiryDate !== "N/A" && new Date(item.expiryDate) < new Date();
           const baseBurn = (item.flavor.length * 4) + 15; 
           const monthlyBurn = baseBurn;
           const quarterlyBurn = monthlyBurn * 3;
@@ -529,12 +538,13 @@ export default function Inventory({ user }) {
 
           const healthPercent = Math.min(100, Math.round((item.quantity / targetStock) * 100));
                     let healthColor = "#007aff"; 
-          if (item.quantity < 50) { healthColor = "#ff3b30"; } 
+          if (isExpired) { healthColor = "#ff3b30"; }
+          else if (item.quantity < 50) { healthColor = "#ff3b30"; } 
           else if (daysRemaining >= 30) { healthColor = "#34c759"; }
 
           return (
             <div 
-              key={`${item.barcode}-${item.lotNumber}`} 
+              key={`${item.barcode}-${item.lotNumber}`} className="masonry-item" 
               style={{ perspective: '1200px', cursor: 'pointer', height: '100%' }}
               onClick={() => {
         if (editModes[item.barcode]) return;
@@ -550,7 +560,7 @@ export default function Inventory({ user }) {
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
               <button onClick={(e) => { e.stopPropagation(); if (isMultiFlipMode) { setFlippedCards(prev => prev.includes(item.barcode) ? prev.filter(id => id !== item.barcode) : [...prev, item.barcode]); } else { setFlippedCards(prev => prev.includes(item.barcode) && prev.length === 1 ? [] : [item.barcode]); } }} style={{ backgroundColor: '#007aff', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,122,255,0.3)', marginBottom: '4px' }}>Flip</button>
               <div style={{ fontSize: '11px', color: '#8e8e93', backgroundColor: '#1c1c1e', padding: '4px 8px', borderRadius: '8px', border: '1px solid #3a3a3c', whiteSpace: 'nowrap' }}>Lot: {item.lotNumber}</div>
-                      <div style={{ fontSize: '10px', color: '#ff9500', fontWeight: '600' }}>Exp: {item.expiryDate || "N/A"}</div>
+                      <div style={{ fontSize: '10px', color: isExpired ? '#ff3b30' : '#ff9500', fontWeight: isExpired ? '700' : '600', backgroundColor: isExpired ? 'rgba(255, 59, 48, 0.15)' : 'transparent', padding: isExpired ? '2px 6px' : '0', borderRadius: '4px' }}>{isExpired ? '🚨 EXPIRED: ' : 'Exp: '}{item.expiryDate || "N/A"}</div>
                     </div>
                   </div>
                   
@@ -558,7 +568,7 @@ export default function Inventory({ user }) {
                   
                   {(expandedCards.includes(item.barcode) || isFlipped) && ( <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px 0 8px 0', borderTop: '1px solid #3a3a3c', marginTop: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Pipeline Health</span>
+                      {isExpired ? <span style={{ fontSize: '11px', color: '#ff3b30', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🚨 CRITICAL: EXPIRED PRODUCT</span> : <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Pipeline Health</span>}
                       <span style={{ fontSize: '12px', color: healthColor, fontWeight: "600" }}>{daysRemaining} Days Supply</span>
                     </div>
                     <div style={{ width: '100%', height: '10px', backgroundColor: '#1c1c1e', borderRadius: '5px', overflow: 'hidden', border: '1px solid #3a3a3c' }}>
