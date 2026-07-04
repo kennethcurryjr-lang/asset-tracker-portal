@@ -48,12 +48,7 @@ export default function Inventory({ user }) {
     let meta = document.querySelector('meta[name="viewport"]');
     if (!meta) { meta = document.createElement('meta'); meta.name = 'viewport'; document.head.appendChild(meta); }
     meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0';
-    document.body.style.backgroundColor = '#121212';
-    document.body.style.color = '#ffffff';
-    document.body.style.margin = '0';
-    document.body.style.padding = '0';
-    document.documentElement.style.backgroundColor = '#121212';
-  }, []);
+    }, []);
   const [stock, setStock] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isPalletMode, setIsPalletMode] = useState(false);
@@ -68,12 +63,10 @@ export default function Inventory({ user }) {
 
     const [showHelpModal, setShowHelpModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [lastScan, setLastScan] = useState({ code: null, time: 0 });
   const [pendingAction, setPendingAction] = useState(null);
   const [modalQty, setModalQty] = useState(1);
   
   const [pendingModeSwitch, setPendingModeSwitch] = useState(null);
-  const [showRegisterConfirm, setShowRegisterConfirm] = useState(false);
   
   const [showAuditModal, setShowAuditModal] = useState(false);
   const [auditLog, setAuditLog] = useState([]);
@@ -289,7 +282,7 @@ export default function Inventory({ user }) {
 
   const executeSaveNewItem = async () => {
     setStock(prev => { const exists = prev.find(i => i.barcode === newItemForm.barcode); return exists ? prev : [...prev, newItemForm]; });
-    setShowNewItemModal(false); setShowRegisterConfirm(false); 
+    setShowNewItemModal(false); 
     setScanFeedback(`✅ 📥 Registered Product: ${newItemForm.flavor}`);
     setTimeout(() => setScanFeedback(""), 4000);
     try { await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: newItemForm })); } catch (err) { console.error("Failed to register:", err); }
@@ -397,6 +390,7 @@ export default function Inventory({ user }) {
         #reader video { border-radius: 14px; object-fit: cover; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
         
+        @keyframes inventory-toast-pop { 0% { opacity: 0; transform: translate(-50%, 20px) scale(0.9); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
         @media print {
           body * { visibility: hidden; }
           #printable-label, #printable-label * { visibility: visible; }
@@ -534,8 +528,7 @@ export default function Inventory({ user }) {
           const runOutDate = new Date(Date.now() + (daysRemaining * 24 * 60 * 60 * 1000)).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
           const healthPercent = Math.min(100, Math.round((item.quantity / targetStock) * 100));
-          const recentLog = auditLog.find(log => log.flavor === item.flavor);
-          let healthColor = "#007aff"; 
+                    let healthColor = "#007aff"; 
           if (item.quantity < 50) { healthColor = "#ff3b30"; } 
           else if (daysRemaining >= 30) { healthColor = "#34c759"; }
 
@@ -899,6 +892,13 @@ export default function Inventory({ user }) {
             </div>
             <div id="reader" style={{ width: "100%", minHeight: "250px" }}></div>
           </div>
+        </div>
+      )}
+    
+      {/* 🟢 FLOATING SCAN FEEDBACK TOAST */}
+      {scanFeedback && (
+        <div style={{ position: "fixed", bottom: "40px", left: "50%", transform: "translateX(-50%)", backgroundColor: scanFeedback.includes("✅") ? "#34c759" : (scanFeedback.includes("📍") ? "#007aff" : "#ff3b30"), color: "#fff", padding: "16px 28px", borderRadius: "30px", fontWeight: "700", fontSize: "16px", zIndex: 10005, boxShadow: "0 10px 40px rgba(0,0,0,0.6)", whiteSpace: "nowrap", pointerEvents: "none", animation: "inventory-toast-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)" }}>
+          {scanFeedback}
         </div>
       )}
     </div>
