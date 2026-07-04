@@ -1263,7 +1263,6 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         <div style={{ fontSize: '15px', fontWeight: '600', color: '#1d1d1f', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>
                             {item.tag ? item.tag : 'UNNAMED'}
                         </div>
-                        <button onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ marginLeft: "auto", background: "#f5f5f7", border: "1px solid #d2d2d7", cursor: "pointer", fontSize: "11px", color: "#1d1d1f", zIndex: 30, padding: "4px 10px", borderRadius: "8px", fontWeight: "600", boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }}>Flip ⤹</button>
                       </div>
                       
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '6px' }}>
@@ -1322,6 +1321,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                   <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
                       <input placeholder="Rename Asset..." value={tagInputs[item.deviceId] || ""} onChange={(e) => setTagInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#f5f5f7' }} />
                       <button onClick={() => updateAttribute(item.deviceId, 'LATEST', 'tag', tagInputs[item.deviceId], '#t')} style={{ ...primaryButtonStyle, padding: '6px 12px', fontSize: '12px', borderRadius: '6px' }}>Save</button>
+                      <button onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ background: "#f5f5f7", border: "1px solid #d2d2d7", cursor: "pointer", fontSize: "11px", color: "#1d1d1f", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>Flip ⤹</button>
                   </div>
 
                   <div style={{ display: 'flex', gap: '4px', width: '100%', flexWrap: 'wrap' }}>
