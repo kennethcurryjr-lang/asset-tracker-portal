@@ -120,7 +120,7 @@ function App() {
   };
   
   const cardStyle = { backgroundColor: '#ffffff', borderRadius: '14px', padding: '28px', border: '1px solid #d2d2d7', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)' };
-  const deviceCardStyle = { backgroundColor: '#e5e5ea', borderRadius: '12px', padding: '16px', border: '1px solid #d2d2d7', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.02)', display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', boxSizing: 'border-box', alignItems: 'stretch' };
+  const deviceCardStyle = { backgroundColor: '#e5e5ea', borderRadius: '14px', padding: '16px', border: '1px solid #d2d2d7', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', boxSizing: 'border-box', alignItems: 'stretch' };
   const inputStyle = { padding: '8px 12px', borderRadius: '8px', border: '1px solid #d2d2d7', fontSize: '14px', backgroundColor: '#ffffff', color: '#1d1d1f', outline: 'none', transition: 'all 0.2s' };
   const labelStyle = { fontSize: '11px', color: '#1d1d1f', fontWeight: '700', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' };
   
@@ -1056,6 +1056,10 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       {/* ---------------- DECOUPLED MASTER HEADER ---------------- */}
       <div style={{ 
         width: '100%', 
+        maxWidth: '1140px',
+        margin: '0 auto',
+        padding: '12px 12px 0 12px',
+        boxSizing: 'border-box',
         backgroundColor: activePortal === "inventory" ? '#1c1c1e' : 'transparent',
         display: 'flex', 
         flexDirection: 'column'
@@ -1107,7 +1111,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         </div>
       )}
       
-      <div style={{ maxWidth: '1140px', margin: '20px auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ width: '100%', maxWidth: '1140px', margin: '16px auto', padding: '0 12px', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box' }}>
         
         {/* Compressed Real-Estate Search Panel Deck */}
         <div className="sticky-search-panel-container" style={stickySearchCardStyle}>
