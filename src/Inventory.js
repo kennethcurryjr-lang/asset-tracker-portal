@@ -469,7 +469,7 @@ export default function Inventory({ user }) {
 return (
     <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", boxSizing: "border-box", width: "100%", maxWidth: "100vw", overflowX: "hidden", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{`
-        body { margin: 0; padding: 0; overflow-x: hidden; }
+        html, body { margin: 0; padding: 0; overflow-x: hidden; overscroll-behavior: none; }
         @media (max-width: 768px) { 
           .flavor-board-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
           .flavor-board-header-left { width: 100% !important; justify-content: space-between !important; }
