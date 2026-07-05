@@ -532,18 +532,15 @@ return (
                     <span style={{ fontSize: "20px" }}>⚠️</span>
                     <h4 style={{ margin: 0, color: "#ff9500", fontSize: "16px", fontWeight: "700", letterSpacing: "-0.01em" }}>Critical Alerts</h4>
                   </div>
-                  {vendorsToAlert && vendorsToAlert.map(vendorEmail => (
-                    <button key={vendorEmail} onClick={() => {
-                    const vendorItems = criticalAlerts.filter(item => (item.vendorEmail || "purchasing@csgroup.com") === vendorEmail);
-                    let bodyText = "Please process a purchase order for the following critical stock items:\n\n";
-                    vendorItems.forEach(i => {
+                  <button onClick={() => {
+                    let bodyText = "Please process purchase orders for the following critical stock items:\n\n";
+                    criticalAlerts.forEach(i => {
                       const status = (i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date()) ? "[EXPIRED] " : "";
-                      bodyText += `- ${status}${i.brand} - ${i.flavor} (Current Stock: ${i.quantity} bx)\n`;
+                      bodyText += `- ${status}${i.brand} - ${i.flavor} (Stock: ${i.quantity} bx | Route: ${i.vendorEmail || "Internal"})\n`;
                     });
                     bodyText += "\nThank you,\nWarehouse Operations";
-                    window.location.href = `mailto:${vendorEmail}?subject=URGENT: PO Request&body=${encodeURIComponent(bodyText)}`;
-                  }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ PO</button>
-                  ))}
+                    window.location.href = `mailto:purchasing@csgroup.com?subject=URGENT: Master PO Request&body=${encodeURIComponent(bodyText)}`;
+                  }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ Master PO</button>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "350px", overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
                   {criticalAlerts.map(i => {
