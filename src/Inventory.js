@@ -458,6 +458,11 @@ return (
       <style>{`
         body { margin: 0; padding: 0; overflow-x: hidden; }
         @media (max-width: 768px) { 
+          .flavor-board-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+          .flavor-board-header-left { width: 100% !important; justify-content: space-between !important; }
+          .total-stock-block { width: 100% !important; flex-direction: row !important; justify-content: space-between !important; align-items: center !important; border-right: none !important; border-bottom: 1px solid #3a3a3c !important; padding: 0 0 12px 0 !important; margin: 0 0 12px 0 !important; }
+          .mode-switch-group { flex-wrap: wrap !important; padding: 12px !important; }
+ 
           .inventory-container { padding: 16px !important; } 
           .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } 
           .toolbar-stack { flex-direction: column !important; align-items: stretch !important; } 
@@ -591,8 +596,8 @@ return (
 
         {/* RIGHT STRETCH: Dense Flavor Breakdown */}
         <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", maxHeight: "800px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div className="flavor-board-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <div className="flavor-board-header-left" style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
               <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em", textTransform: "uppercase" }}>INVENTORY BY FLAVOR</div>
               <select value={flavorSort} onChange={(e) => setFlavorSort(e.target.value)} style={{ backgroundColor: "#1c1c1e", color: "#8e8e93", border: "1px solid #3a3a3c", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", outline: "none", cursor: "pointer" }}>
                 <option value="qty_desc">Qty (High to Low)</option>
@@ -663,7 +668,7 @@ return (
           <button onClick={handleManualAdd} style={{ backgroundColor: "#34c759", border: "none", padding: "12px 16px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%", marginTop: "4px", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>➕ Register New Product</button>
         </div>
         <div className="mode-switch-group" style={{ display: "flex", backgroundColor: "#1c1c1e", padding: "8px", borderRadius: "14px", border: "1px solid #3a3a3c", flex: "1 1 auto", justifyContent: "space-between", alignSelf: "center", margin: "0 16px", gap: "8px", maxWidth: "650px" }}>
-          <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 12px 0 4px", borderRight: "1px solid #3a3a3c", marginRight: "4px" }}>
+          <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 12px 0 4px", borderRight: "1px solid #3a3a3c", marginRight: "4px" }} className="total-stock-block">
             <div style={{ fontSize: "10px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>TOTAL STOCK</div>
             <div style={{ fontSize: "18px", fontWeight: "700", color: "#34c759", letterSpacing: "-0.01em", marginTop: "2px", whiteSpace: "nowrap" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "12px", color: "#8e8e93" }}>bx</span></div>
           </div>
