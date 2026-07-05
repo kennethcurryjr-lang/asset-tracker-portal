@@ -448,6 +448,12 @@ return (
             align-items: flex-start !important;
           }
         }
+      
+        #root, #root > div, #root > div > div { 
+          background-color: #1c1c1e !important;
+          min-height: 100vh !important;
+          width: 100% !important;
+        }
       `}</style>
 
       {/* 🔥 DYNAMIC VENDOR DATALIST */}
