@@ -480,7 +480,8 @@ return (
           .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } 
           .toolbar-stack { flex-direction: column !important; align-items: stretch !important; } 
           .search-group { max-width: 100% !important; }
-          .mode-switch-group { margin: 16px 0 !important; max-width: 100% !important; width: 100% !important; box-sizing: border-box; }
+          .scanner-control-panel { margin: 16px 0 !important; width: 100% !important; box-sizing: border-box; }
+          .mode-switch-group { max-width: 100% !important; width: 100% !important; box-sizing: border-box; margin: 0 !important; }
           .mode-switch-group button { padding: 12px 4px !important; font-size: 14px !important; }
           .action-group-right { width: 100% !important; align-items: stretch !important; }
           .primary-row { justify-content: space-between !important; gap: 6px !important; flex-wrap: nowrap !important; width: 100% !important; }
@@ -680,7 +681,8 @@ return (
           </button>
           <button onClick={handleManualAdd} style={{ backgroundColor: "#34c759", border: "none", padding: "12px 16px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%", marginTop: "4px", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>➕ Register New Product</button>
         </div>
-        <div className="mode-switch-group" style={{ display: "flex", backgroundColor: "#1c1c1e", padding: "8px", borderRadius: "14px", border: "1px solid #3a3a3c", flex: "1 1 auto", justifyContent: "space-between", alignSelf: "center", margin: "0 16px", gap: "8px", maxWidth: "650px" }}>
+        <div className="scanner-control-panel" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1 1 auto", alignSelf: "flex-start", margin: "0 16px", maxWidth: "650px", width: "100%" }}>
+          <div className="mode-switch-group" style={{ display: "flex", backgroundColor: "#1c1c1e", padding: "8px", borderRadius: "14px", border: "1px solid #3a3a3c", justifyContent: "space-between", gap: "8px", width: "100%" }}>
           <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 12px 0 4px", borderRight: "1px solid #3a3a3c", marginRight: "4px" }} className="total-stock-block">
             <div style={{ fontSize: "10px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>TOTAL STOCK</div>
             <div style={{ fontSize: "18px", fontWeight: "700", color: "#34c759", letterSpacing: "-0.01em", marginTop: "2px", whiteSpace: "nowrap" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "12px", color: "#8e8e93" }}>bx</span></div>
@@ -689,8 +691,7 @@ return (
           <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "transparent", color: scanMode === "ship" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>🚚 Ship</button>
           <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "transfer" ? "#007aff" : "transparent", color: scanMode === "transfer" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>🔄 Transfer</button>
         </div>
-        <div className="action-group-right" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1", alignItems: "flex-end" }}>
-          <div className="primary-row" style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <div className="primary-row" style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
             <div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "4px 12px" }}>
               <span className="hide-mobile" style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
               <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "600", outline: "none", textAlign: "center" }} />
@@ -699,6 +700,9 @@ return (
             
             <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>📷 SCAN</button>
           </div>
+        </div>
+        <div className="action-group-right" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1", alignItems: "flex-end" }}>
+          
           <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginBottom: '12px', paddingRight: '2px' }}>
             <div style={{ fontSize: '10px', fontWeight: '700', color: activeZone.includes('Unassigned') ? '#ff9500' : '#007aff', backgroundColor: activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.15)' : 'rgba(0, 122, 255, 0.15)', padding: '4px 12px', borderRadius: '12px', border: `1px solid ${activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.4)' : 'rgba(0, 122, 255, 0.4)'}`, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                <span style={{ fontSize: '12px' }}>📍</span> TARGET ZONE: {activeZone.replace("ZONE-", "").replace("BAY-", "")}
