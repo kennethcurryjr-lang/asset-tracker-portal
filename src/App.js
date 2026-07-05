@@ -511,39 +511,25 @@ function App() {
     }
   };
 
-  const applySingleFactoryReset = async (id, batteryLevel, lat, lon) => { const dev = { deviceId: id };
+  const applySingleFactoryReset = async (deviceId) => {
     if (!isAdmin) { alert("Security Violation."); return; }
-    if (!window.confirm(`WARNING: PERMANENTLY wipe ALL historical logs, tracking data, and names for device ${id}? This cannot be undone.`)) return;
+    if (!window.confirm(`WARNING: Are you sure you want to clear the Name, Group, Home Anchor, and Service Schedule for this device?`)) return;
     try {
-        const queryResponse = await docClient.send(new QueryCommand({
-          TableName: "AssetTrackerData",
-          KeyConditionExpression: "deviceId = :id",
-          ExpressionAttributeValues: { ":id": dev.deviceId }
-        }));
-        const items = queryResponse.Items || [];
-        await Promise.all(items.map(item => 
-          docClient.send(new DeleteCommand({
-            TableName: "AssetTrackerData",
-            Key: { deviceId: dev.deviceId, timestamp: item.timestamp }
-          }))
-        ));
-        const cleanTimestamp = new Date().toISOString();
         await docClient.send(new UpdateCommand({
           TableName: "AssetTrackerData",
-          Key: { deviceId: dev.deviceId, timestamp: cleanTimestamp },
-          UpdateExpression: "SET isServiceMode = :sm, battery = :bat, latitude = :lat, longitude = :lon",
+          Key: { deviceId, timestamp: "LATEST" },
+          UpdateExpression: "SET tag = :c, #grp = :c, homeLat = :c, homeLon = :c, maintenanceInterval = :c, maintenanceDueDate = :c, isServiceMode = :sm",
+          ExpressionAttributeNames: { "#grp": "group" },
           ExpressionAttributeValues: { 
-            ":sm": true,
-            ":bat": batteryLevel || 100,
-            ":lat": lat || 0,
-            ":lon": lon || 0
+            ":c": "CLEARED",
+            ":sm": true
           }
         }));
-        await addNote(dev.deviceId, cleanTimestamp, "🛡️ Factory Reset: Device Wiped and Re-initialized");
-        alert(`Successfully purged and reset device ${id}.`);
+        await addNote(deviceId, "LATEST", "🔄 Device profile soft-reset (Watchdog OFF).");
+        alert(`Successfully reset profile for ${deviceId.slice(-5)}.`);
         fetchDevices();
     } catch (err) { 
-        console.error("Deep Purge Error:", err);
+        console.error("Soft Reset Error:", err);
         alert("Reset failed. Check console for details."); 
     }
   };
@@ -551,42 +537,28 @@ function App() {
   // --- NEW FEATURE: Bulk Factory Reset (Wipe Devices) ---
   const applyBulkFactoryReset = async () => {
     if (!isAdmin) { alert("Security Violation."); return; }
-    if (!window.confirm(`WARNING: PERMANENTLY wipe ALL historical logs, tracking data, and names for ${selectedDevices.length} selected devices? This cannot be undone.`)) return;
+    if (!window.confirm(`WARNING: Are you sure you want to clear the Name, Group, Home Anchor, and Service Schedule for all ${selectedDevices.length} selected devices?`)) return;
     try {
         await Promise.all(selectedDevices.map(async (id) => {
             const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
             if (!dev) return;
-            const queryResponse = await docClient.send(new QueryCommand({
-              TableName: "AssetTrackerData",
-              KeyConditionExpression: "deviceId = :id",
-              ExpressionAttributeValues: { ":id": dev.deviceId }
-            }));
-            const items = queryResponse.Items || [];
-            await Promise.all(items.map(item => 
-              docClient.send(new DeleteCommand({
-                TableName: "AssetTrackerData",
-                Key: { deviceId: dev.deviceId, timestamp: item.timestamp }
-              }))
-            ));
-            const cleanTimestamp = new Date().toISOString();
             await docClient.send(new UpdateCommand({
               TableName: "AssetTrackerData",
-              Key: { deviceId: dev.deviceId, timestamp: cleanTimestamp },
-              UpdateExpression: "SET isServiceMode = :sm, battery = :bat, latitude = :lat, longitude = :lon",
+              Key: { deviceId: dev.deviceId, timestamp: "LATEST" },
+              UpdateExpression: "SET tag = :c, #grp = :c, homeLat = :c, homeLon = :c, maintenanceInterval = :c, maintenanceDueDate = :c, isServiceMode = :sm",
+              ExpressionAttributeNames: { "#grp": "group" },
               ExpressionAttributeValues: { 
-                ":sm": true,
-                ":bat": dev.battery || 100,
-                ":lat": dev.latitude || 0,
-                ":lon": dev.longitude || 0
+                ":c": "CLEARED",
+                ":sm": true
               }
             }));
-            await addNote(dev.deviceId, cleanTimestamp, "🛡️ Factory Reset: Device Wiped and Re-initialized");
+            await addNote(dev.deviceId, "LATEST", "🔄 Device profile soft-reset (Watchdog OFF).");
         }));
-        alert(`Successfully purged and reset ${selectedDevices.length} devices.`);
+        alert(`Successfully soft-reset profiles for ${selectedDevices.length} devices.`);
         setSelectedDevices([]);
         fetchDevices();
     } catch (err) { 
-        console.error("Deep Purge Error:", err);
+        console.error("Bulk Soft Reset Error:", err);
         alert("Bulk reset failed. Check console for details."); 
     }
   };
@@ -1413,6 +1385,11 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                     <button onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ background: '#2c2c2e', border: '1px solid #3a3a3c', cursor: 'pointer', fontSize: '11px', color: '#ffffff', padding: '4px 10px', borderRadius: '8px', fontWeight: '600' }}>⤶ Back</button>
                   </div>
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '12px', color: '#86868b', padding: '20px' }}>
+                    {isAdmin && (
+                      <button onClick={() => applySingleFactoryReset(item.deviceId)} style={{ ...secondaryButtonStyle, borderColor: '#ff3b30', color: '#ff3b30', width: '100%', marginBottom: '16px' }}>
+                        ⚠️ Factory Reset Profile
+                      </button>
+                    )}
                     <div style={{ fontSize: '14px', fontWeight: '500', color: '#d2d2d7' }}>Expansion Slot Ready</div>
                     <div style={{ fontSize: '12px', lineHeight: '1.5', maxWidth: '200px' }}>Reserved for real-time BSSID anchors, signal strength, and manual TCP overrides.</div>
                   </div>
