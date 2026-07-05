@@ -487,10 +487,7 @@ return (
             <div style={{ fontSize: "36px", fontWeight: "700", marginTop: "8px", color: "#34c759", letterSpacing: "-0.01em" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "16px", color: "#8e8e93" }}>Boxes</span></div>
           </div>
 
-          <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
-            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em" }}>TARGET SCANNER ZONE</div>
-            <div style={{ fontSize: "28px", fontWeight: "700", marginTop: "12px", color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff", letterSpacing: "-0.01em", wordBreak: "break-word", lineHeight: "1.2" }}>{activeZone.replace("ZONE-", "").replace("BAY-", "")}</div>
-          </div>
+
           
           {(() => {
             const criticalAlerts = stock.filter(i => {
@@ -545,6 +542,13 @@ return (
         </div>
 
       </div>
+            {/* TARGET ZONE INDICATOR */}
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '20px', marginTop: '12px' }}>
+        <div style={{ fontSize: '11px', fontWeight: '700', color: activeZone.includes('Unassigned') ? '#ff9500' : '#007aff', backgroundColor: activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.15)' : 'rgba(0, 122, 255, 0.15)', padding: '6px 20px', borderRadius: '16px', border: `1px solid ${activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.4)' : 'rgba(0, 122, 255, 0.4)'}`, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+           <span style={{ fontSize: '14px' }}>📍</span> TARGET ZONE: {activeZone.replace("ZONE-", "").replace("BAY-", "")}
+        </div>
+      </div>
+
       {/* TOOLBAR */}
       <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "14px", border: "1px solid #3a3a3c" }}>
         <div className="search-group" style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%", maxWidth: "280px" }}>
