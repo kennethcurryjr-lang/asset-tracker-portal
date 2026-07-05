@@ -473,7 +473,7 @@ return (
         @media (max-width: 768px) { 
           .flavor-board-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
           .flavor-board-header-left { width: 100% !important; justify-content: space-between !important; }
-          .total-stock-block { width: 100% !important; flex-direction: row !important; justify-content: space-between !important; align-items: center !important; border-right: none !important; border-bottom: 1px solid #3a3a3c !important; padding: 0 0 12px 0 !important; margin: 0 0 12px 0 !important; }
+          .total-stock-block { width: 100% !important; max-width: 100% !important; }
           .mode-switch-group { flex-wrap: wrap !important; padding: 12px !important; }
  
           .inventory-container { padding: 16px !important; } 
@@ -613,15 +613,14 @@ return (
         <div className="action-group-right" style={{ display: "flex", flexDirection: "column", gap: "16px", flex: "1", alignItems: "flex-end" }}>
           
           {/* Decoupled & Enlarged Total Stock */}
-          <div className="total-stock-block" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", backgroundColor: "#1c1c1e", padding: "16px 24px", borderRadius: "14px", border: "1px solid #3a3a3c", width: "100%", maxWidth: "320px", boxShadow: "0 8px 24px rgba(0,0,0,0.2)" }}>
-            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "700", letterSpacing: "0.05em", textTransform: "uppercase" }}>Global Inventory</div>
-            <div style={{ fontSize: "42px", fontWeight: "800", color: "#34c759", letterSpacing: "-0.02em", marginTop: "4px", lineHeight: "1" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "18px", color: "#8e8e93", fontWeight: "600" }}>bx</span></div>
-          </div>
-
-
-          <div className="secondary-row" style={{ display: "flex", gap: "12px", justifyContent: "flex-end", width: "100%" }}>
-            <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ flex: 1, backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>📋 Security Audit</button>
-            <button onClick={handleExportCSV} style={{ flex: 1, backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>📥 CSV</button>
+          <div className="total-stock-block" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", backgroundColor: "#1c1c1e", padding: "16px 24px", borderRadius: "14px", border: "1px solid #3a3a3c", width: "100%", maxWidth: "320px", boxShadow: "0 8px 24px rgba(0,0,0,0.2)", minHeight: "135px", position: "relative", boxSizing: "border-box" }}>
+            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "700", letterSpacing: "0.05em", textTransform: "uppercase", width: "100%", textAlign: "right" }}>Global Inventory</div>
+            <div style={{ fontSize: "42px", fontWeight: "800", color: "#34c759", letterSpacing: "-0.02em", marginTop: "4px", lineHeight: "1", width: "100%", textAlign: "right" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "18px", color: "#8e8e93", fontWeight: "600" }}>bx</span></div>
+            
+            <div className="secondary-row" style={{ display: "flex", gap: "8px", marginTop: "auto", paddingTop: "16px", width: "100%", justifyContent: "flex-end" }}>
+              <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "6px 12px", borderRadius: "6px", color: "#8e8e93", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }} onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#007aff'; }} onMouseLeave={(e) => { e.currentTarget.style.color = '#8e8e93'; e.currentTarget.style.borderColor = '#3a3a3c'; }}>📋 AUDIT</button>
+              <button onClick={handleExportCSV} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "6px 12px", borderRadius: "6px", color: "#8e8e93", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }} onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#34c759'; }} onMouseLeave={(e) => { e.currentTarget.style.color = '#8e8e93'; e.currentTarget.style.borderColor = '#3a3a3c'; }}>📥 CSV</button>
+            </div>
           </div>
         </div>
       </div>
@@ -658,7 +657,7 @@ return (
                     window.location.href = `mailto:purchasing@csgroup.com?subject=URGENT: Master PO Request&body=${encodeURIComponent(bodyText)}`;
                   }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ Master PO</button>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "350px", overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "350px", overflowY: "auto", WebkitOverflowScrolling: "touch", touchAction: "pan-y", paddingRight: "4px" }} className="custom-scrollbar-viewport">
                   {criticalAlerts.map(i => {
                     const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
                     return (
@@ -693,7 +692,7 @@ return (
             <div style={{ fontSize: "14px", color: "#ffffff", fontWeight: "700" }}>{activeFlavorsCount} <span style={{ color: "#8e8e93", fontWeight: "600" }}>Total</span></div>
           </div>
           {/* Dense Grid for 40+ Items */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", overflowY: "auto", paddingRight: "8px", alignContent: "start", flex: 1 }} className="custom-scrollbar-viewport">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", overflowY: "auto", WebkitOverflowScrolling: "touch", touchAction: "pan-y", paddingRight: "8px", alignContent: "start", flex: 1 }} className="custom-scrollbar-viewport">
             {flavorTotals.map(f => (
               <div key={f.name} 
               onClick={() => {
@@ -927,7 +926,7 @@ return (
       {/* RESTORED NEW ITEM REGISTRATION MODAL WITH VENDOR PO ROUTING */}
       {showNewItemModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", maxHeight: "90vh", overflowY: "auto" }}>
+          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", maxHeight: "90vh", overflowY: "auto", WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "12px" }}>
               <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: "600", letterSpacing: "-0.01em" }}>➕ Register New Product</h3>
               <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
@@ -988,7 +987,7 @@ return (
       
       {showHelpModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 10000, backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)" }}>
-          <div style={{ backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", maxWidth: "600px", width: "90%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6)" }}>
+          <div style={{ backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", maxWidth: "600px", width: "90%", maxHeight: "85vh", overflowY: "auto", WebkitOverflowScrolling: "touch", touchAction: "pan-y", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
               <h3 style={{ color: "#fff", margin: 0, fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>📖 Kinetic Asset Tracker Guide</h3>
               <button onClick={() => setShowHelpModal(false)} style={{ backgroundColor: "transparent", border: "none", color: "#8e8e93", fontSize: "28px", cursor: "pointer", transition: "color 0.2s" }}>&times;</button>
@@ -1096,7 +1095,7 @@ return (
               <h3 style={{ margin: 0, color: "#ffffff", fontSize: "22px" }}>📋 Historical Cloud Audit</h3>
               <button onClick={() => setShowAuditModal(false)} style={{ background: "transparent", color: "#8e8e93", border: "none", fontSize: "16px", cursor: "pointer" }}>Close ✕</button>
             </div>
-            <div style={{ overflowY: "auto", flex: 1, paddingRight: "8px" }}>
+            <div style={{ overflowY: "auto", WebkitOverflowScrolling: "touch", touchAction: "pan-y", flex: 1, paddingRight: "8px" }}>
               {auditLog.length === 0 ? (
                 <div style={{ color: "#8e8e93", textAlign: "center", padding: "40px" }}>No historical transactions found in the cloud ledger.</div>
               ) : (
