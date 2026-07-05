@@ -252,16 +252,21 @@ export default function Inventory({ user }) {
       return;
     }
     const parsedQty = parseInt(customQty) || 1;
-    const boxAdjustment = isPalletMode ? 70 * parsedQty : parsedQty;
     const targetItem = stock.find(item => item.barcode === cleanScan || cleanScan.includes(item.barcode) || item.barcode.includes(cleanScan));
+    // Dynamically calculate footprint based on packaging type
+    const palletMultiplier = targetItem ? ({"3G Bag-in-Box": 60, "24-Can Case": 100, "12-Can Case": 150, "1G Jug Case": 70, "1/2 BBL Keg": 8, "1/6 BBL Keg": 20}[targetItem.type] || 70) : 70;
+    const boxAdjustment = isPalletMode ? palletMultiplier * parsedQty : parsedQty;
 
     if (targetItem) {
-      const isTargetExpired = targetItem.expiryDate && targetItem.expiryDate !== "N/A" && new Date(targetItem.expiryDate) < new Date();
-      if (scanMode === "receive" && isTargetExpired) {
-        setScanFeedback("🚫 QUARANTINE: Target lot expired. Register fresh pallet under new Lot.");
-        setTimeout(() => setScanFeedback(""), 6000);
+      // INTERCEPT: Force operator to assign a new Lot Number when receiving known freight
+      if (scanMode === "receive") {
+        setNewItemForm({ ...targetItem, lotNumber: "", expiryDate: "", quantity: boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : (targetItem.zone || "Unassigned Warehouse") });
+        setScanFeedback("⚠️ UPC Recognized. Verify Lot Number & Expiry Date.");
+        setShowNewItemModal(true);
+        setTimeout(() => setScanFeedback(""), 4000);
         return;
       }
+      const isTargetExpired = targetItem.expiryDate && targetItem.expiryDate !== "N/A" && new Date(targetItem.expiryDate) < new Date();
       const newQuantity = scanMode === "receive" ? targetItem.quantity + boxAdjustment : Math.max(0, targetItem.quantity - boxAdjustment);
       const newZone = (scanMode === "receive" && activeZone !== "Unassigned Warehouse") ? activeZone : targetItem.zone;
       
@@ -354,7 +359,15 @@ export default function Inventory({ user }) {
   const handleSaveNewItem = () => { if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) return alert("Required fields missing."); executeSaveNewItem(); };
 
   const executeSaveNewItem = async () => {
-    setStock(prev => { const exists = prev.find(i => i.barcode === newItemForm.barcode); return exists ? prev : [...prev, newItemForm]; });
+    setStock(prev => { 
+      const existingIdx = prev.findIndex(i => i.barcode === newItemForm.barcode && i.lotNumber === newItemForm.lotNumber);
+      if (existingIdx >= 0) {
+        const updated = [...prev];
+        updated[existingIdx] = { ...updated[existingIdx], quantity: updated[existingIdx].quantity + (newItemForm.quantity || 0) };
+        return updated;
+      }
+      return [...prev, newItemForm]; 
+    });
     setShowNewItemModal(false); 
     setScanFeedback(`✅ 📥 Registered Product: ${newItemForm.flavor}`);
     setTimeout(() => setScanFeedback(""), 4000);
@@ -826,7 +839,12 @@ return (
                         <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: "8px", gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Est. Run-Out Date</div><div style={{ fontSize: '18px', fontWeight: "600", letterSpacing: "-0.01em", color: item.quantity === 0 ? '#ff3b30' : '#34c759', marginTop: '2px' }}>{item.quantity === 0 ? "Depleted" : runOutDate}</div></div>
                       </div>
                       
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '16px', marginBottom: '12px' }}>
+                        <button onClick={(e) => { e.stopPropagation(); setScanMode("receive"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(52, 199, 89, 0.15)', color: '#34c759', border: '1px solid #34c759', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>📥 RCV</button>
+                        <button onClick={(e) => { e.stopPropagation(); setScanMode("ship"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(255, 59, 48, 0.15)', color: '#ff3b30', border: '1px solid #ff3b30', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>🚚 SHP</button>
+                        <button onClick={(e) => { e.stopPropagation(); setScanMode("transfer"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(0, 122, 255, 0.15)', color: '#007aff', border: '1px solid #007aff', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>🔄 TFR</button>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
                         <button 
                           onClick={(e) => { e.stopPropagation(); setPrintLabelItem(item); }} 
                           style={{ flex: 1, backgroundColor: '#2c2c2e', color: '#ffffff', border: '1px solid #3a3a3c', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
