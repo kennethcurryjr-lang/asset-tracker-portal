@@ -119,6 +119,7 @@ export default function Inventory({ user }) {
   const [pinInput, setPinInput] = useState("");
   
   const [printLabelItem, setPrintLabelItem] = useState(null);
+  const [flavorSort, setFlavorSort] = useState("qty_desc");
 
   const totalBoxes = stock.reduce((acc, item) => acc + item.quantity, 0);
   const activeFlavorsCount = new Set(stock.map(item => item.flavor)).size;
@@ -420,9 +421,18 @@ export default function Inventory({ user }) {
   const vendorsToAlert = [...new Set(lowStockItems.map(i => i.vendorEmail || "purchasing@csgroup.com"))];
 
   const flavorTotals = Array.from(stock.reduce((map, item) => {
-    map.set(item.flavor, (map.get(item.flavor) || 0) + item.quantity);
+    const existing = map.get(item.flavor) || { qty: 0, lastScan: 0 };
+    const itemRecent = (item.recentScans && item.recentScans.length > 0) ? item.recentScans[0].timestamp : 0;
+    map.set(item.flavor, { qty: existing.qty + item.quantity, lastScan: Math.max(existing.lastScan, itemRecent) });
     return map;
-  }, new Map()), ([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty);
+  }, new Map()), ([name, data]) => ({ name, qty: data.qty, lastScan: data.lastScan })).sort((a, b) => {
+    if (flavorSort === "qty_desc") return b.qty - a.qty;
+    if (flavorSort === "qty_asc") return a.qty - b.qty;
+    if (flavorSort === "alpha_asc") return a.name.localeCompare(b.name);
+    if (flavorSort === "alpha_desc") return b.name.localeCompare(a.name);
+    if (flavorSort === "recent") return b.lastScan - a.lastScan;
+    return b.qty - a.qty;
+  });
 return (
     <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", boxSizing: "border-box", width: "100%", maxWidth: "100vw", overflowX: "hidden", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{`
@@ -564,7 +574,16 @@ return (
         {/* RIGHT STRETCH: Dense Flavor Breakdown */}
         <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", maxHeight: "800px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em" }}>INVENTORY BY FLAVOR</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em", textTransform: "uppercase" }}>INVENTORY BY FLAVOR</div>
+              <select value={flavorSort} onChange={(e) => setFlavorSort(e.target.value)} style={{ backgroundColor: "#1c1c1e", color: "#8e8e93", border: "1px solid #3a3a3c", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", outline: "none", cursor: "pointer" }}>
+                <option value="qty_desc">Qty (High to Low)</option>
+                <option value="qty_asc">Qty (Low to High)</option>
+                <option value="alpha_asc">Alphabetical (A-Z)</option>
+                <option value="alpha_desc">Alphabetical (Z-A)</option>
+                <option value="recent">Recent Activity</option>
+              </select>
+            </div>
             <div style={{ fontSize: "14px", color: "#ffffff", fontWeight: "700" }}>{activeFlavorsCount} <span style={{ color: "#8e8e93", fontWeight: "600" }}>Total</span></div>
           </div>
           {/* Dense Grid for 40+ Items */}
