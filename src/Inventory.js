@@ -387,7 +387,7 @@ export default function Inventory({ user }) {
     return map;
   }, new Map()), ([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty);
 return (
-    <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", boxSizing: "border-box", width: "100%", maxWidth: "100vw", overflowX: "hidden", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{`
         body { margin: 0; padding: 0; overflow-x: hidden; }
         @media (max-width: 768px) { 
