@@ -306,7 +306,7 @@ function App() {
             }
         }
         
-        latest.notesList = latestRow.notesList || [];
+        latest.notesList = (latestRow.notesList || []).map(n => ({...n, rowTimestamp: 'LATEST'}));
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
         
         // Breadcrumbs removed to save 99% on AWS read costs
