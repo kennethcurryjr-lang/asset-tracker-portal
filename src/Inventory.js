@@ -18,6 +18,11 @@ const MANAGER_PIN = "1234";
 
 const CustomAutocomplete = ({ value, onChange, placeholder, options, style }) => {
   const [show, setShow] = React.useState(false);
+    const flavorTotals = Array.from(stock.reduce((map, item) => {
+    map.set(item.flavor, (map.get(item.flavor) || 0) + item.quantity);
+    return map;
+  }, new Map()), ([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty);
+
   return (
     <div style={{ position: 'relative', flex: style.flex || 'unset', width: '100%' }}>
       <input 
@@ -382,6 +387,11 @@ export default function Inventory({ user }) {
 
   const vendorsToAlert = [...new Set(lowStockItems.map(i => i.vendorEmail || "purchasing@csgroup.com"))];
 
+  const flavorTotals = Array.from(stock.reduce((map, item) => {
+    map.set(item.flavor, (map.get(item.flavor) || 0) + item.quantity);
+    return map;
+  }, new Map()), ([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty);
+
   return (
     <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{`
@@ -456,68 +466,67 @@ export default function Inventory({ user }) {
         
       </div>
 
-      {lowStockItems.length > 0 && (
-        <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", marginBottom: "24px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "16px" }}>
-          <div style={{ width: "100%" }}>
-            <style>{`
-  details.hide-summary-marker > summary::-webkit-details-marker { display: none; }
-  details.hide-summary-marker .accordion-toggle::after { content: "Tap to view details ▾"; }
-  details.hide-summary-marker[open] .accordion-toggle::after { content: "Tap to Close ▴"; }
-
-        @media (min-width: 769px) {
-          .toolbar-stack {
-            display: grid !important;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: flex-start !important;
-          }
-        }
-      `}</style>
-            <details style={{ cursor: "pointer" }} className="hide-summary-marker">
-              <summary style={{ display: "flex", alignItems: "center", gap: "12px", outline: "none", listStyle: "none" }}>
-                <span style={{ fontSize: "28px", lineHeight: "1" }}>⚠️</span>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <h4 style={{ margin: 0, color: "#ff9500", fontSize: "18px", fontWeight: "600", letterSpacing: "-0.01em" }}>Critical Stock Alert</h4>
-                  <span style={{ color: "#ffffff", fontSize: "14px", marginTop: "2px" }}>
-                    <strong style={{ color: "#ff9500" }}>{lowStockItems.length}</strong> items require attention. <span style={{ color: "#ff9500", marginLeft: "4px" }} className="accordion-toggle"></span>
-                  </span>
+      {/* 🖥️ COMMAND CENTER DASHBOARD */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px", marginBottom: "32px", alignItems: "start", marginTop: "8px" }}>
+        
+        {/* COLUMN 1: Total Stock & Critical Alerts */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em" }}>TOTAL WAREHOUSE STOCK</div>
+            <div style={{ fontSize: "36px", fontWeight: "700", marginTop: "8px", color: "#34c759", letterSpacing: "-0.01em" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "16px", color: "#8e8e93" }}>Boxes</span></div>
+          </div>
+          
+          {lowStockItems.length > 0 && (
+            <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "20px" }}>⚠️</span>
+                  <h4 style={{ margin: 0, color: "#ff9500", fontSize: "16px", fontWeight: "700", letterSpacing: "-0.01em" }}>Critical Alerts</h4>
                 </div>
-              </summary>
-              <div style={{ marginTop: "16px", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "8px" }}>
+                {vendorsToAlert.slice(0, 1).map(vendorEmail => (
+                  <button key={vendorEmail} onClick={() => { window.location.href = `mailto:${vendorEmail}?subject=URGENT: PO Request`; }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ PO</button>
+                ))}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "180px", overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
                 {lowStockItems.map(i => (
-                  <div key={i.barcode} style={{ backgroundColor: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,149,0,0.2)", padding: "10px", borderRadius: "8px", display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: "11px", color: "#8e8e93", textTransform: "uppercase", letterSpacing: "0.5px" }}>{i.brand}</span>
-                    <strong style={{ color: "#ffffff", fontSize: "14px" }}>{i.flavor}</strong>
-                    <span style={{ color: "#ff3b30", fontSize: "13px", fontWeight: "bold", marginTop: "4px" }}>{i.quantity} bx remaining</span>
+                  <div key={i.barcode} style={{ backgroundColor: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,149,0,0.3)", padding: "10px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ display: "flex", flexDirection: "column", maxWidth: "65%" }}>
+                      <span style={{ fontSize: "10px", color: "#8e8e93", textTransform: "uppercase", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{i.brand}</span>
+                      <strong style={{ color: "#ffffff", fontSize: "13px", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{i.flavor}</strong>
+                    </div>
+                    <span className="critical-expiry-badge" style={{ fontSize: "12px", color: "#ff3b30", fontWeight: "700", whiteSpace: "nowrap" }}>{i.quantity} bx</span>
                   </div>
                 ))}
               </div>
-            </details>
+            </div>
+          )}
+        </div>
+
+        {/* COLUMN 2: Flavor Breakdown */}
+        <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", maxHeight: "400px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em" }}>INVENTORY BY FLAVOR</div>
+            <div style={{ fontSize: "14px", color: "#ffffff", fontWeight: "700" }}>{activeFlavorsCount} <span style={{ color: "#8e8e93", fontWeight: "600" }}>Total</span></div>
           </div>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            {vendorsToAlert.map(vendorEmail => {
-              const vendorSpecificItems = lowStockItems.filter(i => (i.vendorEmail || "purchasing@csgroup.com") === vendorEmail);
-              const body = "Please process a replenishment order for the following low-stock items:%0D%0A%0D%0A" + vendorSpecificItems.map(i => `[ ] ${i.flavor} - Only ${i.quantity} boxes remaining (Zone: ${i.zone})`).join("%0D%0A") + "%0D%0A%0D%0A- Generated by Kinetic Cards Inventory System";
-              return (
-                <button 
-                  key={vendorEmail}
-                  onClick={() => { window.location.href = `mailto:${vendorEmail}?subject=URGENT: PO Request - Warehouse Restock Required&body=${body}`; }} 
-                  style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "12px 16px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}
-                >
-                  ✉️ PO to {vendorEmail.split('@')[0]}
-                </button>
-              );
-            })}
+          <div style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", paddingRight: "8px" }} className="custom-scrollbar-viewport">
+            {flavorTotals.map(f => (
+              <div key={f.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1c1c1e", padding: "12px 14px", borderRadius: "8px", border: "1px solid #3a3a3c" }}>
+                <span style={{ fontSize: "13px", color: "#fff", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: "12px" }}>{f.name}</span>
+                <span style={{ fontSize: "14px", color: f.qty < 50 ? "#ff3b30" : (f.qty === 0 ? "#8e8e93" : "#34c759"), fontWeight: "700", whiteSpace: "nowrap" }}>{f.qty} bx</span>
+              </div>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* KPI METRICS */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px", marginBottom: "24px" }}>
-        <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c" }}><div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600" }}>TOTAL WAREHOUSE STOCK</div><div style={{ fontSize: "36px", fontWeight: "600", letterSpacing: "-0.01em", marginTop: "8px", color: "#34c759" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "16px", color: "#8e8e93" }}>Boxes</span></div></div>
-        <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c" }}><div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600" }}>ACTIVE FLAVOR VARIETIES</div><div style={{ fontSize: "36px", fontWeight: "600", letterSpacing: "-0.01em", marginTop: "8px" }}>{activeFlavorsCount} <span style={{ fontSize: "16px", color: "#8e8e93" }}>Flavors</span></div></div>
-        <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c" }}><div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600" }}>TARGET SCANNER ZONE</div><div style={{ fontSize: "28px", fontWeight: "600", letterSpacing: "-0.01em", marginTop: "12px", color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff" }}>{activeZone.replace("ZONE-", "").replace("BAY-", "")}</div></div>
+        {/* COLUMN 3: Active Scanner Zone */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em" }}>TARGET SCANNER ZONE</div>
+            <div style={{ fontSize: "28px", fontWeight: "700", marginTop: "12px", color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff", letterSpacing: "-0.01em", wordBreak: "break-word", lineHeight: "1.2" }}>{activeZone.replace("ZONE-", "").replace("BAY-", "")}</div>
+          </div>
+        </div>
+
       </div>
-
       {/* TOOLBAR */}
       <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "14px", border: "1px solid #3a3a3c" }}>
         <div className="search-group" style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%", maxWidth: "280px" }}>
