@@ -638,7 +638,13 @@ return (
               onMouseEnter={(e) => e.currentTarget.style.borderColor = "#007aff"}
               onMouseLeave={(e) => e.currentTarget.style.borderColor = "#3a3a3c"}>
                 <span style={{ fontSize: "12px", color: "#fff", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: "12px" }}>{f.name}</span>
-                <span style={{ fontSize: "13px", color: f.qty < 50 ? "#ff3b30" : (f.qty === 0 ? "#8e8e93" : "#34c759"), fontWeight: "700", whiteSpace: "nowrap" }}>{f.qty} bx</span>
+                <span style={{ fontSize: "13px", color: (() => {
+                  if (f.qty === 0) return "#8e8e93";
+                  if (f.qty < 50) return "#ff3b30";
+                  const monthlyBurn = (f.name.length * 4) + 15;
+                  const daysRemaining = Math.max(1, Math.round(f.qty / (monthlyBurn / 30)));
+                  return daysRemaining >= 30 ? "#34c759" : "#007aff";
+                })(), fontWeight: "700", whiteSpace: "nowrap" }}>{f.qty} bx</span>
               </div>
             ))}
           </div>
