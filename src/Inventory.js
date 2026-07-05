@@ -449,10 +449,12 @@ return (
           }
         }
       
-        #root, #root > div, #root > div > div { 
+        #root, #root > div { 
           background-color: #1c1c1e !important;
           min-height: 100vh !important;
           width: 100% !important;
+          max-width: none !important;
+          margin: 0 !important;
         }
       `}</style>
 
