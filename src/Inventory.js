@@ -607,7 +607,36 @@ return (
           {/* Dense Grid for 40+ Items */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", overflowY: "auto", paddingRight: "8px", alignContent: "start", flex: 1 }} className="custom-scrollbar-viewport">
             {flavorTotals.map(f => (
-              <div key={f.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1c1c1e", padding: "12px 14px", borderRadius: "8px", border: "1px solid #3a3a3c" }}>
+              <div key={f.name} 
+              onClick={() => {
+                const targetId = `card-${f.name.replace(/[^a-zA-Z0-9]/g, "-")}`;
+                const target = document.getElementById(targetId);
+                if (target) {
+                  target.scrollIntoView({ behavior: "smooth", block: "center" });
+                  setTimeout(() => {
+                    const frontCard = target.querySelector("div > div");
+                    if (frontCard) {
+                      const originalBorder = frontCard.style.border;
+                      const originalBoxShadow = frontCard.style.boxShadow;
+                      const originalTransform = frontCard.style.transform;
+                      
+                      frontCard.style.transition = "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+                      frontCard.style.border = "2px solid #007aff";
+                      frontCard.style.boxShadow = "0 0 40px rgba(0, 122, 255, 1)";
+                      frontCard.style.transform = "scale(1.03)";
+                      
+                      setTimeout(() => {
+                        frontCard.style.border = originalBorder;
+                        frontCard.style.boxShadow = originalBoxShadow;
+                        frontCard.style.transform = originalTransform || "scale(1)";
+                      }, 1500);
+                    }
+                  }, 600);
+                }
+              }}
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1c1c1e", padding: "12px 14px", borderRadius: "8px", border: "1px solid #3a3a3c", cursor: "pointer", transition: "all 0.2s" }}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = "#007aff"}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = "#3a3a3c"}>
                 <span style={{ fontSize: "12px", color: "#fff", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: "12px" }}>{f.name}</span>
                 <span style={{ fontSize: "13px", color: f.qty < 50 ? "#ff3b30" : (f.qty === 0 ? "#8e8e93" : "#34c759"), fontWeight: "700", whiteSpace: "nowrap" }}>{f.qty} bx</span>
               </div>
@@ -680,7 +709,7 @@ return (
 
           return (
             <div 
-              key={`${item.barcode}-${item.lotNumber}`} className="masonry-item" 
+              key={`${item.barcode}-${item.lotNumber}`} id={`card-${item.flavor.replace(/[^a-zA-Z0-9]/g, "-")}`} className="masonry-item" 
               style={{ perspective: '1200px', cursor: 'pointer', height: '100%' }}
               onClick={() => {
         if (editModes[item.barcode]) return;
