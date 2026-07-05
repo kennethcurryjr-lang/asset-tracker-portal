@@ -888,6 +888,19 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           background: #86868b !important;
           border-radius: 4px !important;
         }
+        
+        /* 🛡️ INVISIBLE MASK: Blocks cards from peeking through the 12px gap above the sticky search bar */
+        .sticky-search-panel-container::before {
+          content: "";
+          position: absolute;
+          top: -12px;
+          left: -100vw;
+          right: -100vw;
+          height: 12px;
+          background-color: #f5f5f7;
+          z-index: -1;
+          pointer-events: none;
+        }
         .custom-scrollbar-viewport {
           scrollbar-width: thin !important;
           scrollbar-color: #86868b #e5e5ea !important;
