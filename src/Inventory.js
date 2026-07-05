@@ -18,12 +18,7 @@ const MANAGER_PIN = "1234";
 
 const CustomAutocomplete = ({ value, onChange, placeholder, options, style }) => {
   const [show, setShow] = React.useState(false);
-    const flavorTotals = Array.from(stock.reduce((map, item) => {
-    map.set(item.flavor, (map.get(item.flavor) || 0) + item.quantity);
-    return map;
-  }, new Map()), ([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty);
-
-  return (
+return (
     <div style={{ position: 'relative', flex: style.flex || 'unset', width: '100%' }}>
       <input 
         value={value || ''} 
@@ -391,8 +386,7 @@ export default function Inventory({ user }) {
     map.set(item.flavor, (map.get(item.flavor) || 0) + item.quantity);
     return map;
   }, new Map()), ([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty);
-
-  return (
+return (
     <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{`
         @media (max-width: 768px) { 
