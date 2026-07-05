@@ -279,52 +279,38 @@ function App() {
     if (!auth.isAuthenticated) return;
     setDbError(null);
     try {
-      const scanResponse = await docClient.send(new ScanCommand({ TableName: "AssetTrackerData", ConsistentRead: true }));
-      const items = scanResponse.Items || [];
+      // 💸 THE LIFESAVER: Query ONLY the LATEST rows via the new Index, completely ignoring historical data
+      const queryResponse = await docClient.send(new QueryCommand({
+        TableName: "AssetTrackerData",
+        IndexName: "timestamp-index",
+        KeyConditionExpression: "#ts = :val",
+        ExpressionAttributeNames: { "#ts": "timestamp" },
+        ExpressionAttributeValues: { ":val": "LATEST" }
+      }));
+      const items = queryResponse.Items || [];
 
       if (items.length === 0) {
         setAssets([]);
         return;
       }
       
-      const grouped = {};
-      items.forEach(item => {
-        if (item.deviceId) {
-          const id = item.deviceId; if (id.length < 15) return;
-          if (!grouped[id]) grouped[id] = [];
-          grouped[id].push(item);
-        }
-      });
-
-      const processed = await Promise.all(Object.keys(grouped).map(async (id) => {
-        const rawGroup = grouped[id];
-        const latestRow = rawGroup.find(i => i.timestamp === "LATEST") || {};
-        const history = rawGroup.filter(i => i.timestamp !== "LATEST").sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      const processed = await Promise.all(items.map(async (latestRow) => {
+        const id = latestRow.deviceId;
+        const latest = { ...latestRow };
         
-        const latest = { ...(history[0] || {}) };
         const stateKeys = ["latitude", "longitude", "batteryLevel", "deployedAt", "homeLat", "homeLon", "isServiceMode", "isMarineMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag", "group", "tag"];
         
         for (const k of stateKeys) {
             if (latestRow[k] !== undefined) {
                 latest[k] = latestRow[k] === "CLEARED" ? undefined : latestRow[k];
-            } else if (latest[k] === "CLEARED") {
-                latest[k] = undefined;
             }
         }
         
-        const allNotes = [];
-        rawGroup.forEach(h => {
-           if (h.notesList) {
-               h.notesList.forEach(n => {
-                   if (!allNotes.some(e => e.text === n.text && e.time === n.time)) {
-                       allNotes.push({...n, rowTimestamp: h.timestamp});
-                   }
-               });
-           }
-        });
-        latest.notesList = allNotes;
+        latest.notesList = latestRow.notesList || [];
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
-        latest.path = history.slice(0, 10).filter(p => p.latitude && p.longitude).map(p => [Number(p.latitude), Number(p.longitude)]);
+        
+        // Breadcrumbs removed to save 99% on AWS read costs
+        latest.path = []; 
         
         const currentBattery = latest.batteryLevel !== undefined ? Number(latest.batteryLevel) : 100;
         
@@ -334,12 +320,7 @@ function App() {
             const now = new Date();
             const monthsPassed = (now.getFullYear() - deployDate.getFullYear()) * 12 + (now.getMonth() - deployDate.getMonth());
             const monthsRemaining = Math.max(0, 18 - monthsPassed);
-            
-            if (monthsRemaining === 0) {
-                estTimeRemaining = "Replace unit";
-            } else {
-                estTimeRemaining = `${monthsRemaining} mos`;
-            }
+            estTimeRemaining = monthsRemaining === 0 ? "Replace unit" : `${monthsRemaining} mos`;
         }
 
         const lastSeen = latestRow.lastSeen 
@@ -349,15 +330,13 @@ function App() {
         let isGeofenceViolation = false;
         if (latest.isServiceMode === false && !latest.isMarineMode && latest.homeLat && latest.homeLon && latest.latitude && latest.longitude) {
             const distKm = getDistanceInKm(Number(latest.homeLat), Number(latest.homeLon), Number(latest.latitude), Number(latest.longitude));
-            if (distKm > 0.1) { // 100-meter breach radius tripwire
-                isGeofenceViolation = true;
-            }
+            if (distKm > 0.1) isGeofenceViolation = true;
         }
         
         const isLowBattery = currentBattery <= 20;
-        const isOffline = latestRow.lastSeen ? (new Date().getTime() - new Date(latestRow.lastSeen).getTime()) > (12 * 60 * 60 * 1000) : false; // 24-hour threshold
+        const isOffline = latestRow.lastSeen ? (new Date().getTime() - new Date(latestRow.lastSeen).getTime()) > (12.5 * 60 * 60 * 1000) : false;
           
-        return { ...latest, deviceId: latest.deviceId || id, tag: latest.tag || "", city: loc.city, estTimeRemaining, lastSeen, isGeofenceViolation, isLowBattery, isOffline };
+        return { ...latest, deviceId: id, tag: latest.tag || "", city: loc.city, estTimeRemaining, lastSeen, isGeofenceViolation, isLowBattery, isOffline };
       }));
       setAssets(processed);
     } catch (err) { setDbError(err.message); }
