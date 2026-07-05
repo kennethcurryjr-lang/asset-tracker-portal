@@ -519,7 +519,7 @@ return (
       </div>
 
       {/* 🖥️ COMMAND CENTER DASHBOARD */}
-      <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "auto 1fr" : "1fr", gap: "24px", marginBottom: "32px", alignItems: "start", marginTop: "8px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "320px 1fr" : "1fr", gap: "24px", marginBottom: "32px", alignItems: "start", marginTop: "8px" }}>
         
         {/* LEFT RAIL: KPIs & Alerts */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -534,7 +534,7 @@ return (
               return isExp || i.quantity < 50;
             });
             return criticalAlerts.length > 0 && (
-              <div style={{ width: isDesktop ? "400px" : "100%", boxSizing: "border-box", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)" }}>
+              <div style={{ width: "100%", boxSizing: "border-box", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ fontSize: "20px" }}>⚠️</span>
