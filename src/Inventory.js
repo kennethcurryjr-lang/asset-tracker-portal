@@ -50,6 +50,9 @@ export default function Inventory({ user }) {
     let meta = document.querySelector('meta[name="viewport"]');
     if (!meta) { meta = document.createElement('meta'); meta.name = 'viewport'; document.head.appendChild(meta); }
     meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0';
+    const originalBg = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = "#121212";
+    return () => { document.body.style.backgroundColor = originalBg; };
     }, []);
     const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1024);
   useEffect(() => {
