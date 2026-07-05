@@ -456,6 +456,10 @@ return (
           max-width: none !important;
           margin: 0 !important;
         }
+      
+        .flavor-board { grid-column: span 1; display: flex; flex-direction: column; }
+        @media (min-width: 1024px) { .flavor-board { grid-column: span 2; } }
+        @media (min-width: 1440px) { .flavor-board { grid-column: span 3; } }
       `}</style>
 
       {/* 🔥 DYNAMIC VENDOR DATALIST */}
@@ -473,62 +477,70 @@ return (
       </div>
 
       {/* 🖥️ COMMAND CENTER DASHBOARD */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px", marginBottom: "32px", alignItems: "start", marginTop: "8px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px", marginBottom: "32px", alignItems: "start", marginTop: "8px" }}>
         
-        {/* COLUMN 1: Total Stock & Critical Alerts */}
+        {/* LEFT RAIL: KPIs & Alerts */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          
           <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
             <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em" }}>TOTAL WAREHOUSE STOCK</div>
             <div style={{ fontSize: "36px", fontWeight: "700", marginTop: "8px", color: "#34c759", letterSpacing: "-0.01em" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "16px", color: "#8e8e93" }}>Boxes</span></div>
           </div>
-          
-          {lowStockItems.length > 0 && (
-            <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span style={{ fontSize: "20px" }}>⚠️</span>
-                  <h4 style={{ margin: 0, color: "#ff9500", fontSize: "16px", fontWeight: "700", letterSpacing: "-0.01em" }}>Critical Alerts</h4>
-                </div>
-                {vendorsToAlert.slice(0, 1).map(vendorEmail => (
-                  <button key={vendorEmail} onClick={() => { window.location.href = `mailto:${vendorEmail}?subject=URGENT: PO Request`; }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ PO</button>
-                ))}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "180px", overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
-                {lowStockItems.map(i => (
-                  <div key={i.barcode} style={{ backgroundColor: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,149,0,0.3)", padding: "10px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div style={{ display: "flex", flexDirection: "column", maxWidth: "65%" }}>
-                      <span style={{ fontSize: "10px", color: "#8e8e93", textTransform: "uppercase", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{i.brand}</span>
-                      <strong style={{ color: "#ffffff", fontSize: "13px", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{i.flavor}</strong>
-                    </div>
-                    <span className="critical-expiry-badge" style={{ fontSize: "12px", color: "#ff3b30", fontWeight: "700", whiteSpace: "nowrap" }}>{i.quantity} bx</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* COLUMN 2: Flavor Breakdown */}
-        <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", maxHeight: "400px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em" }}>INVENTORY BY FLAVOR</div>
-            <div style={{ fontSize: "14px", color: "#ffffff", fontWeight: "700" }}>{activeFlavorsCount} <span style={{ color: "#8e8e93", fontWeight: "600" }}>Total</span></div>
-          </div>
-          <div style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", paddingRight: "8px" }} className="custom-scrollbar-viewport">
-            {flavorTotals.map(f => (
-              <div key={f.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1c1c1e", padding: "12px 14px", borderRadius: "8px", border: "1px solid #3a3a3c" }}>
-                <span style={{ fontSize: "13px", color: "#fff", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: "12px" }}>{f.name}</span>
-                <span style={{ fontSize: "14px", color: f.qty < 50 ? "#ff3b30" : (f.qty === 0 ? "#8e8e93" : "#34c759"), fontWeight: "700", whiteSpace: "nowrap" }}>{f.qty} bx</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* COLUMN 3: Active Scanner Zone */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           <div style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
             <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em" }}>TARGET SCANNER ZONE</div>
             <div style={{ fontSize: "28px", fontWeight: "700", marginTop: "12px", color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff", letterSpacing: "-0.01em", wordBreak: "break-word", lineHeight: "1.2" }}>{activeZone.replace("ZONE-", "").replace("BAY-", "")}</div>
+          </div>
+          
+          {(() => {
+            const criticalAlerts = stock.filter(i => {
+              const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
+              return isExp || i.quantity < 50;
+            });
+            return criticalAlerts.length > 0 && (
+              <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "20px" }}>⚠️</span>
+                    <h4 style={{ margin: 0, color: "#ff9500", fontSize: "16px", fontWeight: "700", letterSpacing: "-0.01em" }}>Critical Alerts</h4>
+                  </div>
+                  {vendorsToAlert && vendorsToAlert.slice(0, 1).map(vendorEmail => (
+                    <button key={vendorEmail} onClick={() => { window.location.href = `mailto:${vendorEmail}?subject=URGENT: PO Request`; }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ PO</button>
+                  ))}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "350px", overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
+                  {criticalAlerts.map(i => {
+                    const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
+                    return (
+                      <div key={i.barcode} style={{ backgroundColor: "rgba(0,0,0,0.3)", border: `1px solid ${isExp ? 'rgba(255,59,48,0.5)' : 'rgba(255,149,0,0.3)'}`, padding: "10px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ display: "flex", flexDirection: "column", maxWidth: "65%" }}>
+                          <span style={{ fontSize: "10px", color: isExp ? "#ff3b30" : "#ff9500", textTransform: "uppercase", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isExp ? "🚨 EXPIRED" : "LOW STOCK"} • {i.brand}</span>
+                          <strong style={{ color: "#ffffff", fontSize: "13px", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{i.flavor}</strong>
+                        </div>
+                        <span className={isExp ? "critical-expiry-badge" : ""} style={{ fontSize: "12px", color: isExp ? "#ff3b30" : "#ff9500", fontWeight: "700", whiteSpace: "nowrap" }}>{i.quantity} bx</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* RIGHT STRETCH: Dense Flavor Breakdown */}
+        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", maxHeight: "800px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em" }}>INVENTORY BY FLAVOR</div>
+            <div style={{ fontSize: "14px", color: "#ffffff", fontWeight: "700" }}>{activeFlavorsCount} <span style={{ color: "#8e8e93", fontWeight: "600" }}>Total</span></div>
+          </div>
+          {/* Dense Grid for 40+ Items */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", overflowY: "auto", paddingRight: "8px", alignContent: "start", flex: 1 }} className="custom-scrollbar-viewport">
+            {flavorTotals.map(f => (
+              <div key={f.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1c1c1e", padding: "12px 14px", borderRadius: "8px", border: "1px solid #3a3a3c" }}>
+                <span style={{ fontSize: "12px", color: "#fff", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: "12px" }}>{f.name}</span>
+                <span style={{ fontSize: "13px", color: f.qty < 50 ? "#ff3b30" : (f.qty === 0 ? "#8e8e93" : "#34c759"), fontWeight: "700", whiteSpace: "nowrap" }}>{f.qty} bx</span>
+              </div>
+            ))}
           </div>
         </div>
 
