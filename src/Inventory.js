@@ -557,6 +557,75 @@ return (
         
       </div>
 
+      {/* TOOLBAR */}
+      <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "14px", border: "1px solid #3a3a3c" }}>
+        
+        {/* LEFT: Search & Add */}
+        <div className="search-group" style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%", maxWidth: "280px" }}>
+          <input type="text" placeholder="🔎 Filter Inventory..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "14px 16px", width: "100%", boxSizing: "border-box", color: "#ffffff" }} />
+          <button onClick={() => { setIsMultiFlipMode(!isMultiFlipMode); if (isMultiFlipMode) setFlippedCards([]); }} style={{ backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%" }}>
+            🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
+          </button>
+          <button onClick={handleManualAdd} style={{ backgroundColor: "#34c759", border: "none", padding: "12px 16px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%", marginTop: "4px", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>➕ Register New Product</button>
+        </div>
+
+        {/* CENTER: Cohesive Scanner Unit */}
+        <div className="scanner-control-panel" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1 1 auto", alignSelf: "flex-start", margin: "0 16px", maxWidth: "450px", width: "100%", backgroundColor: "#1c1c1e", padding: "16px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
+          <div className="mode-switch-group" style={{ display: "flex", justifyContent: "space-between", gap: "8px", width: "100%" }}>
+            <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "rgba(255,255,255,0.05)", color: scanMode === "receive" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>📥 Receive</button>
+            <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "rgba(255,255,255,0.05)", color: scanMode === "ship" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>🚚 Ship</button>
+            <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "transfer" ? "#007aff" : "rgba(255,255,255,0.05)", color: scanMode === "transfer" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>🔄 Transfer</button>
+          </div>
+          <div className="primary-row" style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
+            <div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#242426", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "4px 12px" }}>
+              <span className="hide-mobile" style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
+              <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "600", outline: "none", textAlign: "center" }} />
+            </div>
+            <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#242426", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>🪵 {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
+            <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", flexGrow: 1, boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)" }}>📷 SCAN</button>
+          </div>
+          
+          {/* INJECTED TARGET ZONE & LIVE TICKER */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px", width: "100%" }}>
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <div style={{ fontSize: '10px', fontWeight: '700', color: activeZone.includes('Unassigned') ? '#ff9500' : '#007aff', backgroundColor: activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.15)' : 'rgba(0, 122, 255, 0.15)', padding: '6px 14px', borderRadius: '12px', border: `1px solid ${activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.4)' : 'rgba(0, 122, 255, 0.4)'}`, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                 <span style={{ fontSize: '14px' }}>📍</span> TARGET ZONE: {activeZone.replace("ZONE-", "").replace("BAY-", "")}
+              </div>
+            </div>
+            
+            <div style={{ backgroundColor: "#000", padding: "10px 14px", borderRadius: "10px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "6px", minHeight: "60px", boxShadow: "inset 0 2px 10px rgba(0,0,0,0.5)" }}>
+              <div style={{ fontSize: "10px", color: "#8e8e93", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em", borderBottom: "1px solid #2c2c2e", paddingBottom: "6px", marginBottom: "4px" }}>Global Ledger (Live)</div>
+              {auditLog.slice(0, 3).map((log, idx) => (
+                <div key={idx} style={{ fontSize: "12px", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "#8e8e93", fontFamily: "monospace", minWidth: "65px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
+                  <span style={{ flex: 1, margin: "0 8px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> {log.qty}bx <span style={{ color: "#8e8e93" }}>{log.flavor}</span>
+                  </span>
+                  <span style={{ color: "#8e8e93", fontSize: "10px" }}>{log.user.split('@')[0]}</span>
+                </div>
+              ))}
+              {auditLog.length === 0 && <div style={{ fontSize: "12px", color: "#8e8e93", textAlign: "center", fontStyle: "italic", marginTop: "4px" }}>No recent actions...</div>}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: Total Stock & Actions */}
+        <div className="action-group-right" style={{ display: "flex", flexDirection: "column", gap: "16px", flex: "1", alignItems: "flex-end" }}>
+          
+          {/* Decoupled & Enlarged Total Stock */}
+          <div className="total-stock-block" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", backgroundColor: "#1c1c1e", padding: "16px 24px", borderRadius: "14px", border: "1px solid #3a3a3c", width: "100%", maxWidth: "320px", boxShadow: "0 8px 24px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "700", letterSpacing: "0.05em", textTransform: "uppercase" }}>Global Inventory</div>
+            <div style={{ fontSize: "42px", fontWeight: "800", color: "#34c759", letterSpacing: "-0.02em", marginTop: "4px", lineHeight: "1" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "18px", color: "#8e8e93", fontWeight: "600" }}>bx</span></div>
+          </div>
+
+
+          <div className="secondary-row" style={{ display: "flex", gap: "12px", justifyContent: "flex-end", width: "100%" }}>
+            <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ flex: 1, backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>📋 Security Audit</button>
+            <button onClick={handleExportCSV} style={{ flex: 1, backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>📥 CSV</button>
+          </div>
+        </div>
+      </div>
+
       {/* 🖥️ COMMAND CENTER DASHBOARD */}
       <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "320px 1fr" : "1fr", gap: "24px", marginBottom: "32px", alignItems: "start", marginTop: "8px" }}>
         
@@ -671,57 +740,6 @@ return (
 
       </div>
             
-
-      {/* TOOLBAR */}
-      <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "14px", border: "1px solid #3a3a3c" }}>
-        
-        {/* LEFT: Search & Add */}
-        <div className="search-group" style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%", maxWidth: "280px" }}>
-          <input type="text" placeholder="🔎 Filter Inventory..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "14px 16px", width: "100%", boxSizing: "border-box", color: "#ffffff" }} />
-          <button onClick={() => { setIsMultiFlipMode(!isMultiFlipMode); if (isMultiFlipMode) setFlippedCards([]); }} style={{ backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%" }}>
-            🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
-          </button>
-          <button onClick={handleManualAdd} style={{ backgroundColor: "#34c759", border: "none", padding: "12px 16px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%", marginTop: "4px", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>➕ Register New Product</button>
-        </div>
-
-        {/* CENTER: Cohesive Scanner Unit */}
-        <div className="scanner-control-panel" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1 1 auto", alignSelf: "flex-start", margin: "0 16px", maxWidth: "450px", width: "100%", backgroundColor: "#1c1c1e", padding: "16px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
-          <div className="mode-switch-group" style={{ display: "flex", justifyContent: "space-between", gap: "8px", width: "100%" }}>
-            <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "rgba(255,255,255,0.05)", color: scanMode === "receive" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>📥 Receive</button>
-            <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "rgba(255,255,255,0.05)", color: scanMode === "ship" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>🚚 Ship</button>
-            <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "transfer" ? "#007aff" : "rgba(255,255,255,0.05)", color: scanMode === "transfer" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>🔄 Transfer</button>
-          </div>
-          <div className="primary-row" style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
-            <div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#242426", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "4px 12px" }}>
-              <span className="hide-mobile" style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
-              <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "600", outline: "none", textAlign: "center" }} />
-            </div>
-            <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#242426", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>🪵 {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
-            <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", flexGrow: 1, boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)" }}>📷 SCAN</button>
-          </div>
-        </div>
-
-        {/* RIGHT: Total Stock & Actions */}
-        <div className="action-group-right" style={{ display: "flex", flexDirection: "column", gap: "16px", flex: "1", alignItems: "flex-end" }}>
-          
-          {/* Decoupled & Enlarged Total Stock */}
-          <div className="total-stock-block" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", backgroundColor: "#1c1c1e", padding: "16px 24px", borderRadius: "14px", border: "1px solid #3a3a3c", width: "100%", maxWidth: "320px", boxShadow: "0 8px 24px rgba(0,0,0,0.2)" }}>
-            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "700", letterSpacing: "0.05em", textTransform: "uppercase" }}>Global Inventory</div>
-            <div style={{ fontSize: "42px", fontWeight: "800", color: "#34c759", letterSpacing: "-0.02em", marginTop: "4px", lineHeight: "1" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "18px", color: "#8e8e93", fontWeight: "600" }}>bx</span></div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-            <div style={{ fontSize: '10px', fontWeight: '700', color: activeZone.includes('Unassigned') ? '#ff9500' : '#007aff', backgroundColor: activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.15)' : 'rgba(0, 122, 255, 0.15)', padding: '6px 14px', borderRadius: '12px', border: `1px solid ${activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.4)' : 'rgba(0, 122, 255, 0.4)'}`, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-               <span style={{ fontSize: '14px' }}>📍</span> TARGET ZONE: {activeZone.replace("ZONE-", "").replace("BAY-", "")}
-            </div>
-          </div>
-
-          <div className="secondary-row" style={{ display: "flex", gap: "12px", justifyContent: "flex-end", width: "100%" }}>
-            <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ flex: 1, backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>📋 Security Audit</button>
-            <button onClick={handleExportCSV} style={{ flex: 1, backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>📥 CSV</button>
-          </div>
-        </div>
-      </div>
 
       {/* FLIPPABLE KINETIC CARDS */}
       <div className="masonry-grid">
