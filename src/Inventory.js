@@ -469,7 +469,7 @@ export default function Inventory({ user }) {
 return (
     <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", boxSizing: "border-box", width: "100%", maxWidth: "100vw", overflowX: "hidden", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{`
-        html, body { margin: 0; padding: 0; overflow-x: hidden; overscroll-behavior: none; }
+        body { margin: 0; padding: 0; overflow-x: hidden; }
         @media (max-width: 768px) { 
           .flavor-board-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
           .flavor-board-header-left { width: 100% !important; justify-content: space-between !important; }
@@ -657,7 +657,7 @@ return (
                     window.location.href = `mailto:purchasing@csgroup.com?subject=URGENT: Master PO Request&body=${encodeURIComponent(bodyText)}`;
                   }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ Master PO</button>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "350px", overflowY: "auto", WebkitOverflowScrolling: "touch", paddingRight: "4px" }} className="custom-scrollbar-viewport">
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "350px", overflowY: "auto", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0, paddingRight: "4px" }} className="custom-scrollbar-viewport">
                   {criticalAlerts.map(i => {
                     const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
                     return (
@@ -692,7 +692,7 @@ return (
             <div style={{ fontSize: "14px", color: "#ffffff", fontWeight: "700" }}>{activeFlavorsCount} <span style={{ color: "#8e8e93", fontWeight: "600" }}>Total</span></div>
           </div>
           {/* Dense Grid for 40+ Items */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", overflowY: "auto", WebkitOverflowScrolling: "touch", paddingRight: "8px", alignContent: "start", flex: 1 }} className="custom-scrollbar-viewport">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", overflowY: "auto", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0, paddingRight: "8px", alignContent: "start", flex: 1 }} className="custom-scrollbar-viewport">
             {flavorTotals.map(f => (
               <div key={f.name} 
               onClick={() => {
@@ -926,7 +926,7 @@ return (
       {/* RESTORED NEW ITEM REGISTRATION MODAL WITH VENDOR PO ROUTING */}
       {showNewItemModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", maxHeight: "90vh", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", maxHeight: "90vh", overflowY: "auto", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "12px" }}>
               <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: "600", letterSpacing: "-0.01em" }}>➕ Register New Product</h3>
               <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
@@ -987,7 +987,7 @@ return (
       
       {showHelpModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 10000, backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)" }}>
-          <div style={{ backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", maxWidth: "600px", width: "90%", maxHeight: "85vh", overflowY: "auto", WebkitOverflowScrolling: "touch", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6)" }}>
+          <div style={{ backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", maxWidth: "600px", width: "90%", maxHeight: "85vh", overflowY: "auto", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0, boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
               <h3 style={{ color: "#fff", margin: 0, fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>📖 Kinetic Asset Tracker Guide</h3>
               <button onClick={() => setShowHelpModal(false)} style={{ backgroundColor: "transparent", border: "none", color: "#8e8e93", fontSize: "28px", cursor: "pointer", transition: "color 0.2s" }}>&times;</button>
@@ -1095,7 +1095,7 @@ return (
               <h3 style={{ margin: 0, color: "#ffffff", fontSize: "22px" }}>📋 Historical Cloud Audit</h3>
               <button onClick={() => setShowAuditModal(false)} style={{ background: "transparent", color: "#8e8e93", border: "none", fontSize: "16px", cursor: "pointer" }}>Close ✕</button>
             </div>
-            <div style={{ overflowY: "auto", WebkitOverflowScrolling: "touch", flex: 1, paddingRight: "8px" }}>
+            <div style={{ overflowY: "auto", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0, flex: 1, paddingRight: "8px" }}>
               {auditLog.length === 0 ? (
                 <div style={{ color: "#8e8e93", textAlign: "center", padding: "40px" }}>No historical transactions found in the cloud ledger.</div>
               ) : (
