@@ -389,6 +389,7 @@ export default function Inventory({ user }) {
 return (
     <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{`
+        body { margin: 0; padding: 0; overflow-x: hidden; }
         @media (max-width: 768px) { 
           .inventory-container { padding: 16px !important; } 
           .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } 
