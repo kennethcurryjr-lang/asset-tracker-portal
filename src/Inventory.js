@@ -595,7 +595,7 @@ return (
         </div>
 
         {/* RIGHT STRETCH: Dense Flavor Breakdown */}
-        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", maxHeight: "800px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", maxHeight: isDesktop ? "800px" : "400px", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
           <div className="flavor-board-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div className="flavor-board-header-left" style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
               <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em", textTransform: "uppercase" }}>INVENTORY BY FLAVOR</div>
