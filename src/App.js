@@ -343,7 +343,7 @@ function App() {
         }
 
         const lastSeen = latestRow.lastSeen 
-          ? new Date(latestRow.lastSeen).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) 
+          ? new Date(latestRow.lastSeen).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).replace(',', '') 
           : "Live";
           
         let isGeofenceViolation = false;
