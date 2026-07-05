@@ -198,6 +198,12 @@ export default function Inventory({ user }) {
     const targetItem = stock.find(item => item.barcode === cleanScan || cleanScan.includes(item.barcode) || item.barcode.includes(cleanScan));
 
     if (targetItem) {
+      const isTargetExpired = targetItem.expiryDate && targetItem.expiryDate !== "N/A" && new Date(targetItem.expiryDate) < new Date();
+      if (scanMode === "receive" && isTargetExpired) {
+        setScanFeedback("🚫 QUARANTINE: Target lot expired. Register fresh pallet under new Lot.");
+        setTimeout(() => setScanFeedback(""), 6000);
+        return;
+      }
       const newQuantity = scanMode === "receive" ? targetItem.quantity + boxAdjustment : Math.max(0, targetItem.quantity - boxAdjustment);
       const newZone = (scanMode === "receive" && activeZone !== "Unassigned Warehouse") ? activeZone : targetItem.zone;
       
@@ -206,7 +212,7 @@ export default function Inventory({ user }) {
         const olderLots = stock.filter(i => 
           i.flavor === targetItem.flavor && 
           i.quantity > 0 && 
-          new Date(i.expiryDate) < new Date(targetItem.expiryDate)
+          new Date(i.expiryDate) < new Date(targetItem.expiryDate) && !(i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date())
         );
         if (olderLots.length > 0) {
           olderLots.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
@@ -239,7 +245,7 @@ export default function Inventory({ user }) {
             s.barcode !== targetItem.barcode && 
             s.quantity > 0 &&
             (s.locations || []).some(l => l.name === newZone) && 
-            new Date(s.expiryDate || "2099-12-31") < new Date(targetItem.expiryDate || "2099-12-31")
+            new Date(s.expiryDate || "2099-12-31") < new Date(targetItem.expiryDate || "2099-12-31") && !(s.expiryDate && s.expiryDate !== "N/A" && new Date(s.expiryDate) < new Date())
         );
         
         if (fifoViolation) {
