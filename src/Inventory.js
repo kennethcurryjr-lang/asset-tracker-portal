@@ -494,6 +494,11 @@ return (
         }
         #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; display: flex; justify-content: center; }
         #reader video { border-radius: 14px; object-fit: cover; }
+        
+        /* Force iOS to immediately release scroll momentum on interactive buttons */
+        button, input, .scanner-control-panel, .mode-switch-group, .total-stock-block {
+          touch-action: pan-y manipulation !important;
+        }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
         
         @keyframes inventory-toast-pop { 0% { opacity: 0; transform: translate(-50%, 20px) scale(0.9); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
