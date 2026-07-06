@@ -165,7 +165,8 @@ export default function Inventory({ user }) {
     // 1. Deep Text Sweep (Checks literally every string field on the card)
     const textMatch = [
       item.flavor, item.brand, item.zone, item.barcode, 
-      item.type, item.lotNumber, item.vendorEmail, item.expiryDate
+      item.type, item.lotNumber, item.vendorEmail, item.expiryDate,
+      ...(item.locations ? item.locations.map(l => l.name) : [])
     ].some(field => field && String(field).toLowerCase().includes(term));
     
     if (textMatch) return true;
@@ -856,7 +857,16 @@ return (
                   </div> )}
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid #3a3a3c' }}>
-                    <div><div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>Placement Zone</div><div style={{ fontSize: '14px', color: activeZone.includes("Unassigned") ? "#ff9500" : "#007aff", fontWeight: '600' }}>📍 {item.zone}</div></div>
+                    <div>
+  <div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>Active Locations</div>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '60px', overflowY: 'auto', paddingRight: '4px' }} className="custom-scrollbar-viewport">
+    {(item.locations && item.locations.length > 0) ? item.locations.map((loc, idx) => (
+      <div key={idx} style={{ fontSize: '13px', color: loc.name.includes("Unassigned") ? "#ff9500" : "#007aff", fontWeight: '600', whiteSpace: 'nowrap' }}>📍 {loc.name} <span style={{ color: '#8e8e93', fontSize: '11px', marginLeft: '4px' }}>({loc.qty}bx)</span></div>
+    )) : (
+      <div style={{ fontSize: '13px', color: (item.zone || "").includes("Unassigned") ? "#ff9500" : "#007aff", fontWeight: '600' }}>📍 {item.zone}</div>
+    )}
+  </div>
+</div>
                     <div style={{ textAlign: 'right' }}><div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '4px', textTransform: 'uppercase' }}>In Stock</div><div style={{ fontSize: '28px', fontWeight: "600", letterSpacing: "-0.01em", color: healthColor, lineHeight: '1' }}>{item.quantity} <span style={{ fontSize: '14px', fontWeight: '600', color: '#8e8e93' }}>box</span></div></div>
                   </div>
                 </div>
