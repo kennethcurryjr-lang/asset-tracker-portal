@@ -479,7 +479,7 @@ return (
           .inventory-container { padding: 16px !important; } 
           .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } 
           .toolbar-stack { flex-direction: column !important; align-items: stretch !important; } 
-          .search-group { max-width: 100% !important; }
+          .search-group { max-width: 100% !important; order: 3 !important; margin-top: 8px !important; padding-top: 24px !important; border-top: 1px solid #3a3a3c !important; }
           .scanner-control-panel { margin: 16px 0 !important; width: 100% !important; box-sizing: border-box; }
           .mode-switch-group { max-width: 100% !important; width: 100% !important; box-sizing: border-box; margin: 0 !important; }
           .mode-switch-group button { padding: 12px 4px !important; font-size: 14px !important; }
