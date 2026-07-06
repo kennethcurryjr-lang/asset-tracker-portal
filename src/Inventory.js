@@ -128,7 +128,18 @@ export default function Inventory({ user }) {
   const [pendingModeSwitch, setPendingModeSwitch] = useState(null);
   
   const [showAuditModal, setShowAuditModal] = useState(false);
-  const [auditLog, setAuditLog] = useState([]);
+  const [auditLog, setAuditLog] = useState(() => {
+    try {
+      const saved = localStorage.getItem("inventory_audit_log");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("inventory_audit_log", JSON.stringify(auditLog));
+  }, [auditLog]);
 
   const [flippedCards, setFlippedCards] = useState([]);
   const [expandedCards, setExpandedCards] = useState([]);
