@@ -1089,76 +1089,75 @@ return (
 
       
       {showHelpModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 10000, backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)" }}>
-          <div style={{ backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", maxWidth: "600px", width: "90%", maxHeight: "85vh", overflowY: "scroll", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0, boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
-              <h3 style={{ color: "#fff", margin: 0, fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>📖 Kinetic Asset Tracker Guide</h3>
-              <button onClick={() => setShowHelpModal(false)} style={{ backgroundColor: "transparent", border: "none", color: "#8e8e93", fontSize: "28px", cursor: "pointer", transition: "color 0.2s" }}>&times;</button>
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.8)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 10006, backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", padding: "20px" }}>
+        <div style={{ backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", maxWidth: "650px", width: "100%", maxHeight: "85vh", overflowY: "auto", WebkitOverflowScrolling: "touch", boxShadow: "0 24px 60px rgba(0, 0, 0, 0.7)", display: "flex", flexDirection: "column" }} className="custom-scrollbar-viewport">
+          
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
+            <h3 style={{ color: "#fff", margin: 0, fontSize: "22px", fontWeight: "700", letterSpacing: "-0.01em" }}>📖 Kinetic Operations Guide</h3>
+            <button onClick={() => setShowHelpModal(false)} style={{ backgroundColor: "transparent", border: "none", color: "#8e8e93", fontSize: "28px", cursor: "pointer", transition: "color 0.2s" }}>&times;</button>
+          </div>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "28px", color: "#d1d1d6", fontSize: "14px", lineHeight: "1.6" }}>
+            
+            {/* Section 1 */}
+            <div>
+              <h4 style={{ color: "#fff", fontSize: "16px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>1. The Scanner (Action Modes)</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                  <div style={{ backgroundColor: "rgba(52, 199, 89, 0.15)", padding: "8px", borderRadius: "8px", display: "flex" }}><Download size={20} color="#34c759" /></div>
+                  <div><strong style={{ color: "#34c759", fontSize: "15px" }}>Receive (RCV)</strong><br/>Use when inbound freight arrives. Adds to total inventory count. You must assign a <strong>Placement Zone</strong> and optionally provide a <strong>Reference Number (PO#)</strong>.</div>
+                </div>
+                <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                  <div style={{ backgroundColor: "rgba(255, 59, 48, 0.15)", padding: "8px", borderRadius: "8px", display: "flex" }}><Truck size={20} color="#ff3b30" /></div>
+                  <div><strong style={{ color: "#ff3b30", fontSize: "15px" }}>Ship (SHP)</strong><br/>Use when loading outbound trucks. Deducts from total inventory. You should provide a <strong>Reference Number (SO#)</strong>. <em>System will block shipment if stock is 0.</em></div>
+                </div>
+                <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                  <div style={{ backgroundColor: "rgba(0, 122, 255, 0.15)", padding: "8px", borderRadius: "8px", display: "flex" }}><ArrowRightLeft size={20} color="#007aff" /></div>
+                  <div><strong style={{ color: "#007aff", fontSize: "15px" }}>Transfer (TFR)</strong><br/>Use for internal warehouse moves. Does not change total count, but formally updates the product's <strong>Target Zone</strong> in the database.</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2 */}
+            <div>
+              <h4 style={{ color: "#fff", fontSize: "16px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>2. Special Operations</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", backgroundColor: "#242426", padding: "16px", borderRadius: "12px", border: "1px solid #3a3a3c" }}>
+                <div><strong style={{ color: "#ff9500" }}>📦 Multiple Lots:</strong> If you scan a barcode that belongs to multiple active batches, the scanner will pause and require you to select the correct <strong>Lot Number</strong> to maintain strict FIFO compliance.</div>
+                <div><strong style={{ color: "#ff3b30" }}>💥 Shrinkage / Damage:</strong> To report damaged product, enter <strong>Ship Mode</strong>, scan the item, and click the red "Flag as Damaged" toggle on the confirmation screen to remove it from live inventory.</div>
+                <div><strong style={{ color: "#fff" }}>🧱 Pallet Mode:</strong> Toggle this on the top toolbar to automatically multiply your scanned quantity by a full pallet footprint.</div>
+              </div>
+            </div>
+
+            {/* Section 3 */}
+            <div>
+              <h4 style={{ color: "#fff", fontSize: "16px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>3. Dashboard Tools</h4>
+              <ul style={{ paddingLeft: "20px", margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+                <li><strong style={{ color: "#007aff" }}>Deep Search:</strong> The search bar checks names, barcodes, AND active zones. Type "Cooler Bay" to instantly isolate all stock currently sitting in the cooler.</li>
+                <li><strong style={{ color: "#007aff" }}>Multi-Flip:</strong> Enable this toggle to flip the back of multiple inventory cards at once for side-by-side data comparison.</li>
+                <li><strong style={{ color: "#34c759" }}>Register New Product:</strong> Only use this green button to onboard brand new SKUs that have never existed in the database.</li>
+              </ul>
             </div>
             
-            <div style={{ display: "flex", flexDirection: "column", gap: "24px", color: "#d1d1d6", fontSize: "14px", lineHeight: "1.6" }}>
-              
-              <div>
-                <h4 style={{ color: "#fff", fontSize: "18px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "12px", marginTop: 0 }}>1. Core Scanning Modes</h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div><strong style={{ color: "#34c759" }}><Download size={18} className="lucide-icon" /> Receive Mode:</strong> Used when new freight arrives. Scanning a barcode <strong>adds</strong> stock.</div>
-                  <div><strong style={{ color: "#ff3b30" }}><Truck size={18} className="lucide-icon" /> Ship Mode:</strong> Used when loading trucks out. Scanning a barcode <strong>deducts</strong> stock.</div>
-                  <div><strong style={{ color: "#007aff" }}><ArrowRightLeft size={18} className="lucide-icon" /> Transfer Mode:</strong> Used for internal warehouse moves. Changes the placement zone without changing total inventory counts.</div>
-                  <div><strong style={{ color: "#ff9500" }}>💥 Shrinkage / Damage:</strong> While in Ship Mode, scan an item and click "Flag as Damaged" to safely remove broken stock.</div>
-                </div>
+            {/* Section 4 */}
+            <div>
+              <h4 style={{ color: "#fff", fontSize: "16px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>4. Management & Security</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><ClipboardList size={16} color="#8e8e93" /> <span><strong>Global Ledger:</strong> An immutable, cloud-synced ticker tracking every physical movement on the floor. Managers can click the AUDIT button for the master history.</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><strong style={{ color: "#8e8e93" }}>🔒 Admin Override:</strong> <span>Found on the back of cards. Allows managers to bypass the scanner and manually force stock or expiration date corrections. (Requires Manager PIN).</span></div>
               </div>
-
-              <div>
-                <h4 style={{ color: "#fff", fontSize: "18px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "12px", marginTop: 0 }}>2. Scanner Modifiers (Set BEFORE Scanning)</h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div><strong style={{ color: "#ff9500" }}><Package size={18} className="lucide-icon" /> Single vs 🧱 Pallet:</strong> Tap to toggle between counting individual units or entire pallets.</div>
-                  <div><strong style={{ color: "#fff" }}>QTY Multiplier:</strong> Change this number to scan multiple pallets or cases in a single scan trigger.</div>
-                </div>
-              </div>
-
-              <div>
-                <h4 style={{ color: "#fff", fontSize: "18px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "12px", marginTop: 0 }}>3. Database & Administration</h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div><strong style={{ color: "#34c759" }}><Plus size={16} className="lucide-icon" /> Register New Product:</strong> Use this ONLY for brand new SKUs that have never been in the system.</div>
-                  <div><strong style={{ color: "#007aff" }}>🔄 Multi-Flip:</strong> Allows you to flip multiple cards open at the same time without them automatically closing. Perfect for comparing back-of-card info side-by-side.</div>
-                  <div><strong style={{ color: "#fff" }}>📋 Security Audit:</strong> View the immutable cloud ledger of every scan, shipment, and manual edit (Manager PIN required).</div>
-                </div>
-              </div>
-
             </div>
-            
-            <button onClick={() => setShowHelpModal(false)} style={{ width: "100%", marginTop: "32px", padding: "16px", backgroundColor: "#007aff", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", fontSize: "16px", transition: "all 0.2s" }}>Close</button>
+
           </div>
-        </div>
-      )}
-{showLotModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", zIndex: 10006, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "24px", borderRadius: "16px", border: "1px solid #3a3a3c", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
-            <h3 style={{ margin: "0 0 16px 0", color: "#ffffff", fontSize: "20px", fontWeight: "600" }}>📦 Multiple Lots Detected</h3>
-            <p style={{ margin: "0 0 20px 0", color: "#8e8e93", fontSize: "14px", lineHeight: "1.5" }}>This barcode maps to multiple pallets in the warehouse. Please select the specific lot you are interacting with:</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "400px", overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
-              {pendingLotMatches.map((item, idx) => {
-                const isExp = item.expiryDate && item.expiryDate !== "N/A" && new Date(item.expiryDate) < new Date();
-                return (
-                  <button key={idx} onClick={() => { setShowLotModal(false); processScannedCode(item.barcode, item); }} style={{ backgroundColor: "#242426", border: isExp ? "1px solid #ff3b30" : "1px solid #007aff", padding: "16px", borderRadius: "12px", textAlign: "left", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", transition: "all 0.2s" }}>
-                    <div>
-                      <div style={{ color: "#fff", fontWeight: "600", fontSize: "15px" }}>Lot: {item.lotNumber}</div>
-                      <div style={{ color: isExp ? "#ff3b30" : "#8e8e93", fontSize: "13px", marginTop: "4px" }}>Exp: {item.expiryDate} {isExp && "(EXPIRED)"}</div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ color: item.quantity === 0 ? "#ff3b30" : "#34c759", fontWeight: "700", fontSize: "16px" }}>{item.quantity} bx</div>
-                      <div style={{ color: "#8e8e93", fontSize: "11px", marginTop: "4px" }}>{item.zone}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            <button onClick={() => setShowLotModal(false)} style={{ width: "100%", marginTop: "20px", backgroundColor: "transparent", color: "#fff", border: "1px solid #3a3a3c", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Cancel Operation</button>
+          
+          <div style={{ marginTop: "32px" }}>
+            <button onClick={() => setShowHelpModal(false)} style={{ width: "100%", padding: "16px", backgroundColor: "#007aff", color: "#fff", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "700", fontSize: "15px", transition: "all 0.2s" }}>Acknowledge & Close</button>
           </div>
+          
         </div>
-      )}
-      
-      {showConfirmModal && pendingAction && (
+      </div>
+    )}
+    
+    {showConfirmModal && pendingAction && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
             <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>⚠️ Confirm Update</h3>
