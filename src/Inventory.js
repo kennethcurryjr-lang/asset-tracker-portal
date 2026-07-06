@@ -338,6 +338,31 @@ export default function Inventory({ user }) {
     }
   };
 
+
+  const handleUndoAction = (logEntry) => {
+    const targetItem = stock.find(i => i.flavor === logEntry.flavor);
+    if (!targetItem) return alert("Error: Original product no longer found in active database.");
+    
+    let reverseAction = "";
+    let zoneAdjustment = logEntry.destination || targetItem.zone || "Unassigned Warehouse";
+    
+    if (logEntry.action.includes("Receive")) reverseAction = "Ship";
+    else if (logEntry.action.includes("Ship") || logEntry.action.includes("Shrinkage")) reverseAction = "Receive";
+    else return alert("Transfer or Override actions must be reversed manually.");
+
+    setModalQty(logEntry.qty);
+    setPendingAction({
+      targetItem,
+      boxAdjustment: logEntry.qty,
+      newQuantity: reverseAction === "Receive" ? targetItem.quantity + logEntry.qty : Math.max(0, targetItem.quantity - logEntry.qty),
+      newZone: zoneAdjustment,
+      actionName: reverseAction + " (UNDO)",
+      isShrinkage: false
+    });
+    setShowAuditModal(false);
+    setTimeout(() => setShowConfirmModal(true), 150);
+  };
+
   const handleConfirmAction = async () => {
     if (!pendingAction) return;
     let { targetItem, newZone, actionName, isShrinkage } = pendingAction;
@@ -1250,6 +1275,7 @@ return (
                 <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Action</th>
                 <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Product Identity</th>
                 <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Operator</th>
+                <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em", textAlign: "right" }}>Reversal</th>
               </tr>
             </thead>
             <tbody>
@@ -1259,10 +1285,17 @@ return (
                   <td style={{ padding: "16px 24px", fontWeight: "700", color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff") }}>{log.action}</td>
                   <td style={{ padding: "16px 24px", fontWeight: "500" }}>{log.qty}bx <span style={{ color: "#8e8e93", fontWeight: "400" }}>{log.flavor}</span>{log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "12px", marginLeft: "8px", fontWeight: "600" }}>➔ {log.destination}</span>}{log.orderNumber && <span style={{ fontSize: "11px", color: "#8e8e93", display: "inline-block", backgroundColor: "#242426", padding: "2px 6px", borderRadius: "4px", marginLeft: "8px", border: "1px solid #3a3a3c" }}>Ref: {log.orderNumber}</span>}</td>
                   <td style={{ padding: "16px 24px", color: "#e5e5ea", fontSize: "13px" }}>{log.user}</td>
+                  <td style={{ padding: "16px 24px", textAlign: "right" }}>
+                    {!log.action.includes("UNDO") && !log.action.includes("Transfer") && !log.action.includes("Override") && (
+                      <button onClick={() => requireManager(() => handleUndoAction(log))} style={{ backgroundColor: "rgba(255, 59, 48, 0.15)", color: "#ff3b30", border: "1px solid rgba(255, 59, 48, 0.4)", padding: "6px 12px", borderRadius: "6px", fontSize: "11px", fontWeight: "700", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.25)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.15)"}>
+                        ↩️ UNDO
+                      </button>
+                    )}
+                  </td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="4" style={{ padding: "60px 20px", textAlign: "center", color: "#8e8e93", fontStyle: "italic", fontSize: "15px" }}>No cryptographic audit records found in secure memory.</td>
+                  <td colSpan="5" style={{ padding: "60px 20px", textAlign: "center", color: "#8e8e93", fontStyle: "italic", fontSize: "15px" }}>No cryptographic audit records found in secure memory.</td>
                 </tr>
               )}
             </tbody>
