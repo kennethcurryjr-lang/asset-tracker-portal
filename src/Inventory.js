@@ -276,7 +276,15 @@ export default function Inventory({ user }) {
     const targetItem = stock.find(item => item.barcode === cleanScan || cleanScan.includes(item.barcode) || item.barcode.includes(cleanScan));
     // Dynamically calculate footprint based on packaging type
     const palletMultiplier = targetItem ? ({"3G Bag-in-Box": 60, "24-Can Case": 100, "12-Can Case": 150, "1G Jug Case": 70, "1/2 BBL Keg": 8, "1/6 BBL Keg": 20}[targetItem.type] || 70) : 70;
-    const boxAdjustment = isPalletMode ? palletMultiplier * parsedQty : parsedQty;
+    const rawAdjustment = isPalletMode ? palletMultiplier * parsedQty : parsedQty;
+    
+    if (targetItem && scanMode !== "receive" && targetItem.quantity === 0) {
+      alert(`🛑 DEPLETED: You cannot ${scanMode} ${targetItem.flavor} because there are 0 boxes in stock.`);
+      setIsScanning(false);
+      return;
+    }
+    
+    const boxAdjustment = (targetItem && scanMode !== "receive" && rawAdjustment > targetItem.quantity) ? targetItem.quantity : rawAdjustment;
 
     if (targetItem) {
       // INTERCEPT: Force operator to assign a new Lot Number when receiving known freight
@@ -318,6 +326,11 @@ export default function Inventory({ user }) {
     let { targetItem, newZone, actionName, isShrinkage } = pendingAction;
     if (isShrinkage) actionName = "💥 Shrinkage";
     const boxAdjustment = modalQty;
+    
+    if (actionName !== "Receive" && boxAdjustment > targetItem.quantity) {
+        alert(`🛑 INSUFFICIENT STOCK: You are attempting to process ${boxAdjustment} boxes, but only ${targetItem.quantity} are available.`);
+        return;
+    }
 
     // Initialize the locations array if it's an older single-zone card
     let updatedLocations = targetItem.locations || [{ name: targetItem.zone || "Unassigned Warehouse", qty: targetItem.quantity }];
@@ -1102,8 +1115,8 @@ return (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", margin: "16px 0" }}>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px" }}>
                 <button onClick={() => setModalQty(Math.max(1, modalQty - 1))} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "8px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>-</button>
-                <input type="number" min="1" value={modalQty} onChange={(e) => setModalQty(parseInt(e.target.value) || 1)} style={{ backgroundColor: "#1c1c1e", border: "2px solid #007aff", color: "#fff", fontSize: "28px", fontWeight: "600", letterSpacing: "-0.01em", textAlign: "center", width: "90px", padding: "8px", borderRadius: "8px", outline: "none" }} />
-                <button onClick={() => setModalQty(modalQty + 1)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "8px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>+</button>
+                <input type="number" min="1" value={modalQty} onChange={(e) => { let val = parseInt(e.target.value) || 1; const limit = pendingAction.actionName === "Receive" ? Infinity : pendingAction.targetItem.quantity; setModalQty(val > limit ? limit : val); }} style={{ backgroundColor: "#1c1c1e", border: "2px solid #007aff", color: "#fff", fontSize: "28px", fontWeight: "600", letterSpacing: "-0.01em", textAlign: "center", width: "90px", padding: "8px", borderRadius: "8px", outline: "none" }} />
+                <button onClick={() => { const limit = pendingAction.actionName === "Receive" ? Infinity : pendingAction.targetItem.quantity; setModalQty(modalQty >= limit ? limit : modalQty + 1); }} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "8px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>+</button>
               </div>
               
               {(pendingAction.actionName === "Receive" || pendingAction.actionName === "Ship" || pendingAction.actionName.includes("Shrinkage")) && (
