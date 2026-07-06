@@ -479,7 +479,7 @@ return (
           .inventory-container { padding: 16px !important; } 
           .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } 
           .toolbar-stack { flex-direction: column !important; align-items: stretch !important; } 
-          .search-group { max-width: 100% !important; order: 3 !important; margin-top: 8px !important; padding-top: 24px !important; border-top: 1px solid #3a3a3c !important; }
+          .search-group { flex-direction: column !important; align-items: stretch !important; padding: 12px !important; margin-top: 16px !important; } .search-group > * { width: 100% !important; flex: none !important; }
           .scanner-control-panel { margin: 16px 0 !important; width: 100% !important; box-sizing: border-box; }
           .mode-switch-group { max-width: 100% !important; width: 100% !important; box-sizing: border-box; margin: 0 !important; }
           .mode-switch-group button { padding: 12px 4px !important; font-size: 14px !important; }
@@ -569,15 +569,6 @@ return (
       {/* TOOLBAR */}
       <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "14px", border: "1px solid #3a3a3c" }}>
         
-        {/* LEFT: Search & Add */}
-        <div className="search-group" style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%", maxWidth: "280px" }}>
-          <input type="text" placeholder="🔎 Filter Inventory..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "14px 16px", width: "100%", boxSizing: "border-box", color: "#ffffff" }} />
-          <button onClick={() => { setIsMultiFlipMode(!isMultiFlipMode); if (isMultiFlipMode) setFlippedCards([]); }} style={{ backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%" }}>
-            🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
-          </button>
-          <button onClick={handleManualAdd} style={{ backgroundColor: "#34c759", border: "none", padding: "12px 16px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s", width: "100%", marginTop: "4px", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>➕ Register New Product</button>
-        </div>
-
         {/* CENTER: Cohesive Scanner Unit */}
         <div className="scanner-control-panel" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1 1 auto", alignSelf: "flex-start", margin: "0 16px", maxWidth: "450px", width: "100%", backgroundColor: "#1c1c1e", padding: "16px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
           <div className="mode-switch-group" style={{ display: "flex", justifyContent: "space-between", gap: "8px", width: "100%" }}>
@@ -746,6 +737,15 @@ return (
 
       </div>
             
+
+      {/* DATABASE RESEARCH TOOLS */}
+      <div className="search-group" style={{ display: "flex", flexWrap: "wrap", gap: "12px", width: "100%", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "14px", border: "1px solid #3a3a3c", alignItems: "center" }}>
+        <input type="text" placeholder="🔎 Filter Inventory Cards..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ flex: "1 1 250px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "14px 16px", boxSizing: "border-box", color: "#ffffff", fontSize: "15px" }} />
+        <button onClick={() => { setIsMultiFlipMode(!isMultiFlipMode); if (isMultiFlipMode) setFlippedCards([]); }} style={{ flex: "0 1 auto", backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "14px 20px", borderRadius: "8px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>
+          🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
+        </button>
+        <button onClick={handleManualAdd} style={{ flex: "0 1 auto", backgroundColor: "#34c759", border: "none", padding: "14px 20px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>➕ Register New Product</button>
+      </div>
 
       {/* FLIPPABLE KINETIC CARDS */}
       <div className="masonry-grid">
