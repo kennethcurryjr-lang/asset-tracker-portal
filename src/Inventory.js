@@ -708,10 +708,10 @@ return (
       </div>
 
       {/* 🖥️ COMMAND CENTER DASHBOARD */}
-      <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "320px 1fr" : "1fr", gap: "24px", marginBottom: "32px", alignItems: "stretch", marginTop: "8px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "320px 1fr" : "1fr", gap: "24px", marginBottom: "32px", alignItems: "start", marginTop: "8px" }}>
         
         {/* LEFT RAIL: KPIs & Alerts */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "24px", height: "100%" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           
           
 
@@ -723,7 +723,7 @@ return (
               return isExp || i.quantity < 50;
             });
             return criticalAlerts.length > 0 && (
-              <div style={{ width: "100%", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)", flex: 1, boxSizing: "border-box", minHeight: 0 }}>
+              <div style={{ width: "100%", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)", boxSizing: "border-box", maxHeight: isDesktop ? "65vh" : "auto" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ fontSize: "20px" }}>⚠️</span>
@@ -754,7 +754,7 @@ return (
 
                   }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ Master PO</button>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: isDesktop ? "100%" : "350px", flex: isDesktop ? 1 : "none", overflowY: "scroll", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0, paddingRight: "4px" }} className="custom-scrollbar-viewport">
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto", minHeight: 0, flex: 1, paddingRight: "4px" }} className="custom-scrollbar-viewport">
                   {criticalAlerts.map(i => {
                     const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
                     return (
@@ -774,7 +774,7 @@ return (
         </div>
 
         {/* RIGHT STRETCH: Dense Flavor Breakdown */}
-        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", height: "auto", maxHeight: isDesktop ? "75vh" : "auto", boxSizing: "border-box" }}>
+        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", boxSizing: "border-box", maxHeight: isDesktop ? "65vh" : "auto" }}>
           <div className="flavor-board-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div className="flavor-board-header-left" style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
               <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em", textTransform: "uppercase" }}>INVENTORY BY FLAVOR</div>
@@ -789,7 +789,7 @@ return (
             <div style={{ fontSize: "14px", color: "#ffffff", fontWeight: "700" }}>{activeFlavorsCount} <span style={{ color: "#8e8e93", fontWeight: "600" }}>Total</span></div>
           </div>
           {/* Dense Grid for 40+ Items */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", paddingRight: "8px", alignContent: "start", overflowY: "auto", flex: 1, minHeight: 0 }} className="custom-scrollbar-viewport">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", paddingRight: "8px", alignContent: "start", overflowY: "auto", minHeight: 0, flex: 1 }} className="custom-scrollbar-viewport">
             {flavorTotals.map(f => (
               <div key={f.name} className="flavor-row" 
               onClick={() => {
