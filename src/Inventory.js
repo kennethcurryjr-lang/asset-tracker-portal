@@ -479,7 +479,7 @@ return (
           .inventory-container { padding: 16px !important; } 
           .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } 
           .toolbar-stack { flex-direction: column !important; align-items: stretch !important; } 
-          .search-group { flex-direction: column !important; align-items: stretch !important; padding: 12px !important; margin-top: 16px !important; } .search-group > * { width: 100% !important; flex: none !important; }
+          .search-group { flex-direction: column !important; align-items: stretch !important; padding: 12px !important; margin-top: 16px !important; } .search-group > * { width: 100% !important; flex: none !important; } .search-group > button:last-child { order: 1 !important; } .search-group > button:first-of-type { order: 2 !important; } .search-group > input { order: 3 !important; }
           .scanner-control-panel { margin: 16px 0 !important; width: 100% !important; box-sizing: border-box; }
           .mode-switch-group { max-width: 100% !important; width: 100% !important; box-sizing: border-box; margin: 0 !important; }
           .mode-switch-group button { padding: 12px 4px !important; font-size: 14px !important; }
