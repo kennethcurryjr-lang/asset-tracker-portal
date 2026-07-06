@@ -713,17 +713,13 @@ return (
         {/* LEFT RAIL: KPIs & Alerts */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           
-          
-
-
-          
           {(() => {
             const criticalAlerts = stock.filter(i => {
               const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
               return isExp || i.quantity < 50;
             });
             return criticalAlerts.length > 0 && (
-              <div style={{ width: "100%", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)", boxSizing: "border-box", maxHeight: isDesktop ? "65vh" : "auto" }}>
+              <div style={{ width: "100%", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)", boxSizing: "border-box", maxHeight: isDesktop ? "65vh" : "350px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ fontSize: "20px" }}>⚠️</span>
@@ -751,7 +747,6 @@ return (
                     }).catch(err => {
                       alert('❌ Failed to reach the SES routing API. Ensure the backend is online.');
                     });
-
                   }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ Master PO</button>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto", minHeight: 0, flex: 1, paddingRight: "4px" }} className="custom-scrollbar-viewport">
@@ -774,7 +769,7 @@ return (
         </div>
 
         {/* RIGHT STRETCH: Dense Flavor Breakdown */}
-        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", boxSizing: "border-box", maxHeight: isDesktop ? "65vh" : "auto" }}>
+        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", boxSizing: "border-box", maxHeight: isDesktop ? "65vh" : "500px" }}>
           <div className="flavor-board-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div className="flavor-board-header-left" style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
               <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em", textTransform: "uppercase" }}>INVENTORY BY FLAVOR</div>
@@ -833,7 +828,6 @@ return (
         </div>
 
       </div>
-            
 
       {/* DATABASE RESEARCH TOOLS */}
       <div className="search-group" style={{ display: "flex", flexWrap: "wrap", gap: "12px", width: "100%", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "14px", border: "1px solid #3a3a3c", alignItems: "center" }}>
