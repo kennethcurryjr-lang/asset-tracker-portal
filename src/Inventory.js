@@ -580,211 +580,7 @@ export default function Inventory({ user }) {
     return b.qty - a.qty;
   });
 return (
-    <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", boxSizing: "border-box", width: "100%", maxWidth: "100vw", overflowX: "clip", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
-      <style>{`
-        body { margin: 0; padding: 0; overflow-x: clip; }
-        @media (max-width: 768px) { 
-          .flavor-board-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
-          .flavor-board-header-left { width: 100% !important; justify-content: space-between !important; }
-          .total-stock-block { width: 100% !important; max-width: 100% !important; }
-          .mode-switch-group { flex-wrap: wrap !important; padding: 12px !important; }
- 
-          .inventory-container { padding: 16px !important; } 
-          .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 16px; } 
-          .toolbar-stack { flex-direction: column !important; align-items: stretch !important; } 
-          .search-group { flex-direction: column !important; align-items: stretch !important; padding: 12px !important; margin-top: 16px !important; } .search-group > * { width: 100% !important; flex: none !important; } .search-group > button:last-child { order: 1 !important; } .search-group > button:first-of-type { order: 2 !important; } .search-group > input { order: 3 !important; }
-          .scanner-control-panel { margin: 16px 0 !important; width: 100% !important; box-sizing: border-box; }
-          .mode-switch-group { max-width: 100% !important; width: 100% !important; box-sizing: border-box; margin: 0 !important; }
-          .mode-switch-group button { padding: 12px 4px !important; font-size: 14px !important; }
-          .action-group-right { width: 100% !important; align-items: stretch !important; }
-          .primary-row { justify-content: space-between !important; gap: 6px !important; flex-wrap: nowrap !important; width: 100% !important; }
-          .primary-row > * { padding: 10px 8px !important; font-size: 13px !important; flex: 1; display: flex; justify-content: center; }
-          .qty-box { padding: 4px !important; gap: 4px !important; }
-          .hide-mobile { display: none !important; } 
-          .qty-box input { width: 100% !important; max-width: 40px !important; font-size: 14px !important; }
-          .secondary-row { width: 100% !important; justify-content: space-between !important; gap: 8px !important; margin-top: 8px !important; }
-          .secondary-row > button { flex: 1; }
-        }
-        #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; display: flex; justify-content: center; }
-        #reader video { border-radius: 14px; object-fit: cover; }
-        
-        /* Force iOS to immediately release scroll momentum on interactive buttons */
-        button, input, .scanner-control-panel, .mode-switch-group, .total-stock-block {
-          touch-action: pan-y manipulation !important;
-        }
-        
-        @media (hover: hover) {
-          .flavor-row:hover { border-color: #007aff !important; }
-        }
-        
-        .lucide-icon { vertical-align: text-bottom; margin-right: 6px; }
-        .lucide-icon-sm { vertical-align: text-bottom; margin-right: 4px; }
-        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
-        
-        @keyframes inventory-toast-pop { 0% { opacity: 0; transform: translate(-50%, 20px) scale(0.9); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
-
-        .masonry-grid { column-count: 1; column-gap: 24px; width: 100%; box-sizing: border-box; }
-        @media (min-width: 768px) { .masonry-grid { column-count: 2; } }
-        @media (min-width: 1024px) { .masonry-grid { column-count: 3; } }
-        @media (min-width: 1440px) { .masonry-grid { column-count: 4; } }
-        .masonry-item { break-inside: avoid; margin-bottom: 24px; display: inline-block; width: 100%; box-sizing: border-box; }
-
-        @keyframes expired-attention-pulse {
-          0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.8); border-color: rgba(255, 59, 48, 0.8); }
-          70% { box-shadow: 0 0 0 12px rgba(255, 59, 48, 0); border-color: rgba(255, 59, 48, 1); }
-          100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); border-color: rgba(255, 59, 48, 0.8); }
-        }
-        .critical-expiry-badge {
-          animation: expired-attention-pulse 2s infinite ease-in-out !important;
-          background-color: rgba(255, 59, 48, 0.15);
-          border: 1px solid rgba(255, 59, 48, 0.8);
-          padding: 4px 8px;
-          border-radius: 8px;
-          display: inline-block;
-        }
-        @media print {
-          body * { visibility: hidden; }
-          #printable-label, #printable-label * { visibility: visible; }
-          #printable-label { position: absolute; left: 0; top: 0; width: 100%; max-width: 4in; height: 6in; margin: 0; padding: 16px; background: white; color: black; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box;}
-          .no-print { display: none !important; }
-        }
-      
-        @media (min-width: 769px) {
-          .hide-desktop { display: none !important; }
-          .toolbar-stack {
-            display: grid !important;
-            grid-template-columns: auto 1fr auto !important;
-            gap: 24px !important;
-            width: 100% !important;
-            align-items: flex-start !important;
-          }
-          /* Force Scanner to the absolute left and Total Stock to the absolute right */
-          .toolbar-stack > :first-child { justify-self: start !important; }
-          .toolbar-stack > :last-child { justify-self: end !important; }
-        }
-      
-        #root, #root > div { 
-          background-color: #1c1c1e !important;
-          min-height: 100vh !important;
-          width: 100% !important;
-          max-width: none !important;
-          margin: 0 !important;
-        }
-      
-
-      `}</style>
-
-      {/* 🔥 DYNAMIC VENDOR DATALIST */}
-      <datalist id="vendor-emails">
-        {uniqueVendors.map(email => <option key={email} value={email} />)}
-      </datalist>
-
-      {/* HEADER & ALERTS */}
-      <div className="header-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "600", letterSpacing: "-0.02em" }}>📦 Inventory <button onClick={() => setShowHelpModal(true)} style={{ marginLeft: '16px', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#007aff', padding: '4px 12px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', verticalAlign: 'middle' }}>📖 Guide</button></h1>
-          <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Active Operator: {user?.email || auth?.user?.profile?.email || "Scanner Mode Active"}</p>
-        </div>
-        
-      </div>
-
-      {/* TOOLBAR */}
-      <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "14px", border: "1px solid #3a3a3c" }}>
-        
-        {/* CENTER: Cohesive Scanner Unit */}
-        <div className="scanner-control-panel" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1 1 auto", alignSelf: "flex-start", margin: "0 16px", maxWidth: "450px", width: "100%", backgroundColor: "#1c1c1e", padding: "16px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
-          <div className="mode-switch-group" style={{ display: "flex", justifyContent: "space-between", gap: "8px", width: "100%" }}>
-            <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "rgba(255,255,255,0.05)", color: scanMode === "receive" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><Download size={18} className="lucide-icon" /> Receive</button>
-            <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "rgba(255,255,255,0.05)", color: scanMode === "ship" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><Truck size={18} className="lucide-icon" /> Ship</button>
-            <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "transfer" ? "#007aff" : "rgba(255,255,255,0.05)", color: scanMode === "transfer" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><ArrowRightLeft size={18} className="lucide-icon" /> Transfer</button>
-          </div>
-          <div className="primary-row" style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
-            <div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#242426", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "4px 12px" }}>
-              <span className="hide-mobile" style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
-              <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "600", outline: "none", textAlign: "center" }} />
-            </div>
-            {(scanMode === "receive" || scanMode === "ship") && (<div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#242426", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "4px 12px", flex: 1, minWidth: "120px" }}><span className="hide-mobile" style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>REF:</span><input type="text" placeholder="Order #" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} style={{ width: "100%", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "600", outline: "none" }} /></div>)}
-            <button onClick={() => setRapidFire(!rapidFire)} style={{ display: "flex", alignItems: "center", gap: "6px", backgroundColor: rapidFire ? "rgba(255, 149, 0, 0.2)" : "#242426", border: rapidFire ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "8px 16px", borderRadius: "8px", color: rapidFire ? "#ff9500" : "#fff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>⚡ <span className="hide-mobile">Rapid Fire</span></button>
-            <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#242426", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}><Package size={18} className="lucide-icon" /> {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
-            <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", flexGrow: 1, boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)" }}><ScanLine size={18} className="lucide-icon" /> SCAN</button>
-          </div>
-          
-          {/* INJECTED TARGET ZONE & LIVE TICKER */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px", width: "100%" }}>
-            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-              <div style={{ fontSize: '10px', fontWeight: '700', color: activeZone.includes('Unassigned') ? '#ff9500' : '#007aff', backgroundColor: activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.15)' : 'rgba(0, 122, 255, 0.15)', padding: '6px 14px', borderRadius: '12px', border: `1px solid ${activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.4)' : 'rgba(0, 122, 255, 0.4)'}`, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                 <span style={{ fontSize: '14px' }}>📍</span> TARGET ZONE: {activeZone.replace("ZONE-", "").replace("BAY-", "")}
-              </div>
-            </div>
-            
-            <div className="hide-desktop" style={{ backgroundColor: "#000", padding: "10px 14px", borderRadius: "10px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "6px", minHeight: "60px", boxShadow: "inset 0 2px 10px rgba(0,0,0,0.5)" }}>
-              <div style={{ fontSize: "10px", color: "#8e8e93", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em", borderBottom: "1px solid #2c2c2e", paddingBottom: "6px", marginBottom: "4px" }}>Global Ledger (Live)</div>
-              {auditLog.slice(0, 3).map((log, idx) => (
-                <div key={idx} style={{ fontSize: "12px", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ color: "#8e8e93", fontFamily: "monospace", minWidth: "65px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
-                  <span style={{ flex: 1, margin: "0 8px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", lineHeight: "1.4", flex: 1, paddingRight: "8px" }}><span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> <span>{log.qty}bx</span> <span style={{ color: "#8e8e93" }}>{log.flavor}</span> {log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "11px", fontWeight: "700", whiteSpace: "nowrap" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}{log.orderNumber && <span style={{ color: "#8e8e93", fontSize: "11px", border: "1px solid #3a3a3c", padding: "2px 4px", borderRadius: "4px", backgroundColor: "#242426", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>}</div>
-                  </span>
-                  <span style={{ color: "#8e8e93", fontSize: "10px" }}>{log.user.split('@')[0]}</span>
-                </div>
-              ))}
-              {auditLog.length === 0 && <div style={{ fontSize: "12px", color: "#8e8e93", textAlign: "center", fontStyle: "italic", marginTop: "4px" }}>No recent actions...</div>}
-            </div>
-          </div>
-        </div>
-
-        {/* LARGE DESKTOP LEDGER */}
-        <div className="hide-mobile" style={{ display: "flex", flexDirection: "column", margin: "0 auto", width: "75%", maxWidth: "1100px", minWidth: "500px", backgroundColor: "#000", padding: "16px 20px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "inset 0 8px 30px rgba(0,0,0,0.6)", alignSelf: "stretch", minHeight: "180px", maxHeight: "240px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #2c2c2e", paddingBottom: "10px", marginBottom: "10px" }}>
-            <span style={{ fontSize: "14px", color: "#8e8e93", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em" }}>Global Ledger (Live)</span>
-            <span style={{ fontSize: "11px", color: "#007aff", fontWeight: "700", backgroundColor: "rgba(0, 122, 255, 0.15)", padding: "4px 10px", borderRadius: "8px", border: "1px solid rgba(0, 122, 255, 0.3)" }}>{auditLog.length} Total Entries</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "8px", paddingBottom: "16px", flex: 1, maxHeight: window.innerWidth <= 768 ? "300px" : "100%", WebkitOverflowScrolling: "touch" }} className="custom-scrollbar-viewport">
-            {auditLog.slice(0, 8).map((log, idx) => (
-              <div key={idx} style={{ fontSize: "14px", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1c1c1e", padding: "10px 14px", borderRadius: "8px", border: "1px solid #2c2c2e" }}>
-                <span style={{ color: "#8e8e93", fontFamily: "monospace", fontSize: "12px", minWidth: "80px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
-                <span style={{ flex: 1, margin: "0 16px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", lineHeight: "1.4", flex: 1, paddingRight: "8px" }}><span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> <span>{log.qty}bx</span> <span style={{ color: "#8e8e93" }}>{log.flavor}</span> {log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "11px", fontWeight: "700", whiteSpace: "nowrap" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}{log.orderNumber && <span style={{ color: "#8e8e93", fontSize: "11px", border: "1px solid #3a3a3c", padding: "2px 4px", borderRadius: "4px", backgroundColor: "#242426", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>}</div>
-                </span>
-                <span style={{ color: "#8e8e93", fontSize: "12px", fontWeight: "600" }}>{log.user.split('@')[0]}</span>
-              </div>
-            ))}
-            {auditLog.length === 0 && <div style={{ fontSize: "14px", color: "#8e8e93", textAlign: "center", fontStyle: "italic", marginTop: "16px" }}>No recent actions...</div>}
-          </div>
-        </div>
-        {/* RIGHT: Total Stock & Actions */}
-        <div className="action-group-right" style={{ display: "flex", flexDirection: "column", gap: "16px", flex: "1", alignItems: "flex-end" }}>
-          
-          {/* Decoupled & Enlarged Total Stock */}
-          <div className="total-stock-block" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", backgroundColor: "#1c1c1e", padding: "16px 24px", borderRadius: "14px", border: "1px solid #3a3a3c", width: "100%", maxWidth: "320px", boxShadow: "0 8px 24px rgba(0,0,0,0.2)", minHeight: "135px", position: "relative", boxSizing: "border-box" }}>
-            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "700", letterSpacing: "0.05em", textTransform: "uppercase", width: "100%", textAlign: "right" }}>Global Inventory</div>
-            <div style={{ fontSize: "42px", fontWeight: "800", color: "#34c759", letterSpacing: "-0.02em", marginTop: "4px", lineHeight: "1", width: "100%", textAlign: "right" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "18px", color: "#8e8e93", fontWeight: "600" }}>bx</span></div>
-            
-            <div className="secondary-row" style={{ display: "flex", gap: "8px", marginTop: "auto", paddingTop: "16px", width: "100%", justifyContent: "flex-end" }}>
-              <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "6px 12px", borderRadius: "6px", color: "#8e8e93", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}><ClipboardList size={12} className="lucide-icon-sm" /> AUDIT</button>
-              <button onClick={handleExportCSV} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "6px 12px", borderRadius: "6px", color: "#8e8e93", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}><FileDown size={12} className="lucide-icon-sm" /> CSV</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 🖥️ COMMAND CENTER DASHBOARD */}
-      <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "320px 1fr" : "1fr", gap: "24px", marginBottom: "32px", alignItems: "stretch", marginTop: "8px" }}>
-        
-        {/* LEFT RAIL: KPIs & Alerts */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "24px", height: "100%" }}>
-          
-          
-
-
-          
-          {(() => {
-            const criticalAlerts = stock.filter(i => {
-              const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
-              return isExp || i.quantity < 50;
-            });
-            return criticalAlerts.length > 0 && (
-              <div style={{ width: "100%", flex: 1, minHeight: 0, boxSizing: "border-box", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)" }}>
+    <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", boxSizing: "border-box", width: "100%", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)", height: isDesktop ? "calc(100vh - 320px)" : "auto", maxHeight: isDesktop ? "800px" : "500px", boxSizing: "border-box"}}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ fontSize: "20px" }}>⚠️</span>
@@ -815,7 +611,7 @@ return (
 
                   }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ Master PO</button>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: isDesktop ? "100%" : "350px", flex: isDesktop ? 1 : "none", overflowY: "scroll", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0, paddingRight: "4px" }} className="custom-scrollbar-viewport">
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1, overflowY: "auto", minHeight: 0, paddingRight: "4px" }} className="custom-scrollbar-viewport">
                   {criticalAlerts.map(i => {
                     const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
                     return (
@@ -835,7 +631,7 @@ return (
         </div>
 
         {/* RIGHT STRETCH: Dense Flavor Breakdown */}
-        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", height: "100%", maxHeight: isDesktop ? "800px" : "400px", display: "flex", flexDirection: "column", boxSizing: "border-box", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", height: isDesktop ? "calc(100vh - 320px)" : "auto", maxHeight: isDesktop ? "800px" : "500px", display: "flex", flexDirection: "column", boxSizing: "border-box", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
           <div className="flavor-board-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div className="flavor-board-header-left" style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
               <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em", textTransform: "uppercase" }}>INVENTORY BY FLAVOR</div>
