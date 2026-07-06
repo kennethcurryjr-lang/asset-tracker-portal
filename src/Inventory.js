@@ -112,6 +112,7 @@ export default function Inventory({ user }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isPalletMode, setIsPalletMode] = useState(false);
   const [customQty, setCustomQty] = useState(1);
+  const [orderNumber, setOrderNumber] = useState("");
   const [scanMode, setScanMode] = useState("receive");
   const [activeZone, setActiveZone] = useState("Unassigned Warehouse");
   const [isScanning, setIsScanning] = useState(false);
@@ -352,7 +353,7 @@ export default function Inventory({ user }) {
     updatedLocations = updatedLocations.filter(loc => loc.qty > 0);
     const newQuantity = updatedLocations.reduce((sum, loc) => sum + loc.qty, 0);
     
-    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor, destination: actionName.includes("Transfer") ? newZone : (actionName.includes("Receive") ? (newZone || targetItem.zone || "Unassigned Warehouse") : null) };
+    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor, destination: actionName.includes("Transfer") ? newZone : (actionName.includes("Receive") ? (newZone || targetItem.zone || "Unassigned Warehouse") : null), orderNumber: orderNumber.trim() || null };
     setAuditLog(prev => [logEntry, ...prev]);
 
     const newScan = { action: logEntry.action, qty: boxAdjustment, time: logEntry.time, timestamp: logEntry.id };
@@ -360,7 +361,7 @@ export default function Inventory({ user }) {
 
     setStock(prevStock => prevStock.map(item => item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, locations: updatedLocations, zone: newZone || item.zone, recentScans: updatedScans } : item));
     setScanFeedback(`✅ ${logEntry.action} ${boxAdjustment}bx ${targetItem.flavor}` + (logEntry.destination ? ` ➔ ${logEntry.destination.replace("ZONE-", "").replace("BAY-", "")}` : ""));
-    setShowConfirmModal(false); setPendingAction(null);
+    setShowConfirmModal(false); setPendingAction(null); setOrderNumber("");
 
     try { await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, recentScans = :rs, locations = :locs", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone || targetItem.zone, ":rs": updatedScans, ":locs": updatedLocations } })); } 
     catch (err) { console.error("Inventory cloud update failed:", err); }
@@ -604,6 +605,7 @@ return (
               <span className="hide-mobile" style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
               <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "600", outline: "none", textAlign: "center" }} />
             </div>
+            {(scanMode === "receive" || scanMode === "ship") && (<div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#242426", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "4px 12px", flex: 1, minWidth: "120px" }}><span className="hide-mobile" style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>REF:</span><input type="text" placeholder="Order #" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} style={{ width: "100%", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "600", outline: "none" }} /></div>)}
             <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#242426", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}><Package size={18} className="lucide-icon" /> {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
             <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", flexGrow: 1, boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)" }}><ScanLine size={18} className="lucide-icon" /> SCAN</button>
           </div>
@@ -622,7 +624,7 @@ return (
                 <div key={idx} style={{ fontSize: "12px", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ color: "#8e8e93", fontFamily: "monospace", minWidth: "65px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
                   <span style={{ flex: 1, margin: "0 8px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    <span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> {log.qty}bx <span style={{ color: "#8e8e93" }}>{log.flavor}</span>{log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "11px", marginLeft: "6px", fontWeight: "700" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}
+                    <span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> {log.qty}bx <span style={{ color: "#8e8e93" }}>{log.flavor}</span>{log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "11px", marginLeft: "6px", fontWeight: "700" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}{log.orderNumber && <span style={{ color: "#8e8e93", fontSize: "11px", marginLeft: "6px", border: "1px solid #3a3a3c", padding: "2px 4px", borderRadius: "4px", backgroundColor: "#242426" }}>#{log.orderNumber}</span>}
                   </span>
                   <span style={{ color: "#8e8e93", fontSize: "10px" }}>{log.user.split('@')[0]}</span>
                 </div>
@@ -643,7 +645,7 @@ return (
               <div key={idx} style={{ fontSize: "14px", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1c1c1e", padding: "10px 14px", borderRadius: "8px", border: "1px solid #2c2c2e" }}>
                 <span style={{ color: "#8e8e93", fontFamily: "monospace", fontSize: "12px", minWidth: "80px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
                 <span style={{ flex: 1, margin: "0 16px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  <span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> {log.qty}bx <span style={{ color: "#8e8e93" }}>{log.flavor}</span>{log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "11px", marginLeft: "6px", fontWeight: "700" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}
+                  <span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> {log.qty}bx <span style={{ color: "#8e8e93" }}>{log.flavor}</span>{log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "11px", marginLeft: "6px", fontWeight: "700" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}{log.orderNumber && <span style={{ color: "#8e8e93", fontSize: "11px", marginLeft: "6px", border: "1px solid #3a3a3c", padding: "2px 4px", borderRadius: "4px", backgroundColor: "#242426" }}>#{log.orderNumber}</span>}
                 </span>
                 <span style={{ color: "#8e8e93", fontSize: "12px", fontWeight: "600" }}>{log.user.split('@')[0]}</span>
               </div>
@@ -1098,6 +1100,12 @@ return (
                 <button onClick={() => setModalQty(modalQty + 1)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "8px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>+</button>
               </div>
               
+              {(pendingAction.actionName === "Receive" || pendingAction.actionName === "Ship" || pendingAction.actionName.includes("Shrinkage")) && (
+                <div style={{ marginTop: '8px', textAlign: 'left' }}>
+                  <label style={{ fontSize: '11px', color: '#8e8e93', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>Reference / Order Number (Optional):</label>
+                  <input type="text" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#fff', padding: '12px', borderRadius: '8px', outline: 'none', fontSize: '14px' }} placeholder={pendingAction.actionName === "Receive" ? "e.g. PO-12345 or Label#" : "e.g. SO-98765 or Route#"} />
+                </div>
+              )}
               {pendingAction.actionName === "Transfer" && (
                 <div style={{ marginTop: '8px', textAlign: 'left' }}>
                   <label style={{ fontSize: '11px', color: '#8e8e93', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>New Placement Zone:</label>
@@ -1124,7 +1132,7 @@ return (
             )}
 
             <div style={{ display: "flex", gap: "12px" }}>
-              <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+              <button onClick={() => { setShowConfirmModal(false); setOrderNumber(""); }} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
               <button onClick={handleConfirmAction} style={{ flex: 2, backgroundColor: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", color: "#ffffff", border: "none", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>{pendingAction.fifoWarningItem ? "Force Ship Anyway" : "Commit Action"}</button>
             </div>
           </div>
@@ -1175,7 +1183,7 @@ return (
                 <tr key={idx} style={{ borderBottom: "1px solid #2c2c2e", backgroundColor: idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)", transition: "background-color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0,122,255,0.1)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)"}>
                   <td style={{ padding: "16px 24px", color: "#8e8e93", fontFamily: "monospace", fontSize: "13px" }}>{log.time}</td>
                   <td style={{ padding: "16px 24px", fontWeight: "700", color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff") }}>{log.action}</td>
-                  <td style={{ padding: "16px 24px", fontWeight: "500" }}>{log.qty}bx <span style={{ color: "#8e8e93", fontWeight: "400" }}>{log.flavor}</span>{log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "12px", marginLeft: "8px", fontWeight: "600" }}>➔ {log.destination}</span>}</td>
+                  <td style={{ padding: "16px 24px", fontWeight: "500" }}>{log.qty}bx <span style={{ color: "#8e8e93", fontWeight: "400" }}>{log.flavor}</span>{log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "12px", marginLeft: "8px", fontWeight: "600" }}>➔ {log.destination}</span>}{log.orderNumber && <span style={{ fontSize: "11px", color: "#8e8e93", display: "inline-block", backgroundColor: "#242426", padding: "2px 6px", borderRadius: "4px", marginLeft: "8px", border: "1px solid #3a3a3c" }}>Ref: {log.orderNumber}</span>}</td>
                   <td style={{ padding: "16px 24px", color: "#e5e5ea", fontSize: "13px" }}>{log.user}</td>
                 </tr>
               )) : (
