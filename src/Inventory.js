@@ -541,11 +541,15 @@ return (
         @media (min-width: 769px) {
           .hide-desktop { display: none !important; }
           .toolbar-stack {
-            display: flex !important;
-            justify-content: center !important;
-            gap: 24px !important; justify-content: space-between !important; width: 100% !important;
+            display: grid !important;
+            grid-template-columns: 1fr auto 1fr !important;
+            gap: 24px !important;
+            width: 100% !important;
             align-items: flex-start !important;
           }
+          /* Force Scanner to the absolute left and Total Stock to the absolute right */
+          .toolbar-stack > :first-child { justify-self: start !important; }
+          .toolbar-stack > :last-child { justify-self: end !important; }
         }
       
         #root, #root > div { 
