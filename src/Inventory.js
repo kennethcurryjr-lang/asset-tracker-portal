@@ -286,7 +286,7 @@ export default function Inventory({ user }) {
       }
 
       setModalQty(boxAdjustment);
-      setPendingAction({ targetItem, boxAdjustment, newQuantity, newZone, actionName: scanMode === "receive" ? "<Download size={18} className="lucide-icon" /> Receive" : (scanMode === "transfer" ? "<ArrowRightLeft size={18} className="lucide-icon" /> Transfer" : "<Truck size={18} className="lucide-icon" /> Ship"), fifoWarningItem, isShrinkage: false });
+      setPendingAction({ targetItem, boxAdjustment, newQuantity, newZone, actionName: scanMode === "receive" ? "Receive" : (scanMode === "transfer" ? "Transfer" : "Ship"), fifoWarningItem, isShrinkage: false });
       setShowConfirmModal(true);
     } else {
       setNewItemForm({ barcode: cleanScan, brand: "", flavor: "", type: "", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : "Unassigned Warehouse" });
@@ -303,7 +303,7 @@ export default function Inventory({ user }) {
     // Initialize the locations array if it's an older single-zone card
     let updatedLocations = targetItem.locations || [{ name: targetItem.zone || "Unassigned Warehouse", qty: targetItem.quantity }];
 
-    if (actionName === "<ArrowRightLeft size={18} className="lucide-icon" /> Transfer" && newZone) {
+    if (actionName === "Transfer" && newZone) {
         // Strict FIFO Check: Does this zone contain an older lot?
         const fifoViolation = stock.some(s => 
             s.flavor === targetItem.flavor && 
