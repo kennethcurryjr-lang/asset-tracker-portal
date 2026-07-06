@@ -543,7 +543,7 @@ return (
           .toolbar-stack {
             display: flex !important;
             justify-content: center !important;
-            gap: 24px !important; justify-content: space-between !important; width: "100%";
+            gap: 24px !important; justify-content: space-between !important; width: 100% !important;
             align-items: flex-start !important;
           }
         }
