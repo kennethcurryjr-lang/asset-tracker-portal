@@ -239,8 +239,14 @@ export default function Inventory({ user }) {
   const fetchAuditLogs = async () => {
     try {
       const response = await docClient.send(new ScanCommand({ TableName: "BeverageAuditLogs" }));
-      if (response.Items) { const sorted = response.Items.sort((a, b) => b.id - a.id); setAuditLog(prev => JSON.stringify(prev) === JSON.stringify(sorted) ? prev : sorted); }
-    } catch (err) { console.error("Failed to fetch historical audit logs:", err); }
+      // ONLY update local state if the cloud actually has data!
+      if (response.Items && response.Items.length > 0) { 
+        const sorted = response.Items.sort((a, b) => b.id - a.id); 
+        setAuditLog(prev => JSON.stringify(prev) === JSON.stringify(sorted) ? prev : sorted); 
+      }
+    } catch (err) { 
+        // Table doesn't exist yet. Fails silently so it doesn't wipe local storage!
+    }
   };
 
   useEffect(() => {
