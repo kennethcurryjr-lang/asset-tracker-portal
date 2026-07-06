@@ -784,7 +784,7 @@ return (
               return isExp || i.quantity < 50;
             });
             return criticalAlerts.length > 0 && (
-              <div style={{ width: "100%", boxSizing: "border-box", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)" }}>
+              <div style={{ width: "100%", height: isDesktop ? "800px" : "auto", boxSizing: "border-box", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ fontSize: "20px" }}>⚠️</span>
@@ -815,7 +815,7 @@ return (
 
                   }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ Master PO</button>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "350px", overflowY: "scroll", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0, paddingRight: "4px" }} className="custom-scrollbar-viewport">
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: isDesktop ? "100%" : "350px", flex: isDesktop ? 1 : "none", overflowY: "scroll", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0, paddingRight: "4px" }} className="custom-scrollbar-viewport">
                   {criticalAlerts.map(i => {
                     const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
                     return (
