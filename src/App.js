@@ -1569,8 +1569,16 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         </>
       )}
 
-      <div style={{ textAlign: "center", padding: "20px", color: "#86868b", fontSize: "12px", backgroundColor: "#121212", width: "100%" }}>
-        Kinetic Cards v2.1
+      {/* STANDARD LEGAL FOOTER */}
+      <div className="no-print" style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", padding: "20px 32px", backgroundColor: "#121212", color: "#86868b", fontSize: "12px", width: "100%", boxSizing: "border-box" }}>
+        <div style={{ display: "flex", gap: "24px", justifyContent: "flex-start", fontWeight: "500" }}>
+            <span onClick={() => alert("Privacy Policy: Kinetic Assets collects real-time geolocation data, network anchors, and operational telemetry to ensure asset security. All tracking logs are stored securely and never shared or sold.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color = "#fff"} onMouseLeave={(e) => e.target.style.color = "#86868b"}>Privacy Policy</span>
+            <span onClick={() => alert("Terms of Service: By accessing the Kinetic Assets system, you agree to use it solely for tracking authorized company hardware. Unauthorized location spoofing, watchdog manipulation, or tampering with device telemetry is strictly prohibited.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color = "#fff"} onMouseLeave={(e) => e.target.style.color = "#86868b"}>Terms of Service</span>
+        </div>
+        <div style={{ textAlign: "center" }}>
+            Kinetic Cards v2.1
+        </div>
+        <div>{/* Empty block forces grid to keep the center column perfectly aligned */}</div>
         <style>{`html, body { overflow-x: clip !important; width: 100%; margin: 0; padding: 0; } #root, .App { background-color: #121212 !important; min-height: 100vh; overflow-x: clip !important; }`}</style>
       </div>
     </div>
