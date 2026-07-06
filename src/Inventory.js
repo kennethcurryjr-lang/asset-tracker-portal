@@ -1088,14 +1088,14 @@ return (
                 <button onClick={() => setModalQty(modalQty + 1)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "8px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>+</button>
               </div>
               
-              {pendingAction.actionName === '<ArrowRightLeft size={18} className="lucide-icon" /> Transfer' && (
+              {pendingAction.actionName === "Transfer" && (
                 <div style={{ marginTop: '8px', textAlign: 'left' }}>
                   <label style={{ fontSize: '11px', color: '#8e8e93', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>New Placement Zone:</label>
-                  <input type="text" value={pendingAction.newZone || ''} onChange={(e) => setPendingAction({...pendingAction, newZone: e.target.value})} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#fff', padding: '12px', borderRadius: '8px', outline: 'none', fontSize: '14px' }} placeholder="e.g. Cooler Bay-02" />
+                  <CustomAutocomplete placeholder="Select existing bay or type a new one..." value={pendingAction.newZone || ''} onChange={val => setPendingAction({...pendingAction, newZone: val})} options={[...new Set(stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone]))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px", width: "100%", boxSizing: "border-box" }} />
                 </div>
               )}
 
-              {pendingAction.actionName === '<Truck size={18} className="lucide-icon" /> Ship' && (
+              {pendingAction.actionName === "Ship" && (
                 <button onClick={() => setPendingAction({...pendingAction, isShrinkage: !pendingAction.isShrinkage})} style={{ marginTop: '8px', backgroundColor: pendingAction.isShrinkage ? '#ff3b30' : '#2c2c2e', border: '1px solid #3a3a3c', color: '#fff', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}>
                   {pendingAction.isShrinkage ? '💥 MARKED AS SHRINKAGE / DAMAGE' : 'Flag as Damaged / Shrinkage'}
                 </button>
