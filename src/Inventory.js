@@ -774,7 +774,7 @@ return (
         </div>
 
         {/* RIGHT STRETCH: Dense Flavor Breakdown */}
-        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", height: "100%", boxSizing: "border-box" }}>
+        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", height: "auto", maxHeight: isDesktop ? "75vh" : "auto", boxSizing: "border-box" }}>
           <div className="flavor-board-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div className="flavor-board-header-left" style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
               <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em", textTransform: "uppercase" }}>INVENTORY BY FLAVOR</div>
@@ -789,7 +789,7 @@ return (
             <div style={{ fontSize: "14px", color: "#ffffff", fontWeight: "700" }}>{activeFlavorsCount} <span style={{ color: "#8e8e93", fontWeight: "600" }}>Total</span></div>
           </div>
           {/* Dense Grid for 40+ Items */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", paddingRight: "8px", alignContent: "start" }} className="custom-scrollbar-viewport">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", paddingRight: "8px", alignContent: "start", overflowY: "auto", flex: 1, minHeight: 0 }} className="custom-scrollbar-viewport">
             {flavorTotals.map(f => (
               <div key={f.name} className="flavor-row" 
               onClick={() => {
