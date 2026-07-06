@@ -350,7 +350,13 @@ export default function Inventory({ user }) {
     const rawAdjustment = isPalletMode ? palletMultiplier * parsedQty : parsedQty;
     
     if (targetItem && scanMode === "ship" && targetItem.expiryDate && targetItem.expiryDate !== "N/A" && new Date(targetItem.expiryDate) < new Date()) {
-      alert(`🚨 COMPLIANCE LOCK: You cannot ship ${targetItem.flavor} (Lot: ${targetItem.lotNumber}) because it is EXPIRED.`);
+      const forceDisposal = window.confirm(`🚨 COMPLIANCE LOCK: ${targetItem.flavor} (Lot: ${targetItem.lotNumber}) is EXPIRED and cannot be shipped to a customer.\n\nDo you want to override this lock and route the product to mandatory Shrinkage/Disposal?`);
+      if (forceDisposal) {
+        const boxAdjustment = rawAdjustment > targetItem.quantity ? targetItem.quantity : rawAdjustment;
+        setModalQty(boxAdjustment);
+        setPendingAction({ targetItem, boxAdjustment, newQuantity: Math.max(0, targetItem.quantity - boxAdjustment), newZone: targetItem.zone, actionName: "Ship", fifoWarningItem: null, isShrinkage: true });
+        setShowConfirmModal(true);
+      }
       setIsScanning(false);
       return;
     }
