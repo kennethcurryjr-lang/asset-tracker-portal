@@ -60,7 +60,7 @@ const initialMockData = [
   { barcode: "082123456845", lotNumber: "LOT-2026-54", expiryDate: "2027-12-12", vendorEmail: "supply@madrinas.com", brand: "Madrinas Coffee", flavor: "Irish Cream", type: "24-Can Case", quantity: 400, zone: "Dry Aisle C" }
 ];
 
-const MANAGER_PIN = "1234";
+const MANAGER_PIN = process.env.REACT_APP_MANAGER_PIN || "UNSET_PLEASE_CONFIGURE";
 
 
 const CustomAutocomplete = ({ value, onChange, placeholder, options, style }) => {
@@ -252,7 +252,7 @@ export default function Inventory({ user }) {
   useEffect(() => {
     fetchInventory();
     fetchAuditLogs();
-    const interval = setInterval(() => { fetchInventory(); fetchAuditLogs(); }, 3000);
+    const interval = setInterval(() => { fetchInventory(); fetchAuditLogs(); }, 45000); // Throttled to 45s to protect DynamoDB limits
     
     // 🔥 Wake-Up Engine: Force sync when tab regains focus (bypasses browser throttling)
     const handleFocus = () => { fetchInventory(); fetchAuditLogs(); };
@@ -717,7 +717,22 @@ return (
                       bodyText += `- ${status}${i.brand} - ${i.flavor} (Stock: ${i.quantity} bx | Route: ${i.vendorEmail || "Internal"})\n`;
                     });
                     bodyText += "\nThank you,\nWarehouse Operations";
-                    window.location.href = `mailto:purchasing@csgroup.com?subject=URGENT: Master PO Request&body=${encodeURIComponent(bodyText)}`;
+                    
+                    fetch('https://api.titanassets.dev/v1/ses-alert', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ 
+                        subject: 'URGENT: Master PO Request', 
+                        body: bodyText, 
+                        to: 'purchasing@csgroup.com' 
+                      })
+                    }).then(res => {
+                      if (res.ok) alert('✅ PO Request successfully routed to AWS SES via titanassets.dev endpoint!');
+                      else alert('⚠️ SES API responded with an error.');
+                    }).catch(err => {
+                      alert('❌ Failed to reach the SES routing API. Ensure the backend is online.');
+                    });
+
                   }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ Master PO</button>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "350px", overflowY: "scroll", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0, paddingRight: "4px" }} className="custom-scrollbar-viewport">
