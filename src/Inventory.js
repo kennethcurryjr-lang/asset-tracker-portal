@@ -351,14 +351,14 @@ export default function Inventory({ user }) {
     updatedLocations = updatedLocations.filter(loc => loc.qty > 0);
     const newQuantity = updatedLocations.reduce((sum, loc) => sum + loc.qty, 0);
     
-    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor };
+    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor, destination: actionName.includes("Transfer") ? newZone : (actionName.includes("Receive") ? (newZone || targetItem.zone || "Unassigned Warehouse") : null) };
     setAuditLog(prev => [logEntry, ...prev]);
 
     const newScan = { action: logEntry.action, qty: boxAdjustment, time: logEntry.time, timestamp: logEntry.id };
     const updatedScans = [newScan, ...(targetItem.recentScans || [])].slice(0, 5);
 
     setStock(prevStock => prevStock.map(item => item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, locations: updatedLocations, zone: newZone || item.zone, recentScans: updatedScans } : item));
-    setScanFeedback(`✅ ${logEntry.action} ${boxAdjustment} boxes of ${targetItem.flavor}`);
+    setScanFeedback(`✅ ${logEntry.action} ${boxAdjustment}bx ${targetItem.flavor}` + (logEntry.destination ? ` ➔ ${logEntry.destination.replace("ZONE-", "").replace("BAY-", "")}` : ""));
     setShowConfirmModal(false); setPendingAction(null);
 
     try { await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, recentScans = :rs, locations = :locs", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone || targetItem.zone, ":rs": updatedScans, ":locs": updatedLocations } })); } 
@@ -621,7 +621,7 @@ return (
                 <div key={idx} style={{ fontSize: "12px", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ color: "#8e8e93", fontFamily: "monospace", minWidth: "65px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
                   <span style={{ flex: 1, margin: "0 8px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    <span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> {log.qty}bx <span style={{ color: "#8e8e93" }}>{log.flavor}</span>
+                    <span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> {log.qty}bx <span style={{ color: "#8e8e93" }}>{log.flavor}</span>{log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "11px", marginLeft: "6px", fontWeight: "700" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}
                   </span>
                   <span style={{ color: "#8e8e93", fontSize: "10px" }}>{log.user.split('@')[0]}</span>
                 </div>
@@ -642,7 +642,7 @@ return (
               <div key={idx} style={{ fontSize: "14px", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1c1c1e", padding: "10px 14px", borderRadius: "8px", border: "1px solid #2c2c2e" }}>
                 <span style={{ color: "#8e8e93", fontFamily: "monospace", fontSize: "12px", minWidth: "80px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
                 <span style={{ flex: 1, margin: "0 16px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  <span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> {log.qty}bx <span style={{ color: "#8e8e93" }}>{log.flavor}</span>
+                  <span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> {log.qty}bx <span style={{ color: "#8e8e93" }}>{log.flavor}</span>{log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "11px", marginLeft: "6px", fontWeight: "700" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}
                 </span>
                 <span style={{ color: "#8e8e93", fontSize: "12px", fontWeight: "600" }}>{log.user.split('@')[0]}</span>
               </div>
@@ -1165,7 +1165,7 @@ return (
                 <tr key={idx} style={{ borderBottom: "1px solid #2c2c2e", backgroundColor: idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)", transition: "background-color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0,122,255,0.1)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)"}>
                   <td style={{ padding: "16px 24px", color: "#8e8e93", fontFamily: "monospace", fontSize: "13px" }}>{log.time}</td>
                   <td style={{ padding: "16px 24px", fontWeight: "700", color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff") }}>{log.action}</td>
-                  <td style={{ padding: "16px 24px", fontWeight: "500" }}>{log.qty}bx <span style={{ color: "#8e8e93", fontWeight: "400" }}>{log.flavor}</span></td>
+                  <td style={{ padding: "16px 24px", fontWeight: "500" }}>{log.qty}bx <span style={{ color: "#8e8e93", fontWeight: "400" }}>{log.flavor}</span>{log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "12px", marginLeft: "8px", fontWeight: "600" }}>➔ {log.destination}</span>}</td>
                   <td style={{ padding: "16px 24px", color: "#e5e5ea", fontSize: "13px" }}>{log.user}</td>
                 </tr>
               )) : (
