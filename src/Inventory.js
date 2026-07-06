@@ -632,7 +632,7 @@ return (
         </div>
 
         {/* LARGE DESKTOP LEDGER */}
-        <div className="hide-mobile" style={{ display: "flex", flexDirection: "column", flex: "1 1 650px", minWidth: "560px", maxWidth: "1125px", width: "100%", backgroundColor: "#000", padding: "16px 20px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "inset 0 8px 30px rgba(0,0,0,0.6)", height: "100%", minHeight: "145px", maxHeight: "175px" }}>
+        <div className="hide-mobile" style={{ display: "flex", flexDirection: "column", margin: "0 auto", width: "75%", maxWidth: "1100px", minWidth: "500px", backgroundColor: "#000", padding: "16px 20px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "inset 0 8px 30px rgba(0,0,0,0.6)", height: "100%", minHeight: "145px", maxHeight: "175px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #2c2c2e", paddingBottom: "10px", marginBottom: "10px" }}>
             <span style={{ fontSize: "14px", color: "#8e8e93", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em" }}>Global Ledger (Live)</span>
             <span style={{ fontSize: "11px", color: "#007aff", fontWeight: "700", backgroundColor: "rgba(0, 122, 255, 0.15)", padding: "4px 10px", borderRadius: "8px", border: "1px solid rgba(0, 122, 255, 0.3)" }}>{auditLog.length} Total Entries</span>
