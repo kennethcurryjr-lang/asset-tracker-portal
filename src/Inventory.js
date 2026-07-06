@@ -539,10 +539,11 @@ return (
         }
       
         @media (min-width: 769px) {
+          .hide-desktop { display: none !important; }
           .toolbar-stack {
             display: flex !important;
             justify-content: center !important;
-            gap: 64px !important;
+            gap: 24px !important; justify-content: space-between !important; width: "100%";
             align-items: flex-start !important;
           }
         }
@@ -599,7 +600,7 @@ return (
               </div>
             </div>
             
-            <div style={{ backgroundColor: "#000", padding: "10px 14px", borderRadius: "10px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "6px", minHeight: "60px", boxShadow: "inset 0 2px 10px rgba(0,0,0,0.5)" }}>
+            <div className="hide-desktop" style={{ backgroundColor: "#000", padding: "10px 14px", borderRadius: "10px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "6px", minHeight: "60px", boxShadow: "inset 0 2px 10px rgba(0,0,0,0.5)" }}>
               <div style={{ fontSize: "10px", color: "#8e8e93", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em", borderBottom: "1px solid #2c2c2e", paddingBottom: "6px", marginBottom: "4px" }}>Global Ledger (Live)</div>
               {auditLog.slice(0, 3).map((log, idx) => (
                 <div key={idx} style={{ fontSize: "12px", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -615,6 +616,25 @@ return (
           </div>
         </div>
 
+        {/* LARGE DESKTOP LEDGER */}
+        <div className="hide-mobile" style={{ display: "flex", flexDirection: "column", flex: "1 1 350px", minWidth: "300px", maxWidth: "600px", backgroundColor: "#000", padding: "16px 20px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "inset 0 8px 30px rgba(0,0,0,0.6)", height: "100%", minHeight: "145px", maxHeight: "175px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #2c2c2e", paddingBottom: "10px", marginBottom: "10px" }}>
+            <span style={{ fontSize: "14px", color: "#8e8e93", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em" }}>Global Ledger (Live)</span>
+            <span style={{ fontSize: "11px", color: "#007aff", fontWeight: "700", backgroundColor: "rgba(0, 122, 255, 0.15)", padding: "4px 10px", borderRadius: "8px", border: "1px solid rgba(0, 122, 255, 0.3)" }}>{auditLog.length} Total Entries</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "8px", flex: 1, WebkitOverflowScrolling: "touch" }} className="custom-scrollbar-viewport">
+            {auditLog.slice(0, 8).map((log, idx) => (
+              <div key={idx} style={{ fontSize: "14px", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1c1c1e", padding: "10px 14px", borderRadius: "8px", border: "1px solid #2c2c2e" }}>
+                <span style={{ color: "#8e8e93", fontFamily: "monospace", fontSize: "12px", minWidth: "80px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
+                <span style={{ flex: 1, margin: "0 16px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> {log.qty}bx <span style={{ color: "#8e8e93" }}>{log.flavor}</span>
+                </span>
+                <span style={{ color: "#8e8e93", fontSize: "12px", fontWeight: "600" }}>{log.user.split('@')[0]}</span>
+              </div>
+            ))}
+            {auditLog.length === 0 && <div style={{ fontSize: "14px", color: "#8e8e93", textAlign: "center", fontStyle: "italic", marginTop: "16px" }}>No recent actions...</div>}
+          </div>
+        </div>
         {/* RIGHT: Total Stock & Actions */}
         <div className="action-group-right" style={{ display: "flex", flexDirection: "column", gap: "16px", flex: "1", alignItems: "flex-end" }}>
           
