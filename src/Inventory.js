@@ -1298,6 +1298,12 @@ return (
           {scanFeedback}
         </div>
       )}
+      {/* STANDARD LEGAL FOOTER */} 
+      <div className="no-print" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "24px", padding: "32px 0 16px 0", marginTop: "auto", borderTop: "1px solid #2c2c2e", color: "#8e8e93", fontSize: "12px", fontWeight: "500" }}> 
+        <span onClick={() => alert("PRIVACY POLICY\\n\\n1. Information We Collect: We log your authenticated email and all actions within the system.\\n\\n2. Usage: Data is used strictly for internal auditing, security, and velocity tracking.\\n\\n3. Storage: All logs are securely stored in our cloud infrastructure and are not sold.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color = "#fff"} onMouseLeave={(e) => e.target.style.color = "#8e8e93"}>Privacy Policy</span> 
+        <span onClick={() => alert("TERMS OF SERVICE\\n\\n1. Authorized Use: This system is strictly for authorized personnel processing legitimate warehouse transactions.\\n\\n2. System Integrity: Manipulating global ledger data or bypassing security protocols is prohibited.\\n\\n3. Enforcement: Violations will result in immediate revocation of access.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color = "#fff"} onMouseLeave={(e) => e.target.style.color = "#8e8e93"}>Terms of Service</span> 
+        <span>© 2026 Kinetic Operations. All rights reserved.</span> 
+      </div>
     </div>
   );
 }
