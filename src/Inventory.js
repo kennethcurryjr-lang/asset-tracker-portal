@@ -1102,7 +1102,7 @@ return (
               
               {(pendingAction.actionName === "Receive" || pendingAction.actionName === "Ship" || pendingAction.actionName.includes("Shrinkage")) && (
                 <div style={{ marginTop: '8px', textAlign: 'left' }}>
-                  <label style={{ fontSize: '11px', color: '#8e8e93', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>Reference / Order Number (Optional):</label>
+                  <label style={{ fontSize: '11px', color: '#8e8e93', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>Reference / Order Number:</label>
                   <input type="text" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#fff', padding: '12px', borderRadius: '8px', outline: 'none', fontSize: '14px' }} placeholder={pendingAction.actionName === "Receive" ? "e.g. PO-12345 or Label#" : "e.g. SO-98765 or Route#"} />
                 </div>
               )}
