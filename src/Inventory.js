@@ -111,6 +111,7 @@ export default function Inventory({ user }) {
   const [stock, setStock] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isPalletMode, setIsPalletMode] = useState(false);
+  const [rapidFire, setRapidFire] = useState(false);
   const [customQty, setCustomQty] = useState(1);
   const [orderNumber, setOrderNumber] = useState("");
   const [scanMode, setScanMode] = useState("receive");
@@ -286,6 +287,12 @@ export default function Inventory({ user }) {
     // Dynamically calculate footprint based on packaging type
     const palletMultiplier = targetItem ? ({"3G Bag-in-Box": 60, "24-Can Case": 100, "12-Can Case": 150, "1G Jug Case": 70, "1/2 BBL Keg": 8, "1/6 BBL Keg": 20}[targetItem.type] || 70) : 70;
     const rawAdjustment = isPalletMode ? palletMultiplier * parsedQty : parsedQty;
+    
+    if (targetItem && scanMode === "ship" && targetItem.expiryDate && targetItem.expiryDate !== "N/A" && new Date(targetItem.expiryDate) < new Date()) {
+      alert(`🚨 COMPLIANCE LOCK: You cannot ship ${targetItem.flavor} (Lot: ${targetItem.lotNumber}) because it is EXPIRED.`);
+      setIsScanning(false);
+      return;
+    }
     
     if (targetItem && scanMode !== "receive" && targetItem.quantity === 0) {
       alert(`🛑 DEPLETED: You cannot ${scanMode} ${targetItem.flavor} because there are 0 boxes in stock.`);
@@ -696,6 +703,7 @@ return (
               <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "600", outline: "none", textAlign: "center" }} />
             </div>
             {(scanMode === "receive" || scanMode === "ship") && (<div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#242426", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "4px 12px", flex: 1, minWidth: "120px" }}><span className="hide-mobile" style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>REF:</span><input type="text" placeholder="Order #" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} style={{ width: "100%", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "600", outline: "none" }} /></div>)}
+            <button onClick={() => setRapidFire(!rapidFire)} style={{ display: "flex", alignItems: "center", gap: "6px", backgroundColor: rapidFire ? "rgba(255, 149, 0, 0.2)" : "#242426", border: rapidFire ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "8px 16px", borderRadius: "8px", color: rapidFire ? "#ff9500" : "#fff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>⚡ <span className="hide-mobile">Rapid Fire</span></button>
             <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#242426", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}><Package size={18} className="lucide-icon" /> {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
             <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", flexGrow: 1, boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)" }}><ScanLine size={18} className="lucide-icon" /> SCAN</button>
           </div>
