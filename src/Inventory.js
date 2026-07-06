@@ -204,16 +204,16 @@ export default function Inventory({ user }) {
     try {
       const response = await docClient.send(new ScanCommand({ TableName: "BeverageInventoryData" }));
       if (response.Items && response.Items.length >= initialMockData.length) {
-        setStock(response.Items);
+        setStock(prev => JSON.stringify(prev) === JSON.stringify(response.Items) ? prev : response.Items);
       } else {
         const existingBarcodes = new Set((response.Items || []).map(i => i.barcode));
         const missingItems = initialMockData.filter(i => !existingBarcodes.has(i.barcode));
         if (missingItems.length > 0) {
             await Promise.all(missingItems.map(item => docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: item }))));
             const updatedResponse = await docClient.send(new ScanCommand({ TableName: "BeverageInventoryData" }));
-            setStock(updatedResponse.Items || initialMockData);
+            setStock(prev => JSON.stringify(prev) === JSON.stringify(updatedResponse.Items || initialMockData) ? prev : (updatedResponse.Items || initialMockData));
         } else {
-            setStock(response.Items);
+            setStock(prev => JSON.stringify(prev) === JSON.stringify(response.Items) ? prev : response.Items);
         }
         await Promise.all(initialMockData.map(item => docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: item }))));
         setStock(initialMockData);
@@ -224,7 +224,7 @@ export default function Inventory({ user }) {
   const fetchAuditLogs = async () => {
     try {
       const response = await docClient.send(new ScanCommand({ TableName: "BeverageAuditLogs" }));
-      if (response.Items) setAuditLog(response.Items.sort((a, b) => b.id - a.id));
+      if (response.Items) { const sorted = response.Items.sort((a, b) => b.id - a.id); setAuditLog(prev => JSON.stringify(prev) === JSON.stringify(sorted) ? prev : sorted); }
     } catch (err) { console.error("Failed to fetch historical audit logs:", err); }
   };
 
@@ -467,9 +467,9 @@ export default function Inventory({ user }) {
     return b.qty - a.qty;
   });
 return (
-    <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", boxSizing: "border-box", width: "100%", maxWidth: "100vw", overflowX: "hidden", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", boxSizing: "border-box", width: "100%", maxWidth: "100vw", overflowX: "clip", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{`
-        body { margin: 0; padding: 0; overflow-x: hidden; }
+        body { margin: 0; padding: 0; overflow-x: clip; }
         @media (max-width: 768px) { 
           .flavor-board-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
           .flavor-board-header-left { width: 100% !important; justify-content: space-between !important; }
