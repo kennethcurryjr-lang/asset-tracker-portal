@@ -127,6 +127,8 @@ export default function Inventory({ user }) {
   const [modalQty, setModalQty] = useState(1);
   
   const [pendingModeSwitch, setPendingModeSwitch] = useState(null);
+  const [showLotModal, setShowLotModal] = useState(false);
+  const [pendingLotMatches, setPendingLotMatches] = useState([]);
   
   const [showAuditModal, setShowAuditModal] = useState(false);
   const [auditLog, setAuditLog] = useState(() => {
@@ -264,7 +266,7 @@ export default function Inventory({ user }) {
     };
   }, []);
 
-  const processScannedCode = async (rawScan) => {
+  const processScannedCode = async (rawScan, preSelectedTarget = null) => {
     const cleanScan = String(rawScan).trim();
     if (cleanScan.startsWith("ZONE-") || cleanScan.startsWith("BAY-")) {
       setActiveZone(cleanScan);
@@ -273,7 +275,14 @@ export default function Inventory({ user }) {
       return;
     }
     const parsedQty = parseInt(customQty) || 1;
-    const targetItem = stock.find(item => item.barcode === cleanScan || cleanScan.includes(item.barcode) || item.barcode.includes(cleanScan));
+    const matchingItems = stock.filter(item => item.barcode === cleanScan || cleanScan.includes(item.barcode) || item.barcode.includes(cleanScan));
+    
+    if (!preSelectedTarget && matchingItems.length > 1 && scanMode !== "receive") {
+      setPendingLotMatches(matchingItems);
+      setShowLotModal(true);
+      return;
+    }
+    const targetItem = preSelectedTarget || matchingItems[0];
     // Dynamically calculate footprint based on packaging type
     const palletMultiplier = targetItem ? ({"3G Bag-in-Box": 60, "24-Can Case": 100, "12-Can Case": 150, "1G Jug Case": 70, "1/2 BBL Keg": 8, "1/6 BBL Keg": 20}[targetItem.type] || 70) : 70;
     const rawAdjustment = isPalletMode ? palletMultiplier * parsedQty : parsedQty;
@@ -382,8 +391,8 @@ export default function Inventory({ user }) {
     setScanFeedback(`✅ ${logEntry.action} ${boxAdjustment}bx ${targetItem.flavor}` + (logEntry.destination ? ` ➔ ${logEntry.destination.replace("ZONE-", "").replace("BAY-", "")}` : ""));
     setShowConfirmModal(false); setPendingAction(null); setOrderNumber("");
 
-    try { await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, recentScans = :rs, locations = :locs", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone || targetItem.zone, ":rs": updatedScans, ":locs": updatedLocations } })); } 
-    catch (err) { console.error("Inventory cloud update failed:", err); }
+    try { await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, recentScans = :rs, locations = :locs", ConditionExpression: "quantity = :expectedOldQty", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone || targetItem.zone, ":rs": updatedScans, ":locs": updatedLocations, ":expectedOldQty": targetItem.quantity } })); } 
+    catch (err) { if (err.name === "ConditionalCheckFailedException") { alert("⚠️ COLLISION DETECTED: Another operator modified this stock while you were processing. Action blocked to prevent corruption. Refreshing..."); fetchInventory(); } else { console.error("Inventory cloud update failed:", err); } }
     try { await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: logEntry })); } 
     catch (err) { console.error("Audit log cloud sync failed:", err); }
     setTimeout(() => setScanFeedback(""), 4000);
@@ -1122,7 +1131,34 @@ return (
           </div>
         </div>
       )}
-{showConfirmModal && pendingAction && (
+{showLotModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", zIndex: 10006, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "24px", borderRadius: "16px", border: "1px solid #3a3a3c", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+            <h3 style={{ margin: "0 0 16px 0", color: "#ffffff", fontSize: "20px", fontWeight: "600" }}>📦 Multiple Lots Detected</h3>
+            <p style={{ margin: "0 0 20px 0", color: "#8e8e93", fontSize: "14px", lineHeight: "1.5" }}>This barcode maps to multiple pallets in the warehouse. Please select the specific lot you are interacting with:</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "400px", overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
+              {pendingLotMatches.map((item, idx) => {
+                const isExp = item.expiryDate && item.expiryDate !== "N/A" && new Date(item.expiryDate) < new Date();
+                return (
+                  <button key={idx} onClick={() => { setShowLotModal(false); processScannedCode(item.barcode, item); }} style={{ backgroundColor: "#242426", border: isExp ? "1px solid #ff3b30" : "1px solid #007aff", padding: "16px", borderRadius: "12px", textAlign: "left", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", transition: "all 0.2s" }}>
+                    <div>
+                      <div style={{ color: "#fff", fontWeight: "600", fontSize: "15px" }}>Lot: {item.lotNumber}</div>
+                      <div style={{ color: isExp ? "#ff3b30" : "#8e8e93", fontSize: "13px", marginTop: "4px" }}>Exp: {item.expiryDate} {isExp && "(EXPIRED)"}</div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ color: item.quantity === 0 ? "#ff3b30" : "#34c759", fontWeight: "700", fontSize: "16px" }}>{item.quantity} bx</div>
+                      <div style={{ color: "#8e8e93", fontSize: "11px", marginTop: "4px" }}>{item.zone}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <button onClick={() => setShowLotModal(false)} style={{ width: "100%", marginTop: "20px", backgroundColor: "transparent", color: "#fff", border: "1px solid #3a3a3c", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Cancel Operation</button>
+          </div>
+        </div>
+      )}
+      
+      {showConfirmModal && pendingAction && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
             <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>⚠️ Confirm Update</h3>
