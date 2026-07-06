@@ -1,4 +1,5 @@
 import './mobile-fixes.css';
+import './kinetic-theme.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { ScanCommand, UpdateCommand, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
@@ -77,14 +78,14 @@ return (
         style={{ ...style, width: '100%', boxSizing: 'border-box', fontSize: '16px' }} 
       />
       {show && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10000, backgroundColor: '#2c2c2e', border: '1px solid #3a3a3c', borderRadius: "8px", maxHeight: '220px', overflowY: 'auto', marginTop: '8px', boxShadow: '0 10px 40px rgba(0, 0, 0, 0.6)' }}>
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10000, backgroundColor: 'var(--surface-elevated)', border: '1px solid var(--border-subtle)', borderRadius: "8px", maxHeight: '220px', overflowY: 'auto', marginTop: '8px', boxShadow: '0 10px 40px rgba(0, 0, 0, 0.6)' }}>
           {options.filter(o => (o.label||'').toLowerCase().includes((value||'').toLowerCase())).map((o, i) => (
-            <div key={i} onMouseDown={(e) => { e.preventDefault(); onChange(o.value); setShow(false); }} style={{ padding: '14px 16px', borderBottom: '1px solid #3a3a3c', color: '#fff', fontSize: '15px', cursor: 'pointer', backgroundColor: '#2c2c2e' }}>
+            <div key={i} onMouseDown={(e) => { e.preventDefault(); onChange(o.value); setShow(false); }} style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '15px', cursor: 'pointer', backgroundColor: 'var(--surface-elevated)' }}>
               {o.label}
             </div>
           ))}
           {options.filter(o => (o.label||'').toLowerCase().includes((value||'').toLowerCase())).length === 0 && (
-            <div style={{ padding: '14px 16px', color: '#8e8e93', fontSize: '15px', fontStyle: 'italic' }}>No matches found</div>
+            <div style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontSize: '15px', fontStyle: 'italic' }}>No matches found</div>
           )}
         </div>
       )}
@@ -99,7 +100,7 @@ export default function Inventory({ user }) {
     if (!meta) { meta = document.createElement('meta'); meta.name = 'viewport'; document.head.appendChild(meta); }
     meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0';
     const originalBg = document.body.style.backgroundColor;
-    document.body.style.backgroundColor = "#121212";
+    document.body.style.backgroundColor = "var(--bg-canvas)";
     return () => { document.body.style.backgroundColor = originalBg; };
     }, []);
     const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1024);
@@ -622,7 +623,7 @@ export default function Inventory({ user }) {
     return b.qty - a.qty;
   });
 return (
-    <div className="inventory-container print-hide" style={{ backgroundColor: "#1c1c1e", color: "#ffffff", minHeight: "100vh", boxSizing: "border-box", width: "100%", maxWidth: "100vw", overflowX: "clip", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <div className="inventory-container print-hide" style={{ backgroundColor: "var(--surface-base)", color: "var(--text-primary)", minHeight: "100vh", boxSizing: "border-box", width: "100%", maxWidth: "100vw", overflowX: "clip", padding: "32px", fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{`
         body { margin: 0; padding: 0; overflow-x: clip; }
         @media (max-width: 768px) { 
@@ -647,7 +648,7 @@ return (
           .secondary-row { width: 100% !important; justify-content: space-between !important; gap: 8px !important; margin-top: 8px !important; }
           .secondary-row > button { flex: 1; }
         }
-        #reader { border: 2px solid #007aff !important; border-radius: 16px; overflow: hidden; background: #000; display: flex; justify-content: center; }
+        #reader { border: 2px solid var(--brand-blue) !important; border-radius: 16px; overflow: hidden; background: #000; display: flex; justify-content: center; }
         #reader video { border-radius: 14px; object-fit: cover; }
         
         /* Force iOS to immediately release scroll momentum on interactive buttons */
@@ -656,12 +657,12 @@ return (
         }
         
         @media (hover: hover) {
-          .flavor-row:hover { border-color: #007aff !important; }
+          .flavor-row:hover { border-color: var(--brand-blue) !important; }
         }
         
         .lucide-icon { vertical-align: text-bottom; margin-right: 6px; }
         .lucide-icon-sm { vertical-align: text-bottom; margin-right: 4px; }
-        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--surface-base); } ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 4px; }
         
         @keyframes inventory-toast-pop { 0% { opacity: 0; transform: translate(-50%, 20px) scale(0.9); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
 
@@ -706,7 +707,7 @@ return (
         }
       
         #root, #root > div { 
-          background-color: #1c1c1e !important;
+          background-color: var(--surface-base) !important;
           min-height: 100vh !important;
           width: 100% !important;
           max-width: none !important;
@@ -724,89 +725,89 @@ return (
       {/* HEADER & ALERTS */}
       <div className="header-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "600", letterSpacing: "-0.02em" }}>📦 Inventory <button onClick={() => setShowHelpModal(true)} style={{ marginLeft: '16px', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#007aff', padding: '4px 12px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', verticalAlign: 'middle' }}>📖 Guide</button>
-            <button onClick={() => requireManager(() => setShowSettingsModal(true))} style={{ marginLeft: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", color: "#af52de", padding: "4px 12px", borderRadius: "8px", fontSize: "14px", cursor: "pointer", verticalAlign: "middle" }}>⚙️ Settings</button></h1>
-          <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Active Operator: {user?.email || auth?.user?.profile?.email || "Scanner Mode Active"}</p>
-          {isOffline && <div style={{ display: "inline-block", backgroundColor: "rgba(255, 149, 0, 0.15)", color: "#ff9500", border: "1px solid #ff9500", padding: "4px 10px", borderRadius: "8px", fontSize: "12px", fontWeight: "700", marginTop: "8px", boxShadow: "0 0 10px rgba(255,149,0,0.2)" }}>📴 DEAD ZONE: {offlineQueue.length} Scans Queued</div>}
+          <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "600", letterSpacing: "-0.02em" }}>📦 Inventory <button onClick={() => setShowHelpModal(true)} style={{ marginLeft: '16px', backgroundColor: 'var(--surface-base)', border: '1px solid var(--border-subtle)', color: 'var(--brand-blue)', padding: '4px 12px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', verticalAlign: 'middle' }}>📖 Guide</button>
+            <button onClick={() => requireManager(() => setShowSettingsModal(true))} style={{ marginLeft: "8px", backgroundColor: "var(--surface-base)", border: "1px solid var(--border-subtle)", color: "var(--brand-purple)", padding: "4px 12px", borderRadius: "8px", fontSize: "14px", cursor: "pointer", verticalAlign: "middle" }}>⚙️ Settings</button></h1>
+          <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", fontSize: "14px" }}>Active Operator: {user?.email || auth?.user?.profile?.email || "Scanner Mode Active"}</p>
+          {isOffline && <div style={{ display: "inline-block", backgroundColor: "rgba(255, 149, 0, 0.15)", color: "var(--brand-orange)", border: "1px solid var(--brand-orange)", padding: "4px 10px", borderRadius: "8px", fontSize: "12px", fontWeight: "700", marginTop: "8px", boxShadow: "0 0 10px rgba(255,149,0,0.2)" }}>📴 DEAD ZONE: {offlineQueue.length} Scans Queued</div>}
         </div>
         
       </div>
 
       {/* TOOLBAR */}
-      <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "14px", border: "1px solid #3a3a3c" }}>
+      <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "var(--surface-raised)", borderRadius: "14px", border: "1px solid var(--border-subtle)" }}>
         
         {/* CENTER: Cohesive Scanner Unit */}
-        <div className="scanner-control-panel" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1 1 auto", alignSelf: "flex-start", margin: "0 16px", maxWidth: "450px", width: "100%", backgroundColor: "#1c1c1e", padding: "16px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
+        <div className="scanner-control-panel" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1 1 auto", alignSelf: "flex-start", margin: "0 16px", maxWidth: "450px", width: "100%", backgroundColor: "var(--surface-base)", padding: "16px", borderRadius: "14px", border: "1px solid var(--border-subtle)", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
           <div className="mode-switch-group" style={{ display: "flex", justifyContent: "space-between", gap: "8px", width: "100%" }}>
-            <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "rgba(255,255,255,0.05)", color: scanMode === "receive" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><Download size={18} className="lucide-icon" /> Receive</button>
-            <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "rgba(255,255,255,0.05)", color: scanMode === "ship" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><Truck size={18} className="lucide-icon" /> Ship</button>
-            <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "transfer" ? "#007aff" : "rgba(255,255,255,0.05)", color: scanMode === "transfer" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><ArrowRightLeft size={18} className="lucide-icon" /> Transfer</button>
+            <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "var(--brand-green)" : "rgba(255,255,255,0.05)", color: scanMode === "receive" ? "var(--text-primary)" : "var(--text-secondary)", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><Download size={18} className="lucide-icon" /> Receive</button>
+            <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "var(--brand-red)" : "rgba(255,255,255,0.05)", color: scanMode === "ship" ? "var(--text-primary)" : "var(--text-secondary)", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><Truck size={18} className="lucide-icon" /> Ship</button>
+            <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "transfer" ? "var(--brand-blue)" : "rgba(255,255,255,0.05)", color: scanMode === "transfer" ? "var(--text-primary)" : "var(--text-secondary)", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><ArrowRightLeft size={18} className="lucide-icon" /> Transfer</button>
           </div>
           <div className="primary-row" style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
-            <div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#242426", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "4px 12px" }}>
-              <span className="hide-mobile" style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
-              <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "600", outline: "none", textAlign: "center" }} />
+            <div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "4px 12px" }}>
+              <span className="hide-mobile" style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
+              <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "var(--text-primary)", fontSize: "16px", fontWeight: "600", outline: "none", textAlign: "center" }} />
             </div>
-            {(scanMode === "receive" || scanMode === "ship") && (<div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#242426", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "4px 12px", flex: 1, minWidth: "120px" }}><span className="hide-mobile" style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>REF:</span><input type="text" placeholder="Order #" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} style={{ width: "100%", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "600", outline: "none" }} /></div>)}
-            <button onClick={() => setRapidFire(!rapidFire)} style={{ display: "flex", alignItems: "center", gap: "6px", backgroundColor: rapidFire ? "rgba(255, 149, 0, 0.2)" : "#242426", border: rapidFire ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "8px 16px", borderRadius: "8px", color: rapidFire ? "#ff9500" : "#fff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>⚡ <span className="hide-mobile">Rapid Fire</span></button>
-            <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#242426", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}><Package size={18} className="lucide-icon" /> {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
-            <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", flexGrow: 1, boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)" }}><ScanLine size={18} className="lucide-icon" /> SCAN</button>
+            {(scanMode === "receive" || scanMode === "ship") && (<div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "4px 12px", flex: 1, minWidth: "120px" }}><span className="hide-mobile" style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600" }}>REF:</span><input type="text" placeholder="Order #" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} style={{ width: "100%", backgroundColor: "transparent", border: "none", color: "var(--text-primary)", fontSize: "16px", fontWeight: "600", outline: "none" }} /></div>)}
+            <button onClick={() => setRapidFire(!rapidFire)} style={{ display: "flex", alignItems: "center", gap: "6px", backgroundColor: rapidFire ? "rgba(255, 149, 0, 0.2)" : "var(--surface-raised)", border: rapidFire ? "1px solid var(--brand-orange)" : "1px solid var(--border-subtle)", padding: "8px 16px", borderRadius: "8px", color: rapidFire ? "var(--brand-orange)" : "var(--text-primary)", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>⚡ <span className="hide-mobile">Rapid Fire</span></button>
+            <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "var(--surface-raised)", border: isPalletMode ? "1px solid var(--brand-orange)" : "1px solid var(--border-subtle)", padding: "12px 16px", borderRadius: "8px", color: isPalletMode ? "var(--brand-orange)" : "var(--text-primary)", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}><Package size={18} className="lucide-icon" /> {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
+            <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "var(--brand-blue)", border: "none", padding: "12px 24px", borderRadius: "8px", color: "var(--text-primary)", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", flexGrow: 1, boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)" }}><ScanLine size={18} className="lucide-icon" /> SCAN</button>
           </div>
           
           {/* INJECTED TARGET ZONE & LIVE TICKER */}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px", width: "100%" }}>
             <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-              <div style={{ fontSize: '10px', fontWeight: '700', color: activeZone.includes('Unassigned') ? '#ff9500' : '#007aff', backgroundColor: activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.15)' : 'rgba(0, 122, 255, 0.15)', padding: '6px 14px', borderRadius: '12px', border: `1px solid ${activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.4)' : 'rgba(0, 122, 255, 0.4)'}`, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ fontSize: '10px', fontWeight: '700', color: activeZone.includes('Unassigned') ? 'var(--brand-orange)' : 'var(--brand-blue)', backgroundColor: activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.15)' : 'rgba(0, 122, 255, 0.15)', padding: '6px 14px', borderRadius: '12px', border: `1px solid ${activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.4)' : 'rgba(0, 122, 255, 0.4)'}`, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                  <span style={{ fontSize: '14px' }}>📍</span> TARGET ZONE: {activeZone.replace("ZONE-", "").replace("BAY-", "")}
               </div>
             </div>
             
-            <div className="hide-desktop" style={{ backgroundColor: "#000", padding: "10px 14px", borderRadius: "10px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "6px", minHeight: "60px", boxShadow: "inset 0 2px 10px rgba(0,0,0,0.5)" }}>
-              <div style={{ fontSize: "10px", color: "#8e8e93", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em", borderBottom: "1px solid #2c2c2e", paddingBottom: "6px", marginBottom: "4px" }}>Global Ledger (Live)</div>
+            <div className="hide-desktop" style={{ backgroundColor: "#000", padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: "6px", minHeight: "60px", boxShadow: "inset 0 2px 10px rgba(0,0,0,0.5)" }}>
+              <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "6px", marginBottom: "4px" }}>Global Ledger (Live)</div>
               {auditLog.slice(0, 3).map((log, idx) => (
-                <div key={idx} style={{ fontSize: "12px", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ color: "#8e8e93", fontFamily: "monospace", minWidth: "65px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
+                <div key={idx} style={{ fontSize: "12px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "var(--text-secondary)", fontFamily: "monospace", minWidth: "65px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
                   <span style={{ flex: 1, margin: "0 8px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", lineHeight: "1.4", flex: 1, paddingRight: "8px" }}><span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> <span>{log.qty}bx</span> <span style={{ color: "#8e8e93" }}>{log.flavor}</span> {log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "11px", fontWeight: "700", whiteSpace: "nowrap" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}{log.orderNumber && <span style={{ color: "#8e8e93", fontSize: "11px", border: "1px solid #3a3a3c", padding: "2px 4px", borderRadius: "4px", backgroundColor: "#242426", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>}</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", lineHeight: "1.4", flex: 1, paddingRight: "8px" }}><span style={{ color: log.action.includes("Ship") ? "var(--brand-red)" : (log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)"), fontWeight: "700" }}>{log.action}</span> <span>{log.qty}bx</span> <span style={{ color: "var(--text-secondary)" }}>{log.flavor}</span> {log.destination && <span style={{ color: log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)", fontSize: "11px", fontWeight: "700", whiteSpace: "nowrap" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}{log.orderNumber && <span style={{ color: "var(--text-secondary)", fontSize: "11px", border: "1px solid var(--border-subtle)", padding: "2px 4px", borderRadius: "4px", backgroundColor: "var(--surface-raised)", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>}</div>
                   </span>
-                  <span style={{ color: "#8e8e93", fontSize: "10px" }}>{log.user.split('@')[0]}</span>
+                  <span style={{ color: "var(--text-secondary)", fontSize: "10px" }}>{log.user.split('@')[0]}</span>
                 </div>
               ))}
-              {auditLog.length === 0 && <div style={{ fontSize: "12px", color: "#8e8e93", textAlign: "center", fontStyle: "italic", marginTop: "4px" }}>No recent actions...</div>}
+              {auditLog.length === 0 && <div style={{ fontSize: "12px", color: "var(--text-secondary)", textAlign: "center", fontStyle: "italic", marginTop: "4px" }}>No recent actions...</div>}
             </div>
           </div>
         </div>
 
         {/* LARGE DESKTOP LEDGER */}
-        <div className="hide-mobile" style={{ display: "flex", flexDirection: "column", margin: "0 auto", width: "75%", maxWidth: "1100px", minWidth: "500px", backgroundColor: "#000", padding: "16px 20px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "inset 0 8px 30px rgba(0,0,0,0.6)", alignSelf: "stretch", minHeight: "180px", maxHeight: "240px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #2c2c2e", paddingBottom: "10px", marginBottom: "10px" }}>
-            <span style={{ fontSize: "14px", color: "#8e8e93", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em" }}>Global Ledger (Live)</span>
-            <span style={{ fontSize: "11px", color: "#007aff", fontWeight: "700", backgroundColor: "rgba(0, 122, 255, 0.15)", padding: "4px 10px", borderRadius: "8px", border: "1px solid rgba(0, 122, 255, 0.3)" }}>{auditLog.length} Total Entries</span>
+        <div className="hide-mobile" style={{ display: "flex", flexDirection: "column", margin: "0 auto", width: "75%", maxWidth: "1100px", minWidth: "500px", backgroundColor: "#000", padding: "16px 20px", borderRadius: "14px", border: "1px solid var(--border-subtle)", boxShadow: "inset 0 8px 30px rgba(0,0,0,0.6)", alignSelf: "stretch", minHeight: "180px", maxHeight: "240px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "10px", marginBottom: "10px" }}>
+            <span style={{ fontSize: "14px", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em" }}>Global Ledger (Live)</span>
+            <span style={{ fontSize: "11px", color: "var(--brand-blue)", fontWeight: "700", backgroundColor: "rgba(0, 122, 255, 0.15)", padding: "4px 10px", borderRadius: "8px", border: "1px solid rgba(0, 122, 255, 0.3)" }}>{auditLog.length} Total Entries</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "8px", paddingBottom: "16px", flex: 1, maxHeight: window.innerWidth <= 768 ? "300px" : "100%", WebkitOverflowScrolling: "touch" }} className="custom-scrollbar-viewport">
             {auditLog.slice(0, 8).map((log, idx) => (
-              <div key={idx} style={{ fontSize: "14px", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1c1c1e", padding: "10px 14px", borderRadius: "8px", border: "1px solid #2c2c2e" }}>
-                <span style={{ color: "#8e8e93", fontFamily: "monospace", fontSize: "12px", minWidth: "80px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
+              <div key={idx} style={{ fontSize: "14px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "var(--surface-base)", padding: "10px 14px", borderRadius: "8px", border: "1px solid var(--surface-elevated)" }}>
+                <span style={{ color: "var(--text-secondary)", fontFamily: "monospace", fontSize: "12px", minWidth: "80px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
                 <span style={{ flex: 1, margin: "0 16px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", lineHeight: "1.4", flex: 1, paddingRight: "8px" }}><span style={{ color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff"), fontWeight: "700" }}>{log.action}</span> <span>{log.qty}bx</span> <span style={{ color: "#8e8e93" }}>{log.flavor}</span> {log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "11px", fontWeight: "700", whiteSpace: "nowrap" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}{log.orderNumber && <span style={{ color: "#8e8e93", fontSize: "11px", border: "1px solid #3a3a3c", padding: "2px 4px", borderRadius: "4px", backgroundColor: "#242426", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>}</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", lineHeight: "1.4", flex: 1, paddingRight: "8px" }}><span style={{ color: log.action.includes("Ship") ? "var(--brand-red)" : (log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)"), fontWeight: "700" }}>{log.action}</span> <span>{log.qty}bx</span> <span style={{ color: "var(--text-secondary)" }}>{log.flavor}</span> {log.destination && <span style={{ color: log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)", fontSize: "11px", fontWeight: "700", whiteSpace: "nowrap" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}{log.orderNumber && <span style={{ color: "var(--text-secondary)", fontSize: "11px", border: "1px solid var(--border-subtle)", padding: "2px 4px", borderRadius: "4px", backgroundColor: "var(--surface-raised)", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>}</div>
                 </span>
-                <span style={{ color: "#8e8e93", fontSize: "12px", fontWeight: "600" }}>{log.user.split('@')[0]}</span>
+                <span style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600" }}>{log.user.split('@')[0]}</span>
               </div>
             ))}
-            {auditLog.length === 0 && <div style={{ fontSize: "14px", color: "#8e8e93", textAlign: "center", fontStyle: "italic", marginTop: "16px" }}>No recent actions...</div>}
+            {auditLog.length === 0 && <div style={{ fontSize: "14px", color: "var(--text-secondary)", textAlign: "center", fontStyle: "italic", marginTop: "16px" }}>No recent actions...</div>}
           </div>
         </div>
         {/* RIGHT: Total Stock & Actions */}
         <div className="action-group-right" style={{ display: "flex", flexDirection: "column", gap: "16px", flex: "1", alignItems: "flex-end" }}>
           
           {/* Decoupled & Enlarged Total Stock */}
-          <div className="total-stock-block" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", backgroundColor: "#1c1c1e", padding: "16px 24px", borderRadius: "14px", border: "1px solid #3a3a3c", width: "100%", maxWidth: "320px", boxShadow: "0 8px 24px rgba(0,0,0,0.2)", minHeight: "135px", position: "relative", boxSizing: "border-box" }}>
-            <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "700", letterSpacing: "0.05em", textTransform: "uppercase", width: "100%", textAlign: "right" }}>Global Inventory</div>
-            <div style={{ fontSize: "42px", fontWeight: "800", color: "#34c759", letterSpacing: "-0.02em", marginTop: "4px", lineHeight: "1", width: "100%", textAlign: "right" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "18px", color: "#8e8e93", fontWeight: "600" }}>bx</span></div>
+          <div className="total-stock-block" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", backgroundColor: "var(--surface-base)", padding: "16px 24px", borderRadius: "14px", border: "1px solid var(--border-subtle)", width: "100%", maxWidth: "320px", boxShadow: "0 8px 24px rgba(0,0,0,0.2)", minHeight: "135px", position: "relative", boxSizing: "border-box" }}>
+            <div style={{ fontSize: "14px", color: "var(--text-secondary)", fontWeight: "700", letterSpacing: "0.05em", textTransform: "uppercase", width: "100%", textAlign: "right" }}>Global Inventory</div>
+            <div style={{ fontSize: "42px", fontWeight: "800", color: "var(--brand-green)", letterSpacing: "-0.02em", marginTop: "4px", lineHeight: "1", width: "100%", textAlign: "right" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "18px", color: "var(--text-secondary)", fontWeight: "600" }}>bx</span></div>
             
             <div className="secondary-row" style={{ display: "flex", gap: "8px", marginTop: "auto", paddingTop: "16px", width: "100%", justifyContent: "flex-end" }}>
-              <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "6px 12px", borderRadius: "6px", color: "#8e8e93", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}><ClipboardList size={12} className="lucide-icon-sm" /> AUDIT</button>
-              <button onClick={handleExportCSV} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "6px 12px", borderRadius: "6px", color: "#8e8e93", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}><FileDown size={12} className="lucide-icon-sm" /> CSV</button>
+              <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ backgroundColor: "var(--surface-elevated)", border: "1px solid var(--border-subtle)", padding: "6px 12px", borderRadius: "6px", color: "var(--text-secondary)", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}><ClipboardList size={12} className="lucide-icon-sm" /> AUDIT</button>
+              <button onClick={handleExportCSV} style={{ backgroundColor: "var(--surface-elevated)", border: "1px solid var(--border-subtle)", padding: "6px 12px", borderRadius: "6px", color: "var(--text-secondary)", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}><FileDown size={12} className="lucide-icon-sm" /> CSV</button>
             </div>
           </div>
         </div>
@@ -828,7 +829,7 @@ return (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ fontSize: "20px" }}>⚠️</span>
-                    <h4 style={{ margin: 0, color: "#ff9500", fontSize: "16px", fontWeight: "700", letterSpacing: "-0.01em" }}>Critical Alerts</h4>
+                    <h4 style={{ margin: 0, color: "var(--brand-orange)", fontSize: "16px", fontWeight: "700", letterSpacing: "-0.01em" }}>Critical Alerts</h4>
                   </div>
                   <button onClick={() => {
                     let bodyText = "Please process purchase orders for the following critical stock items:\n\n";
@@ -852,7 +853,7 @@ return (
                     }).catch(err => {
                       alert('❌ Failed to reach the SES routing API. Ensure the backend is online.');
                     });
-                  }} style={{ backgroundColor: "#ff9500", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ Master PO</button>
+                  }} style={{ backgroundColor: "var(--brand-orange)", color: "var(--text-primary)", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ Master PO</button>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto", minHeight: 0, flex: 1, paddingRight: "4px" }} className="custom-scrollbar-viewport">
                   {criticalAlerts.map(i => {
@@ -860,10 +861,10 @@ return (
                     return (
                       <div key={i.barcode} style={{ backgroundColor: "rgba(0,0,0,0.3)", border: `1px solid ${isExp ? 'rgba(255,59,48,0.5)' : 'rgba(255,149,0,0.3)'}`, padding: "10px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div style={{ display: "flex", flexDirection: "column", maxWidth: "65%" }}>
-                          <span style={{ fontSize: "10px", color: isExp ? "#ff3b30" : "#ff9500", textTransform: "uppercase", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isExp ? "🚨 EXPIRED" : "LOW STOCK"} • {i.brand}</span>
-                          <strong style={{ color: "#ffffff", fontSize: "13px", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{i.flavor}</strong>
+                          <span style={{ fontSize: "10px", color: isExp ? "var(--brand-red)" : "var(--brand-orange)", textTransform: "uppercase", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isExp ? "🚨 EXPIRED" : "LOW STOCK"} • {i.brand}</span>
+                          <strong style={{ color: "var(--text-primary)", fontSize: "13px", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{i.flavor}</strong>
                         </div>
-                        <span className={isExp ? "critical-expiry-badge" : ""} style={{ fontSize: "12px", color: isExp ? "#ff3b30" : "#ff9500", fontWeight: "700", whiteSpace: "nowrap" }}>{i.quantity} bx</span>
+                        <span className={isExp ? "critical-expiry-badge" : ""} style={{ fontSize: "12px", color: isExp ? "var(--brand-red)" : "var(--brand-orange)", fontWeight: "700", whiteSpace: "nowrap" }}>{i.quantity} bx</span>
                       </div>
                     );
                   })}
@@ -874,11 +875,11 @@ return (
         </div>
 
         {/* RIGHT STRETCH: Dense Flavor Breakdown */}
-        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", boxSizing: "border-box", maxHeight: isDesktop ? "65vh" : "500px" }}>
+        <div className="flavor-board" style={{ backgroundColor: "var(--surface-elevated)", padding: "24px", borderRadius: "14px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", boxSizing: "border-box", maxHeight: isDesktop ? "65vh" : "500px" }}>
           <div className="flavor-board-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div className="flavor-board-header-left" style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-              <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em", textTransform: "uppercase" }}>INVENTORY BY FLAVOR</div>
-              <select value={flavorSort} onChange={(e) => setFlavorSort(e.target.value)} style={{ backgroundColor: "#1c1c1e", color: "#8e8e93", border: "1px solid #3a3a3c", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", outline: "none", cursor: "pointer" }}>
+              <div style={{ fontSize: "14px", color: "var(--text-secondary)", fontWeight: "600", letterSpacing: "-0.01em", textTransform: "uppercase" }}>INVENTORY BY FLAVOR</div>
+              <select value={flavorSort} onChange={(e) => setFlavorSort(e.target.value)} style={{ backgroundColor: "var(--surface-base)", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", outline: "none", cursor: "pointer" }}>
                 <option value="qty_desc">Qty (High to Low)</option>
                 <option value="qty_asc">Qty (Low to High)</option>
                 <option value="alpha_asc">Alphabetical (A-Z)</option>
@@ -886,7 +887,7 @@ return (
                 <option value="recent">Recent Activity</option>
               </select>
             </div>
-            <div style={{ fontSize: "14px", color: "#ffffff", fontWeight: "700" }}>{activeFlavorsCount} <span style={{ color: "#8e8e93", fontWeight: "600" }}>Total</span></div>
+            <div style={{ fontSize: "14px", color: "var(--text-primary)", fontWeight: "700" }}>{activeFlavorsCount} <span style={{ color: "var(--text-secondary)", fontWeight: "600" }}>Total</span></div>
           </div>
           {/* Dense Grid for 40+ Items */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", paddingRight: "8px", alignContent: "start", overflowY: "auto", minHeight: 0, flex: 1 }} className="custom-scrollbar-viewport">
@@ -905,7 +906,7 @@ return (
                       const originalTransform = frontCard.style.transform;
                       
                       frontCard.style.transition = "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-                      frontCard.style.border = "2px solid #007aff";
+                      frontCard.style.border = "2px solid var(--brand-blue)";
                       frontCard.style.boxShadow = "0 0 40px rgba(0, 122, 255, 1)";
                       frontCard.style.transform = "scale(1.03)";
                       
@@ -918,14 +919,14 @@ return (
                   }, 600);
                 }
               }}
-              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1c1c1e", padding: "12px 14px", borderRadius: "8px", border: "1px solid #3a3a3c", cursor: "pointer", transition: "all 0.2s" }}>
-                <span style={{ fontSize: "12px", color: "#fff", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: "12px" }}>{f.name}</span>
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "var(--surface-base)", padding: "12px 14px", borderRadius: "8px", border: "1px solid var(--border-subtle)", cursor: "pointer", transition: "all 0.2s" }}>
+                <span style={{ fontSize: "12px", color: "var(--text-primary)", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: "12px" }}>{f.name}</span>
                 <span style={{ fontSize: "13px", color: (() => {
-                  if (f.qty === 0) return "#8e8e93";
-                  if (f.qty < 50) return "#ff3b30";
+                  if (f.qty === 0) return "var(--text-secondary)";
+                  if (f.qty < 50) return "var(--brand-red)";
                   const monthlyBurn = (f.name.length * 4) + 15;
                   const daysRemaining = Math.max(1, Math.round(f.qty / (monthlyBurn / 30)));
-                  return daysRemaining >= 30 ? "#34c759" : "#007aff";
+                  return daysRemaining >= 30 ? "var(--brand-green)" : "var(--brand-blue)";
                 })(), fontWeight: "700", whiteSpace: "nowrap" }}>{f.qty} bx</span>
               </div>
             ))}
@@ -935,13 +936,13 @@ return (
       </div>
 
       {/* DATABASE RESEARCH TOOLS */}
-      <div className="search-group" style={{ display: "flex", flexWrap: "wrap", gap: "12px", width: "100%", marginBottom: "24px", padding: "16px", backgroundColor: "#242426", borderRadius: "14px", border: "1px solid #3a3a3c", alignItems: "center" }}>
-        <input type="text" placeholder="🔎 Filter Inventory Cards..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ flex: "1 1 250px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "14px 16px", boxSizing: "border-box", color: "#ffffff", fontSize: "15px" }} />
-        <button onClick={() => { setIsMultiFlipMode(!isMultiFlipMode); if (isMultiFlipMode) setFlippedCards([]); }} style={{ flex: "0 1 auto", backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "14px 20px", borderRadius: "8px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>
+      <div className="search-group" style={{ display: "flex", flexWrap: "wrap", gap: "12px", width: "100%", marginBottom: "24px", padding: "16px", backgroundColor: "var(--surface-raised)", borderRadius: "14px", border: "1px solid var(--border-subtle)", alignItems: "center" }}>
+        <input type="text" placeholder="🔎 Filter Inventory Cards..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ flex: "1 1 250px", backgroundColor: "var(--surface-base)", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "14px 16px", boxSizing: "border-box", color: "var(--text-primary)", fontSize: "15px" }} />
+        <button onClick={() => { setIsMultiFlipMode(!isMultiFlipMode); if (isMultiFlipMode) setFlippedCards([]); }} style={{ flex: "0 1 auto", backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "var(--surface-base)", border: isMultiFlipMode ? "1px solid var(--brand-blue)" : "1px solid var(--border-subtle)", padding: "14px 20px", borderRadius: "8px", color: isMultiFlipMode ? "var(--brand-blue)" : "var(--text-primary)", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>
           🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
         </button>
         
-        <button onClick={handleManualAdd} style={{ flex: "0 1 auto", backgroundColor: "#34c759", border: "none", padding: "14px 20px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}><Plus size={16} className="lucide-icon" /> Register New Product</button>
+        <button onClick={handleManualAdd} style={{ flex: "0 1 auto", backgroundColor: "var(--brand-green)", border: "none", padding: "14px 20px", borderRadius: "8px", color: "var(--text-primary)", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}><Plus size={16} className="lucide-icon" /> Register New Product</button>
       </div>
 
       {/* FLIPPABLE KINETIC CARDS */}
@@ -959,10 +960,10 @@ return (
           const runOutDate = isExpired ? 'Depleted (Expired)' : new Date(Date.now() + (daysRemaining * 24 * 60 * 60 * 1000)).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
           const healthPercent = isExpired ? 0 : Math.min(100, Math.round((item.quantity / targetStock) * 100));
-                    let healthColor = "#007aff"; 
-          if (isExpired) { healthColor = "#ff3b30"; }
-          else if (item.quantity < 50) { healthColor = "#ff3b30"; } 
-          else if (daysRemaining >= 30) { healthColor = "#34c759"; }
+                    let healthColor = "var(--brand-blue)"; 
+          if (isExpired) { healthColor = "var(--brand-red)"; }
+          else if (item.quantity < 50) { healthColor = "var(--brand-red)"; } 
+          else if (daysRemaining >= 30) { healthColor = "var(--brand-green)"; }
 
           return (
             <div 
@@ -976,127 +977,127 @@ return (
               <div style={{ width: '100%', height: '100%', position: 'relative', transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)', transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
                 
                 {/* 🟢 FRONT SIDE */}
-                <div style={{ backfaceVisibility: 'hidden', backgroundColor: '#2c2c2e', borderRadius: "14px", padding: '24px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)', minHeight: '120px', height: '100%', boxSizing: 'border-box' }}>
+                <div style={{ backfaceVisibility: 'hidden', backgroundColor: 'var(--surface-elevated)', borderRadius: "14px", padding: '24px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)', minHeight: '120px', height: '100%', boxSizing: 'border-box' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div><div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: "600", letterSpacing: '0.05em', textTransform: 'uppercase' }}>{item.brand}</div><div style={{ fontSize: '18px', fontWeight: "600", letterSpacing: "-0.01em", color: '#ffffff', marginTop: '4px', lineHeight: '1.2' }}>{item.flavor}</div><div style={{ fontSize: '15px', fontWeight: "600", color: healthColor, marginTop: '8px' }}>{item.quantity} BOXES IN STOCK</div></div>
+                    <div><div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: "600", letterSpacing: '0.05em', textTransform: 'uppercase' }}>{item.brand}</div><div style={{ fontSize: '18px', fontWeight: "600", letterSpacing: "-0.01em", color: 'var(--text-primary)', marginTop: '4px', lineHeight: '1.2' }}>{item.flavor}</div><div style={{ fontSize: '15px', fontWeight: "600", color: healthColor, marginTop: '8px' }}>{item.quantity} BOXES IN STOCK</div></div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
-              <button onClick={(e) => { e.stopPropagation(); if (isMultiFlipMode) { setFlippedCards(prev => prev.includes(item.barcode) ? prev.filter(id => id !== item.barcode) : [...prev, item.barcode]); } else { setFlippedCards(prev => prev.includes(item.barcode) && prev.length === 1 ? [] : [item.barcode]); } }} style={{ backgroundColor: '#007aff', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,122,255,0.3)', marginBottom: '4px' }}>Flip</button>
-              <div style={{ fontSize: '11px', color: '#8e8e93', backgroundColor: '#1c1c1e', padding: '4px 8px', borderRadius: '8px', border: '1px solid #3a3a3c', whiteSpace: 'nowrap' }}>Lot: {item.lotNumber}</div>
-                      <div style={{ fontSize: '10px', color: isExpired ? '#ff3b30' : '#ff9500', fontWeight: isExpired ? '700' : '600', backgroundColor: isExpired ? 'rgba(255, 59, 48, 0.15)' : 'transparent', padding: isExpired ? '2px 6px' : '0', borderRadius: '4px' }}>{isExpired ? '🚨 EXPIRED: ' : 'Exp: '}{item.expiryDate || "N/A"}</div>
+              <button onClick={(e) => { e.stopPropagation(); if (isMultiFlipMode) { setFlippedCards(prev => prev.includes(item.barcode) ? prev.filter(id => id !== item.barcode) : [...prev, item.barcode]); } else { setFlippedCards(prev => prev.includes(item.barcode) && prev.length === 1 ? [] : [item.barcode]); } }} style={{ backgroundColor: 'var(--brand-blue)', color: 'var(--text-primary)', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,122,255,0.3)', marginBottom: '4px' }}>Flip</button>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', backgroundColor: 'var(--surface-base)', padding: '4px 8px', borderRadius: '8px', border: '1px solid var(--border-subtle)', whiteSpace: 'nowrap' }}>Lot: {item.lotNumber}</div>
+                      <div style={{ fontSize: '10px', color: isExpired ? 'var(--brand-red)' : 'var(--brand-orange)', fontWeight: isExpired ? '700' : '600', backgroundColor: isExpired ? 'rgba(255, 59, 48, 0.15)' : 'transparent', padding: isExpired ? '2px 6px' : '0', borderRadius: '4px' }}>{isExpired ? '🚨 EXPIRED: ' : 'Exp: '}{item.expiryDate || "N/A"}</div>
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: '#1c1c1e', color: '#8e8e93', borderRadius: '8px', border: '1px solid #3a3a3c' }}>📦 {item.type}</span>{isLowStock && <span style={{ fontSize: '11px', fontWeight: "600", padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: '#ff3b30', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}</div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: 'var(--surface-base)', color: 'var(--text-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>📦 {item.type}</span>{isLowStock && <span style={{ fontSize: '11px', fontWeight: "600", padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: 'var(--brand-red)', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}</div>
                   
-                  {(isDesktop || expandedCards.includes(item.barcode) || isFlipped) && ( <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px 0 8px 0', borderTop: '1px solid #3a3a3c', marginTop: '12px' }}>
+                  {(isDesktop || expandedCards.includes(item.barcode) || isFlipped) && ( <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px 0 8px 0', borderTop: '1px solid var(--border-subtle)', marginTop: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      {isExpired ? <span className="critical-expiry-badge" style={{ fontSize: '11px', color: '#ff3b30', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🚨 CRITICAL: EXPIRED PRODUCT</span> : <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Pipeline Health</span>}
+                      {isExpired ? <span className="critical-expiry-badge" style={{ fontSize: '11px', color: 'var(--brand-red)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🚨 CRITICAL: EXPIRED PRODUCT</span> : <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase' }}>Pipeline Health</span>}
                       <span style={{ fontSize: '12px', color: healthColor, fontWeight: "600" }}>{daysRemaining} Days Supply</span>
                     </div>
-                    <div style={{ width: '100%', height: '10px', backgroundColor: '#1c1c1e', borderRadius: '5px', overflow: 'hidden', border: '1px solid #3a3a3c' }}>
+                    <div style={{ width: '100%', height: '10px', backgroundColor: 'var(--surface-base)', borderRadius: '5px', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ width: `${healthPercent}%`, height: '100%', backgroundColor: healthColor, boxShadow: `0 0 10px ${healthColor}80`, transition: 'width 0.5s ease-out' }}></div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '8px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {(item.recentScans || []).filter(scan => (Date.now() - scan.timestamp < 43200000)).map((scan, idx) => (
-                <div key={idx} style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
+                <div key={idx} style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
                   {scan.time} 
-                  <span style={{ fontWeight: "600", marginLeft: '6px', fontSize: '13px', color: scan.action === 'Receive' ? '#34c759' : (scan.action === 'Ship' ? '#ff3b30' : (scan.action === 'Transfer' ? '#ff9500' : '#af52de')) }}>
+                  <span style={{ fontWeight: "600", marginLeft: '6px', fontSize: '13px', color: scan.action === 'Receive' ? 'var(--brand-green)' : (scan.action === 'Ship' ? 'var(--brand-red)' : (scan.action === 'Transfer' ? 'var(--brand-orange)' : 'var(--brand-purple)')) }}>
                     {scan.qty}{scan.action === 'Receive' ? 'R' : (scan.action === 'Ship' ? 'S' : (scan.action === 'Transfer' ? 'T' : 'O'))}
                   </span>
                 </div>
               ))}
             </div>
-                <div style={{ fontSize: '10px', color: '#8e8e93', textAlign: 'right', marginTop: '4px' }}>Target: {targetStock} bx</div>
+                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textAlign: 'right', marginTop: '4px' }}>Target: {targetStock} bx</div>
               </div>
                   </div> )}
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid #3a3a3c' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
                     <div>
-  <div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>Active Locations</div>
+  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>Active Locations</div>
   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '60px', overflowY: 'auto', paddingRight: '4px' }} className="custom-scrollbar-viewport">
     {(item.locations && item.locations.length > 0) ? item.locations.map((loc, idx) => (
-      <div key={idx} style={{ fontSize: '13px', color: loc.name.includes("Unassigned") ? "#ff9500" : "#007aff", fontWeight: '600', whiteSpace: 'nowrap' }}>📍 {loc.name} <span style={{ color: '#8e8e93', fontSize: '11px', marginLeft: '4px' }}>({loc.qty}bx)</span></div>
+      <div key={idx} style={{ fontSize: '13px', color: loc.name.includes("Unassigned") ? "var(--brand-orange)" : "var(--brand-blue)", fontWeight: '600', whiteSpace: 'nowrap' }}>📍 {loc.name} <span style={{ color: 'var(--text-secondary)', fontSize: '11px', marginLeft: '4px' }}>({loc.qty}bx)</span></div>
     )) : (
-      <div style={{ fontSize: '13px', color: (item.zone || "").includes("Unassigned") ? "#ff9500" : "#007aff", fontWeight: '600' }}>📍 {item.zone}</div>
+      <div style={{ fontSize: '13px', color: (item.zone || "").includes("Unassigned") ? "var(--brand-orange)" : "var(--brand-blue)", fontWeight: '600' }}>📍 {item.zone}</div>
     )}
   </div>
 </div>
-                    <div style={{ textAlign: 'right' }}><div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600', marginBottom: '4px', textTransform: 'uppercase' }}>In Stock</div><div style={{ fontSize: '28px', fontWeight: "600", letterSpacing: "-0.01em", color: healthColor, lineHeight: '1' }}>{item.quantity} <span style={{ fontSize: '14px', fontWeight: '600', color: '#8e8e93' }}>box</span></div></div>
+                    <div style={{ textAlign: 'right' }}><div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '600', marginBottom: '4px', textTransform: 'uppercase' }}>In Stock</div><div style={{ fontSize: '28px', fontWeight: "600", letterSpacing: "-0.01em", color: healthColor, lineHeight: '1' }}>{item.quantity} <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)' }}>box</span></div></div>
                   </div>
                 </div>
 
                 {/* 🔵 BACK SIDE (Stats + Admin Override) */}
                 <div 
                   onClick={(e) => { if (editModes[item.barcode]) e.stopPropagation(); }} 
-                  style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#1a1a1c', borderRadius: "14px", padding: '24px', border: editModes[item.barcode] ? '1px solid #ff3b30' : '1px solid #007aff', display: 'flex', flexDirection: 'column', boxShadow: editModes[item.barcode] ? '0 4px 30px rgba(255, 59, 48, 0.15)' : '0 4px 30px rgba(0, 122, 255, 0.15)', boxSizing: 'border-box' }}
+                  style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#1a1a1c', borderRadius: "14px", padding: '24px', border: editModes[item.barcode] ? '1px solid var(--brand-red)' : '1px solid var(--brand-blue)', display: 'flex', flexDirection: 'column', boxShadow: editModes[item.barcode] ? '0 4px 30px rgba(255, 59, 48, 0.15)' : '0 4px 30px rgba(0, 122, 255, 0.15)', boxSizing: 'border-box' }}
                 >
                   {editModes[item.barcode] ? (
                     // EDIT MODE
                     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '8px', overflowY: 'auto' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '4px' }}>
-                        <div style={{ fontSize: '15px', fontWeight: "600", color: '#ffffff' }}>⚙️ Admin Override</div>
-                        <button onClick={(e) => { e.stopPropagation(); setEditModes(prev => ({...prev, [item.barcode]: false})); }} style={{ background: 'transparent', color: '#ff3b30', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Cancel ✕</button>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '4px' }}>
+                        <div style={{ fontSize: '15px', fontWeight: "600", color: 'var(--text-primary)' }}>⚙️ Admin Override</div>
+                        <button onClick={(e) => { e.stopPropagation(); setEditModes(prev => ({...prev, [item.barcode]: false})); }} style={{ background: 'transparent', color: 'var(--brand-red)', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Cancel ✕</button>
                       </div>
                       
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                          <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Zone</label>
-                          <input value={editForms[item.barcode]?.zone ?? item.zone} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), zone: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                          <label style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase' }}>Zone</label>
+                          <input value={editForms[item.barcode]?.zone ?? item.zone} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), zone: e.target.value}}))} style={{ backgroundColor: 'var(--surface-raised)', border: '1px solid var(--border-subtle)', padding: '8px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                          <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Qty</label>
-                          <input type="number" value={editForms[item.barcode]?.quantity ?? item.quantity} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), quantity: parseInt(e.target.value) || 0}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                          <label style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase' }}>Qty</label>
+                          <input type="number" value={editForms[item.barcode]?.quantity ?? item.quantity} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), quantity: parseInt(e.target.value) || 0}}))} style={{ backgroundColor: 'var(--surface-raised)', border: '1px solid var(--border-subtle)', padding: '8px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                         </div>
                       </div>
 
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                          <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Lot No.</label>
-                          <input value={editForms[item.barcode]?.lotNumber ?? item.lotNumber} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), lotNumber: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                          <label style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase' }}>Lot No.</label>
+                          <input value={editForms[item.barcode]?.lotNumber ?? item.lotNumber} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), lotNumber: e.target.value}}))} style={{ backgroundColor: 'var(--surface-raised)', border: '1px solid var(--border-subtle)', padding: '8px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                          <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Expiry</label>
-                          <input type="date" value={editForms[item.barcode]?.expiryDate ?? item.expiryDate} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), expiryDate: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                          <label style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase' }}>Expiry</label>
+                          <input type="date" value={editForms[item.barcode]?.expiryDate ?? item.expiryDate} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), expiryDate: e.target.value}}))} style={{ backgroundColor: 'var(--surface-raised)', border: '1px solid var(--border-subtle)', padding: '8px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                         </div>
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Vendor Route Email</label>
-                        <input list="vendor-emails" value={editForms[item.barcode]?.vendorEmail ?? item.vendorEmail ?? ""} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), vendorEmail: e.target.value}}))} style={{ backgroundColor: '#242426', border: '1px solid #3a3a3c', padding: '8px', borderRadius: '8px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+                        <label style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase' }}>Vendor Route Email</label>
+                        <input list="vendor-emails" value={editForms[item.barcode]?.vendorEmail ?? item.vendorEmail ?? ""} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), vendorEmail: e.target.value}}))} style={{ backgroundColor: 'var(--surface-raised)', border: '1px solid var(--border-subtle)', padding: '8px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                       </div>
 
-                      <button onClick={(e) => { e.stopPropagation(); handleSaveCardEdit(item.barcode); }} style={{ marginTop: 'auto', backgroundColor: '#007aff', color: '#fff', padding: '10px', border: 'none', borderRadius: '8px', fontWeight: "600", cursor: 'pointer', transition: 'all 0.2s' }}>💾 Save</button>
+                      <button onClick={(e) => { e.stopPropagation(); handleSaveCardEdit(item.barcode); }} style={{ marginTop: 'auto', backgroundColor: 'var(--brand-blue)', color: 'var(--text-primary)', padding: '10px', border: 'none', borderRadius: '8px', fontWeight: "600", cursor: 'pointer', transition: 'all 0.2s' }}>💾 Save</button>
                     </div>
                   ) : (
                     // STATS MODE
                     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '12px', marginBottom: '16px' }}>
-                        <div style={{ fontSize: '15px', fontWeight: "600", color: '#ffffff' }}>📊 Historical Velocity</div>
-                        <div onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => prev.filter(id => id !== item.barcode)); }} style={{ fontSize: '10px', color: '#007aff', fontWeight: "600", backgroundColor: 'rgba(0,122,255,0.15)', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer' }}>FLIP BACK</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px', marginBottom: '16px' }}>
+                        <div style={{ fontSize: '15px', fontWeight: "600", color: 'var(--text-primary)' }}>📊 Historical Velocity</div>
+                        <div onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => prev.filter(id => id !== item.barcode)); }} style={{ fontSize: '10px', color: 'var(--brand-blue)', fontWeight: "600", backgroundColor: 'rgba(0,122,255,0.15)', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer' }}>FLIP BACK</div>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', flex: 1 }}>
-                        <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: "8px", display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>30-Day Burn</div><div style={{ fontSize: '22px', fontWeight: "600", letterSpacing: "-0.01em", color: '#ffffff', marginTop: '2px' }}>{monthlyBurn} <span style={{fontSize: '12px', color:'#8e8e93'}}>bx</span></div></div>
-                        <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: "8px", display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>90-Day Burn</div><div style={{ fontSize: '22px', fontWeight: "600", letterSpacing: "-0.01em", color: '#ffffff', marginTop: '2px' }}>{quarterlyBurn} <span style={{fontSize: '12px', color:'#8e8e93'}}>bx</span></div></div>
-                        <div style={{ backgroundColor: '#242426', padding: '12px', borderRadius: "8px", gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase' }}>Est. Run-Out Date</div><div style={{ fontSize: '18px', fontWeight: "600", letterSpacing: "-0.01em", color: item.quantity === 0 ? '#ff3b30' : '#34c759', marginTop: '2px' }}>{item.quantity === 0 ? "Depleted" : runOutDate}</div></div>
+                        <div style={{ backgroundColor: 'var(--surface-raised)', padding: '12px', borderRadius: "8px", display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase' }}>30-Day Burn</div><div style={{ fontSize: '22px', fontWeight: "600", letterSpacing: "-0.01em", color: 'var(--text-primary)', marginTop: '2px' }}>{monthlyBurn} <span style={{fontSize: '12px', color:'var(--text-secondary)'}}>bx</span></div></div>
+                        <div style={{ backgroundColor: 'var(--surface-raised)', padding: '12px', borderRadius: "8px", display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase' }}>90-Day Burn</div><div style={{ fontSize: '22px', fontWeight: "600", letterSpacing: "-0.01em", color: 'var(--text-primary)', marginTop: '2px' }}>{quarterlyBurn} <span style={{fontSize: '12px', color:'var(--text-secondary)'}}>bx</span></div></div>
+                        <div style={{ backgroundColor: 'var(--surface-raised)', padding: '12px', borderRadius: "8px", gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase' }}>Est. Run-Out Date</div><div style={{ fontSize: '18px', fontWeight: "600", letterSpacing: "-0.01em", color: item.quantity === 0 ? 'var(--brand-red)' : 'var(--brand-green)', marginTop: '2px' }}>{item.quantity === 0 ? "Depleted" : runOutDate}</div></div>
                       </div>
                       
                       <div style={{ display: 'flex', gap: '8px', marginTop: '16px', marginBottom: '12px' }}>
-                        <button onClick={(e) => { e.stopPropagation(); setScanMode("receive"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(52, 199, 89, 0.15)', color: '#34c759', border: '1px solid #34c759', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><Download size={14} className="lucide-icon-sm" /> RCV</button>
-                        <button onClick={(e) => { e.stopPropagation(); setScanMode("ship"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(255, 59, 48, 0.15)', color: '#ff3b30', border: '1px solid #ff3b30', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><Truck size={14} className="lucide-icon-sm" /> SHP</button>
-                        <button onClick={(e) => { e.stopPropagation(); setScanMode("transfer"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(0, 122, 255, 0.15)', color: '#007aff', border: '1px solid #007aff', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><ArrowRightLeft size={14} className="lucide-icon-sm" /> TFR</button>
+                        <button onClick={(e) => { e.stopPropagation(); setScanMode("receive"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(52, 199, 89, 0.15)', color: 'var(--brand-green)', border: '1px solid var(--brand-green)', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><Download size={14} className="lucide-icon-sm" /> RCV</button>
+                        <button onClick={(e) => { e.stopPropagation(); setScanMode("ship"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(255, 59, 48, 0.15)', color: 'var(--brand-red)', border: '1px solid var(--brand-red)', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><Truck size={14} className="lucide-icon-sm" /> SHP</button>
+                        <button onClick={(e) => { e.stopPropagation(); setScanMode("transfer"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(0, 122, 255, 0.15)', color: 'var(--brand-blue)', border: '1px solid var(--brand-blue)', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><ArrowRightLeft size={14} className="lucide-icon-sm" /> TFR</button>
                       </div>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button 
                           onClick={(e) => { e.stopPropagation(); setPrintLabelItem(item); }} 
-                          style={{ flex: 1, backgroundColor: '#2c2c2e', color: '#ffffff', border: '1px solid #3a3a3c', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
+                          style={{ flex: 1, backgroundColor: 'var(--surface-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
                         >
                           🖨️ Print Label
                         </button>
 
                         <button 
                           onClick={(e) => { e.stopPropagation(); requireManager(() => { setEditForms(prev => ({...prev, [item.barcode]: item})); setEditModes(prev => ({...prev, [item.barcode]: true})); }); }} 
-                          style={{ flex: 1, backgroundColor: '#1c1c1e', color: '#ffffff', border: '1px solid #3a3a3c', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
+                          style={{ flex: 1, backgroundColor: 'var(--surface-base)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
                         >
                           🔒 Edit Details
                         </button>
@@ -1114,11 +1115,11 @@ return (
       {printLabelItem && (
         <div className="no-print" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10002, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", width: "100%", maxWidth: "400px", marginBottom: "16px" }}>
-            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: "600", letterSpacing: "-0.01em" }}>🖨️ Print Preview</h3>
-            <button onClick={() => setPrintLabelItem(null)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
+            <h3 style={{ margin: 0, color: "var(--text-primary)", fontSize: "20px", fontWeight: "600", letterSpacing: "-0.01em" }}>🖨️ Print Preview</h3>
+            <button onClick={() => setPrintLabelItem(null)} style={{ background: "transparent", color: "var(--brand-red)", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
           </div>
           
-          <div id="printable-label" style={{ width: "100%", maxWidth: "400px", aspectRatio: "4/6", backgroundColor: "#ffffff", padding: "32px", borderRadius: "8px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#000", textAlign: "center", boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}>
+          <div id="printable-label" style={{ width: "100%", maxWidth: "400px", aspectRatio: "4/6", backgroundColor: "var(--text-primary)", padding: "32px", borderRadius: "8px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#000", textAlign: "center", boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}>
             <h2 style={{ margin: "0 0 4px 0", fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em", textTransform: "uppercase" }}>{printLabelItem.brand}</h2>
             <h3 style={{ margin: "0 0 24px 0", fontSize: "18px", fontWeight: "600", letterSpacing: "-0.01em" }}>{printLabelItem.flavor}</h3>
             <img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${printLabelItem.barcode}`} alt="QR Code" style={{ marginBottom: "16px" }} />
@@ -1130,7 +1131,7 @@ return (
             </div>
           </div>
           
-          <button className="no-print" onClick={() => window.print()} style={{ width: "100%", maxWidth: "400px", backgroundColor: "#007aff", color: "#fff", padding: "16px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", marginTop: "24px", fontSize: "16px", boxShadow: "0 4px 15px rgba(0,122,255,0.4)" }}>
+          <button className="no-print" onClick={() => window.print()} style={{ width: "100%", maxWidth: "400px", backgroundColor: "var(--brand-blue)", color: "var(--text-primary)", padding: "16px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", marginTop: "24px", fontSize: "16px", boxShadow: "0 4px 15px rgba(0,122,255,0.4)" }}>
             Send to Zebra Thermal Printer
           </button>
         </div>
@@ -1139,10 +1140,10 @@ return (
       {/* RESTORED NEW ITEM REGISTRATION MODAL WITH VENDOR PO ROUTING */}
       {showNewItemModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", maxHeight: "90vh", overflowY: "scroll", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "12px" }}>
-              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: "600", letterSpacing: "-0.01em" }}><Plus size={16} className="lucide-icon" /> Register New Product</h3>
-              <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
+          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "var(--surface-base)", padding: "32px", borderRadius: "18px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", maxHeight: "90vh", overflowY: "scroll", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "12px" }}>
+              <h3 style={{ margin: 0, color: "var(--text-primary)", fontSize: "20px", fontWeight: "600", letterSpacing: "-0.01em" }}><Plus size={16} className="lucide-icon" /> Register New Product</h3>
+              <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "var(--brand-red)", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               
@@ -1151,25 +1152,25 @@ return (
               
               
               
-              <CustomAutocomplete placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={val => setNewItemForm(prev => ({...prev, barcode: val}))} options={Array.from(new Map(stock.filter(i => i.barcode).map(i => [i.barcode, i])).values()).map(i => ({ value: i.barcode, label: i.barcode + " - " + i.brand + " " + i.flavor }))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} />
+              <CustomAutocomplete placeholder="Barcode (Scan or Type)" value={newItemForm.barcode} onChange={val => setNewItemForm(prev => ({...prev, barcode: val}))} options={Array.from(new Map(stock.filter(i => i.barcode).map(i => [i.barcode, i])).values()).map(i => ({ value: i.barcode, label: i.barcode + " - " + i.brand + " " + i.flavor }))} style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none" }} />
               <div style={{ display: "flex", gap: "8px" }}>
-                <CustomAutocomplete placeholder="Brand (e.g. Citrus Springs)" value={newItemForm.brand} onChange={val => setNewItemForm(prev => ({...prev, brand: val}))} options={[...new Set(stock.map(i => i.brand))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} />
-                <CustomAutocomplete placeholder="Flavor Profile" value={newItemForm.flavor} onChange={val => setNewItemForm(prev => ({...prev, flavor: val}))} options={[...new Set(stock.map(i => i.flavor))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} />
+                <CustomAutocomplete placeholder="Brand (e.g. Citrus Springs)" value={newItemForm.brand} onChange={val => setNewItemForm(prev => ({...prev, brand: val}))} options={[...new Set(stock.map(i => i.brand))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ flex: 1, backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none" }} />
+                <CustomAutocomplete placeholder="Flavor Profile" value={newItemForm.flavor} onChange={val => setNewItemForm(prev => ({...prev, flavor: val}))} options={[...new Set(stock.map(i => i.flavor))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ flex: 1, backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none" }} />
               </div>
-              <CustomAutocomplete placeholder="Packaging Type" value={newItemForm.type} onChange={val => setNewItemForm(prev => ({...prev, type: val}))} options={["3G Bag-in-Box", "5G Bag-in-Box", "24-Can Case", "12-Can Case", "1G Jug Case", "1/2 BBL Keg", "1/6 BBL Keg", "Pallet", "Single Unit", ...new Set(stock.map(i => i.type))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} />
+              <CustomAutocomplete placeholder="Packaging Type" value={newItemForm.type} onChange={val => setNewItemForm(prev => ({...prev, type: val}))} options={["3G Bag-in-Box", "5G Bag-in-Box", "24-Can Case", "12-Can Case", "1G Jug Case", "1/2 BBL Keg", "1/6 BBL Keg", "Pallet", "Single Unit", ...new Set(stock.map(i => i.type))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none" }} />
               <div style={{ display: "flex", gap: "8px" }}>
-                <CustomAutocomplete placeholder="Lot Number" value={newItemForm.lotNumber} onChange={val => setNewItemForm(prev => ({...prev, lotNumber: val}))} options={Array.from(new Map(stock.filter(i => i.lotNumber).map(i => [i.lotNumber, i])).values()).map(i => ({ value: i.lotNumber, label: i.lotNumber + " (" + i.brand + " " + i.flavor + ")" }))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} />
-                <input type="date" value={newItemForm.expiryDate} onChange={e => setNewItemForm(prev => ({...prev, expiryDate: e.target.value}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px", colorScheme: "dark" }} />
+                <CustomAutocomplete placeholder="Lot Number" value={newItemForm.lotNumber} onChange={val => setNewItemForm(prev => ({...prev, lotNumber: val}))} options={Array.from(new Map(stock.filter(i => i.lotNumber).map(i => [i.lotNumber, i])).values()).map(i => ({ value: i.lotNumber, label: i.lotNumber + " (" + i.brand + " " + i.flavor + ")" }))} style={{ flex: 1, backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none" }} />
+                <input type="date" value={newItemForm.expiryDate} onChange={e => setNewItemForm(prev => ({...prev, expiryDate: e.target.value}))} style={{ flex: 1, backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none", fontSize: "14px", colorScheme: "dark" }} />
               </div>
               
-              <input list="vendor-emails" placeholder="Vendor Email (Auto-PO Routing)" value={newItemForm.vendorEmail} onChange={e => setNewItemForm(prev => ({...prev, vendorEmail: e.target.value}))} style={{ backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
+              <input list="vendor-emails" placeholder="Vendor Email (Auto-PO Routing)" value={newItemForm.vendorEmail} onChange={e => setNewItemForm(prev => ({...prev, vendorEmail: e.target.value}))} style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none", fontSize: "14px" }} />
               
               <div style={{ display: "flex", gap: "8px" }}>
-                <input type="number" placeholder="Initial QTY" value={newItemForm.quantity || ""} onChange={e => setNewItemForm(prev => ({...prev, quantity: parseInt(e.target.value) || 0}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-                <CustomAutocomplete placeholder="Placement Zone" value={newItemForm.zone} onChange={val => setNewItemForm(prev => ({...prev, zone: val}))} options={[...new Set([...adminZones, ...stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone])])].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ flex: 2, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} />
+                <input type="number" placeholder="Initial QTY" value={newItemForm.quantity || ""} onChange={e => setNewItemForm(prev => ({...prev, quantity: parseInt(e.target.value) || 0}))} style={{ flex: 1, backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none", fontSize: "14px" }} />
+                <CustomAutocomplete placeholder="Placement Zone" value={newItemForm.zone} onChange={val => setNewItemForm(prev => ({...prev, zone: val}))} options={[...new Set([...adminZones, ...stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone])])].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ flex: 2, backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none" }} />
               </div>
             </div>
-            <button onClick={handleSaveNewItem} style={{ width: "100%", backgroundColor: "#34c759", color: "#fff", padding: "14px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", marginTop: "8px" }}>Proceed to Registration</button>
+            <button onClick={handleSaveNewItem} style={{ width: "100%", backgroundColor: "var(--brand-green)", color: "var(--text-primary)", padding: "14px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", marginTop: "8px" }}>Proceed to Registration</button>
           </div>
         </div>
       )}
@@ -1177,17 +1178,17 @@ return (
       {/* RBAC SECURITY PIN MODAL */}
       {pinModal.isOpen && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10001, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "380px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6)" }}>
+          <div style={{ width: "100%", maxWidth: "380px", backgroundColor: "var(--surface-base)", padding: "32px", borderRadius: "18px", border: "1px solid var(--border-subtle)", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6)" }}>
             <div style={{ fontSize: "40px", marginBottom: "-10px" }}>🔐</div>
             <div>
-              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "22px", fontWeight: "600", letterSpacing: "-0.01em" }}>Manager Override</h3>
-              <p style={{ margin: "8px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Enter 4-digit PIN to authorize action.</p>
+              <h3 style={{ margin: 0, color: "var(--text-primary)", fontSize: "22px", fontWeight: "600", letterSpacing: "-0.01em" }}>Manager Override</h3>
+              <p style={{ margin: "8px 0 0 0", color: "var(--text-secondary)", fontSize: "14px" }}>Enter 4-digit PIN to authorize action.</p>
             </div>
-            <input type="password" maxLength="4" value={pinInput} onChange={(e) => setPinInput(e.target.value)} autoFocus style={{ backgroundColor: "#242426", border: pinModal.error ? "2px solid #ff3b30" : "2px solid #007aff", color: "#fff", fontSize: "32px", fontWeight: "600", textAlign: "center", letterSpacing: "12px", padding: "16px", borderRadius: "14px", outline: "none", width: "100%", boxSizing: "border-box" }} />
-            {pinModal.error && <div style={{ color: "#ff3b30", fontSize: "12px", fontWeight: "600", marginTop: "-12px" }}>INCORRECT PIN</div>}
+            <input type="password" maxLength="4" value={pinInput} onChange={(e) => setPinInput(e.target.value)} autoFocus style={{ backgroundColor: "var(--surface-raised)", border: pinModal.error ? "2px solid var(--brand-red)" : "2px solid var(--brand-blue)", color: "var(--text-primary)", fontSize: "32px", fontWeight: "600", textAlign: "center", letterSpacing: "12px", padding: "16px", borderRadius: "14px", outline: "none", width: "100%", boxSizing: "border-box" }} />
+            {pinModal.error && <div style={{ color: "var(--brand-red)", fontSize: "12px", fontWeight: "600", marginTop: "-12px" }}>INCORRECT PIN</div>}
             <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
-              <button onClick={() => setPinModal({ isOpen: false, callback: null, error: false })} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
-              <button onClick={submitPin} style={{ flex: 2, backgroundColor: "#007aff", color: "#ffffff", border: "none", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Unlock</button>
+              <button onClick={() => setPinModal({ isOpen: false, callback: null, error: false })} style={{ flex: 1, backgroundColor: "transparent", color: "var(--text-primary)", border: "1px solid var(--border-subtle)", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+              <button onClick={submitPin} style={{ flex: 2, backgroundColor: "var(--brand-blue)", color: "var(--text-primary)", border: "none", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Unlock</button>
             </div>
           </div>
         </div>
@@ -1200,67 +1201,67 @@ return (
       
       {showHelpModal && (
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.8)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 10006, backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", padding: "20px" }}>
-        <div style={{ backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", maxWidth: "650px", width: "100%", maxHeight: "85vh", overflowY: "auto", WebkitOverflowScrolling: "touch", boxShadow: "0 24px 60px rgba(0, 0, 0, 0.7)", display: "flex", flexDirection: "column" }} className="custom-scrollbar-viewport">
+        <div style={{ backgroundColor: "var(--surface-base)", padding: "32px", borderRadius: "18px", border: "1px solid var(--border-subtle)", maxWidth: "650px", width: "100%", maxHeight: "85vh", overflowY: "auto", WebkitOverflowScrolling: "touch", boxShadow: "0 24px 60px rgba(0, 0, 0, 0.7)", display: "flex", flexDirection: "column" }} className="custom-scrollbar-viewport">
           
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
-            <h3 style={{ color: "#fff", margin: 0, fontSize: "22px", fontWeight: "700", letterSpacing: "-0.01em" }}>📖 Kinetic Operations Guide</h3>
-            <button onClick={() => setShowHelpModal(false)} style={{ backgroundColor: "transparent", border: "none", color: "#8e8e93", fontSize: "28px", cursor: "pointer", transition: "color 0.2s" }}>&times;</button>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "16px" }}>
+            <h3 style={{ color: "var(--text-primary)", margin: 0, fontSize: "22px", fontWeight: "700", letterSpacing: "-0.01em" }}>📖 Kinetic Operations Guide</h3>
+            <button onClick={() => setShowHelpModal(false)} style={{ backgroundColor: "transparent", border: "none", color: "var(--text-secondary)", fontSize: "28px", cursor: "pointer", transition: "color 0.2s" }}>&times;</button>
           </div>
           
           <div style={{ display: "flex", flexDirection: "column", gap: "28px", color: "#d1d1d6", fontSize: "14px", lineHeight: "1.6" }}>
             
             {/* Section 1 */}
             <div>
-              <h4 style={{ color: "#fff", fontSize: "16px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>1. The Scanner (Action Modes)</h4>
+              <h4 style={{ color: "var(--text-primary)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>1. The Scanner (Action Modes)</h4>
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                  <div style={{ backgroundColor: "rgba(52, 199, 89, 0.15)", padding: "8px", borderRadius: "8px", display: "flex" }}><Download size={20} color="#34c759" /></div>
-                  <div><strong style={{ color: "#34c759", fontSize: "15px" }}>Receive (RCV)</strong><br/>Use when inbound freight arrives. Adds to total inventory count. You must assign a <strong>Placement Zone</strong> and optionally provide a <strong>Reference Number (PO#)</strong>.</div>
+                  <div style={{ backgroundColor: "rgba(52, 199, 89, 0.15)", padding: "8px", borderRadius: "8px", display: "flex" }}><Download size={20} color="var(--brand-green)" /></div>
+                  <div><strong style={{ color: "var(--brand-green)", fontSize: "15px" }}>Receive (RCV)</strong><br/>Use when inbound freight arrives. Adds to total inventory count. You must assign a <strong>Placement Zone</strong> and optionally provide a <strong>Reference Number (PO#)</strong>.</div>
                 </div>
                 <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                  <div style={{ backgroundColor: "rgba(255, 59, 48, 0.15)", padding: "8px", borderRadius: "8px", display: "flex" }}><Truck size={20} color="#ff3b30" /></div>
-                  <div><strong style={{ color: "#ff3b30", fontSize: "15px" }}>Ship (SHP)</strong><br/>Use when loading outbound trucks. Deducts from total inventory. You should provide a <strong>Reference Number (SO#)</strong>. <em>System will block shipment if stock is 0.</em></div>
+                  <div style={{ backgroundColor: "rgba(255, 59, 48, 0.15)", padding: "8px", borderRadius: "8px", display: "flex" }}><Truck size={20} color="var(--brand-red)" /></div>
+                  <div><strong style={{ color: "var(--brand-red)", fontSize: "15px" }}>Ship (SHP)</strong><br/>Use when loading outbound trucks. Deducts from total inventory. You should provide a <strong>Reference Number (SO#)</strong>. <em>System will block shipment if stock is 0.</em></div>
                 </div>
                 <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                  <div style={{ backgroundColor: "rgba(0, 122, 255, 0.15)", padding: "8px", borderRadius: "8px", display: "flex" }}><ArrowRightLeft size={20} color="#007aff" /></div>
-                  <div><strong style={{ color: "#007aff", fontSize: "15px" }}>Transfer (TFR)</strong><br/>Use for internal warehouse moves. Does not change total count, but formally updates the product's <strong>Target Zone</strong> in the database.</div>
+                  <div style={{ backgroundColor: "rgba(0, 122, 255, 0.15)", padding: "8px", borderRadius: "8px", display: "flex" }}><ArrowRightLeft size={20} color="var(--brand-blue)" /></div>
+                  <div><strong style={{ color: "var(--brand-blue)", fontSize: "15px" }}>Transfer (TFR)</strong><br/>Use for internal warehouse moves. Does not change total count, but formally updates the product's <strong>Target Zone</strong> in the database.</div>
                 </div>
               </div>
             </div>
 
             {/* Section 2 */}
             <div>
-              <h4 style={{ color: "#fff", fontSize: "16px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>2. Special Operations</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px", backgroundColor: "#242426", padding: "16px", borderRadius: "12px", border: "1px solid #3a3a3c" }}>
-                <div><strong style={{ color: "#ff9500" }}>📦 Multiple Lots:</strong> If you scan a barcode that belongs to multiple active batches, the scanner will pause and require you to select the correct <strong>Lot Number</strong> to maintain strict FIFO compliance.</div>
-                <div><strong style={{ color: "#ff3b30" }}>💥 Shrinkage / Damage:</strong> To report damaged product, enter <strong>Ship Mode</strong>, scan the item, and click the red "Flag as Damaged" toggle on the confirmation screen to remove it from live inventory.</div>
-                <div><strong style={{ color: "#fff" }}>🧱 Pallet Mode:</strong> Toggle this on the top toolbar to automatically multiply your scanned quantity by a full pallet footprint.</div>
+              <h4 style={{ color: "var(--text-primary)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>2. Special Operations</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", backgroundColor: "var(--surface-raised)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border-subtle)" }}>
+                <div><strong style={{ color: "var(--brand-orange)" }}>📦 Multiple Lots:</strong> If you scan a barcode that belongs to multiple active batches, the scanner will pause and require you to select the correct <strong>Lot Number</strong> to maintain strict FIFO compliance.</div>
+                <div><strong style={{ color: "var(--brand-red)" }}>💥 Shrinkage / Damage:</strong> To report damaged product, enter <strong>Ship Mode</strong>, scan the item, and click the red "Flag as Damaged" toggle on the confirmation screen to remove it from live inventory.</div>
+                <div><strong style={{ color: "var(--text-primary)" }}>🧱 Pallet Mode:</strong> Toggle this on the top toolbar to automatically multiply your scanned quantity by a full pallet footprint.</div>
               </div>
             </div>
 
             {/* Section 3 */}
             <div>
-              <h4 style={{ color: "#fff", fontSize: "16px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>3. Dashboard Tools</h4>
+              <h4 style={{ color: "var(--text-primary)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>3. Dashboard Tools</h4>
               <ul style={{ paddingLeft: "20px", margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
-                <li><strong style={{ color: "#007aff" }}>Deep Search:</strong> The search bar checks names, barcodes, AND active zones. Type "Cooler Bay" to instantly isolate all stock currently sitting in the cooler.</li>
-                <li><strong style={{ color: "#007aff" }}>Multi-Flip:</strong> Enable this toggle to flip the back of multiple inventory cards at once for side-by-side data comparison.</li>
-                <li><strong style={{ color: "#34c759" }}>Register New Product:</strong> Only use this green button to onboard brand new SKUs that have never existed in the database.</li>
+                <li><strong style={{ color: "var(--brand-blue)" }}>Deep Search:</strong> The search bar checks names, barcodes, AND active zones. Type "Cooler Bay" to instantly isolate all stock currently sitting in the cooler.</li>
+                <li><strong style={{ color: "var(--brand-blue)" }}>Multi-Flip:</strong> Enable this toggle to flip the back of multiple inventory cards at once for side-by-side data comparison.</li>
+                <li><strong style={{ color: "var(--brand-green)" }}>Register New Product:</strong> Only use this green button to onboard brand new SKUs that have never existed in the database.</li>
               </ul>
             </div>
             
             {/* Section 4 */}
             <div>
-              <h4 style={{ color: "#fff", fontSize: "16px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>4. Management & Security</h4>
+              <h4 style={{ color: "var(--text-primary)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>4. Management & Security</h4>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><ClipboardList size={16} color="#8e8e93" /> <span><strong>Global Ledger:</strong> An immutable, cloud-synced ticker tracking every physical movement on the floor. Managers can click the AUDIT button for the master history.</span></div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><strong style={{ color: "#8e8e93" }}>🔒 Admin Override:</strong> <span>Found on the back of cards. Allows managers to bypass the scanner and manually force stock or expiration date corrections. (Requires Manager PIN).</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><ClipboardList size={16} color="var(--text-secondary)" /> <span><strong>Global Ledger:</strong> An immutable, cloud-synced ticker tracking every physical movement on the floor. Managers can click the AUDIT button for the master history.</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><strong style={{ color: "var(--text-secondary)" }}>🔒 Admin Override:</strong> <span>Found on the back of cards. Allows managers to bypass the scanner and manually force stock or expiration date corrections. (Requires Manager PIN).</span></div>
               </div>
             </div>
 
           </div>
           
           <div style={{ marginTop: "32px" }}>
-            <button onClick={() => setShowHelpModal(false)} style={{ width: "100%", padding: "16px", backgroundColor: "#007aff", color: "#fff", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "700", fontSize: "15px", transition: "all 0.2s" }}>Acknowledge & Close</button>
+            <button onClick={() => setShowHelpModal(false)} style={{ width: "100%", padding: "16px", backgroundColor: "var(--brand-blue)", color: "var(--text-primary)", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "700", fontSize: "15px", transition: "all 0.2s" }}>Acknowledge & Close</button>
           </div>
           
         </div>
@@ -1269,50 +1270,50 @@ return (
     
     {showConfirmModal && pendingAction && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
-            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>⚠️ Confirm Update</h3>
-            <p style={{ margin: 0, color: "#ffffff", fontSize: "17px", lineHeight: "1.5" }}>Action: <span style={{ color: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", fontWeight: "600" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")}</span> <strong style={{color: "#007aff"}}>{pendingAction.targetItem.flavor}</strong></p>
+          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "var(--surface-base)", padding: "32px", borderRadius: "18px", border: "1px solid var(--border-subtle)", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
+            <h3 style={{ margin: 0, color: "var(--text-primary)", fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>⚠️ Confirm Update</h3>
+            <p style={{ margin: 0, color: "var(--text-primary)", fontSize: "17px", lineHeight: "1.5" }}>Action: <span style={{ color: pendingAction.actionName.includes("Ship") ? "var(--brand-red)" : "var(--brand-green)", fontWeight: "600" }}>{pendingAction.actionName.replace(/[^a-zA-Z]/g, "")}</span> <strong style={{color: "var(--brand-blue)"}}>{pendingAction.targetItem.flavor}</strong></p>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", margin: "16px 0" }}>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px" }}>
-                <button onClick={() => setModalQty(Math.max(1, modalQty - 1))} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "8px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>-</button>
-                <input type="number" min="1" value={modalQty} onChange={(e) => { let val = parseInt(e.target.value) || 1; const limit = pendingAction.actionName === "Receive" ? Infinity : pendingAction.targetItem.quantity; setModalQty(val > limit ? limit : val); }} style={{ backgroundColor: "#1c1c1e", border: "2px solid #007aff", color: "#fff", fontSize: "28px", fontWeight: "600", letterSpacing: "-0.01em", textAlign: "center", width: "90px", padding: "8px", borderRadius: "8px", outline: "none" }} />
-                <button onClick={() => { const limit = pendingAction.actionName === "Receive" ? Infinity : pendingAction.targetItem.quantity; setModalQty(modalQty >= limit ? limit : modalQty + 1); }} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "8px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>+</button>
+                <button onClick={() => setModalQty(Math.max(1, modalQty - 1))} style={{ backgroundColor: "var(--surface-elevated)", border: "1px solid var(--border-subtle)", color: "var(--text-primary)", width: "48px", height: "48px", borderRadius: "8px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>-</button>
+                <input type="number" min="1" value={modalQty} onChange={(e) => { let val = parseInt(e.target.value) || 1; const limit = pendingAction.actionName === "Receive" ? Infinity : pendingAction.targetItem.quantity; setModalQty(val > limit ? limit : val); }} style={{ backgroundColor: "var(--surface-base)", border: "2px solid var(--brand-blue)", color: "var(--text-primary)", fontSize: "28px", fontWeight: "600", letterSpacing: "-0.01em", textAlign: "center", width: "90px", padding: "8px", borderRadius: "8px", outline: "none" }} />
+                <button onClick={() => { const limit = pendingAction.actionName === "Receive" ? Infinity : pendingAction.targetItem.quantity; setModalQty(modalQty >= limit ? limit : modalQty + 1); }} style={{ backgroundColor: "var(--surface-elevated)", border: "1px solid var(--border-subtle)", color: "var(--text-primary)", width: "48px", height: "48px", borderRadius: "8px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>+</button>
               </div>
               
               {(pendingAction.actionName === "Receive" || pendingAction.actionName === "Ship" || pendingAction.actionName.includes("Shrinkage")) && (
                 <div style={{ marginTop: '8px', textAlign: 'left' }}>
-                  <label style={{ fontSize: '11px', color: '#8e8e93', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>Reference / Order Number:</label>
-                  <input type="text" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#fff', padding: '12px', borderRadius: '8px', outline: 'none', fontSize: '14px' }} placeholder={pendingAction.actionName === "Receive" ? "e.g. PO-12345 or Label#" : "e.g. SO-98765 or Route#"} />
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>Reference / Order Number:</label>
+                  <input type="text" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: 'var(--surface-base)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', padding: '12px', borderRadius: '8px', outline: 'none', fontSize: '14px' }} placeholder={pendingAction.actionName === "Receive" ? "e.g. PO-12345 or Label#" : "e.g. SO-98765 or Route#"} />
                 </div>
               )}
               {pendingAction.actionName === "Transfer" && (
                 <div style={{ marginTop: '8px', textAlign: 'left' }}>
-                  <label style={{ fontSize: '11px', color: '#8e8e93', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>New Placement Zone:</label>
-                  <CustomAutocomplete placeholder="Select existing bay or type a new one..." value={pendingAction.newZone || ''} onChange={val => setPendingAction({...pendingAction, newZone: val})} options={[...new Set([...adminZones, ...stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone])])].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px", width: "100%", boxSizing: "border-box" }} />
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>New Placement Zone:</label>
+                  <CustomAutocomplete placeholder="Select existing bay or type a new one..." value={pendingAction.newZone || ''} onChange={val => setPendingAction({...pendingAction, newZone: val})} options={[...new Set([...adminZones, ...stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone])])].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ backgroundColor: "var(--surface-base)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none", fontSize: "14px", width: "100%", boxSizing: "border-box" }} />
                 </div>
               )}
 
               {pendingAction.actionName === "Ship" && (
-                <button onClick={() => { if (!pendingAction.isShrinkage) { requireManager(() => setPendingAction(prev => ({...prev, isShrinkage: true}))); } else { setPendingAction(prev => ({...prev, isShrinkage: false})); } }} style={{ marginTop: '8px', backgroundColor: pendingAction.isShrinkage ? '#ff3b30' : '#2c2c2e', border: '1px solid #3a3a3c', color: '#fff', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}>
+                <button onClick={() => { if (!pendingAction.isShrinkage) { requireManager(() => setPendingAction(prev => ({...prev, isShrinkage: true}))); } else { setPendingAction(prev => ({...prev, isShrinkage: false})); } }} style={{ marginTop: '8px', backgroundColor: pendingAction.isShrinkage ? 'var(--brand-red)' : 'var(--surface-elevated)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}>
                   {pendingAction.isShrinkage ? '💥 MARKED AS SHRINKAGE / DAMAGE' : 'Flag as Damaged / Shrinkage'}
                 </button>
               )}
             </div>
             
             {pendingAction.fifoWarningItem && (
-              <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid #ff9500", padding: "16px", borderRadius: "8px", textAlign: "left", display: "flex", flexDirection: "column", gap: "8px" }}>
-                <div style={{ color: "#ff9500", fontWeight: "600", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>🛑 FIFO VIOLATION DETECTED</div>
-                <div style={{ color: "#fff", fontSize: "13px", lineHeight: "1.5" }}>You are about to ship <strong style={{color: "#8e8e93"}}>{pendingAction.targetItem.lotNumber}</strong>, but older stock exists in the warehouse.</div>
-                <div style={{ backgroundColor: "#242426", padding: "10px", borderRadius: "8px", fontSize: "12px", color: "#8e8e93" }}>
-                  Please pull from <strong style={{color: "#fff"}}>{pendingAction.fifoWarningItem.zone}</strong>.<br/>
-                  (Lot: {pendingAction.fifoWarningItem.lotNumber} • Expires: <span style={{color: "#ff3b30"}}>{pendingAction.fifoWarningItem.expiryDate}</span>)
+              <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid var(--brand-orange)", padding: "16px", borderRadius: "8px", textAlign: "left", display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div style={{ color: "var(--brand-orange)", fontWeight: "600", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>🛑 FIFO VIOLATION DETECTED</div>
+                <div style={{ color: "var(--text-primary)", fontSize: "13px", lineHeight: "1.5" }}>You are about to ship <strong style={{color: "var(--text-secondary)"}}>{pendingAction.targetItem.lotNumber}</strong>, but older stock exists in the warehouse.</div>
+                <div style={{ backgroundColor: "var(--surface-raised)", padding: "10px", borderRadius: "8px", fontSize: "12px", color: "var(--text-secondary)" }}>
+                  Please pull from <strong style={{color: "var(--text-primary)"}}>{pendingAction.fifoWarningItem.zone}</strong>.<br/>
+                  (Lot: {pendingAction.fifoWarningItem.lotNumber} • Expires: <span style={{color: "var(--brand-red)"}}>{pendingAction.fifoWarningItem.expiryDate}</span>)
                 </div>
               </div>
             )}
 
             <div style={{ display: "flex", gap: "12px" }}>
-              <button onClick={() => { setShowConfirmModal(false); setOrderNumber(""); }} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
-              <button onClick={handleConfirmAction} style={{ flex: 2, backgroundColor: pendingAction.actionName.includes("Ship") ? "#ff3b30" : "#34c759", color: "#ffffff", border: "none", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>{pendingAction.fifoWarningItem ? "Force Ship Anyway" : "Commit Action"}</button>
+              <button onClick={() => { setShowConfirmModal(false); setOrderNumber(""); }} style={{ flex: 1, backgroundColor: "transparent", color: "var(--text-primary)", border: "1px solid var(--border-subtle)", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+              <button onClick={handleConfirmAction} style={{ flex: 2, backgroundColor: pendingAction.actionName.includes("Ship") ? "var(--brand-red)" : "var(--brand-green)", color: "var(--text-primary)", border: "none", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>{pendingAction.fifoWarningItem ? "Force Ship Anyway" : "Commit Action"}</button>
             </div>
           </div>
         </div>
@@ -1321,13 +1322,13 @@ return (
       {/* MODE SWITCH MODALS */}
       {pendingModeSwitch && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+          <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "var(--surface-base)", padding: "32px", borderRadius: "18px", border: "1px solid var(--border-subtle)", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
             <div style={{ fontSize: "48px", lineHeight: "1", marginBottom: "-8px" }}>{pendingModeSwitch === "ship" ? "🚚" : pendingModeSwitch === "transfer" ? "🔄" : "📥"}</div>
-            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>Switch to {pendingModeSwitch === "ship" ? "Shipping" : pendingModeSwitch === "transfer" ? "Transfer Mode" : "Receiving"}?</h3>
-            <p style={{ margin: 0, color: "#8e8e93", fontSize: "15px", lineHeight: "1.6" }}>Any barcodes scanned will now be <strong style={{ color: pendingModeSwitch === "ship" ? "#ff3b30" : pendingModeSwitch === "transfer" ? "#007aff" : "#34c759" }}>{pendingModeSwitch === "ship" ? "DEDUCTED from" : pendingModeSwitch === "transfer" ? "MOVED within" : "ADDED to"}</strong> the live warehouse inventory.</p>
+            <h3 style={{ margin: 0, color: "var(--text-primary)", fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>Switch to {pendingModeSwitch === "ship" ? "Shipping" : pendingModeSwitch === "transfer" ? "Transfer Mode" : "Receiving"}?</h3>
+            <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "15px", lineHeight: "1.6" }}>Any barcodes scanned will now be <strong style={{ color: pendingModeSwitch === "ship" ? "var(--brand-red)" : pendingModeSwitch === "transfer" ? "var(--brand-blue)" : "var(--brand-green)" }}>{pendingModeSwitch === "ship" ? "DEDUCTED from" : pendingModeSwitch === "transfer" ? "MOVED within" : "ADDED to"}</strong> the live warehouse inventory.</p>
             <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
-              <button onClick={() => setPendingModeSwitch(null)} style={{ flex: 1, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Cancel</button>
-              <button onClick={() => { setScanMode(pendingModeSwitch); setPendingModeSwitch(null); }} style={{ flex: 2, backgroundColor: pendingModeSwitch === "ship" ? "#ff3b30" : pendingModeSwitch === "transfer" ? "#007aff" : "#34c759", color: "#ffffff", border: "none", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", boxShadow: pendingModeSwitch === "ship" ? "0 4px 15px rgba(255,59,48,0.3)" : pendingModeSwitch === "transfer" ? "0 4px 15px rgba(0,122,255,0.3)" : "0 4px 15px rgba(52,199,89,0.3)", transition: "all 0.2s" }}>Confirm {pendingModeSwitch === "ship" ? "Ship" : pendingModeSwitch === "transfer" ? "Transfer" : "Receive"}</button>
+              <button onClick={() => setPendingModeSwitch(null)} style={{ flex: 1, backgroundColor: "transparent", color: "var(--text-primary)", border: "1px solid var(--border-subtle)", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Cancel</button>
+              <button onClick={() => { setScanMode(pendingModeSwitch); setPendingModeSwitch(null); }} style={{ flex: 2, backgroundColor: pendingModeSwitch === "ship" ? "var(--brand-red)" : pendingModeSwitch === "transfer" ? "var(--brand-blue)" : "var(--brand-green)", color: "var(--text-primary)", border: "none", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", boxShadow: pendingModeSwitch === "ship" ? "0 4px 15px rgba(255,59,48,0.3)" : pendingModeSwitch === "transfer" ? "0 4px 15px rgba(0,122,255,0.3)" : "0 4px 15px rgba(52,199,89,0.3)", transition: "all 0.2s" }}>Confirm {pendingModeSwitch === "ship" ? "Ship" : pendingModeSwitch === "transfer" ? "Transfer" : "Receive"}</button>
             </div>
           </div>
         </div>
@@ -1335,39 +1336,39 @@ return (
 
       {showAuditModal && (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999, padding: "20px", boxSizing: "border-box" }}>
-      <div style={{ backgroundColor: "#1c1c1e", width: "100%", maxWidth: "1000px", maxHeight: "85vh", borderRadius: "16px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", boxShadow: "0 24px 60px rgba(0,0,0,0.6)", overflow: "hidden" }}>
+      <div style={{ backgroundColor: "var(--surface-base)", width: "100%", maxWidth: "1000px", maxHeight: "85vh", borderRadius: "16px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", boxShadow: "0 24px 60px rgba(0,0,0,0.6)", overflow: "hidden" }}>
         
         {/* Header */}
-        <div style={{ padding: "20px 24px", borderBottom: "1px solid #3a3a3c", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#2c2c2e" }}>
+        <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border-subtle)", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "var(--surface-elevated)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <ClipboardList size={24} color="#007aff" />
-            <h2 style={{ margin: 0, color: "#fff", fontSize: "20px", fontWeight: "700", letterSpacing: "0.02em" }}>Master Security Audit</h2>
+            <ClipboardList size={24} color="var(--brand-blue)" />
+            <h2 style={{ margin: 0, color: "var(--text-primary)", fontSize: "20px", fontWeight: "700", letterSpacing: "0.02em" }}>Master Security Audit</h2>
           </div>
-          <button onClick={() => setShowAuditModal(false)} style={{ background: "none", border: "none", color: "#8e8e93", fontSize: "28px", cursor: "pointer", lineHeight: "1" }}>&times;</button>
+          <button onClick={() => setShowAuditModal(false)} style={{ background: "none", border: "none", color: "var(--text-secondary)", fontSize: "28px", cursor: "pointer", lineHeight: "1" }}>&times;</button>
         </div>
 
         {/* Body (Scrollable Data Table) */}
         <div style={{ padding: "0", overflowY: "auto", flex: 1, WebkitOverflowScrolling: "touch" }} className="custom-scrollbar-viewport">
-          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", color: "#fff", fontSize: "14px" }}>
-            <thead style={{ position: "sticky", top: 0, backgroundColor: "#1c1c1e", boxShadow: "0 2px 10px rgba(0,0,0,0.5)", zIndex: 10 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", color: "var(--text-primary)", fontSize: "14px" }}>
+            <thead style={{ position: "sticky", top: 0, backgroundColor: "var(--surface-base)", boxShadow: "0 2px 10px rgba(0,0,0,0.5)", zIndex: 10 }}>
               <tr>
-                <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Timestamp</th>
-                <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Action</th>
-                <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Product Identity</th>
-                <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Operator</th>
-                <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em", textAlign: "right" }}>Reversal</th>
+                <th style={{ padding: "16px 24px", color: "var(--text-secondary)", fontWeight: "600", borderBottom: "1px solid var(--border-subtle)", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Timestamp</th>
+                <th style={{ padding: "16px 24px", color: "var(--text-secondary)", fontWeight: "600", borderBottom: "1px solid var(--border-subtle)", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Action</th>
+                <th style={{ padding: "16px 24px", color: "var(--text-secondary)", fontWeight: "600", borderBottom: "1px solid var(--border-subtle)", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Product Identity</th>
+                <th style={{ padding: "16px 24px", color: "var(--text-secondary)", fontWeight: "600", borderBottom: "1px solid var(--border-subtle)", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Operator</th>
+                <th style={{ padding: "16px 24px", color: "var(--text-secondary)", fontWeight: "600", borderBottom: "1px solid var(--border-subtle)", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em", textAlign: "right" }}>Reversal</th>
               </tr>
             </thead>
             <tbody>
               {auditLog.length > 0 ? auditLog.map((log, idx) => (
-                <tr key={idx} style={{ borderBottom: "1px solid #2c2c2e", backgroundColor: idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)", transition: "background-color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0,122,255,0.1)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)"}>
-                  <td style={{ padding: "16px 24px", color: "#8e8e93", fontFamily: "monospace", fontSize: "13px" }}>{log.time}</td>
-                  <td style={{ padding: "16px 24px", fontWeight: "700", color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff") }}>{log.action}</td>
-                  <td style={{ padding: "16px 24px", fontWeight: "500" }}>{log.qty}bx <span style={{ color: "#8e8e93", fontWeight: "400" }}>{log.flavor}</span>{log.destination && <span style={{ color: log.action.includes("Receive") ? "#34c759" : "#007aff", fontSize: "12px", marginLeft: "8px", fontWeight: "600" }}>➔ {log.destination}</span>}{log.orderNumber && <span style={{ fontSize: "11px", color: "#8e8e93", display: "inline-block", backgroundColor: "#242426", padding: "2px 6px", borderRadius: "4px", marginLeft: "8px", border: "1px solid #3a3a3c" }}>Ref: {log.orderNumber}</span>}</td>
+                <tr key={idx} style={{ borderBottom: "1px solid var(--surface-elevated)", backgroundColor: idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)", transition: "background-color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0,122,255,0.1)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)"}>
+                  <td style={{ padding: "16px 24px", color: "var(--text-secondary)", fontFamily: "monospace", fontSize: "13px" }}>{log.time}</td>
+                  <td style={{ padding: "16px 24px", fontWeight: "700", color: log.action.includes("Ship") ? "var(--brand-red)" : (log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)") }}>{log.action}</td>
+                  <td style={{ padding: "16px 24px", fontWeight: "500" }}>{log.qty}bx <span style={{ color: "var(--text-secondary)", fontWeight: "400" }}>{log.flavor}</span>{log.destination && <span style={{ color: log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)", fontSize: "12px", marginLeft: "8px", fontWeight: "600" }}>➔ {log.destination}</span>}{log.orderNumber && <span style={{ fontSize: "11px", color: "var(--text-secondary)", display: "inline-block", backgroundColor: "var(--surface-raised)", padding: "2px 6px", borderRadius: "4px", marginLeft: "8px", border: "1px solid var(--border-subtle)" }}>Ref: {log.orderNumber}</span>}</td>
                   <td style={{ padding: "16px 24px", color: "#e5e5ea", fontSize: "13px" }}>{log.user}</td>
                   <td style={{ padding: "16px 24px", textAlign: "right" }}>
                     {!log.action.includes("UNDO") && !log.action.includes("Transfer") && !log.action.includes("Override") && (
-                      <button onClick={() => requireManager(() => handleUndoAction(log))} style={{ backgroundColor: "rgba(255, 59, 48, 0.15)", color: "#ff3b30", border: "1px solid rgba(255, 59, 48, 0.4)", padding: "6px 12px", borderRadius: "6px", fontSize: "11px", fontWeight: "700", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.25)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.15)"}>
+                      <button onClick={() => requireManager(() => handleUndoAction(log))} style={{ backgroundColor: "rgba(255, 59, 48, 0.15)", color: "var(--brand-red)", border: "1px solid rgba(255, 59, 48, 0.4)", padding: "6px 12px", borderRadius: "6px", fontSize: "11px", fontWeight: "700", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.25)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 59, 48, 0.15)"}>
                         ↩️ UNDO
                       </button>
                     )}
@@ -1375,7 +1376,7 @@ return (
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="5" style={{ padding: "60px 20px", textAlign: "center", color: "#8e8e93", fontStyle: "italic", fontSize: "15px" }}>No cryptographic audit records found in secure memory.</td>
+                  <td colSpan="5" style={{ padding: "60px 20px", textAlign: "center", color: "var(--text-secondary)", fontStyle: "italic", fontSize: "15px" }}>No cryptographic audit records found in secure memory.</td>
                 </tr>
               )}
             </tbody>
@@ -1383,9 +1384,9 @@ return (
         </div>
         
         {/* Footer */}
-        <div style={{ padding: "16px 24px", borderTop: "1px solid #3a3a3c", backgroundColor: "#2c2c2e", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ color: "#8e8e93", fontSize: "13px", fontWeight: "500" }}>Showing {auditLog.length} secure ledger entries</span>
-          <button onClick={handleExportCSV} style={{ backgroundColor: "#007aff", color: "#fff", border: "none", padding: "10px 20px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#0056b3"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#007aff"}><FileDown size={16} /> Export to CSV</button>
+        <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border-subtle)", backgroundColor: "var(--surface-elevated)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ color: "var(--text-secondary)", fontSize: "13px", fontWeight: "500" }}>Showing {auditLog.length} secure ledger entries</span>
+          <button onClick={handleExportCSV} style={{ backgroundColor: "var(--brand-blue)", color: "var(--text-primary)", border: "none", padding: "10px 20px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#0056b3"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "var(--brand-blue)"}><FileDown size={16} /> Export to CSV</button>
         </div>
 
       </div>
@@ -1396,18 +1397,18 @@ return (
       {/* ⚙️ SETTINGS CONTROL PANEL */}
       {showSettingsModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10006, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "550px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 24px 60px rgba(0,0,0,0.6)", maxHeight: "85vh" }}>
+          <div style={{ width: "100%", maxWidth: "550px", backgroundColor: "var(--surface-base)", padding: "32px", borderRadius: "18px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 24px 60px rgba(0,0,0,0.6)", maxHeight: "85vh" }}>
             
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
-              <h3 style={{ margin: 0, color: "#fff", fontSize: "22px", fontWeight: "700", letterSpacing: "-0.01em" }}>⚙️ Control Panel</h3>
-              <button onClick={() => setShowSettingsModal(false)} style={{ background: "transparent", color: "#8e8e93", border: "none", fontSize: "24px", cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color="#fff"} onMouseLeave={(e) => e.target.style.color="#8e8e93"}>✕</button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "16px" }}>
+              <h3 style={{ margin: 0, color: "var(--text-primary)", fontSize: "22px", fontWeight: "700", letterSpacing: "-0.01em" }}>⚙️ Control Panel</h3>
+              <button onClick={() => setShowSettingsModal(false)} style={{ background: "transparent", color: "var(--text-secondary)", border: "none", fontSize: "24px", cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color="var(--text-primary)"} onMouseLeave={(e) => e.target.style.color="var(--text-secondary)"}>✕</button>
             </div>
 
             {/* TAB NAVIGATION */}
-            <div style={{ display: "flex", gap: "8px", backgroundColor: "#2c2c2e", padding: "4px", borderRadius: "10px" }}>
-              <button onClick={() => setSettingsTab('zones')} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px", backgroundColor: settingsTab === 'zones' ? "#007aff" : "transparent", color: settingsTab === 'zones' ? "#fff" : "#8e8e93", transition: "all 0.2s" }}>📍 Zones</button>
-              <button onClick={() => setSettingsTab('vendors')} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px", backgroundColor: settingsTab === 'vendors' ? "#34c759" : "transparent", color: settingsTab === 'vendors' ? "#fff" : "#8e8e93", transition: "all 0.2s" }}>🚚 Vendors</button>
-              <button onClick={() => setSettingsTab('security')} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px", backgroundColor: settingsTab === 'security' ? "#ff3b30" : "transparent", color: settingsTab === 'security' ? "#fff" : "#8e8e93", transition: "all 0.2s" }}>🔒 Security</button>
+            <div style={{ display: "flex", gap: "8px", backgroundColor: "var(--surface-elevated)", padding: "4px", borderRadius: "10px" }}>
+              <button onClick={() => setSettingsTab('zones')} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px", backgroundColor: settingsTab === 'zones' ? "var(--brand-blue)" : "transparent", color: settingsTab === 'zones' ? "var(--text-primary)" : "var(--text-secondary)", transition: "all 0.2s" }}>📍 Zones</button>
+              <button onClick={() => setSettingsTab('vendors')} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px", backgroundColor: settingsTab === 'vendors' ? "var(--brand-green)" : "transparent", color: settingsTab === 'vendors' ? "var(--text-primary)" : "var(--text-secondary)", transition: "all 0.2s" }}>🚚 Vendors</button>
+              <button onClick={() => setSettingsTab('security')} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px", backgroundColor: settingsTab === 'security' ? "var(--brand-red)" : "transparent", color: settingsTab === 'security' ? "var(--text-primary)" : "var(--text-secondary)", transition: "all 0.2s" }}>🔒 Security</button>
             </div>
 
             <div style={{ flex: 1, overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
@@ -1415,19 +1416,19 @@ return (
               {/* ZONES TAB */}
               {settingsTab === 'zones' && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div style={{ fontSize: "14px", color: "#8e8e93" }}>Inject custom placement zones into the scanner's memory.</div>
+                  <div style={{ fontSize: "14px", color: "var(--text-secondary)" }}>Inject custom placement zones into the scanner's memory.</div>
                   <div style={{ display: "flex", gap: "8px" }}>
-                    <input id="newZoneInput" placeholder="e.g. Quarantine Bay A" style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid #3a3a3c", backgroundColor: "#242426", color: "#fff", outline: "none", fontSize: "14px" }} />
-                    <button onClick={() => { const val = document.getElementById('newZoneInput').value.trim(); if(val && !adminZones.includes(val)) setAdminZones([...adminZones, val]); document.getElementById('newZoneInput').value = ''; }} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", backgroundColor: "#007aff", color: "#fff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Add</button>
+                    <input id="newZoneInput" placeholder="e.g. Quarantine Bay A" style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid var(--border-subtle)", backgroundColor: "var(--surface-raised)", color: "var(--text-primary)", outline: "none", fontSize: "14px" }} />
+                    <button onClick={() => { const val = document.getElementById('newZoneInput').value.trim(); if(val && !adminZones.includes(val)) setAdminZones([...adminZones, val]); document.getElementById('newZoneInput').value = ''; }} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", backgroundColor: "var(--brand-blue)", color: "var(--text-primary)", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Add</button>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
                     {adminZones.map((z, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", backgroundColor: "#2c2c2e", padding: "10px 14px", borderRadius: "8px", border: "1px solid #3a3a3c", alignItems: "center" }}>
-                        <span style={{ color: "#fff", fontSize: "14px", fontWeight: "500" }}>📍 {z}</span>
-                        <button onClick={() => setAdminZones(adminZones.filter(az => az !== z))} style={{ background: "transparent", border: "none", color: "#ff3b30", cursor: "pointer", fontWeight: "600" }}>Remove</button>
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", backgroundColor: "var(--surface-elevated)", padding: "10px 14px", borderRadius: "8px", border: "1px solid var(--border-subtle)", alignItems: "center" }}>
+                        <span style={{ color: "var(--text-primary)", fontSize: "14px", fontWeight: "500" }}>📍 {z}</span>
+                        <button onClick={() => setAdminZones(adminZones.filter(az => az !== z))} style={{ background: "transparent", border: "none", color: "var(--brand-red)", cursor: "pointer", fontWeight: "600" }}>Remove</button>
                       </div>
                     ))}
-                    {adminZones.length === 0 && <div style={{ color: "#8e8e93", fontStyle: "italic", fontSize: "13px", textAlign: "center", padding: "12px" }}>No custom zones configured...</div>}
+                    {adminZones.length === 0 && <div style={{ color: "var(--text-secondary)", fontStyle: "italic", fontSize: "13px", textAlign: "center", padding: "12px" }}>No custom zones configured...</div>}
                   </div>
                 </div>
               )}
@@ -1435,19 +1436,19 @@ return (
               {/* VENDORS TAB */}
               {settingsTab === 'vendors' && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div style={{ fontSize: "14px", color: "#8e8e93" }}>Save supplier email addresses for one-click PO routing.</div>
+                  <div style={{ fontSize: "14px", color: "var(--text-secondary)" }}>Save supplier email addresses for one-click PO routing.</div>
                   <div style={{ display: "flex", gap: "8px" }}>
-                    <input id="newVendorInput" type="email" placeholder="e.g. supply@vendor.com" style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid #3a3a3c", backgroundColor: "#242426", color: "#fff", outline: "none", fontSize: "14px" }} />
-                    <button onClick={() => { const val = document.getElementById('newVendorInput').value.trim().toLowerCase(); if(val && !adminVendors.includes(val)) setAdminVendors([...adminVendors, val]); document.getElementById('newVendorInput').value = ''; }} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", backgroundColor: "#34c759", color: "#fff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Add</button>
+                    <input id="newVendorInput" type="email" placeholder="e.g. supply@vendor.com" style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid var(--border-subtle)", backgroundColor: "var(--surface-raised)", color: "var(--text-primary)", outline: "none", fontSize: "14px" }} />
+                    <button onClick={() => { const val = document.getElementById('newVendorInput').value.trim().toLowerCase(); if(val && !adminVendors.includes(val)) setAdminVendors([...adminVendors, val]); document.getElementById('newVendorInput').value = ''; }} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", backgroundColor: "var(--brand-green)", color: "var(--text-primary)", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Add</button>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
                     {adminVendors.map((v, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", backgroundColor: "#2c2c2e", padding: "10px 14px", borderRadius: "8px", border: "1px solid #3a3a3c", alignItems: "center" }}>
-                        <span style={{ color: "#fff", fontSize: "14px", fontWeight: "500" }}>✉️ {v}</span>
-                        <button onClick={() => setAdminVendors(adminVendors.filter(av => av !== v))} style={{ background: "transparent", border: "none", color: "#ff3b30", cursor: "pointer", fontWeight: "600" }}>Remove</button>
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", backgroundColor: "var(--surface-elevated)", padding: "10px 14px", borderRadius: "8px", border: "1px solid var(--border-subtle)", alignItems: "center" }}>
+                        <span style={{ color: "var(--text-primary)", fontSize: "14px", fontWeight: "500" }}>✉️ {v}</span>
+                        <button onClick={() => setAdminVendors(adminVendors.filter(av => av !== v))} style={{ background: "transparent", border: "none", color: "var(--brand-red)", cursor: "pointer", fontWeight: "600" }}>Remove</button>
                       </div>
                     ))}
-                    {adminVendors.length === 0 && <div style={{ color: "#8e8e93", fontStyle: "italic", fontSize: "13px", textAlign: "center", padding: "12px" }}>No custom vendors configured...</div>}
+                    {adminVendors.length === 0 && <div style={{ color: "var(--text-secondary)", fontStyle: "italic", fontSize: "13px", textAlign: "center", padding: "12px" }}>No custom vendors configured...</div>}
                   </div>
                 </div>
               )}
@@ -1455,16 +1456,16 @@ return (
               {/* SECURITY TAB */}
               {settingsTab === 'security' && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <div style={{ fontSize: "14px", color: "#8e8e93" }}>Update the global Manager Override PIN for this terminal.</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", backgroundColor: "#2c2c2e", padding: "16px", borderRadius: "12px", border: "1px solid #3a3a3c" }}>
-                    <label style={{ color: "#fff", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em" }}>Active Security PIN</label>
+                  <div style={{ fontSize: "14px", color: "var(--text-secondary)" }}>Update the global Manager Override PIN for this terminal.</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", backgroundColor: "var(--surface-elevated)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border-subtle)" }}>
+                    <label style={{ color: "var(--text-primary)", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em" }}>Active Security PIN</label>
                     <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                      <input id="newPinInput" type="password" maxLength="4" placeholder="****" style={{ flex: 1, padding: "12px", borderRadius: "8px", border: "2px solid #ff3b30", backgroundColor: "#1c1c1e", color: "#fff", outline: "none", fontSize: "24px", letterSpacing: "12px", textAlign: "center", fontWeight: "700" }} />
-                      <button onClick={() => { const val = document.getElementById('newPinInput').value; if(val.length === 4) { setAdminPin(val); alert("Manager PIN successfully rotated!"); document.getElementById('newPinInput').value = ''; } else { alert("PIN must be exactly 4 digits."); } }} style={{ padding: "14px 20px", borderRadius: "8px", border: "none", backgroundColor: "#ff3b30", color: "#fff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Rotate PIN</button>
+                      <input id="newPinInput" type="password" maxLength="4" placeholder="****" style={{ flex: 1, padding: "12px", borderRadius: "8px", border: "2px solid var(--brand-red)", backgroundColor: "var(--surface-base)", color: "var(--text-primary)", outline: "none", fontSize: "24px", letterSpacing: "12px", textAlign: "center", fontWeight: "700" }} />
+                      <button onClick={() => { const val = document.getElementById('newPinInput').value; if(val.length === 4) { setAdminPin(val); alert("Manager PIN successfully rotated!"); document.getElementById('newPinInput').value = ''; } else { alert("PIN must be exactly 4 digits."); } }} style={{ padding: "14px 20px", borderRadius: "8px", border: "none", backgroundColor: "var(--brand-red)", color: "var(--text-primary)", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Rotate PIN</button>
                     </div>
                   </div>
-                  <div style={{ fontSize: "12px", color: "#8e8e93", backgroundColor: "rgba(255,59,48,0.1)", padding: "12px", borderRadius: "8px", border: "1px solid rgba(255,59,48,0.3)", lineHeight: "1.5" }}>
-                    <strong style={{ color: "#ff3b30" }}>Warning:</strong> Changing this PIN takes effect immediately. Do not lose this sequence. It gates access to the Global Ledger, Admin Overrides, and Undos.
+                  <div style={{ fontSize: "12px", color: "var(--text-secondary)", backgroundColor: "rgba(255,59,48,0.1)", padding: "12px", borderRadius: "8px", border: "1px solid rgba(255,59,48,0.3)", lineHeight: "1.5" }}>
+                    <strong style={{ color: "var(--brand-red)" }}>Warning:</strong> Changing this PIN takes effect immediately. Do not lose this sequence. It gates access to the Global Ledger, Admin Overrides, and Undos.
                   </div>
                 </div>
               )}
@@ -1477,10 +1478,10 @@ return (
       {/* CORE VIEW FINDER INJECTION */}
       {isScanning && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", zIndex: 9998, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "#1c1c1e", padding: "24px", borderRadius: "18px" }}>
+          <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "var(--surface-base)", padding: "24px", borderRadius: "18px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
-              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px" }}>📷 Viewfinder</h3>
-              <button onClick={() => setIsScanning(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer" }}>Cancel ✕</button>
+              <h3 style={{ margin: 0, color: "var(--text-primary)", fontSize: "20px" }}>📷 Viewfinder</h3>
+              <button onClick={() => setIsScanning(false)} style={{ background: "transparent", color: "var(--brand-red)", border: "none", fontWeight: "bold", cursor: "pointer" }}>Cancel ✕</button>
             </div>
             <div id="reader" style={{ width: "100%", minHeight: "250px" }}></div>
           </div>
@@ -1489,7 +1490,7 @@ return (
     
       {/* 🟢 FLOATING SCAN FEEDBACK TOAST */}
       {scanFeedback && (
-        <div style={{ position: "fixed", bottom: "40px", left: "50%", transform: "translateX(-50%)", backgroundColor: scanFeedback.includes("✅") ? "#34c759" : (scanFeedback.includes("📍") ? "#007aff" : "#ff3b30"), color: "#fff", padding: "16px 28px", borderRadius: "30px", fontWeight: "600", fontSize: "16px", zIndex: 10005, boxShadow: "0 10px 40px rgba(0,0,0,0.6)", whiteSpace: "nowrap", pointerEvents: "none", animation: "inventory-toast-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)" }}>
+        <div style={{ position: "fixed", bottom: "40px", left: "50%", transform: "translateX(-50%)", backgroundColor: scanFeedback.includes("✅") ? "var(--brand-green)" : (scanFeedback.includes("📍") ? "var(--brand-blue)" : "var(--brand-red)"), color: "var(--text-primary)", padding: "16px 28px", borderRadius: "30px", fontWeight: "600", fontSize: "16px", zIndex: 10005, boxShadow: "0 10px 40px rgba(0,0,0,0.6)", whiteSpace: "nowrap", pointerEvents: "none", animation: "inventory-toast-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)" }}>
           {scanFeedback}
         </div>
       )}

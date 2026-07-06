@@ -1,0 +1,25 @@
+/* ---------------------------------------------------- */
+/* Kinetic Design System - High Contrast Dark Theme     */
+/* ---------------------------------------------------- */
+:root {
+  /* Core Backgrounds & Surfaces */
+  --bg-canvas: #121212;
+  --surface-base: #1c1c1e;
+  --surface-raised: #242426;
+  --surface-elevated: #2c2c2e;
+
+  /* Borders & Dividers */
+  --border-subtle: #3a3a3c;
+  --border-strong: #2c2c2e;
+
+  /* Typography */
+  --text-primary: #ffffff;
+  --text-secondary: #8e8e93;
+
+  /* Semantic Brand & Alert Colors */
+  --brand-blue: #007aff;
+  --brand-green: #34c759;
+  --brand-red: #ff3b30;
+  --brand-orange: #ff9500;
+  --brand-purple: #af52de;
+}
