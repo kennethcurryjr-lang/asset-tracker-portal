@@ -125,6 +125,16 @@ export default function Inventory({ user }) {
 
     const [showHelpModal, setShowHelpModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsTab, setSettingsTab] = useState('zones');
+  const [adminZones, setAdminZones] = useState(() => JSON.parse(localStorage.getItem('admin_zones') || '[]'));
+  const [adminVendors, setAdminVendors] = useState(() => JSON.parse(localStorage.getItem('admin_vendors') || '[]'));
+  const [adminPin, setAdminPin] = useState(() => localStorage.getItem('admin_pin') || process.env.REACT_APP_MANAGER_PIN || "0000");
+
+  useEffect(() => { localStorage.setItem('admin_zones', JSON.stringify(adminZones)); }, [adminZones]);
+  useEffect(() => { localStorage.setItem('admin_vendors', JSON.stringify(adminVendors)); }, [adminVendors]);
+  useEffect(() => { localStorage.setItem('admin_pin', adminPin); }, [adminPin]);
+
   const [pendingAction, setPendingAction] = useState(null);
   const [modalQty, setModalQty] = useState(1);
   
@@ -196,6 +206,7 @@ export default function Inventory({ user }) {
 
   // 🔥 DYNAMIC MEMORY ENGINE: Pulls core presets + any email saved to DynamoDB
   const uniqueVendors = [...new Set([
+    ...adminVendors,
     "purchasing@csgroup.com",
     "orders@citrussprings.com",
     "wholesale@coolattitudes.com",
@@ -210,7 +221,7 @@ export default function Inventory({ user }) {
   };
 
   const submitPin = () => {
-    if (pinInput === MANAGER_PIN) {
+    if (pinInput === adminPin || pinInput === MANAGER_PIN) {
       if (pinModal.callback) pinModal.callback();
       setPinModal({ isOpen: false, callback: null, error: false });
     } else {
@@ -646,7 +657,8 @@ return (
       {/* HEADER & ALERTS */}
       <div className="header-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "600", letterSpacing: "-0.02em" }}>📦 Inventory <button onClick={() => setShowHelpModal(true)} style={{ marginLeft: '16px', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#007aff', padding: '4px 12px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', verticalAlign: 'middle' }}>📖 Guide</button></h1>
+          <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "600", letterSpacing: "-0.02em" }}>📦 Inventory <button onClick={() => setShowHelpModal(true)} style={{ marginLeft: '16px', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#007aff', padding: '4px 12px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', verticalAlign: 'middle' }}>📖 Guide</button>
+            <button onClick={() => requireManager(() => setShowSettingsModal(true))} style={{ marginLeft: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", color: "#af52de", padding: "4px 12px", borderRadius: "8px", fontSize: "14px", cursor: "pointer", verticalAlign: "middle" }}>⚙️ Settings</button></h1>
           <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Active Operator: {user?.email || auth?.user?.profile?.email || "Scanner Mode Active"}</p>
         </div>
         
@@ -1086,7 +1098,7 @@ return (
               
               <div style={{ display: "flex", gap: "8px" }}>
                 <input type="number" placeholder="Initial QTY" value={newItemForm.quantity || ""} onChange={e => setNewItemForm(prev => ({...prev, quantity: parseInt(e.target.value) || 0}))} style={{ flex: 1, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px" }} />
-                <CustomAutocomplete placeholder="Placement Zone" value={newItemForm.zone} onChange={val => setNewItemForm(prev => ({...prev, zone: val}))} options={[...new Set(stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone]))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ flex: 2, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} />
+                <CustomAutocomplete placeholder="Placement Zone" value={newItemForm.zone} onChange={val => setNewItemForm(prev => ({...prev, zone: val}))} options={[...new Set([...adminZones, ...stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone])])].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ flex: 2, backgroundColor: "#242426", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none" }} />
               </div>
             </div>
             <button onClick={handleSaveNewItem} style={{ width: "100%", backgroundColor: "#34c759", color: "#fff", padding: "14px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", marginTop: "8px" }}>Proceed to Registration</button>
@@ -1208,7 +1220,7 @@ return (
               {pendingAction.actionName === "Transfer" && (
                 <div style={{ marginTop: '8px', textAlign: 'left' }}>
                   <label style={{ fontSize: '11px', color: '#8e8e93', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>New Placement Zone:</label>
-                  <CustomAutocomplete placeholder="Select existing bay or type a new one..." value={pendingAction.newZone || ''} onChange={val => setPendingAction({...pendingAction, newZone: val})} options={[...new Set(stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone]))].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px", width: "100%", boxSizing: "border-box" }} />
+                  <CustomAutocomplete placeholder="Select existing bay or type a new one..." value={pendingAction.newZone || ''} onChange={val => setPendingAction({...pendingAction, newZone: val})} options={[...new Set([...adminZones, ...stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone])])].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", padding: "12px", borderRadius: "8px", color: "#fff", outline: "none", fontSize: "14px", width: "100%", boxSizing: "border-box" }} />
                 </div>
               )}
 
@@ -1312,7 +1324,89 @@ return (
     </div>
   )}
 
-  {/* CORE VIEW FINDER INJECTION */}
+  
+      {/* ⚙️ SETTINGS CONTROL PANEL */}
+      {showSettingsModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10006, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "550px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 24px 60px rgba(0,0,0,0.6)", maxHeight: "85vh" }}>
+            
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
+              <h3 style={{ margin: 0, color: "#fff", fontSize: "22px", fontWeight: "700", letterSpacing: "-0.01em" }}>⚙️ Control Panel</h3>
+              <button onClick={() => setShowSettingsModal(false)} style={{ background: "transparent", color: "#8e8e93", border: "none", fontSize: "24px", cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color="#fff"} onMouseLeave={(e) => e.target.style.color="#8e8e93"}>✕</button>
+            </div>
+
+            {/* TAB NAVIGATION */}
+            <div style={{ display: "flex", gap: "8px", backgroundColor: "#2c2c2e", padding: "4px", borderRadius: "10px" }}>
+              <button onClick={() => setSettingsTab('zones')} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px", backgroundColor: settingsTab === 'zones' ? "#007aff" : "transparent", color: settingsTab === 'zones' ? "#fff" : "#8e8e93", transition: "all 0.2s" }}>📍 Zones</button>
+              <button onClick={() => setSettingsTab('vendors')} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px", backgroundColor: settingsTab === 'vendors' ? "#34c759" : "transparent", color: settingsTab === 'vendors' ? "#fff" : "#8e8e93", transition: "all 0.2s" }}>🚚 Vendors</button>
+              <button onClick={() => setSettingsTab('security')} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px", backgroundColor: settingsTab === 'security' ? "#ff3b30" : "transparent", color: settingsTab === 'security' ? "#fff" : "#8e8e93", transition: "all 0.2s" }}>🔒 Security</button>
+            </div>
+
+            <div style={{ flex: 1, overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
+              
+              {/* ZONES TAB */}
+              {settingsTab === 'zones' && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div style={{ fontSize: "14px", color: "#8e8e93" }}>Inject custom placement zones into the scanner's memory.</div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <input id="newZoneInput" placeholder="e.g. Quarantine Bay A" style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid #3a3a3c", backgroundColor: "#242426", color: "#fff", outline: "none", fontSize: "14px" }} />
+                    <button onClick={() => { const val = document.getElementById('newZoneInput').value.trim(); if(val && !adminZones.includes(val)) setAdminZones([...adminZones, val]); document.getElementById('newZoneInput').value = ''; }} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", backgroundColor: "#007aff", color: "#fff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Add</button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
+                    {adminZones.map((z, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", backgroundColor: "#2c2c2e", padding: "10px 14px", borderRadius: "8px", border: "1px solid #3a3a3c", alignItems: "center" }}>
+                        <span style={{ color: "#fff", fontSize: "14px", fontWeight: "500" }}>📍 {z}</span>
+                        <button onClick={() => setAdminZones(adminZones.filter(az => az !== z))} style={{ background: "transparent", border: "none", color: "#ff3b30", cursor: "pointer", fontWeight: "600" }}>Remove</button>
+                      </div>
+                    ))}
+                    {adminZones.length === 0 && <div style={{ color: "#8e8e93", fontStyle: "italic", fontSize: "13px", textAlign: "center", padding: "12px" }}>No custom zones configured...</div>}
+                  </div>
+                </div>
+              )}
+
+              {/* VENDORS TAB */}
+              {settingsTab === 'vendors' && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div style={{ fontSize: "14px", color: "#8e8e93" }}>Save supplier email addresses for one-click PO routing.</div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <input id="newVendorInput" type="email" placeholder="e.g. supply@vendor.com" style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid #3a3a3c", backgroundColor: "#242426", color: "#fff", outline: "none", fontSize: "14px" }} />
+                    <button onClick={() => { const val = document.getElementById('newVendorInput').value.trim().toLowerCase(); if(val && !adminVendors.includes(val)) setAdminVendors([...adminVendors, val]); document.getElementById('newVendorInput').value = ''; }} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", backgroundColor: "#34c759", color: "#fff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Add</button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
+                    {adminVendors.map((v, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", backgroundColor: "#2c2c2e", padding: "10px 14px", borderRadius: "8px", border: "1px solid #3a3a3c", alignItems: "center" }}>
+                        <span style={{ color: "#fff", fontSize: "14px", fontWeight: "500" }}>✉️ {v}</span>
+                        <button onClick={() => setAdminVendors(adminVendors.filter(av => av !== v))} style={{ background: "transparent", border: "none", color: "#ff3b30", cursor: "pointer", fontWeight: "600" }}>Remove</button>
+                      </div>
+                    ))}
+                    {adminVendors.length === 0 && <div style={{ color: "#8e8e93", fontStyle: "italic", fontSize: "13px", textAlign: "center", padding: "12px" }}>No custom vendors configured...</div>}
+                  </div>
+                </div>
+              )}
+
+              {/* SECURITY TAB */}
+              {settingsTab === 'security' && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div style={{ fontSize: "14px", color: "#8e8e93" }}>Update the global Manager Override PIN for this terminal.</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", backgroundColor: "#2c2c2e", padding: "16px", borderRadius: "12px", border: "1px solid #3a3a3c" }}>
+                    <label style={{ color: "#fff", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em" }}>Active Security PIN</label>
+                    <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                      <input id="newPinInput" type="password" maxLength="4" placeholder="****" style={{ flex: 1, padding: "12px", borderRadius: "8px", border: "2px solid #ff3b30", backgroundColor: "#1c1c1e", color: "#fff", outline: "none", fontSize: "24px", letterSpacing: "12px", textAlign: "center", fontWeight: "700" }} />
+                      <button onClick={() => { const val = document.getElementById('newPinInput').value; if(val.length === 4) { setAdminPin(val); alert("Manager PIN successfully rotated!"); document.getElementById('newPinInput').value = ''; } else { alert("PIN must be exactly 4 digits."); } }} style={{ padding: "14px 20px", borderRadius: "8px", border: "none", backgroundColor: "#ff3b30", color: "#fff", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Rotate PIN</button>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#8e8e93", backgroundColor: "rgba(255,59,48,0.1)", padding: "12px", borderRadius: "8px", border: "1px solid rgba(255,59,48,0.3)", lineHeight: "1.5" }}>
+                    <strong style={{ color: "#ff3b30" }}>Warning:</strong> Changing this PIN takes effect immediately. Do not lose this sequence. It gates access to the Global Ledger, Admin Overrides, and Undos.
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* CORE VIEW FINDER INJECTION */}
       {isScanning && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", zIndex: 9998, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "#1c1c1e", padding: "24px", borderRadius: "18px" }}>
