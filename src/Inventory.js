@@ -1183,7 +1183,7 @@ return (
               )}
 
               {pendingAction.actionName === "Ship" && (
-                <button onClick={() => setPendingAction({...pendingAction, isShrinkage: !pendingAction.isShrinkage})} style={{ marginTop: '8px', backgroundColor: pendingAction.isShrinkage ? '#ff3b30' : '#2c2c2e', border: '1px solid #3a3a3c', color: '#fff', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}>
+                <button onClick={() => { if (!pendingAction.isShrinkage) { requireManager(() => setPendingAction(prev => ({...prev, isShrinkage: true}))); } else { setPendingAction(prev => ({...prev, isShrinkage: false})); } }} style={{ marginTop: '8px', backgroundColor: pendingAction.isShrinkage ? '#ff3b30' : '#2c2c2e', border: '1px solid #3a3a3c', color: '#fff', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}>
                   {pendingAction.isShrinkage ? '💥 MARKED AS SHRINKAGE / DAMAGE' : 'Flag as Damaged / Shrinkage'}
                 </button>
               )}
