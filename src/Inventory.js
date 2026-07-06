@@ -553,7 +553,7 @@ return (
           .hide-desktop { display: none !important; }
           .toolbar-stack {
             display: grid !important;
-            grid-template-columns: 1fr auto 1fr !important;
+            grid-template-columns: auto 1fr auto !important;
             gap: 24px !important;
             width: 100% !important;
             align-items: flex-start !important;
@@ -1137,33 +1137,57 @@ return (
       )}
 
       {showAuditModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ width: "100%", maxWidth: "700px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "20px", maxHeight: "80vh" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "16px" }}>
-              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "22px" }}>📋 Historical Cloud Audit</h3>
-              <button onClick={() => setShowAuditModal(false)} style={{ background: "transparent", color: "#8e8e93", border: "none", fontSize: "16px", cursor: "pointer" }}>Close ✕</button>
-            </div>
-            <div style={{ overflowY: "scroll", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0, flex: 1, paddingRight: "8px" }}>
-              {auditLog.length === 0 ? (
-                <div style={{ color: "#8e8e93", textAlign: "center", padding: "40px" }}>No historical transactions found in the cloud ledger.</div>
-              ) : (
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "14px", color: "#ffffff" }}>
-                  <thead>
-                    <tr style={{ borderBottom: "1px solid #3a3a3c", color: "#8e8e93" }}><th style={{ padding: "12px 8px" }}>Time</th><th style={{ padding: "12px 8px" }}>Operator</th><th style={{ padding: "12px 8px" }}>Action</th><th style={{ padding: "12px 8px" }}>Product Identity</th><th style={{ padding: "12px 8px", textAlign: "right" }}>Qty</th></tr>
-                  </thead>
-                  <tbody>
-                    {auditLog.map(log => (
-                      <tr key={log.id} style={{ borderBottom: "1px solid #2c2c2e" }}><td style={{ padding: "12px 8px", fontSize: "12px", color: "#8e8e93" }}>{log.time}</td><td style={{ padding: "12px 8px" }}>{log.user.split('@')[0]}</td><td style={{ padding: "12px 8px", color: log.action === "Ship" ? "#ff3b30" : "#34c759", fontWeight: "600" }}>{log.action}</td><td style={{ padding: "12px 8px" }}>{log.flavor}</td><td style={{ padding: "12px 8px", textAlign: "right", fontWeight: "600" }}>{log.qty}</td></tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999, padding: "20px", boxSizing: "border-box" }}>
+      <div style={{ backgroundColor: "#1c1c1e", width: "100%", maxWidth: "1000px", maxHeight: "85vh", borderRadius: "16px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", boxShadow: "0 24px 60px rgba(0,0,0,0.6)", overflow: "hidden" }}>
+        
+        {/* Header */}
+        <div style={{ padding: "20px 24px", borderBottom: "1px solid #3a3a3c", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#2c2c2e" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <ClipboardList size={24} color="#007aff" />
+            <h2 style={{ margin: 0, color: "#fff", fontSize: "20px", fontWeight: "700", letterSpacing: "0.02em" }}>Master Security Audit</h2>
           </div>
+          <button onClick={() => setShowAuditModal(false)} style={{ background: "none", border: "none", color: "#8e8e93", fontSize: "28px", cursor: "pointer", lineHeight: "1" }}>&times;</button>
         </div>
-      )}
 
-      {/* CORE VIEW FINDER INJECTION */}
+        {/* Body (Scrollable Data Table) */}
+        <div style={{ padding: "0", overflowY: "auto", flex: 1, WebkitOverflowScrolling: "touch" }} className="custom-scrollbar-viewport">
+          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", color: "#fff", fontSize: "14px" }}>
+            <thead style={{ position: "sticky", top: 0, backgroundColor: "#1c1c1e", boxShadow: "0 2px 10px rgba(0,0,0,0.5)", zIndex: 10 }}>
+              <tr>
+                <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Timestamp</th>
+                <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Action</th>
+                <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Product Identity</th>
+                <th style={{ padding: "16px 24px", color: "#8e8e93", fontWeight: "600", borderBottom: "1px solid #3a3a3c", textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.05em" }}>Operator</th>
+              </tr>
+            </thead>
+            <tbody>
+              {auditLog.length > 0 ? auditLog.map((log, idx) => (
+                <tr key={idx} style={{ borderBottom: "1px solid #2c2c2e", backgroundColor: idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)", transition: "background-color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0,122,255,0.1)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)"}>
+                  <td style={{ padding: "16px 24px", color: "#8e8e93", fontFamily: "monospace", fontSize: "13px" }}>{log.time}</td>
+                  <td style={{ padding: "16px 24px", fontWeight: "700", color: log.action.includes("Ship") ? "#ff3b30" : (log.action.includes("Receive") ? "#34c759" : "#007aff") }}>{log.action}</td>
+                  <td style={{ padding: "16px 24px", fontWeight: "500" }}>{log.qty}bx <span style={{ color: "#8e8e93", fontWeight: "400" }}>{log.flavor}</span></td>
+                  <td style={{ padding: "16px 24px", color: "#e5e5ea", fontSize: "13px" }}>{log.user}</td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan="4" style={{ padding: "60px 20px", textAlign: "center", color: "#8e8e93", fontStyle: "italic", fontSize: "15px" }}>No cryptographic audit records found in secure memory.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Footer */}
+        <div style={{ padding: "16px 24px", borderTop: "1px solid #3a3a3c", backgroundColor: "#2c2c2e", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ color: "#8e8e93", fontSize: "13px", fontWeight: "500" }}>Showing {auditLog.length} secure ledger entries</span>
+          <button onClick={handleExportCSV} style={{ backgroundColor: "#007aff", color: "#fff", border: "none", padding: "10px 20px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#0056b3"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#007aff"}><FileDown size={16} /> Export to CSV</button>
+        </div>
+
+      </div>
+    </div>
+  )}
+
+  {/* CORE VIEW FINDER INJECTION */}
       {isScanning && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", zIndex: 9998, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "#1c1c1e", padding: "24px", borderRadius: "18px" }}>
