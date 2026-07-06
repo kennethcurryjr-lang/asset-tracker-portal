@@ -1298,12 +1298,6 @@ return (
           {scanFeedback}
         </div>
       )}
-      {/* STANDARD LEGAL FOOTER */} 
-      <div className="no-print" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "24px", padding: "32px 0 16px 0", marginTop: "auto", borderTop: "1px solid #2c2c2e", color: "#8e8e93", fontSize: "12px", fontWeight: "500" }}> 
-        <span onClick={() => alert("Privacy Policy: Kinetic Cards collects minimal operational data to ensure system security and track inventory velocity. All logs are stored securely and never sold to third parties.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color = "#fff"} onMouseLeave={(e) => e.target.style.color = "#8e8e93"}>Privacy Policy</span> 
-        <span onClick={() => alert("Terms of Service: By accessing the Kinetic Cards system, you agree to use it solely for authorized warehouse transactions. Unauthorized access or manipulation of records is prohibited.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color = "#fff"} onMouseLeave={(e) => e.target.style.color = "#8e8e93"}>Terms of Service</span> 
-        <span>© 2026 Kinetic Cards. All rights reserved.</span> 
-      </div>
     </div>
   );
 }
