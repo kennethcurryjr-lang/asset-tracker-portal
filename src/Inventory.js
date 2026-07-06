@@ -722,97 +722,177 @@ return (
         {uniqueVendors.map(email => <option key={email} value={email} />)}
       </datalist>
 
-            {/* HEADER & ALERTS / TOP UTILITY ROW */}
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "8px" }}>
-         {isOffline && <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", color: "var(--brand-orange)", border: "1px solid var(--brand-orange)", padding: "6px 12px", borderRadius: "8px", fontSize: "12px", fontWeight: "700", boxShadow: "0 0 10px rgba(255,149,0,0.2)", marginRight: "auto" }}>📴 DEAD ZONE: {offlineQueue.length} Queued</div>}
-         <div style={{ display: "flex", gap: "8px" }}>
-           <button onClick={() => setShowHelpModal(true)} style={{ backgroundColor: 'var(--surface-raised)', border: '1px solid var(--border-subtle)', color: 'var(--brand-blue)', padding: '6px 14px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s' }}>📖 Guide</button>
-           <button onClick={() => requireManager(() => setShowSettingsModal(true))} style={{ backgroundColor: 'var(--surface-raised)', border: '1px solid var(--border-subtle)', color: 'var(--brand-purple)', padding: '6px 14px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s' }}>⚙️ Settings</button>
-         </div>
+      {/* HEADER & ALERTS */}
+      <div className="header-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "600", letterSpacing: "-0.02em" }}>📦 Inventory <button onClick={() => setShowHelpModal(true)} style={{ marginLeft: '16px', backgroundColor: 'var(--surface-base)', border: '1px solid var(--border-subtle)', color: 'var(--brand-blue)', padding: '4px 12px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', verticalAlign: 'middle' }}>📖 Guide</button>
+            <button onClick={() => requireManager(() => setShowSettingsModal(true))} style={{ marginLeft: "8px", backgroundColor: "var(--surface-base)", border: "1px solid var(--border-subtle)", color: "var(--brand-purple)", padding: "4px 12px", borderRadius: "8px", fontSize: "14px", cursor: "pointer", verticalAlign: "middle" }}>⚙️ Settings</button></h1>
+          <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", fontSize: "14px" }}>Active Operator: {user?.email || auth?.user?.profile?.email || "Scanner Mode Active"}</p>
+          {isOffline && <div style={{ display: "inline-block", backgroundColor: "rgba(255, 149, 0, 0.15)", color: "var(--brand-orange)", border: "1px solid var(--brand-orange)", padding: "4px 10px", borderRadius: "8px", fontSize: "12px", fontWeight: "700", marginTop: "8px", boxShadow: "0 0 10px rgba(255,149,0,0.2)" }}>📴 DEAD ZONE: {offlineQueue.length} Scans Queued</div>}
+        </div>
+        
       </div>
 
-      {/* 3-COLUMN ZERO-SCROLL COCKPIT */}
-      <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "minmax(300px, 1fr) minmax(220px, 1fr) minmax(280px, 1fr)" : "1fr", gap: "16px", marginBottom: "24px", alignItems: "start" }}>
+      {/* TOOLBAR */}
+      <div className="toolbar-stack" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "24px", padding: "16px", backgroundColor: "var(--surface-raised)", borderRadius: "14px", border: "1px solid var(--border-subtle)" }}>
         
-        {/* COLUMN 1: SCANNER & ALERTS */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-           {/* Scanner Unit */}
-           <div className="scanner-control-panel" style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%", backgroundColor: "var(--surface-base)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border-subtle)", boxShadow: "0 8px 24px rgba(0,0,0,0.15)", boxSizing: "border-box" }}>
-              <div className="mode-switch-group" style={{ display: "flex", justifyContent: "space-between", gap: "6px", width: "100%" }}>
-                <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ flex: 1, padding: "10px 4px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "var(--brand-green)" : "var(--surface-elevated)", color: scanMode === "receive" ? "var(--bg-canvas)" : "var(--text-secondary)", transition: "all 0.2s", fontSize: "13px" }}><Download size={14} className="lucide-icon-sm" /> RCV</button>
-                <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ flex: 1, padding: "10px 4px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "var(--brand-red)" : "var(--surface-elevated)", color: scanMode === "ship" ? "var(--bg-canvas)" : "var(--text-secondary)", transition: "all 0.2s", fontSize: "13px" }}><Truck size={14} className="lucide-icon-sm" /> SHP</button>
-                <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ flex: 1, padding: "10px 4px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "transfer" ? "var(--brand-blue)" : "var(--surface-elevated)", color: scanMode === "transfer" ? "var(--bg-canvas)" : "var(--text-secondary)", transition: "all 0.2s", fontSize: "13px" }}><ArrowRightLeft size={14} className="lucide-icon-sm" /> TFR</button>
+        {/* CENTER: Cohesive Scanner Unit */}
+        <div className="scanner-control-panel" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1 1 auto", alignSelf: "flex-start", margin: "0 16px", maxWidth: "450px", width: "100%", backgroundColor: "var(--surface-base)", padding: "16px", borderRadius: "14px", border: "1px solid var(--border-subtle)", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
+          <div className="mode-switch-group" style={{ display: "flex", justifyContent: "space-between", gap: "8px", width: "100%" }}>
+            <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "var(--brand-green)" : "rgba(255,255,255,0.05)", color: scanMode === "receive" ? "var(--text-primary)" : "var(--text-secondary)", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><Download size={18} className="lucide-icon" /> Receive</button>
+            <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "var(--brand-red)" : "rgba(255,255,255,0.05)", color: scanMode === "ship" ? "var(--text-primary)" : "var(--text-secondary)", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><Truck size={18} className="lucide-icon" /> Ship</button>
+            <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "transfer" ? "var(--brand-blue)" : "rgba(255,255,255,0.05)", color: scanMode === "transfer" ? "var(--text-primary)" : "var(--text-secondary)", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><ArrowRightLeft size={18} className="lucide-icon" /> Transfer</button>
+          </div>
+          <div className="primary-row" style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
+            <div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "4px 12px" }}>
+              <span className="hide-mobile" style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
+              <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "var(--text-primary)", fontSize: "16px", fontWeight: "600", outline: "none", textAlign: "center" }} />
+            </div>
+            {(scanMode === "receive" || scanMode === "ship") && (<div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "4px 12px", flex: 1, minWidth: "120px" }}><span className="hide-mobile" style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600" }}>REF:</span><input type="text" placeholder="Order #" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} style={{ width: "100%", backgroundColor: "transparent", border: "none", color: "var(--text-primary)", fontSize: "16px", fontWeight: "600", outline: "none" }} /></div>)}
+            <button onClick={() => setRapidFire(!rapidFire)} style={{ display: "flex", alignItems: "center", gap: "6px", backgroundColor: rapidFire ? "rgba(255, 149, 0, 0.2)" : "var(--surface-raised)", border: rapidFire ? "1px solid var(--brand-orange)" : "1px solid var(--border-subtle)", padding: "8px 16px", borderRadius: "8px", color: rapidFire ? "var(--brand-orange)" : "var(--text-primary)", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>⚡ <span className="hide-mobile">Rapid Fire</span></button>
+            <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "var(--surface-raised)", border: isPalletMode ? "1px solid var(--brand-orange)" : "1px solid var(--border-subtle)", padding: "12px 16px", borderRadius: "8px", color: isPalletMode ? "var(--brand-orange)" : "var(--text-primary)", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}><Package size={18} className="lucide-icon" /> {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
+            <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "var(--brand-blue)", border: "none", padding: "12px 24px", borderRadius: "8px", color: "var(--text-primary)", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", flexGrow: 1, boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)" }}><ScanLine size={18} className="lucide-icon" /> SCAN</button>
+          </div>
+          
+          {/* INJECTED TARGET ZONE & LIVE TICKER */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px", width: "100%" }}>
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <div style={{ fontSize: '10px', fontWeight: '700', color: activeZone.includes('Unassigned') ? 'var(--brand-orange)' : 'var(--brand-blue)', backgroundColor: activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.15)' : 'rgba(0, 122, 255, 0.15)', padding: '6px 14px', borderRadius: '12px', border: `1px solid ${activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.4)' : 'rgba(0, 122, 255, 0.4)'}`, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                 <span style={{ fontSize: '14px' }}>📍</span> TARGET ZONE: {activeZone.replace("ZONE-", "").replace("BAY-", "")}
               </div>
-              <div className="primary-row" style={{ display: "flex", gap: "6px", flexWrap: "wrap", width: "100%" }}>
-                <div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "6px", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "4px 8px", flex: "0 1 auto" }}>
-                  <span style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600" }}>QTY:</span>
-                  <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "35px", backgroundColor: "transparent", border: "none", color: "var(--text-primary)", fontSize: "14px", fontWeight: "600", outline: "none", textAlign: "center" }} />
+            </div>
+            
+            <div className="hide-desktop" style={{ backgroundColor: "#000", padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: "6px", minHeight: "60px", boxShadow: "inset 0 2px 10px rgba(0,0,0,0.5)" }}>
+              <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "6px", marginBottom: "4px" }}>Global Ledger (Live)</div>
+              {auditLog.slice(0, 3).map((log, idx) => (
+                <div key={idx} style={{ fontSize: "12px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "var(--text-secondary)", fontFamily: "monospace", minWidth: "65px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
+                  <span style={{ flex: 1, margin: "0 8px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", lineHeight: "1.4", flex: 1, paddingRight: "8px" }}><span style={{ color: log.action.includes("Ship") ? "var(--brand-red)" : (log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)"), fontWeight: "700" }}>{log.action}</span> <span>{log.qty}bx</span> <span style={{ color: "var(--text-secondary)" }}>{log.flavor}</span> {log.destination && <span style={{ color: log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)", fontSize: "11px", fontWeight: "700", whiteSpace: "nowrap" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}{log.orderNumber && <span style={{ color: "var(--text-secondary)", fontSize: "11px", border: "1px solid var(--border-subtle)", padding: "2px 4px", borderRadius: "4px", backgroundColor: "var(--surface-raised)", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>}</div>
+                  </span>
+                  <span style={{ color: "var(--text-secondary)", fontSize: "10px" }}>{log.user.split('@')[0]}</span>
                 </div>
-                {(scanMode === "receive" || scanMode === "ship") && (<div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "6px", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "4px 8px", flex: 1, minWidth: "100px" }}><input type="text" placeholder="Ref/Order #" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} style={{ width: "100%", backgroundColor: "transparent", border: "none", color: "var(--text-primary)", fontSize: "13px", fontWeight: "600", outline: "none" }} /></div>)}
-              </div>
-              <div style={{ display: "flex", gap: "6px", width: "100%" }}>
-                <button onClick={() => setRapidFire(!rapidFire)} style={{ flex: 1, backgroundColor: rapidFire ? "rgba(255, 149, 0, 0.2)" : "var(--surface-raised)", border: rapidFire ? "1px solid var(--brand-orange)" : "1px solid var(--border-subtle)", padding: "8px", borderRadius: "8px", color: rapidFire ? "var(--brand-orange)" : "var(--text-primary)", fontWeight: "600", cursor: "pointer", fontSize: "12px" }}>⚡ Rapid</button>
-                <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ flex: 1, backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "var(--surface-raised)", border: isPalletMode ? "1px solid var(--brand-orange)" : "1px solid var(--border-subtle)", padding: "8px", borderRadius: "8px", color: isPalletMode ? "var(--brand-orange)" : "var(--text-primary)", fontWeight: "600", cursor: "pointer", fontSize: "12px", whiteSpace: "nowrap" }}><Package size={14} className="lucide-icon-sm" /> {isPalletMode ? "Pallet" : "Single"}</button>
-                <button onClick={() => setIsScanning(true)} style={{ flex: 2, backgroundColor: "var(--brand-blue)", border: "none", padding: "8px", borderRadius: "8px", color: "var(--bg-canvas)", fontWeight: "700", cursor: "pointer", fontSize: "13px", boxShadow: "0 4px 10px rgba(0, 122, 255, 0.3)" }}><ScanLine size={14} className="lucide-icon-sm" /> SCAN</button>
-              </div>
-              <div style={{ fontSize: '10px', fontWeight: '700', color: activeZone.includes('Unassigned') ? 'var(--brand-orange)' : 'var(--brand-blue)', backgroundColor: activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.15)' : 'rgba(0, 122, 255, 0.15)', padding: '6px 10px', borderRadius: '8px', border: `1px solid ${activeZone.includes('Unassigned') ? 'rgba(255, 149, 0, 0.4)' : 'rgba(0, 122, 255, 0.4)'}`, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: "100%", boxSizing: "border-box" }}>
-                 <span>📍 ZONE: {activeZone.replace("ZONE-", "").replace("BAY-", "")}</span>
-              </div>
-           </div>
-
-           {/* Critical Alerts (Mini) */}
-           {(() => {
-              const criticalAlerts = stock.filter(i => {
-                const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
-                return isExp || i.quantity < 50;
-              });
-              return criticalAlerts.length > 0 && (
-                <div style={{ width: "100%", backgroundColor: "rgba(255, 149, 0, 0.1)", border: "1px solid rgba(255, 149, 0, 0.3)", borderRadius: "12px", padding: "12px", display: "flex", flexDirection: "column", gap: "10px", boxSizing: "border-box", maxHeight: "150px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,149,0,0.2)", paddingBottom: "6px" }}>
-                    <h4 style={{ margin: 0, color: "var(--brand-orange)", fontSize: "13px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em" }}>⚠️ Critical Alerts</h4>
-                    <button onClick={() => { 
-                      let bodyText = "Please process purchase orders for the following critical stock items:\n\n";
-                      criticalAlerts.forEach(i => {
-                        const status = (i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date()) ? "[EXPIRED] " : "";
-                        bodyText += `- ${status}${i.brand} - ${i.flavor} (Stock: ${i.quantity} bx | Route: ${i.vendorEmail || "Internal"})\n`;
-                      });
-                      bodyText += "\nThank you,\nWarehouse Operations";
-                      fetch('https://api.titanassets.dev/v1/ses-alert', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subject: 'URGENT: Master PO Request', body: bodyText, to: 'purchasing@csgroup.com' }) }).then(res => { if (res.ok) alert('✅ PO Request routed to AWS SES!'); else alert('⚠️ SES API error.'); }).catch(err => { alert('❌ API failed.'); });
-                    }} style={{ background: "none", border: "none", color: "var(--brand-orange)", cursor: "pointer", fontSize: "11px", fontWeight: "600", textDecoration: "underline" }}>Master PO</button>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", overflowY: "auto", flex: 1, paddingRight: "4px" }} className="custom-scrollbar-viewport">
-                    {criticalAlerts.map(i => {
-                      const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
-                      return (
-                        <div key={i.barcode} style={{ backgroundColor: "var(--bg-canvas)", border: `1px solid ${isExp ? 'rgba(255,59,48,0.3)' : 'rgba(255,149,0,0.2)'}`, padding: "6px 10px", borderRadius: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div style={{ display: "flex", flexDirection: "column", overflow: "hidden", paddingRight: "8px" }}>
-                            <span style={{ fontSize: "9px", color: isExp ? "var(--brand-red)" : "var(--brand-orange)", fontWeight: "700", whiteSpace: "nowrap" }}>{isExp ? "🚨 EXPIRED" : "LOW STOCK"}</span>
-                            <strong style={{ color: "var(--text-primary)", fontSize: "11px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{i.flavor}</strong>
-                          </div>
-                          <span style={{ fontSize: "11px", color: isExp ? "var(--brand-red)" : "var(--brand-orange)", fontWeight: "700", whiteSpace: "nowrap" }}>{i.quantity} bx</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-           })()}
+              ))}
+              {auditLog.length === 0 && <div style={{ fontSize: "12px", color: "var(--text-secondary)", textAlign: "center", fontStyle: "italic", marginTop: "4px" }}>No recent actions...</div>}
+            </div>
+          </div>
         </div>
 
-        {/* COLUMN 2: FLAVOR BOARD (MINI SCROLL / SWIPE) */}
-        <div className="flavor-board" style={{ backgroundColor: "var(--surface-base)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", boxSizing: "border-box", maxHeight: isDesktop ? "360px" : "150px", overflow: "hidden" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "8px" }}>
-            <div style={{ fontSize: "13px", color: "var(--text-secondary)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em" }}>Flavors ({activeFlavorsCount})</div>
-            <select value={flavorSort} onChange={(e) => setFlavorSort(e.target.value)} style={{ backgroundColor: "var(--surface-raised)", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)", borderRadius: "6px", padding: "2px 6px", fontSize: "11px", outline: "none" }}>
-              <option value="qty_desc">Qty High-Low</option>
-              <option value="qty_asc">Qty Low-High</option>
-              <option value="alpha_asc">A-Z</option>
-              <option value="recent">Recent</option>
-            </select>
+        {/* LARGE DESKTOP LEDGER */}
+        <div className="hide-mobile" style={{ display: "flex", flexDirection: "column", margin: "0 auto", width: "75%", maxWidth: "1100px", minWidth: "500px", backgroundColor: "#000", padding: "16px 20px", borderRadius: "14px", border: "1px solid var(--border-subtle)", boxShadow: "inset 0 8px 30px rgba(0,0,0,0.6)", alignSelf: "stretch", minHeight: "180px", maxHeight: "240px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "10px", marginBottom: "10px" }}>
+            <span style={{ fontSize: "14px", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em" }}>Global Ledger (Live)</span>
+            <span style={{ fontSize: "11px", color: "var(--brand-blue)", fontWeight: "700", backgroundColor: "rgba(0, 122, 255, 0.15)", padding: "4px 10px", borderRadius: "8px", border: "1px solid rgba(0, 122, 255, 0.3)" }}>{auditLog.length} Total Entries</span>
           </div>
-          <div style={{ display: "flex", flexDirection: isDesktop ? "column" : "row", gap: "6px", overflowY: isDesktop ? "auto" : "hidden", overflowX: isDesktop ? "hidden" : "auto", flex: 1, paddingRight: isDesktop ? "4px" : "0", paddingBottom: isDesktop ? "0" : "4px", scrollSnapType: isDesktop ? "none" : "x mandatory" }} className="custom-scrollbar-viewport">
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "8px", paddingBottom: "16px", flex: 1, maxHeight: window.innerWidth <= 768 ? "300px" : "100%", WebkitOverflowScrolling: "touch" }} className="custom-scrollbar-viewport">
+            {auditLog.slice(0, 8).map((log, idx) => (
+              <div key={idx} style={{ fontSize: "14px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "var(--surface-base)", padding: "10px 14px", borderRadius: "8px", border: "1px solid var(--surface-elevated)" }}>
+                <span style={{ color: "var(--text-secondary)", fontFamily: "monospace", fontSize: "12px", minWidth: "80px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
+                <span style={{ flex: 1, margin: "0 16px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", lineHeight: "1.4", flex: 1, paddingRight: "8px" }}><span style={{ color: log.action.includes("Ship") ? "var(--brand-red)" : (log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)"), fontWeight: "700" }}>{log.action}</span> <span>{log.qty}bx</span> <span style={{ color: "var(--text-secondary)" }}>{log.flavor}</span> {log.destination && <span style={{ color: log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)", fontSize: "11px", fontWeight: "700", whiteSpace: "nowrap" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}{log.orderNumber && <span style={{ color: "var(--text-secondary)", fontSize: "11px", border: "1px solid var(--border-subtle)", padding: "2px 4px", borderRadius: "4px", backgroundColor: "var(--surface-raised)", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>}</div>
+                </span>
+                <span style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600" }}>{log.user.split('@')[0]}</span>
+              </div>
+            ))}
+            {auditLog.length === 0 && <div style={{ fontSize: "14px", color: "var(--text-secondary)", textAlign: "center", fontStyle: "italic", marginTop: "16px" }}>No recent actions...</div>}
+          </div>
+        </div>
+        {/* RIGHT: Total Stock & Actions */}
+        <div className="action-group-right" style={{ display: "flex", flexDirection: "column", gap: "16px", flex: "1", alignItems: "flex-end" }}>
+          
+          {/* Decoupled & Enlarged Total Stock */}
+          <div className="total-stock-block" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", backgroundColor: "var(--surface-base)", padding: "16px 24px", borderRadius: "14px", border: "1px solid var(--border-subtle)", width: "100%", maxWidth: "320px", boxShadow: "0 8px 24px rgba(0,0,0,0.2)", minHeight: "135px", position: "relative", boxSizing: "border-box" }}>
+            <div style={{ fontSize: "14px", color: "var(--text-secondary)", fontWeight: "700", letterSpacing: "0.05em", textTransform: "uppercase", width: "100%", textAlign: "right" }}>Global Inventory</div>
+            <div style={{ fontSize: "42px", fontWeight: "800", color: "var(--brand-green)", letterSpacing: "-0.02em", marginTop: "4px", lineHeight: "1", width: "100%", textAlign: "right" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "18px", color: "var(--text-secondary)", fontWeight: "600" }}>bx</span></div>
+            
+            <div className="secondary-row" style={{ display: "flex", gap: "8px", marginTop: "auto", paddingTop: "16px", width: "100%", justifyContent: "flex-end" }}>
+              <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ backgroundColor: "var(--surface-elevated)", border: "1px solid var(--border-subtle)", padding: "6px 12px", borderRadius: "6px", color: "var(--text-secondary)", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}><ClipboardList size={12} className="lucide-icon-sm" /> AUDIT</button>
+              <button onClick={handleExportCSV} style={{ backgroundColor: "var(--surface-elevated)", border: "1px solid var(--border-subtle)", padding: "6px 12px", borderRadius: "6px", color: "var(--text-secondary)", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}><FileDown size={12} className="lucide-icon-sm" /> CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 🖥️ COMMAND CENTER DASHBOARD */}
+      <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "320px 1fr" : "1fr", gap: "24px", marginBottom: "32px", alignItems: "start", marginTop: "8px" }}>
+        
+        {/* LEFT RAIL: KPIs & Alerts */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          
+          {(() => {
+            const criticalAlerts = stock.filter(i => {
+              const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
+              return isExp || i.quantity < 50;
+            });
+            return criticalAlerts.length > 0 && (
+              <div style={{ width: "100%", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)", boxSizing: "border-box", maxHeight: isDesktop ? "65vh" : "350px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "20px" }}>⚠️</span>
+                    <h4 style={{ margin: 0, color: "var(--brand-orange)", fontSize: "16px", fontWeight: "700", letterSpacing: "-0.01em" }}>Critical Alerts</h4>
+                  </div>
+                  <button onClick={() => {
+                    let bodyText = "Please process purchase orders for the following critical stock items:\n\n";
+                    criticalAlerts.forEach(i => {
+                      const status = (i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date()) ? "[EXPIRED] " : "";
+                      bodyText += `- ${status}${i.brand} - ${i.flavor} (Stock: ${i.quantity} bx | Route: ${i.vendorEmail || "Internal"})\n`;
+                    });
+                    bodyText += "\nThank you,\nWarehouse Operations";
+                    
+                    fetch('https://api.titanassets.dev/v1/ses-alert', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ 
+                        subject: 'URGENT: Master PO Request', 
+                        body: bodyText, 
+                        to: 'purchasing@csgroup.com' 
+                      })
+                    }).then(res => {
+                      if (res.ok) alert('✅ PO Request successfully routed to AWS SES via titanassets.dev endpoint!');
+                      else alert('⚠️ SES API responded with an error.');
+                    }).catch(err => {
+                      alert('❌ Failed to reach the SES routing API. Ensure the backend is online.');
+                    });
+                  }} style={{ backgroundColor: "var(--brand-orange)", color: "var(--text-primary)", border: "none", padding: "6px 12px", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "12px", transition: "all 0.2s" }}>✉️ Master PO</button>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto", minHeight: 0, flex: 1, paddingRight: "4px" }} className="custom-scrollbar-viewport">
+                  {criticalAlerts.map(i => {
+                    const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
+                    return (
+                      <div key={i.barcode} style={{ backgroundColor: "rgba(0,0,0,0.3)", border: `1px solid ${isExp ? 'rgba(255,59,48,0.5)' : 'rgba(255,149,0,0.3)'}`, padding: "10px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ display: "flex", flexDirection: "column", maxWidth: "65%" }}>
+                          <span style={{ fontSize: "10px", color: isExp ? "var(--brand-red)" : "var(--brand-orange)", textTransform: "uppercase", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isExp ? "🚨 EXPIRED" : "LOW STOCK"} • {i.brand}</span>
+                          <strong style={{ color: "var(--text-primary)", fontSize: "13px", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{i.flavor}</strong>
+                        </div>
+                        <span className={isExp ? "critical-expiry-badge" : ""} style={{ fontSize: "12px", color: isExp ? "var(--brand-red)" : "var(--brand-orange)", fontWeight: "700", whiteSpace: "nowrap" }}>{i.quantity} bx</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* RIGHT STRETCH: Dense Flavor Breakdown */}
+        <div className="flavor-board" style={{ backgroundColor: "var(--surface-elevated)", padding: "24px", borderRadius: "14px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", boxSizing: "border-box", maxHeight: isDesktop ? "65vh" : "500px" }}>
+          <div className="flavor-board-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <div className="flavor-board-header-left" style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+              <div style={{ fontSize: "14px", color: "var(--text-secondary)", fontWeight: "600", letterSpacing: "-0.01em", textTransform: "uppercase" }}>INVENTORY BY FLAVOR</div>
+              <select value={flavorSort} onChange={(e) => setFlavorSort(e.target.value)} style={{ backgroundColor: "var(--surface-base)", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", outline: "none", cursor: "pointer" }}>
+                <option value="qty_desc">Qty (High to Low)</option>
+                <option value="qty_asc">Qty (Low to High)</option>
+                <option value="alpha_asc">Alphabetical (A-Z)</option>
+                <option value="alpha_desc">Alphabetical (Z-A)</option>
+                <option value="recent">Recent Activity</option>
+              </select>
+            </div>
+            <div style={{ fontSize: "14px", color: "var(--text-primary)", fontWeight: "700" }}>{activeFlavorsCount} <span style={{ color: "var(--text-secondary)", fontWeight: "600" }}>Total</span></div>
+          </div>
+          {/* Dense Grid for 40+ Items */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", paddingRight: "8px", alignContent: "start", overflowY: "auto", minHeight: 0, flex: 1 }} className="custom-scrollbar-viewport">
             {flavorTotals.map(f => (
-              <div key={f.name} className="flavor-row" style={{ display: "flex", flexDirection: isDesktop ? "row" : "column", justifyContent: isDesktop ? "space-between" : "center", alignItems: isDesktop ? "center" : "flex-start", backgroundColor: "var(--bg-canvas)", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border-subtle)", flexShrink: 0, scrollSnapAlign: "start", width: isDesktop ? "auto" : "130px", cursor: "pointer", transition: "border-color 0.2s" }}
+              <div key={f.name} className="flavor-row" 
               onClick={() => {
                 const targetId = `card-${f.name.replace(/[^a-zA-Z0-9]/g, "-")}`;
                 const target = document.getElementById(targetId);
@@ -824,10 +904,12 @@ return (
                       const originalBorder = frontCard.style.border;
                       const originalBoxShadow = frontCard.style.boxShadow;
                       const originalTransform = frontCard.style.transform;
+                      
                       frontCard.style.transition = "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
                       frontCard.style.border = "2px solid var(--brand-blue)";
                       frontCard.style.boxShadow = "0 0 40px rgba(0, 122, 255, 1)";
                       frontCard.style.transform = "scale(1.03)";
+                      
                       setTimeout(() => {
                         frontCard.style.border = originalBorder;
                         frontCard.style.boxShadow = originalBoxShadow;
@@ -836,50 +918,21 @@ return (
                     }
                   }, 600);
                 }
-              }}>
-                <span style={{ fontSize: "11px", color: "var(--text-primary)", fontWeight: "600", whiteSpace: isDesktop ? "nowrap" : "normal", overflow: "hidden", textOverflow: "ellipsis", marginRight: isDesktop ? "8px" : "0", marginBottom: isDesktop ? "0" : "4px", lineHeight: "1.2" }}>{f.name}</span>
-                <span style={{ fontSize: "12px", color: f.qty === 0 ? "var(--text-secondary)" : (f.qty < 50 ? "var(--brand-red)" : "var(--brand-blue)"), fontWeight: "700", whiteSpace: "nowrap" }}>{f.qty} bx</span>
+              }}
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "var(--surface-base)", padding: "12px 14px", borderRadius: "8px", border: "1px solid var(--border-subtle)", cursor: "pointer", transition: "all 0.2s" }}>
+                <span style={{ fontSize: "12px", color: "var(--text-primary)", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: "12px" }}>{f.name}</span>
+                <span style={{ fontSize: "13px", color: (() => {
+                  if (f.qty === 0) return "var(--text-secondary)";
+                  if (f.qty < 50) return "var(--brand-red)";
+                  const monthlyBurn = (f.name.length * 4) + 15;
+                  const daysRemaining = Math.max(1, Math.round(f.qty / (monthlyBurn / 30)));
+                  return daysRemaining >= 30 ? "var(--brand-green)" : "var(--brand-blue)";
+                })(), fontWeight: "700", whiteSpace: "nowrap" }}>{f.qty} bx</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* COLUMN 3: TOTAL STOCK & MINI LEDGER */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px", height: isDesktop ? "100%" : "auto" }}>
-          {/* Total Stock */}
-          <div style={{ backgroundColor: "var(--surface-base)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", alignItems: "flex-end", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
-            <div style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: "700", letterSpacing: "0.05em", textTransform: "uppercase" }}>Global Inventory</div>
-            <div style={{ fontSize: "36px", fontWeight: "800", color: "var(--brand-green)", letterSpacing: "-0.02em", lineHeight: "1", marginTop: "4px" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "16px", color: "var(--text-secondary)", fontWeight: "600" }}>bx</span></div>
-            <div style={{ display: "flex", gap: "6px", marginTop: "12px", width: "100%" }}>
-              <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ flex: 1, backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "6px", borderRadius: "6px", color: "var(--text-secondary)", fontWeight: "700", fontSize: "10px", cursor: "pointer", transition: "all 0.2s" }}><ClipboardList size={10} className="lucide-icon-sm" /> AUDIT</button>
-              <button onClick={handleExportCSV} style={{ flex: 1, backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "6px", borderRadius: "6px", color: "var(--text-secondary)", fontWeight: "700", fontSize: "10px", cursor: "pointer", transition: "all 0.2s" }}><FileDown size={10} className="lucide-icon-sm" /> CSV</button>
-            </div>
-          </div>
-
-          {/* Mini Ledger */}
-          <div style={{ backgroundColor: "var(--bg-canvas)", padding: "12px", borderRadius: "12px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: "8px", flex: 1, maxHeight: isDesktop ? "220px" : "150px" }}>
-            <div style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "6px" }}>Live Ledger ({auditLog.length})</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", overflowY: "auto", flex: 1, paddingRight: "4px" }} className="custom-scrollbar-viewport">
-              {auditLog.slice(0, 10).map((log, idx) => (
-                <div key={idx} style={{ fontSize: "11px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", backgroundColor: "var(--surface-base)", padding: "6px 8px", borderRadius: "6px", border: "1px solid var(--border-subtle)" }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "2px", flex: 1, overflow: "hidden", paddingRight: "6px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      <span style={{ color: log.action.includes("Ship") ? "var(--brand-red)" : (log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)"), fontWeight: "700" }}>{log.action}</span>
-                      <span style={{ fontWeight: "600" }}>{log.qty}bx</span>
-                      <span style={{ color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{log.flavor}</span>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-secondary)", fontSize: "9px" }}>
-                      <span>{log.time.split(',')[1]?.trim() || log.time}</span>
-                      <span>{log.user.split('@')[0]}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {auditLog.length === 0 && <div style={{ fontSize: "11px", color: "var(--text-secondary)", textAlign: "center", fontStyle: "italic", marginTop: "8px" }}>No recent actions...</div>}
-            </div>
-          </div>
-        </div>
-        
       </div>
 
       {/* DATABASE RESEARCH TOOLS */}
