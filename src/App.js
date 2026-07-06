@@ -1,5 +1,4 @@
 import "leaflet/dist/leaflet.css";
-import "./kinetic-theme.css";
 /* eslint-disable no-unused-vars */
 import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import { useMap } from "react-leaflet";
@@ -103,7 +102,7 @@ function App() {
   const [activePortal, setActivePortal] = useState(isWarehouseManager && !isAdmin ? "inventory" : "gps");
 
   // Design Tokens: High-Contrast Monochromatic System
-  const appContainerStyle = { backgroundColor: 'var(--bg-canvas)', color: 'var(--text-primary)', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: selectedDevices.length > 0 ? '140px' : '60px', fontSize: '15px', transition: 'padding-bottom 0.3s ease', overflowX: 'clip' };
+  const appContainerStyle = { backgroundColor: '#f5f5f7', color: '#1d1d1f', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: selectedDevices.length > 0 ? '140px' : '60px', fontSize: '15px', transition: 'padding-bottom 0.3s ease', overflowX: 'clip' };
   
   const headerStyle = { 
     width: '100%',
@@ -121,14 +120,14 @@ function App() {
     overflow: 'hidden'
   };
   
-  const cardStyle = { backgroundColor: 'var(--surface-base)', borderRadius: '14px', padding: '28px', border: '1px solid #d2d2d7', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)' };
-  const deviceCardStyle = { backgroundColor: 'var(--surface-raised)', borderRadius: '14px', padding: '16px', border: '1px solid #d2d2d7', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', boxSizing: 'border-box', alignItems: 'stretch' };
-  const inputStyle = { padding: '8px 12px', borderRadius: '8px', border: '1px solid #d2d2d7', fontSize: '14px', backgroundColor: 'var(--surface-base)', color: 'var(--text-primary)', outline: 'none', transition: 'all 0.2s' };
-  const labelStyle = { fontSize: '11px', color: 'var(--text-primary)', fontWeight: '700', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' };
+  const cardStyle = { backgroundColor: '#ffffff', borderRadius: '14px', padding: '28px', border: '1px solid #d2d2d7', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)' };
+  const deviceCardStyle = { backgroundColor: '#e5e5ea', borderRadius: '14px', padding: '16px', border: '1px solid #d2d2d7', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', boxSizing: 'border-box', alignItems: 'stretch' };
+  const inputStyle = { padding: '8px 12px', borderRadius: '8px', border: '1px solid #d2d2d7', fontSize: '14px', backgroundColor: '#ffffff', color: '#1d1d1f', outline: 'none', transition: 'all 0.2s' };
+  const labelStyle = { fontSize: '11px', color: '#1d1d1f', fontWeight: '700', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' };
   
   const buttonStyle = { padding: '10px 20px', borderRadius: '20px', border: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' };
-  const primaryButtonStyle = { ...buttonStyle, backgroundColor: 'var(--brand-blue)', color: 'var(--text-primary)' };
-  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: 'transparent', color: 'var(--text-primary)', border: '1px solid #1d1d1f' };
+  const primaryButtonStyle = { ...buttonStyle, backgroundColor: '#1d1d1f', color: '#ffffff' };
+  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: 'transparent', color: '#1d1d1f', border: '1px solid #1d1d1f' };
 
   const stickySearchCardStyle = {
     ...cardStyle,
@@ -767,21 +766,21 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
   const getTimelineMarkerColor = (text = "") => {
     const logText = text.toLowerCase();
     if (logText.includes('overheat') || logText.includes('fail') || logText.includes('error') || logText.includes('broken')) {
-      return 'var(--brand-red)'; 
+      return '#ff3b30'; 
     }
     if (logText.includes('install') || logText.includes('repair') || logText.includes('fix') || logText.includes('replace')) {
-      return 'var(--brand-orange)'; 
+      return '#ff9500'; 
     }
     if (logText.includes('fill') || logText.includes('load') || logText.includes('complete')) {
-      return 'var(--brand-green)'; 
+      return '#34c759'; 
     }
-    return 'var(--text-secondary)'; 
+    return '#86868b'; 
   };
 
   const getBatteryStatusColor = (percentage = 100) => {
-    if (percentage <= 20) return 'var(--brand-red)'; 
-    if (percentage <= 50) return 'var(--brand-orange)'; 
-    return 'var(--brand-green)'; 
+    if (percentage <= 20) return '#ff3b30'; 
+    if (percentage <= 50) return '#ff9500'; 
+    return '#34c759'; 
   };
 
   const getPillStyle = (isActive) => ({
@@ -791,19 +790,19 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     fontWeight: '600',
     cursor: 'pointer',
     border: '1px solid #1d1d1f',
-    backgroundColor: isActive ? 'var(--brand-blue)' : 'transparent',
-    color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+    backgroundColor: isActive ? '#1d1d1f' : 'transparent',
+    color: isActive ? '#ffffff' : '#1d1d1f',
     transition: 'all 0.1s ease',
     whiteSpace: 'nowrap'
   });
 
   if (isSharePage) {
-    if (isShareLoading) return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: 'var(--bg-canvas)', color: 'var(--text-primary)'}}>Establishing secure map tracking vector...</div>;
+    if (isShareLoading) return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f'}}>Establishing secure map tracking vector...</div>;
     if (shareError) {
       return (
-        <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: 'var(--bg-canvas)', color: 'var(--text-primary)', gap: '16px', padding: '0 24px', textAlign: 'center'}}>
-          <div style={{fontSize: '24px', fontWeight: '600', letterSpacing: '-0.02em', color: 'var(--brand-red)'}}>Authorization Link Revoked</div>
-          <div style={{fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '480px', lineHeight: '1.6', backgroundColor: 'var(--surface-base)', padding: '20px', borderRadius: '12px', border: '1px solid #d2d2d7'}}>{shareError}</div>
+        <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', gap: '16px', padding: '0 24px', textAlign: 'center'}}>
+          <div style={{fontSize: '24px', fontWeight: '600', letterSpacing: '-0.02em', color: '#ff3b30'}}>Authorization Link Revoked</div>
+          <div style={{fontSize: '15px', color: '#86868b', maxWidth: '480px', lineHeight: '1.6', backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #d2d2d7'}}>{shareError}</div>
         </div>
       );
     }
@@ -812,16 +811,16 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         <div style={{...appContainerStyle, padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ ...cardStyle, width: '100%', maxWidth: '640px', border: '1px solid #ff3b30' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '12px', marginBottom: '20px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'var(--brand-red)' }}></div>
-              <span style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--brand-red)', letterSpacing: '0.05em' }}>Active Law Enforcement Tracking Stream</span>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ff3b30' }}></div>
+              <span style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#ff3b30', letterSpacing: '0.05em' }}>Active Law Enforcement Tracking Stream</span>
             </div>
             
             <h2 style={{ margin: '0 0 4px 0', fontSize: '26px', fontWeight: '600', letterSpacing: '-0.02em' }}>
               {sharedAsset.tag ? `${sharedAsset.tag} — ${sharedAsset.deviceId}` : sharedAsset.deviceId}
             </h2>
-            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: 'var(--text-secondary)' }}>Last telemetry lock recorded: <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{new Date(sharedAsset.timestamp).toLocaleString()}</span></p>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Last telemetry lock recorded: <span style={{ color: '#1d1d1f', fontWeight: '500' }}>{new Date(sharedAsset.timestamp).toLocaleString()}</span></p>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', backgroundColor: 'var(--bg-canvas)', padding: '20px', borderRadius: '10px', border: '1px solid #d2d2d7', marginBottom: '28px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', backgroundColor: '#f5f5f7', padding: '20px', borderRadius: '10px', border: '1px solid #d2d2d7', marginBottom: '28px' }}>
               <div>
                 <div style={labelStyle}>Coordinates Vector</div>
                 <div style={{ fontSize: '16px', fontWeight: '600' }}>{sharedAsset?.latitude?.toFixed(5)}, {sharedAsset?.longitude?.toFixed(5)}</div>
@@ -849,7 +848,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
               Open Live Route in OpenStreetMap
             </a>
           </div>
-          <p style={{ marginTop: '24px', fontSize: '11px', color: 'var(--text-secondary)', maxWidth: '440px', textAlign: 'center', lineHeight: '1.4' }}>This transmission viewport is heavily tokenized, cryptographically secure, and completely unindexed. It will drop offline immediately upon token expiration.</p>
+          <p style={{ marginTop: '24px', fontSize: '11px', color: '#86868b', maxWidth: '440px', textAlign: 'center', lineHeight: '1.4' }}>This transmission viewport is heavily tokenized, cryptographically secure, and completely unindexed. It will drop offline immediately upon token expiration.</p>
         </div>
       );
     }
@@ -858,20 +857,20 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
   if (auth.error && !window.location.search.includes('code=')) {
     return (
-      <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: 'var(--bg-canvas)', color: 'var(--text-primary)', gap: '24px', padding: '0 24px', textAlign: 'center'}}>
+      <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', gap: '24px', padding: '0 24px', textAlign: 'center'}}>
         <div style={{fontSize: '24px', fontWeight: '600', letterSpacing: '-0.02em'}}>System Connection Mismatch</div>
-        <div style={{fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '540px', lineHeight: '1.6', backgroundColor: 'var(--surface-base)', padding: '24px', borderRadius: '18px', border: '1px solid #d2d2d7'}}>{auth.error.message}</div>
+        <div style={{fontSize: '15px', color: '#86868b', maxWidth: '540px', lineHeight: '1.6', backgroundColor: '#ffffff', padding: '24px', borderRadius: '18px', border: '1px solid #d2d2d7'}}>{auth.error.message}</div>
         <button onClick={() => { localStorage.clear(); sessionStorage.clear(); window.location.href = window.location.origin; }} style={primaryButtonStyle}>Reset Environment</button>
       </div>
     );
   }
 
   if (auth.isLoading || auth.activeNavigator) {
-    return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: 'var(--bg-canvas)', color: 'var(--text-primary)', paddingLeft: '40px'}}>Loading dashboard systems...</div>;
+    return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', paddingLeft: '40px'}}>Loading dashboard systems...</div>;
   }
 
   if (!auth.isAuthenticated) {
-    return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: 'var(--bg-canvas)', color: 'var(--text-primary)', paddingLeft: '40px'}}>Redirecting to secure gateway...</div>;
+    return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', paddingLeft: '40px'}}>Redirecting to secure gateway...</div>;
   }
 
   return (
@@ -1046,7 +1045,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         margin: '0 auto',
         padding: '12px 12px 0 12px',
         boxSizing: 'border-box',
-        backgroundColor: activePortal === "inventory" ? 'var(--surface-base)' : 'transparent',
+        backgroundColor: activePortal === "inventory" ? '#1c1c1e' : 'transparent',
         display: 'flex', 
         flexDirection: 'column'
       }}>
@@ -1060,12 +1059,12 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         }}>
           <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
           
-          <div style={{ color: 'var(--surface-base)', fontSize: '15px', fontWeight: '500', letterSpacing: '-0.02em', textAlign: 'center' }}>
+          <div style={{ color: '#ffffff', fontSize: '15px', fontWeight: '500', letterSpacing: '-0.02em', textAlign: 'center' }}>
               {auth.user?.profile.email} 
-              {isAdmin && <span style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}
+              {isAdmin && <span style={{ color: '#86868b', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}
           </div>
           
-          <button onClick={handleSignOut} style={{ backgroundColor: 'var(--surface-base)', color: '#000000', border: 'none', padding: '6px 18px', fontSize: '12px', borderRadius: '14px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', marginTop: '4px' }}>
+          <button onClick={handleSignOut} style={{ backgroundColor: '#ffffff', color: '#000000', border: 'none', padding: '6px 18px', fontSize: '12px', borderRadius: '14px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', marginTop: '4px' }}>
             Sign Out
           </button>
         </header>
@@ -1077,9 +1076,9 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             padding: activePortal === "inventory" ? "0px 12px 24px 12px" : "16px 12px 0 12px",
             borderBottom: activePortal === "inventory" ? "1px solid #3a3a3c" : "none"
           }}>
-            <div style={{ display: "flex", backgroundColor: 'var(--surface-raised)', borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.4)" }}>
-              <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? 'var(--brand-blue)' : "transparent", color: activePortal === "gps" ? 'var(--surface-base)' : 'var(--text-secondary)', transition: "all 0.2s" }}>📡 Kinetic Assets</button>
-              <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? 'var(--brand-green)' : "transparent", color: activePortal === "inventory" ? 'var(--surface-base)' : 'var(--text-secondary)', transition: "all 0.2s" }}>📦 Kinetic Inventory</button>
+            <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.4)" }}>
+              <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📡 Kinetic Assets</button>
+              <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📦 Kinetic Inventory</button>
             </div>
           </div>
         )}
@@ -1092,7 +1091,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       ) : (
         <>
           {dbError && (
-        <div style={{ backgroundColor: 'var(--brand-red)', color: 'var(--surface-base)', padding: '12px 24px', fontSize: '14px', fontWeight: '600', textAlign: 'center', boxShadow: '0 4px 12px rgba(255,59,48,0.2)' }}>
+        <div style={{ backgroundColor: '#ff3b30', color: '#ffffff', padding: '12px 24px', fontSize: '14px', fontWeight: '600', textAlign: 'center', boxShadow: '0 4px 12px rgba(255,59,48,0.2)' }}>
           ⚠️ {dbError}
         </div>
       )}
@@ -1127,8 +1126,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                 borderRadius: '8px',
                 fontSize: '13px',
                 fontWeight: '600',
-                backgroundColor: showFilters ? 'var(--text-primary)' : 'transparent',
-                color: showFilters ? 'var(--surface-base)' : 'var(--text-primary)'
+                backgroundColor: showFilters ? '#1d1d1f' : 'transparent',
+                color: showFilters ? '#ffffff' : '#1d1d1f'
               }}
             >
               {showFilters ? '✕ Close Filter' : '🎛️ Select Groups'}
@@ -1179,10 +1178,10 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           </div>
           
           <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '16px', borderTop: '1px solid #e5e5ea', paddingTop: '10px' }}>
-             <div style={{ marginRight: 'auto', display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', alignItems: 'center' }}>
+             <div style={{ marginRight: 'auto', display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px', fontWeight: '500', color: '#86868b', alignItems: 'center' }}>
                 
                 {/* Master Selective Toggle Checkbox Interface Vector */}
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: '600', userSelect: 'none' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1d1d1f', cursor: 'pointer', fontWeight: '600', userSelect: 'none' }}>
                   <input 
                     type="checkbox" 
                     checked={filteredAssets.length > 0 && filteredAssets.every(a => selectedDevices.includes(a.deviceId))} 
@@ -1195,22 +1194,22 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         setSelectedDevices(prev => Array.from(new Set([...prev, ...visibleIds])));
                       }
                     }}
-                    style={{ width: '15px', height: '15px', accentColor: 'var(--text-primary)', cursor: 'pointer' }} 
+                    style={{ width: '15px', height: '15px', accentColor: '#1d1d1f', cursor: 'pointer' }} 
                   />
                   Select All Visible ({filteredAssets.length})
                 </label>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: alertCount > 0 ? 'var(--brand-red)' : 'var(--border-subtle)' }}></div> 
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: alertCount > 0 ? '#ff3b30' : '#d2d2d7' }}></div> 
                   {alertCount} Alert
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--brand-green)' }}></div> 
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#34c759' }}></div> 
                   {healthyCount} Stable
                 </div>
              </div>
-             {isAdmin && (<><button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>✉️ Feedback</button> <button onClick={() => alert("Español localization is currently in development.")} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>🌐 Español</button> <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: 'var(--brand-blue)', color: 'var(--brand-blue)' }}>✉️ Email Report</button></>)}
-             <button onClick={() => { fetchDevices(); alert("Data successfully synced with live database."); }} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: 'var(--brand-green)', color: 'var(--brand-green)' }}>🔄 Sync Data</button>
+             {isAdmin && (<><button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>✉️ Feedback</button> <button onClick={() => alert("Español localization is currently in development.")} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>🌐 Español</button> <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button></>)}
+             <button onClick={() => { fetchDevices(); alert("Data successfully synced with live database."); }} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#34c759", color: "#34c759" }}>🔄 Sync Data</button>
              <button onClick={() => setShowGuide(true)} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>📖 Operations Guide</button> <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px" }}>Reset</button>
           </div>
         </div>
@@ -1226,7 +1225,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
               return (
                 <div key={item.deviceId.slice(-5)} className="card-perspective-wrapper">
                   <div className={`card-flipper ${isFlipped ? 'flipped' : ''}`}>
-                    <div className="card-face card-front" style={{ ...deviceCardStyle, backgroundColor: 'var(--surface-base)' }}>
+                    <div className="card-face card-front" style={{ ...deviceCardStyle, backgroundColor: '#ffffff' }}>
                   
                   {/* Split Responsive Core Row */}
                   <div className="card-split-columns-view">
@@ -1234,40 +1233,40 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                     {/* Left Hand Data Block */}
                     <div className="card-column-left-telemetry">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <input type="checkbox" checked={selectedDevices.includes(item.deviceId.slice(-5))} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId.slice(-5)) ? prev.filter(i => i !== item.deviceId.slice(-5)) : [...prev, item.deviceId.slice(-5)])} style={{ width: '16px', height: '16px', accentColor: 'var(--text-primary)', cursor: 'pointer' }} />
-                        <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>
+                        <input type="checkbox" checked={selectedDevices.includes(item.deviceId.slice(-5))} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId.slice(-5)) ? prev.filter(i => i !== item.deviceId.slice(-5)) : [...prev, item.deviceId.slice(-5)])} style={{ width: '16px', height: '16px', accentColor: '#1d1d1f', cursor: 'pointer' }} />
+                        <div style={{ fontSize: '15px', fontWeight: '600', color: '#1d1d1f', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>
                             {item.tag ? item.tag : 'UNNAMED'}
                         </div>
                       </div>
                       
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '6px' }}>
-                          {item.isOffline && <span style={{ color: 'var(--surface-base)', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: 'var(--brand-red)', borderRadius: '4px' }}>Offline</span>}
-                          {item.isGeofenceViolation && <span style={{ color: 'var(--surface-base)', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: 'var(--brand-orange)', borderRadius: '4px' }}>Geofence</span>}
-                          {item.isLowBattery && <span style={{ color: 'var(--surface-base)', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#b7094c', borderRadius: '4px' }}>Low Batt</span>}
-                          {item.isMarineMode && <span style={{ color: 'var(--surface-base)', fontSize: "9px", fontWeight: "700", textTransform: "uppercase", padding: "2px 6px", backgroundColor: 'var(--brand-blue)', borderRadius: "4px" }}>⚓ Marine</span>}
+                          {item.isOffline && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#ff3b30', borderRadius: '4px' }}>Offline</span>}
+                          {item.isGeofenceViolation && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#ff9500', borderRadius: '4px' }}>Geofence</span>}
+                          {item.isLowBattery && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#b7094c', borderRadius: '4px' }}>Low Batt</span>}
+                          {item.isMarineMode && <span style={{ color: "#ffffff", fontSize: "9px", fontWeight: "700", textTransform: "uppercase", padding: "2px 6px", backgroundColor: "#007aff", borderRadius: "4px" }}>⚓ Marine</span>}
 
                       </div>
 
-                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                        <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{item.city || "Locating"}</div>
-                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>Last seen: {item.lastSeen}</div>
+                      <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.4' }}>
+                        <div style={{ fontWeight: '500', color: '#1d1d1f' }}>{item.city || "Locating"}</div>
+                        <div style={{ fontSize: '10px', color: '#86868b', marginTop: '2px' }}>Last seen: {item.lastSeen}</div>
                         <div style={{ fontSize: '11px' }}>ID: {item.deviceId.slice(-5)}</div>
                         {item.group && <div style={{ fontSize: '11px', fontStyle: 'italic' }}>📦 {item.group}</div>}
                         {item.homeLat && (
-                          <div style={{ fontSize: '10px', color: 'var(--brand-blue)', marginTop: '4px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <span style={{width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--brand-blue)'}}></span>
+                          <div style={{ fontSize: '10px', color: '#007aff', marginTop: '4px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#007aff'}}></span>
                             Anchor: {Number(item.homeLat).toFixed(4)}, {Number(item.homeLon).toFixed(4)}
                           </div>
                         )}
                       </div>
 
                       {/* Micro Battery Spark Gauge */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', backgroundColor: 'var(--bg-canvas)', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e5e5ea' }}>
-                        <div style={{ width: '40px', height: '4px', backgroundColor: 'var(--surface-raised)', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', backgroundColor: '#f5f5f7', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e5e5ea' }}>
+                        <div style={{ width: '40px', height: '4px', backgroundColor: '#e5e5ea', borderRadius: '2px', overflow: 'hidden' }}>
                           <div style={{ width: `${batteryLevel}%`, height: '100%', backgroundColor: sparkColor }} />
                         </div>
                         <span style={{ fontSize: '11px', fontWeight: '700', color: sparkColor }}>{batteryLevel}%</span>
-                        <span style={{ fontSize: '11px', fontWeight: '500', color: 'var(--text-secondary)', borderLeft: '1px solid #d2d2d7', paddingLeft: '8px', marginLeft: '2px' }}>{item.estTimeRemaining}</span>
+                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#86868b', borderLeft: '1px solid #d2d2d7', paddingLeft: '8px', marginLeft: '2px' }}>{item.estTimeRemaining}</span>
                       </div>
                     </div>
                     
@@ -1282,10 +1281,10 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         overflow: 'hidden', 
                         border: '1px solid #d2d2d7', 
                         cursor: 'pointer',
-                        backgroundColor: 'var(--bg-canvas)'
+                        backgroundColor: '#f5f5f7'
                       }}
                     >
-                      <iframe loading="lazy" title="map-thumb" frameBorder="0" scrolling="no" src={item.latitude && !isNaN(Number(item.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(item.longitude)-0.02}%2C${Number(item.latitude)-0.02}%2C${Number(item.longitude)+0.02}%2C${Number(item.latitude)+0.02}&layer=mapnik&marker=${Number(item.latitude)}%2C${Number(item.longitude)}` : "about:blank"} style={{ filter: "invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)", pointerEvents: "none", border: "none", position: "absolute", top: "-60px", left: "-60px", width: "calc(100% + 120px)", height: "calc(100% + 120px)" }}></iframe>
+                      <iframe loading="lazy" title="map-thumb" frameBorder="0" scrolling="no" src={item.latitude && !isNaN(Number(item.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(item.longitude)-0.02}%2C${Number(item.latitude)-0.02}%2C${Number(item.longitude)+0.02}%2C${Number(item.latitude)+0.02}&layer=mapnik&marker=${Number(item.latitude)}%2C${Number(item.longitude)}` : "about:blank"} style={{ pointerEvents: "none", border: "none", position: "absolute", top: "-60px", left: "-60px", width: "calc(100% + 120px)", height: "calc(100% + 120px)" }}></iframe>
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'transparent' }}></div>
                       
                     </div>
@@ -1294,16 +1293,16 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
                   {/* Crunched Operations Rows */}
                   <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                      <input placeholder="Rename Asset..." value={tagInputs[item.deviceId] || ""} onChange={(e) => setTagInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: 'var(--bg-canvas)' }} />
+                      <input placeholder="Rename Asset..." value={tagInputs[item.deviceId] || ""} onChange={(e) => setTagInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#f5f5f7' }} />
                       <button onClick={() => updateAttribute(item.deviceId, 'LATEST', 'tag', tagInputs[item.deviceId], '#t')} style={{ ...primaryButtonStyle, padding: '6px 12px', fontSize: '12px', borderRadius: '6px' }}>Save</button>
-                      <button className="diagnostic-flip-btn" onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ background: 'var(--bg-canvas)', border: "1px solid #d2d2d7", cursor: "pointer", fontSize: "11px", color: 'var(--text-primary)', padding: "6px 10px", borderRadius: "6px", fontWeight: "600", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>Flip ⤹</button>
+                      <button className="diagnostic-flip-btn" onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ background: "#f5f5f7", border: "1px solid #d2d2d7", cursor: "pointer", fontSize: "11px", color: "#1d1d1f", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>Flip ⤹</button>
                   </div>
 
                   <div style={{ display: 'flex', gap: '4px', width: '100%', flexWrap: 'wrap' }}>
-                      {isAdmin && (item.shareToken ? <button onClick={() => revokeLiveShare(item.deviceId, item.timestamp)} style={{ ...secondaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1, borderColor: 'var(--brand-red)', color: 'var(--brand-red)' }}>Revoke</button> : <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1 }}>Share</button>)}
+                      {isAdmin && (item.shareToken ? <button onClick={() => revokeLiveShare(item.deviceId, item.timestamp)} style={{ ...secondaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1, borderColor: "#ff3b30", color: "#ff3b30" }}>Revoke</button> : <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1 }}>Share</button>)}
                       
                       {/* Watchdog Status Button with Conditional Radar Light */}
-        <button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode === false ? 'var(--surface-elevated)' : 'transparent', color: item.isServiceMode === false ? 'var(--brand-green)' : 'var(--text-secondary)', border: '1px solid #1d1d1f' }}>
+        <button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode === false ? '#1d1d1f' : 'transparent', color: item.isServiceMode === false ? '#ffffff' : '#1d1d1f', border: '1px solid #1d1d1f' }}>
           {item.isServiceMode === false && <span className="live-pulse-indicator-dot"></span>}
           {item.isServiceMode === false ? 'Watchdog active' : 'Watchdog off'}
                       </button>
@@ -1319,16 +1318,16 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                             setHomeLocation(item.deviceId, item.timestamp, item.latitude, item.longitude);
                           }
                         }} 
-                        style={{ ...buttonStyle, fontSize: "11px", borderRadius: "8px", flex: 1.2, padding: "6px 10px", backgroundColor: item.homeLat ? "transparent" : 'var(--brand-blue)', color: item.homeLat ? 'var(--text-primary)' : 'var(--text-primary)', border: item.homeLat ? "1px solid #1d1d1f" : "none" }}
+                        style={{ ...buttonStyle, fontSize: "11px", borderRadius: "8px", flex: 1.2, padding: "6px 10px", backgroundColor: item.homeLat ? "transparent" : "#1d1d1f", color: item.homeLat ? "#1d1d1f" : "#ffffff", border: item.homeLat ? "1px solid #1d1d1f" : "none" }}
                       >
                         {item.homeLat ? "Clear Home" : "Set Home"}
                       </button>
                   </div>
                   
-                      <div style={{ display: "flex", gap: "6px", width: "100%", marginTop: "12px", marginBottom: "8px", alignItems: "center", backgroundColor: 'var(--bg-canvas)', padding: "8px", borderRadius: "8px", border: "1px solid #e5e5ea", boxSizing: "border-box", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", gap: "6px", width: "100%", marginTop: "12px", marginBottom: "8px", alignItems: "center", backgroundColor: "#f5f5f7", padding: "8px", borderRadius: "8px", border: "1px solid #e5e5ea", boxSizing: "border-box", flexWrap: "wrap" }}>
                         {!item.maintenanceInterval ? (
                           <>
-                            <select value={maintenanceInputs[item.deviceId.slice(-5)] || "0"} onChange={(e) => setMaintenanceInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #d2d2d7", fontSize: "11px", backgroundColor: 'var(--surface-base)', color: 'var(--text-primary)', flex: 1, outline: "none" }}>
+                            <select value={maintenanceInputs[item.deviceId.slice(-5)] || "0"} onChange={(e) => setMaintenanceInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #d2d2d7", fontSize: "11px", backgroundColor: "#ffffff", color: "#1d1d1f", flex: 1, outline: "none" }}>
                               <option value="0">Off (Opt-Out)</option>
                               <option value="1">1 Month</option>
                               <option value="3">3 Months</option>
@@ -1336,40 +1335,40 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                               <option value="9">9 Months</option>
                               <option value="12">12 Months</option>
                             </select>
-                            <button onClick={() => setMaintenanceInterval(item.deviceId, 'LATEST', maintenanceInputs[item.deviceId.slice(-5)] || "0")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #1d1d1f", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: 'var(--text-primary)', color: 'var(--surface-base)' }}>Schedule Service</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId, 'LATEST', maintenanceInputs[item.deviceId.slice(-5)] || "0")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #1d1d1f", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#1d1d1f", color: "#ffffff" }}>Schedule Service</button>
                           </>
                         ) : (
                           <>
                             <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1 }}>
-                              <span style={{ width: "8px", height: "8px", backgroundColor: 'var(--brand-green)', borderRadius: "50%", display: "inline-block", boxShadow: "0 0 4px rgba(52, 199, 89, 0.6)" }}></span>
-                              <span style={{ fontSize: "11px", fontWeight: "700", color: 'var(--brand-green)', textTransform: "uppercase" }}>Service Scheduled</span>
+                              <span style={{ width: "8px", height: "8px", backgroundColor: "#34c759", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 4px rgba(52, 199, 89, 0.6)" }}></span>
+                              <span style={{ fontSize: "11px", fontWeight: "700", color: "#34c759", textTransform: "uppercase" }}>Service Scheduled</span>
                             </div>
-                            <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, "LOG_RESET")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #34c759", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: 'var(--brand-green)', color: 'var(--surface-base)' }}>Log & Reset</button>
-                            <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, "OPT_OUT")} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #ff3b30", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "transparent", color: 'var(--brand-red)' }}>Opt Out</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, "LOG_RESET")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #34c759", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#34c759", color: "#ffffff" }}>Log & Reset</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, "OPT_OUT")} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #ff3b30", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "transparent", color: "#ff3b30" }}>Opt Out</button>
                           </>
                         )}
                       </div>
 
                   {/* Interactive Timeline Stepper for Logs */}
-                  <div className="timeline-wrapper-panel" style={{ marginTop: '10px', padding: '12px', backgroundColor: 'var(--bg-canvas)', borderRadius: '8px', border: '1px solid #d2d2d7' }}>
+                  <div className="timeline-wrapper-panel" style={{ marginTop: '10px', padding: '12px', backgroundColor: '#f5f5f7', borderRadius: '8px', border: '1px solid #d2d2d7' }}>
                     <div className="custom-scrollbar-viewport timeline-scroll-track-box" style={{ display: 'block', height: '110px', overflowY: 'scroll', overflowX: 'clip', marginBottom: '8px', paddingRight: '2px', boxSizing: 'border-box' }}>
                       {historicalNotes.length > 0 ? (
                         <div style={{ position: 'relative', paddingLeft: '12px', borderLeft: '2px solid #d2d2d7', marginLeft: '4px' }}>
                           {historicalNotes.map((logEntry, index) => {
                             const nodeColor = getTimelineMarkerColor(logEntry.text);
                             return (
-                              <div key={index} style={{ position: 'relative', paddingBottom: index !== historicalNotes.length - 1 ? '12px' : '2px', color: 'var(--text-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '4px' }}>
+                              <div key={index} style={{ position: 'relative', paddingBottom: index !== historicalNotes.length - 1 ? '12px' : '2px', color: '#1d1d1f', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '4px' }}>
                                 <div style={{ position: 'absolute', left: '-19px', top: '4px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: nodeColor, border: '2px solid #f5f5f7', boxShadow: '0 0 0 1px ' + nodeColor, zIndex: 2 }}></div>
                                 <div style={{ flex: 1, minWidth: '0' }}>
                                   <div style={{ fontSize: '12px', fontWeight: '500', lineHeight: '1.3', wordBreak: 'break-word' }}>{logEntry.text}</div>
-                                  <div style={{ color: 'var(--text-secondary)', fontSize: '10px', marginTop: '1px' }}>
-                                    {logEntry.user.split('@')[0]} • <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>{logEntry.time.includes('-') ? logEntry.time : `${logEntry.time} • 00:00 AM`}</span>
+                                  <div style={{ color: '#86868b', fontSize: '10px', marginTop: '1px' }}>
+                                    {logEntry.user.split('@')[0]} • <span style={{ fontSize: '9px', color: '#86868b' }}>{logEntry.time.includes('-') ? logEntry.time : `${logEntry.time} • 00:00 AM`}</span>
                                   </div>
                                 </div>
                                 {isAdmin && (
                                   <button 
                                     onClick={() => deleteNote(item.deviceId, logEntry)} 
-                                    style={{ color: 'var(--brand-red)', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(255, 59, 48, 0.05)', borderRadius: '4px', flexShrink: 0 }}
+                                    style={{ color: '#ff3b30', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(255, 59, 48, 0.05)', borderRadius: '4px', flexShrink: 0 }}
                                   >
                                     ✕
                                   </button>
@@ -1379,12 +1378,12 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                           })}
                         </div>
                       ) : (
-                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No timeline logs.</div>
+                        <div style={{ fontSize: '12px', color: '#86868b', fontStyle: 'italic' }}>No timeline logs.</div>
                       )}
                     </div>
                     
                     <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid #e5e5ea', paddingTop: '8px' }}>
-                        <input placeholder="Add note..." value={noteInputs[item.deviceId.slice(-5)] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ ...inputStyle, flex: 1, backgroundColor: 'var(--surface-base)', padding: '4px 8px', fontSize: '12px', borderRadius: '6px' }} />
+                        <input placeholder="Add note..." value={noteInputs[item.deviceId.slice(-5)] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ ...inputStyle, flex: 1, backgroundColor: '#ffffff', padding: '4px 8px', fontSize: '12px', borderRadius: '6px' }} />
                         <button onClick={() => addNote(item.deviceId, item.timestamp, noteInputs[item.deviceId.slice(-5)])} style={{ ...primaryButtonStyle, padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }}>Post</button>
                     </div>
                   </div>
@@ -1393,18 +1392,18 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                 {/* ---------------- BACK FACE: DIAGNOSTICS ---------------- */}
                 <div className="card-face card-back custom-scrollbar-viewport">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '16px', marginBottom: '16px' }}>
-                    <div style={{ fontSize: '16px', fontWeight: '600', letterSpacing: '-0.01em', color: 'var(--surface-base)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ color: 'var(--brand-blue)' }}>⚙️</span> Diagnostics
+                    <div style={{ fontSize: '16px', fontWeight: '600', letterSpacing: '-0.01em', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: '#007aff' }}>⚙️</span> Diagnostics
                     </div>
-                    <button onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ background: 'var(--surface-raised)', border: '1px solid #3a3a3c', cursor: 'pointer', fontSize: '11px', color: 'var(--surface-base)', padding: '4px 10px', borderRadius: '8px', fontWeight: '600' }}>⤶ Back</button>
+                    <button onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ background: '#2c2c2e', border: '1px solid #3a3a3c', cursor: 'pointer', fontSize: '11px', color: '#ffffff', padding: '4px 10px', borderRadius: '8px', fontWeight: '600' }}>⤶ Back</button>
                   </div>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '12px', color: 'var(--text-secondary)', padding: '20px' }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '12px', color: '#86868b', padding: '20px' }}>
                     {isAdmin && (
-                      <button onClick={() => applySingleFactoryReset(item.deviceId)} style={{ ...secondaryButtonStyle, borderColor: 'var(--brand-red)', color: 'var(--brand-red)', width: '100%', marginBottom: '16px' }}>
+                      <button onClick={() => applySingleFactoryReset(item.deviceId)} style={{ ...secondaryButtonStyle, borderColor: '#ff3b30', color: '#ff3b30', width: '100%', marginBottom: '16px' }}>
                         ⚠️ Factory Reset Profile
                       </button>
                     )}
-                    <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--border-subtle)' }}>Expansion Slot Ready</div>
+                    <div style={{ fontSize: '14px', fontWeight: '500', color: '#d2d2d7' }}>Expansion Slot Ready</div>
                     <div style={{ fontSize: '12px', lineHeight: '1.5', maxWidth: '200px' }}>Reserved for real-time BSSID anchors, signal strength, and manual TCP overrides.</div>
                   </div>
                 </div>
@@ -1418,18 +1417,18 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       {/* Full-Screen High-Contrast Interactive Map Overlay Modal Window */}
       {activeMapModalAsset && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 6000, padding: '24px' }}>
-          <div style={{ backgroundColor: 'var(--surface-base)', borderRadius: '18px', width: '100%', maxWidth: '800px', height: '80vh', border: '1px solid #d2d2d7', boxShadow: '0 30px 70px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '18px', width: '100%', maxWidth: '800px', height: '80vh', border: '1px solid #d2d2d7', boxShadow: '0 30px 70px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ padding: '20px 28px', borderBottom: '1px solid #e5e5ea', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
               <div>
                 <h3 style={{ margin: '0 0 2px 0', fontSize: '18px', fontWeight: '600', letterSpacing: '-0.01em' }}>
                   {activeMapModalAsset.tag ? `${activeMapModalAsset.tag} — ${activeMapModalAsset.deviceId}` : activeMapModalAsset.deviceId}
                 </h3>
-                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>Live Coordinates Matrix: <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{activeMapModalAsset.latitude?.toFixed(5)}, {activeMapModalAsset.longitude?.toFixed(5)}</span></p>
+                <p style={{ margin: 0, fontSize: '13px', color: '#86868b' }}>Live Coordinates Matrix: <span style={{ color: '#1d1d1f', fontWeight: '500' }}>{activeMapModalAsset.latitude?.toFixed(5)}, {activeMapModalAsset.longitude?.toFixed(5)}</span></p>
               </div>
               <button onClick={() => setActiveMapModalAsset(null)} style={{ ...secondaryButtonStyle, padding: '8px 18px', fontSize: '13px', borderRadius: '14px', cursor: 'pointer' }}>Close Map</button>
             </div>
-            <div style={{ flex: 1, width: '100%', backgroundColor: 'var(--bg-canvas)', position: 'relative' }}>
-              <iframe style={{ filter: "invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)" }} loading="lazy" title="map-modal" width="100%" height="100%" frameBorder="0" scrolling="no" src={activeMapModalAsset?.latitude && !isNaN(Number(activeMapModalAsset.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(activeMapModalAsset.longitude)-0.02}%2C${Number(activeMapModalAsset.latitude)-0.02}%2C${Number(activeMapModalAsset.longitude)+0.02}%2C${Number(activeMapModalAsset.latitude)+0.02}&layer=mapnik&marker=${Number(activeMapModalAsset.latitude)}%2C${Number(activeMapModalAsset.longitude)}` : "about:blank"}></iframe>
+            <div style={{ flex: 1, width: '100%', backgroundColor: '#f5f5f7', position: 'relative' }}>
+              <iframe loading="lazy" title="map-modal" width="100%" height="100%" frameBorder="0" scrolling="no" src={activeMapModalAsset?.latitude && !isNaN(Number(activeMapModalAsset.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(activeMapModalAsset.longitude)-0.02}%2C${Number(activeMapModalAsset.latitude)-0.02}%2C${Number(activeMapModalAsset.longitude)+0.02}%2C${Number(activeMapModalAsset.latitude)+0.02}&layer=mapnik&marker=${Number(activeMapModalAsset.latitude)}%2C${Number(activeMapModalAsset.longitude)}` : "about:blank"}></iframe>
             </div>
           </div>
         </div>
@@ -1438,9 +1437,9 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       {/* Monochromatic High-Contrast Apple-style Modal Overlay for Token Management */}
       {sharingAsset && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 5000 }}>
-          <div style={{ backgroundColor: 'var(--surface-base)', borderRadius: '16px', padding: '32px', width: '90%', maxWidth: '440px', border: '1px solid #d2d2d7', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '32px', width: '90%', maxWidth: '440px', border: '1px solid #d2d2d7', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}>
             <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: '600', letterSpacing: '-0.02em' }}>Escalate Live Tracking</h3>
-            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: 'var(--text-secondary)' }}>Generate a secure external reference view for Device ID: <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{sharingAsset.deviceId}</span></p>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Generate a secure external reference view for Device ID: <span style={{ fontWeight: '600', color: '#1d1d1f' }}>{sharingAsset.deviceId}</span></p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -1469,25 +1468,25 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       {showGuide && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.4)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 7000, padding: "24px" }}>
-          <div style={{ backgroundColor: 'var(--surface-base)', borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", border: "1px solid #d2d2d7", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}>
+          <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", border: "1px solid #d2d2d7", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", letterSpacing: "-0.02em" }}>⚡ Quick Setup Guide</h3>
-              <button onClick={() => setShowGuide(false)} style={{ background: "transparent", border: "none", fontSize: "20px", cursor: "pointer", color: 'var(--text-secondary)' }}>✕</button>
+              <button onClick={() => setShowGuide(false)} style={{ background: "transparent", border: "none", fontSize: "20px", cursor: "pointer", color: "#86868b" }}>✕</button>
             </div>
-            <div style={{ fontSize: "14px", color: 'var(--text-primary)', lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "14px" }}>
+            <div style={{ fontSize: "14px", color: "#1d1d1f", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "14px" }}>
               <div><strong>📱 Section 1: Setting Up a Single Card</strong><br/>
-            <span style={{ color: 'var(--text-secondary)' }}>• <strong>Step 1: Give it a Name</strong> Type a clear name into the <em>Rename Asset...</em> box on the device's card and click <strong>Save</strong>.<br/>
+            <span style={{ color: "#86868b" }}>• <strong>Step 1: Give it a Name</strong> Type a clear name into the <em>Rename Asset...</em> box on the device's card and click <strong>Save</strong>.<br/>
             • <strong>Step 2: Lock the Home Location</strong> When the Gps Device is magnetically locked into position , click <strong>Set Home</strong> to lock its home base position.<br/>
             • <strong>Step 3: Turn on the Watchdog Guard</strong> Flip the status switch to <strong>Watchdog Active</strong>. You will see a green light start pulsing to show the device is tracking and guarding that spot in real time.</span></div>
             
             <div style={{ borderTop: "1px dashed #d2d2d7", paddingTop: "10px" }}><strong>🛡️ Section 2: Scheduling Service and Opt-Out</strong><br/>
-            <span style={{ color: 'var(--text-secondary)' }}>• <strong>Turn Off Tracking (Service/Transport Mode)</strong> If you need to move a card for a battery swap, maintenance, or shipping, click the switch to turn the <strong>Watchdog Off</strong>. This stops false alarms while it's in transit.<br/>
+            <span style={{ color: "#86868b" }}>• <strong>Turn Off Tracking (Service/Transport Mode)</strong> If you need to move a card for a battery swap, maintenance, or shipping, click the switch to turn the <strong>Watchdog Off</strong>. This stops false alarms while it's in transit.<br/>
             • <strong>Set Up a Service Schedule</strong> Choose how often a card needs regular check-ups from the drop-down menu on the card and click <strong>Schedule Service</strong> to keep track of its upkeep timeline.<br/>
             • <strong>Choose Opt-Out to Cancel.</strong></span></div>
             
             <div style={{ borderTop: "1px dashed #d2d2d7", paddingTop: "10px" }}><strong>📦 Section 3: Doing Actions in Bulk (Bottom Drawer)</strong><br/>
-            <span style={{ color: 'var(--text-secondary)', fontStyle: "italic" }}>Note: To use these options, you must first check the selection boxes on more than one card. This will slide open the menu drawer at the bottom of your screen.</span><br/>
-            <span style={{ color: 'var(--text-secondary)' }}>• <strong>Move Cards into Group Folders:</strong> Type a folder name into <em>Assign to Group...</em> and click <strong>Move</strong> to group your selected cards together.<br/>
+            <span style={{ color: "#86868b", fontStyle: "italic" }}>Note: To use these options, you must first check the selection boxes on more than one card. This will slide open the menu drawer at the bottom of your screen.</span><br/>
+            <span style={{ color: "#86868b" }}>• <strong>Move Cards into Group Folders:</strong> Type a folder name into <em>Assign to Group...</em> and click <strong>Move</strong> to group your selected cards together.<br/>
             • <strong>Auto-Number a Batch of Cards:</strong> If you want to name a bunch of cards sequentially, type any name into the box (like Cosmo) and click <strong>Sequence Name</strong>. The system will automatically add a number to them (Cosmo-1, Cosmo-2, Cosmo-3, etc.).<br/>
             • <strong>Write a Note to a Whole Group:</strong> Type an installation or status update note into the group box and click <strong>Post log to Group</strong> to add that exact message to all selected card timelines at the same time.</span></div>
           </div>
@@ -1502,7 +1501,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: 'var(--surface-base)',
+        backgroundColor: '#ffffff',
         borderTop: '1px solid #d2d2d7',
         boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
         zIndex: 4000,
@@ -1515,7 +1514,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             <div style={{ fontSize: '22px', fontWeight: '700', letterSpacing: '-0.01em' }}>{selectedDevices.length} Kinetic Card{selectedDevices.length === 1 ? '' : 's'} Selected</div>
-            <div style={{ fontSize: '14px', color: 'var(--text-secondary)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setSelectedDevices([])}>Deselect all records</div>
+            <div style={{ fontSize: '14px', color: '#86868b', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setSelectedDevices([])}>Deselect all records</div>
           </div>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', flex: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
@@ -1555,13 +1554,13 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             </div>
 
             {/* Action 3: Dual Set Home Anchors with Confirmation Prompt */}
-            <div className="marine-home-group"><button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: 'var(--brand-green)', color: 'var(--brand-green)' }}>Set Home Anchors</button><button onClick={async () => { if (!window.confirm("Are you sure you want to toggle Marine Mode for " + selectedDevices.length + " selected device(s)?")) return; await Promise.all(selectedDevices.map(id => { const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id); const currentVal = !!dev.isMarineMode; return updateAttribute(dev.deviceId, 'LATEST', 'isMarineMode', !currentVal, '#mm', true); })); setMarineModes(prev => { const res = {...prev}; selectedDevices.forEach(id => res[id] = !res[id]); return res; }); alert("Marine Mode permanently updated in database for " + selectedDevices.length + " device(s)."); fetchDevices(); setSelectedDevices([]); }} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: 'var(--brand-blue)', color: 'var(--brand-blue)' }}>⚓ Toggle Marine Mode</button></div>
+            <div className="marine-home-group"><button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#34c759", color: "#34c759" }}>Set Home Anchors</button><button onClick={async () => { if (!window.confirm("Are you sure you want to toggle Marine Mode for " + selectedDevices.length + " selected device(s)?")) return; await Promise.all(selectedDevices.map(id => { const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id); const currentVal = !!dev.isMarineMode; return updateAttribute(dev.deviceId, 'LATEST', 'isMarineMode', !currentVal, '#mm', true); })); setMarineModes(prev => { const res = {...prev}; selectedDevices.forEach(id => res[id] = !res[id]); return res; }); alert("Marine Mode permanently updated in database for " + selectedDevices.length + " device(s)."); fetchDevices(); setSelectedDevices([]); }} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#007aff", color: "#007aff" }}>⚓ Toggle Marine Mode</button></div>
 
             {/* Action 4: Dual Clear Home Anchors with Confirmation Prompt */}
-            <button onClick={applyBulkClearHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: 'var(--brand-orange)', color: 'var(--brand-orange)' }}>Clear Home Anchors</button>
+            <button onClick={applyBulkClearHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff9500', color: '#ff9500' }}>Clear Home Anchors</button>
             
             {/* NEW ACTION: Factory Reset Devices */}
-            <button onClick={applyBulkFactoryReset} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: 'var(--brand-red)', color: 'var(--brand-red)' }}>Factory Reset</button>
+            <button onClick={applyBulkFactoryReset} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#ff3b30", color: "#ff3b30" }}>Factory Reset</button>
 
           </div>
         </div>
@@ -1571,10 +1570,10 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       )}
 
       {/* STANDARD LEGAL FOOTER */}
-      <div className="no-print" style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", padding: "20px 32px", backgroundColor: "#121212", color: 'var(--text-secondary)', fontSize: "12px", width: "100%", boxSizing: "border-box" }}>
+      <div className="no-print" style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", padding: "20px 32px", backgroundColor: "#121212", color: "#86868b", fontSize: "12px", width: "100%", boxSizing: "border-box" }}>
         <div style={{ display: "flex", gap: "24px", justifyContent: "flex-start", fontWeight: "500" }}>
-            <span onClick={() => alert("Privacy Policy: Kinetic Assets collects real-time geolocation data, network anchors, and operational telemetry to ensure asset security. All tracking logs are stored securely and never shared or sold.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color = "#fff"} onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}>Privacy Policy</span>
-            <span onClick={() => alert("Terms of Service: By accessing the Kinetic Assets system, you agree to use it solely for tracking authorized company hardware. Unauthorized location spoofing, watchdog manipulation, or tampering with device telemetry is strictly prohibited.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color = "#fff"} onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}>Terms of Service</span>
+            <span onClick={() => alert("Privacy Policy: Kinetic Assets collects real-time geolocation data, network anchors, and operational telemetry to ensure asset security. All tracking logs are stored securely and never shared or sold.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color = "#fff"} onMouseLeave={(e) => e.target.style.color = "#86868b"}>Privacy Policy</span>
+            <span onClick={() => alert("Terms of Service: By accessing the Kinetic Assets system, you agree to use it solely for tracking authorized company hardware. Unauthorized location spoofing, watchdog manipulation, or tampering with device telemetry is strictly prohibited.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color = "#fff"} onMouseLeave={(e) => e.target.style.color = "#86868b"}>Terms of Service</span>
         </div>
         <div style={{ textAlign: "center" }}>
             Kinetic Cards v2.1
