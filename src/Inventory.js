@@ -119,6 +119,55 @@ export default function Inventory({ user }) {
   const [activeZone, setActiveZone] = useState("Unassigned Warehouse");
   const [isScanning, setIsScanning] = useState(false);
   const [scanFeedback, setScanFeedback] = useState("");
+
+  // --- OFFLINE DEAD ZONE ENGINE ---
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [offlineQueue, setOfflineQueue] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("inventory_offline_queue")) || []; } catch(e) { return []; }
+  });
+
+  useEffect(() => { localStorage.setItem("inventory_offline_queue", JSON.stringify(offlineQueue)); }, [offlineQueue]);
+
+  const flushOfflineQueue = async () => {
+    const queueToFlush = JSON.parse(localStorage.getItem("inventory_offline_queue") || "[]");
+    if (queueToFlush.length === 0) return;
+    
+    setOfflineQueue([]); // Clear immediately to prevent double-execution
+    let failures = [];
+
+    for (const task of queueToFlush) {
+      try {
+        if (task.type === "INVENTORY_ACTION") {
+          await docClient.send(new UpdateCommand(task.inventoryPayload));
+          await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: task.logEntry }));
+        } else if (task.type === "NEW_ITEM") {
+          await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: task.payload }));
+        }
+      } catch (err) {
+        console.error("Offline sync failed for task:", err);
+        failures.push(task);
+      }
+    }
+    
+    if (failures.length > 0) {
+      setOfflineQueue(prev => [...prev, ...failures]);
+      setScanFeedback("⚠️ Some offline tasks failed to sync.");
+    } else {
+      setScanFeedback("✅ ☁️ Offline queue fully synced to cloud!");
+    }
+    setTimeout(() => setScanFeedback(""), 4000);
+  };
+
+  useEffect(() => {
+    const handleOnline = () => { setIsOffline(false); flushOfflineQueue(); };
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    if (navigator.onLine && offlineQueue.length > 0) flushOfflineQueue(); // Initial load flush
+    return () => { window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
+  }, []);
+  // --------------------------------
+
   
   const [showNewItemModal, setShowNewItemModal] = useState(false);
   const [newItemForm, setNewItemForm] = useState({ barcode: "", brand: "", flavor: "", type: "", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 1, zone: "" });
@@ -435,11 +484,19 @@ export default function Inventory({ user }) {
     setScanFeedback(`✅ ${logEntry.action} ${boxAdjustment}bx ${targetItem.flavor}` + (logEntry.destination ? ` ➔ ${logEntry.destination.replace("ZONE-", "").replace("BAY-", "")}` : ""));
     setShowConfirmModal(false); setPendingAction(null); setOrderNumber("");
 
-    try { await docClient.send(new UpdateCommand({ TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, recentScans = :rs, locations = :locs", ConditionExpression: "quantity = :expectedOldQty", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone || targetItem.zone, ":rs": updatedScans, ":locs": updatedLocations, ":expectedOldQty": targetItem.quantity } })); } 
-    catch (err) { if (err.name === "ConditionalCheckFailedException") { alert("⚠️ COLLISION DETECTED: Another operator modified this stock while you were processing. Action blocked to prevent corruption. Refreshing..."); fetchInventory(); } else { console.error("Inventory cloud update failed:", err); } }
-    try { await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: logEntry })); } 
-    catch (err) { console.error("Audit log cloud sync failed:", err); }
-    setTimeout(() => setScanFeedback(""), 4000);
+    const inventoryPayload = { TableName: "BeverageInventoryData", Key: { barcode: targetItem.barcode, lotNumber: targetItem.lotNumber }, UpdateExpression: "SET quantity = :q, #z = :z, recentScans = :rs, locations = :locs", ConditionExpression: "quantity = :expectedOldQty", ExpressionAttributeNames: { "#z": "zone" }, ExpressionAttributeValues: { ":q": newQuantity, ":z": newZone || targetItem.zone, ":rs": updatedScans, ":locs": updatedLocations, ":expectedOldQty": targetItem.quantity } };
+
+    if (isOffline) {
+      setOfflineQueue(prev => [...prev, { type: "INVENTORY_ACTION", inventoryPayload, logEntry }]);
+      setScanFeedback(`📴 Saved Locally: ${logEntry.action} ${boxAdjustment}bx ${targetItem.flavor}`);
+      setTimeout(() => setScanFeedback(""), 4000);
+    } else {
+      try { await docClient.send(new UpdateCommand(inventoryPayload)); } 
+      catch (err) { if (err.name === "ConditionalCheckFailedException") { alert("⚠️ COLLISION DETECTED: Another operator modified this stock while you were processing. Action blocked to prevent corruption. Refreshing..."); fetchInventory(); } else { console.error("Inventory cloud update failed:", err); } }
+      try { await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: logEntry })); } 
+      catch (err) { console.error("Audit log cloud sync failed:", err); }
+      setTimeout(() => setScanFeedback(""), 4000);
+    }
   };
 
   const handleManualAdd = () => { setNewItemForm({ barcode: "", brand: "", flavor: "", type: "", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: 0, zone: "" }); setShowNewItemModal(true); };
@@ -458,7 +515,11 @@ export default function Inventory({ user }) {
     setShowNewItemModal(false); 
     setScanFeedback(`✅ 📥 Registered Product: ${newItemForm.flavor}`);
     setTimeout(() => setScanFeedback(""), 4000);
-    try { await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: newItemForm })); } catch (err) { console.error("Failed to register:", err); }
+    if (isOffline) {
+      setOfflineQueue(prev => [...prev, { type: "NEW_ITEM", payload: newItemForm }]);
+    } else {
+      try { await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: newItemForm })); } catch (err) { console.error("Failed to register:", err); }
+    }
   };
 
   const handleSaveCardEdit = async (barcode) => {
@@ -660,6 +721,7 @@ return (
           <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "600", letterSpacing: "-0.02em" }}>📦 Inventory <button onClick={() => setShowHelpModal(true)} style={{ marginLeft: '16px', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#007aff', padding: '4px 12px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', verticalAlign: 'middle' }}>📖 Guide</button>
             <button onClick={() => requireManager(() => setShowSettingsModal(true))} style={{ marginLeft: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", color: "#af52de", padding: "4px 12px", borderRadius: "8px", fontSize: "14px", cursor: "pointer", verticalAlign: "middle" }}>⚙️ Settings</button></h1>
           <p style={{ margin: "4px 0 0 0", color: "#8e8e93", fontSize: "14px" }}>Active Operator: {user?.email || auth?.user?.profile?.email || "Scanner Mode Active"}</p>
+          {isOffline && <div style={{ display: "inline-block", backgroundColor: "rgba(255, 149, 0, 0.15)", color: "#ff9500", border: "1px solid #ff9500", padding: "4px 10px", borderRadius: "8px", fontSize: "12px", fontWeight: "700", marginTop: "8px", boxShadow: "0 0 10px rgba(255,149,0,0.2)" }}>📴 DEAD ZONE: {offlineQueue.length} Scans Queued</div>}
         </div>
         
       </div>
