@@ -499,6 +499,10 @@ return (
         button, input, .scanner-control-panel, .mode-switch-group, .total-stock-block {
           touch-action: pan-y manipulation !important;
         }
+        
+        @media (hover: hover) {
+          .flavor-row:hover { border-color: #007aff !important; }
+        }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
         
         @keyframes inventory-toast-pop { 0% { opacity: 0; transform: translate(-50%, 20px) scale(0.9); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
@@ -699,7 +703,7 @@ return (
           {/* Dense Grid for 40+ Items */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "10px", overflowY: "scroll", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0, paddingRight: "8px", alignContent: "start", flex: 1 }} className="custom-scrollbar-viewport">
             {flavorTotals.map(f => (
-              <div key={f.name} 
+              <div key={f.name} className="flavor-row" 
               onClick={() => {
                 const targetId = `card-${f.name.replace(/[^a-zA-Z0-9]/g, "-")}`;
                 const target = document.getElementById(targetId);
