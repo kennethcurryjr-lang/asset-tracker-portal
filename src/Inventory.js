@@ -535,8 +535,9 @@ return (
       
         @media (min-width: 769px) {
           .toolbar-stack {
-            display: grid !important;
-            grid-template-columns: 1fr auto 1fr;
+            display: flex !important;
+            justify-content: center !important;
+            gap: 64px !important;
             align-items: flex-start !important;
           }
         }
