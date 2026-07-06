@@ -503,67 +503,6 @@ export default function Inventory({ user }) {
   }, [isScanning]);
 
   
-  const injectChaos = async () => {
-    if (!window.confirm("🌪️ WARNING: This will blast 15 chaotic simulated transactions into your live DynamoDB. The UI will explode with alerts. Proceed?")) return;
-    
-    let currentStock = [...stock];
-    let newLogs = [];
-    const zones = ["Loading Dock-01", "Cooler Bay-02", "Quarantine Aisle", "Dry Aisle C"];
-    const operators = ["dave.forklift@csgroup.com", "sarah.manager@csgroup.com", "mike.temp@gmail.com"];
-    const actions = ["Receive", "Ship", "Transfer", "💥 Shrinkage"];
-    
-    // Shuffle and pick 15 victims from the 50 items
-    const shuffled = [...currentStock].sort(() => 0.5 - Math.random());
-    const victims = shuffled.slice(0, 15);
-    
-    for (let i = 0; i < victims.length; i++) {
-        let item = victims[i];
-        let act = actions[Math.floor(Math.random() * actions.length)];
-        let boxAdj = Math.floor(Math.random() * 80) + 5;
-        let dest = zones[Math.floor(Math.random() * zones.length)];
-        let user = operators[Math.floor(Math.random() * operators.length)];
-        
-        // Apply Chaos
-        if (i < 3) { item.expiryDate = "2024-01-01"; act = "Admin Override"; } // Force Expired
-        else if (i < 5) { item.quantity = 0; act = "💥 Shrinkage"; } // Force Depleted
-        else if (i < 8) { item.quantity = Math.floor(Math.random() * 20) + 1; act = "Ship"; } // Force Low Stock
-        else if (act === "Receive" || act === "Transfer") {
-            if(!item.locations) item.locations = [{name: item.zone || "Unassigned", qty: item.quantity}];
-            item.locations.push({name: dest, qty: boxAdj});
-            item.quantity += boxAdj;
-        } else if (act === "Ship") {
-            item.quantity = Math.max(0, item.quantity - boxAdj);
-        }
-
-        const logEntry = { 
-            id: Date.now() + i, 
-            time: new Date().toLocaleString(), 
-            user: user, 
-            action: act.replace(/[^a-zA-Z💥 ]/g, "").trim(), 
-            qty: boxAdj, 
-            flavor: item.flavor,
-            destination: (act === "Receive" || act === "Transfer") ? dest : null,
-            orderNumber: "CHAOS-" + Math.floor(1000 + Math.random() * 9000)
-        };
-        newLogs.push(logEntry);
-        
-        try { 
-            await docClient.send(new UpdateCommand({ 
-                TableName: "BeverageInventoryData", 
-                Key: { barcode: item.barcode, lotNumber: item.lotNumber }, 
-                UpdateExpression: "SET quantity = :q, expiryDate = :e, locations = :locs", 
-                ExpressionAttributeValues: { ":q": item.quantity, ":e": item.expiryDate || "N/A", ":locs": item.locations || [] } 
-            }));
-            await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: logEntry }));
-        } catch (err) { console.log(err); }
-    }
-    
-    setStock(currentStock);
-    setAuditLog(prev => [...newLogs, ...prev]);
-    setScanFeedback("🌪️ WAREHOUSE CHAOS EVENT COMPLETE");
-    setTimeout(() => setScanFeedback(""), 6000);
-  };
-
   const vendorsToAlert = [...new Set(lowStockItems.map(i => i.vendorEmail || "purchasing@csgroup.com"))];
 
   const flavorTotals = Array.from(stock.reduce((map, item) => {
@@ -902,7 +841,7 @@ return (
         <button onClick={() => { setIsMultiFlipMode(!isMultiFlipMode); if (isMultiFlipMode) setFlippedCards([]); }} style={{ flex: "0 1 auto", backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "14px 20px", borderRadius: "8px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>
           🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
         </button>
-        <button onClick={() => requireManager(injectChaos)} style={{ flex: "0 1 auto", backgroundColor: "rgba(255,59,48,0.1)", border: "1px solid #ff3b30", padding: "14px 20px", borderRadius: "8px", color: "#ff3b30", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" }}>🌪️ Inject Chaos</button>
+        
         <button onClick={handleManualAdd} style={{ flex: "0 1 auto", backgroundColor: "#34c759", border: "none", padding: "14px 20px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}><Plus size={16} className="lucide-icon" /> Register New Product</button>
       </div>
 
