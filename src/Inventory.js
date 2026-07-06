@@ -3,6 +3,8 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { ScanCommand, UpdateCommand, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient } from './dynamoClient';
 import { useAuth } from 'react-oidc-context';
+import { Download, Truck, ArrowRightLeft, Package, ScanLine, ClipboardList, FileDown, Plus } from 'lucide-react';
+
 
 const initialMockData = [
   { barcode: "082123456781", lotNumber: "LOT-2026-01", expiryDate: "2026-10-15", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", type: "", quantity: 420, zone: "Cooler Bay-01" },
@@ -284,7 +286,7 @@ export default function Inventory({ user }) {
       }
 
       setModalQty(boxAdjustment);
-      setPendingAction({ targetItem, boxAdjustment, newQuantity, newZone, actionName: scanMode === "receive" ? "📥 Receive" : (scanMode === "transfer" ? "🔄 Transfer" : "🚚 Ship"), fifoWarningItem, isShrinkage: false });
+      setPendingAction({ targetItem, boxAdjustment, newQuantity, newZone, actionName: scanMode === "receive" ? "<Download size={18} className="lucide-icon" /> Receive" : (scanMode === "transfer" ? "<ArrowRightLeft size={18} className="lucide-icon" /> Transfer" : "<Truck size={18} className="lucide-icon" /> Ship"), fifoWarningItem, isShrinkage: false });
       setShowConfirmModal(true);
     } else {
       setNewItemForm({ barcode: cleanScan, brand: "", flavor: "", type: "", lotNumber: "", expiryDate: "", vendorEmail: "", quantity: boxAdjustment, zone: activeZone !== "Unassigned Warehouse" ? activeZone : "Unassigned Warehouse" });
@@ -301,7 +303,7 @@ export default function Inventory({ user }) {
     // Initialize the locations array if it's an older single-zone card
     let updatedLocations = targetItem.locations || [{ name: targetItem.zone || "Unassigned Warehouse", qty: targetItem.quantity }];
 
-    if (actionName === "🔄 Transfer" && newZone) {
+    if (actionName === "<ArrowRightLeft size={18} className="lucide-icon" /> Transfer" && newZone) {
         // Strict FIFO Check: Does this zone contain an older lot?
         const fifoViolation = stock.some(s => 
             s.flavor === targetItem.flavor && 
@@ -503,6 +505,9 @@ return (
         @media (hover: hover) {
           .flavor-row:hover { border-color: #007aff !important; }
         }
+        
+        .lucide-icon { vertical-align: text-bottom; margin-right: 6px; }
+        .lucide-icon-sm { vertical-align: text-bottom; margin-right: 4px; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #1c1c1e; } ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
         
         @keyframes inventory-toast-pop { 0% { opacity: 0; transform: translate(-50%, 20px) scale(0.9); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
@@ -573,17 +578,17 @@ return (
         {/* CENTER: Cohesive Scanner Unit */}
         <div className="scanner-control-panel" style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "1 1 auto", alignSelf: "flex-start", margin: "0 16px", maxWidth: "450px", width: "100%", backgroundColor: "#1c1c1e", padding: "16px", borderRadius: "14px", border: "1px solid #3a3a3c", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
           <div className="mode-switch-group" style={{ display: "flex", justifyContent: "space-between", gap: "8px", width: "100%" }}>
-            <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "rgba(255,255,255,0.05)", color: scanMode === "receive" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>📥 Receive</button>
-            <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "rgba(255,255,255,0.05)", color: scanMode === "ship" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>🚚 Ship</button>
-            <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "transfer" ? "#007aff" : "rgba(255,255,255,0.05)", color: scanMode === "transfer" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}>🔄 Transfer</button>
+            <button onClick={() => { if (scanMode !== "receive") setPendingModeSwitch("receive"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "receive" ? "#34c759" : "rgba(255,255,255,0.05)", color: scanMode === "receive" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><Download size={18} className="lucide-icon" /> Receive</button>
+            <button onClick={() => { if (scanMode !== "ship") setPendingModeSwitch("ship"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "ship" ? "#ff3b30" : "rgba(255,255,255,0.05)", color: scanMode === "ship" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><Truck size={18} className="lucide-icon" /> Ship</button>
+            <button onClick={() => { if (scanMode !== "transfer") setPendingModeSwitch("transfer"); }} style={{ flex: 1, padding: "14px 10px", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", backgroundColor: scanMode === "transfer" ? "#007aff" : "rgba(255,255,255,0.05)", color: scanMode === "transfer" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", fontSize: "15px", whiteSpace: "nowrap" }}><ArrowRightLeft size={18} className="lucide-icon" /> Transfer</button>
           </div>
           <div className="primary-row" style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
             <div className="qty-box" style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#242426", border: "1px solid #3a3a3c", borderRadius: "8px", padding: "4px 12px" }}>
               <span className="hide-mobile" style={{ color: "#8e8e93", fontSize: "14px", fontWeight: "600" }}>QTY:</span>
               <input type="number" min="1" value={customQty} onChange={(e) => setCustomQty(e.target.value)} style={{ width: "40px", backgroundColor: "transparent", border: "none", color: "#ffffff", fontSize: "16px", fontWeight: "600", outline: "none", textAlign: "center" }} />
             </div>
-            <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#242426", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>🪵 {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
-            <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", flexGrow: 1, boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)" }}>📷 SCAN</button>
+            <button onClick={() => setIsPalletMode(!isPalletMode)} style={{ backgroundColor: isPalletMode ? "rgba(255, 149, 0, 0.15)" : "#242426", border: isPalletMode ? "1px solid #ff9500" : "1px solid #3a3a3c", padding: "12px 16px", borderRadius: "8px", color: isPalletMode ? "#ff9500" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}><Package size={18} className="lucide-icon" /> {isPalletMode ? `${70 * (parseInt(customQty) || 1)} Boxes` : "Single"}</button>
+            <button onClick={() => setIsScanning(true)} style={{ backgroundColor: "#007aff", border: "none", padding: "12px 24px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", flexGrow: 1, boxShadow: "0 4px 14px rgba(0, 122, 255, 0.3)" }}><ScanLine size={18} className="lucide-icon" /> SCAN</button>
           </div>
           
           {/* INJECTED TARGET ZONE & LIVE TICKER */}
@@ -619,8 +624,8 @@ return (
             <div style={{ fontSize: "42px", fontWeight: "800", color: "#34c759", letterSpacing: "-0.02em", marginTop: "4px", lineHeight: "1", width: "100%", textAlign: "right" }}>{totalBoxes.toLocaleString()} <span style={{ fontSize: "18px", color: "#8e8e93", fontWeight: "600" }}>bx</span></div>
             
             <div className="secondary-row" style={{ display: "flex", gap: "8px", marginTop: "auto", paddingTop: "16px", width: "100%", justifyContent: "flex-end" }}>
-              <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "6px 12px", borderRadius: "6px", color: "#8e8e93", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}>📋 AUDIT</button>
-              <button onClick={handleExportCSV} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "6px 12px", borderRadius: "6px", color: "#8e8e93", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}>📥 CSV</button>
+              <button onClick={() => requireManager(() => setShowAuditModal(true))} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "6px 12px", borderRadius: "6px", color: "#8e8e93", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}><ClipboardList size={12} className="lucide-icon-sm" /> AUDIT</button>
+              <button onClick={handleExportCSV} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", padding: "6px 12px", borderRadius: "6px", color: "#8e8e93", fontWeight: "700", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s" }}><FileDown size={12} className="lucide-icon-sm" /> CSV</button>
             </div>
           </div>
         </div>
@@ -745,7 +750,7 @@ return (
         <button onClick={() => { setIsMultiFlipMode(!isMultiFlipMode); if (isMultiFlipMode) setFlippedCards([]); }} style={{ flex: "0 1 auto", backgroundColor: isMultiFlipMode ? "rgba(0, 122, 255, 0.15)" : "#1c1c1e", border: isMultiFlipMode ? "1px solid #007aff" : "1px solid #3a3a3c", padding: "14px 20px", borderRadius: "8px", color: isMultiFlipMode ? "#007aff" : "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap" }}>
           🔄 Multi-Flip {isMultiFlipMode ? "ON" : "OFF"}
         </button>
-        <button onClick={handleManualAdd} style={{ flex: "0 1 auto", backgroundColor: "#34c759", border: "none", padding: "14px 20px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}>➕ Register New Product</button>
+        <button onClick={handleManualAdd} style={{ flex: "0 1 auto", backgroundColor: "#34c759", border: "none", padding: "14px 20px", borderRadius: "8px", color: "#ffffff", fontWeight: "600", cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 4px 14px rgba(52, 199, 89, 0.3)" }}><Plus size={16} className="lucide-icon" /> Register New Product</button>
       </div>
 
       {/* FLIPPABLE KINETIC CARDS */}
@@ -877,9 +882,9 @@ return (
                       </div>
                       
                       <div style={{ display: 'flex', gap: '8px', marginTop: '16px', marginBottom: '12px' }}>
-                        <button onClick={(e) => { e.stopPropagation(); setScanMode("receive"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(52, 199, 89, 0.15)', color: '#34c759', border: '1px solid #34c759', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>📥 RCV</button>
-                        <button onClick={(e) => { e.stopPropagation(); setScanMode("ship"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(255, 59, 48, 0.15)', color: '#ff3b30', border: '1px solid #ff3b30', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>🚚 SHP</button>
-                        <button onClick={(e) => { e.stopPropagation(); setScanMode("transfer"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(0, 122, 255, 0.15)', color: '#007aff', border: '1px solid #007aff', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>🔄 TFR</button>
+                        <button onClick={(e) => { e.stopPropagation(); setScanMode("receive"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(52, 199, 89, 0.15)', color: '#34c759', border: '1px solid #34c759', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><Download size={14} className="lucide-icon-sm" /> RCV</button>
+                        <button onClick={(e) => { e.stopPropagation(); setScanMode("ship"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(255, 59, 48, 0.15)', color: '#ff3b30', border: '1px solid #ff3b30', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><Truck size={14} className="lucide-icon-sm" /> SHP</button>
+                        <button onClick={(e) => { e.stopPropagation(); setScanMode("transfer"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(0, 122, 255, 0.15)', color: '#007aff', border: '1px solid #007aff', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><ArrowRightLeft size={14} className="lucide-icon-sm" /> TFR</button>
                       </div>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button 
@@ -936,7 +941,7 @@ return (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", maxHeight: "90vh", overflowY: "scroll", WebkitOverflowScrolling: "touch", WebkitTransform: "translate3d(0,0,0)", minHeight: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #3a3a3c", paddingBottom: "12px" }}>
-              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: "600", letterSpacing: "-0.01em" }}>➕ Register New Product</h3>
+              <h3 style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: "600", letterSpacing: "-0.01em" }}><Plus size={16} className="lucide-icon" /> Register New Product</h3>
               <button onClick={() => setShowNewItemModal(false)} style={{ background: "transparent", color: "#ff3b30", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -1006,9 +1011,9 @@ return (
               <div>
                 <h4 style={{ color: "#fff", fontSize: "18px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "12px", marginTop: 0 }}>1. Core Scanning Modes</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div><strong style={{ color: "#34c759" }}>📥 Receive Mode:</strong> Used when new freight arrives. Scanning a barcode <strong>adds</strong> stock.</div>
-                  <div><strong style={{ color: "#ff3b30" }}>🚚 Ship Mode:</strong> Used when loading trucks out. Scanning a barcode <strong>deducts</strong> stock.</div>
-                  <div><strong style={{ color: "#007aff" }}>🔄 Transfer Mode:</strong> Used for internal warehouse moves. Changes the placement zone without changing total inventory counts.</div>
+                  <div><strong style={{ color: "#34c759" }}><Download size={18} className="lucide-icon" /> Receive Mode:</strong> Used when new freight arrives. Scanning a barcode <strong>adds</strong> stock.</div>
+                  <div><strong style={{ color: "#ff3b30" }}><Truck size={18} className="lucide-icon" /> Ship Mode:</strong> Used when loading trucks out. Scanning a barcode <strong>deducts</strong> stock.</div>
+                  <div><strong style={{ color: "#007aff" }}><ArrowRightLeft size={18} className="lucide-icon" /> Transfer Mode:</strong> Used for internal warehouse moves. Changes the placement zone without changing total inventory counts.</div>
                   <div><strong style={{ color: "#ff9500" }}>💥 Shrinkage / Damage:</strong> While in Ship Mode, scan an item and click "Flag as Damaged" to safely remove broken stock.</div>
                 </div>
               </div>
@@ -1016,7 +1021,7 @@ return (
               <div>
                 <h4 style={{ color: "#fff", fontSize: "18px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "12px", marginTop: 0 }}>2. Scanner Modifiers (Set BEFORE Scanning)</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div><strong style={{ color: "#ff9500" }}>🪵 Single vs 🧱 Pallet:</strong> Tap to toggle between counting individual units or entire pallets.</div>
+                  <div><strong style={{ color: "#ff9500" }}><Package size={18} className="lucide-icon" /> Single vs 🧱 Pallet:</strong> Tap to toggle between counting individual units or entire pallets.</div>
                   <div><strong style={{ color: "#fff" }}>QTY Multiplier:</strong> Change this number to scan multiple pallets or cases in a single scan trigger.</div>
                 </div>
               </div>
@@ -1024,7 +1029,7 @@ return (
               <div>
                 <h4 style={{ color: "#fff", fontSize: "18px", borderBottom: "1px solid #2c2c2e", paddingBottom: "8px", marginBottom: "12px", marginTop: 0 }}>3. Database & Administration</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div><strong style={{ color: "#34c759" }}>➕ Register New Product:</strong> Use this ONLY for brand new SKUs that have never been in the system.</div>
+                  <div><strong style={{ color: "#34c759" }}><Plus size={16} className="lucide-icon" /> Register New Product:</strong> Use this ONLY for brand new SKUs that have never been in the system.</div>
                   <div><strong style={{ color: "#007aff" }}>🔄 Multi-Flip:</strong> Allows you to flip multiple cards open at the same time without them automatically closing. Perfect for comparing back-of-card info side-by-side.</div>
                   <div><strong style={{ color: "#fff" }}>📋 Security Audit:</strong> View the immutable cloud ledger of every scan, shipment, and manual edit (Manager PIN required).</div>
                 </div>
@@ -1048,14 +1053,14 @@ return (
                 <button onClick={() => setModalQty(modalQty + 1)} style={{ backgroundColor: "#2c2c2e", border: "1px solid #3a3a3c", color: "#fff", width: "48px", height: "48px", borderRadius: "8px", fontSize: "24px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>+</button>
               </div>
               
-              {pendingAction.actionName === '🔄 Transfer' && (
+              {pendingAction.actionName === '<ArrowRightLeft size={18} className="lucide-icon" /> Transfer' && (
                 <div style={{ marginTop: '8px', textAlign: 'left' }}>
                   <label style={{ fontSize: '11px', color: '#8e8e93', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>New Placement Zone:</label>
                   <input type="text" value={pendingAction.newZone || ''} onChange={(e) => setPendingAction({...pendingAction, newZone: e.target.value})} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#fff', padding: '12px', borderRadius: '8px', outline: 'none', fontSize: '14px' }} placeholder="e.g. Cooler Bay-02" />
                 </div>
               )}
 
-              {pendingAction.actionName === '🚚 Ship' && (
+              {pendingAction.actionName === '<Truck size={18} className="lucide-icon" /> Ship' && (
                 <button onClick={() => setPendingAction({...pendingAction, isShrinkage: !pendingAction.isShrinkage})} style={{ marginTop: '8px', backgroundColor: pendingAction.isShrinkage ? '#ff3b30' : '#2c2c2e', border: '1px solid #3a3a3c', color: '#fff', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}>
                   {pendingAction.isShrinkage ? '💥 MARKED AS SHRINKAGE / DAMAGE' : 'Flag as Damaged / Shrinkage'}
                 </button>
