@@ -769,10 +769,10 @@ return (
       </div>
 
       {/* 🖥️ COMMAND CENTER DASHBOARD */}
-      <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "320px 1fr" : "1fr", gap: "24px", marginBottom: "32px", alignItems: "start", marginTop: "8px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "320px 1fr" : "1fr", gap: "24px", marginBottom: "32px", alignItems: "stretch", marginTop: "8px" }}>
         
         {/* LEFT RAIL: KPIs & Alerts */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px", height: "100%" }}>
           
           
 
@@ -784,7 +784,7 @@ return (
               return isExp || i.quantity < 50;
             });
             return criticalAlerts.length > 0 && (
-              <div style={{ width: "100%", height: isDesktop ? "800px" : "auto", boxSizing: "border-box", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)" }}>
+              <div style={{ width: "100%", flex: 1, minHeight: 0, boxSizing: "border-box", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ fontSize: "20px" }}>⚠️</span>
@@ -835,7 +835,7 @@ return (
         </div>
 
         {/* RIGHT STRETCH: Dense Flavor Breakdown */}
-        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", maxHeight: isDesktop ? "800px" : "400px", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+        <div className="flavor-board" style={{ backgroundColor: "#2c2c2e", padding: "24px", borderRadius: "14px", border: "1px solid #3a3a3c", height: "100%", maxHeight: isDesktop ? "800px" : "400px", display: "flex", flexDirection: "column", boxSizing: "border-box", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
           <div className="flavor-board-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div className="flavor-board-header-left" style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
               <div style={{ fontSize: "14px", color: "#8e8e93", fontWeight: "600", letterSpacing: "-0.01em", textTransform: "uppercase" }}>INVENTORY BY FLAVOR</div>
