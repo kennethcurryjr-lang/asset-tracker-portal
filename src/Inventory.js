@@ -837,7 +837,7 @@ return (
             <div className="hide-desktop" style={{ backgroundColor: "#000", padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: "6px", minHeight: "60px", boxShadow: "inset 0 2px 10px rgba(0,0,0,0.5)" }}>
               <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "6px", marginBottom: "4px" }}>Global Ledger (Live)</div>
               <div style={{ paddingBottom: "12px" }}>
-              <input type="text" placeholder="Search Master Audit (PO or Flavor)..." value={ledgerSearch} onChange={(e) => setLedgerSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: "100%", boxSizing: "border-box", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "10px 12px", borderRadius: "8px", fontSize: "12px", outline: "none", fontWeight: "600", transition: "all 0.2s" }} onFocus={(e) => e.target.style.borderColor = "var(--brand-blue)"} onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"} />
+              <input type="text" placeholder="Search Live Ledger..." value={ledgerSearch} onChange={(e) => setLedgerSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: "100%", boxSizing: "border-box", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "10px 12px", borderRadius: "8px", fontSize: "12px", outline: "none", fontWeight: "600", transition: "all 0.2s" }} onFocus={(e) => e.target.style.borderColor = "var(--brand-blue)"} onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"} />
             </div>
             <div style={{ maxHeight: "300px", overflowY: "auto", overflowX: "hidden", paddingRight: "8px", marginTop: "12px", borderRadius: "4px" }}>
 {auditLog.filter(log => !ledgerSearch || (log.orderNumber && log.orderNumber.toLowerCase().includes(ledgerSearch.toLowerCase())) || (log.flavor && log.flavor.toLowerCase().includes(ledgerSearch.toLowerCase()))).slice(0, 15).map((log, idx) => (
@@ -863,7 +863,7 @@ return (
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "8px", paddingBottom: "16px", flex: 1, maxHeight: window.innerWidth <= 768 ? "300px" : "100%", WebkitOverflowScrolling: "touch" }} className="custom-scrollbar-viewport">
             <div style={{ paddingBottom: "12px" }}>
-              <input type="text" placeholder="Search Master Audit (PO or Flavor)..." value={ledgerSearch} onChange={(e) => setLedgerSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: "100%", boxSizing: "border-box", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "10px 12px", borderRadius: "8px", fontSize: "12px", outline: "none", fontWeight: "600", transition: "all 0.2s" }} onFocus={(e) => e.target.style.borderColor = "var(--brand-blue)"} onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"} />
+              <input type="text" placeholder="Search Live Ledger..." value={ledgerSearch} onChange={(e) => setLedgerSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: "100%", boxSizing: "border-box", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "10px 12px", borderRadius: "8px", fontSize: "12px", outline: "none", fontWeight: "600", transition: "all 0.2s" }} onFocus={(e) => e.target.style.borderColor = "var(--brand-blue)"} onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"} />
             </div>
             {auditLog.filter(log => !ledgerSearch || (log.orderNumber && log.orderNumber.toLowerCase().includes(ledgerSearch.toLowerCase())) || (log.flavor && log.flavor.toLowerCase().includes(ledgerSearch.toLowerCase()))).slice(0, 15).map((log, idx) => (
               <div key={idx} style={{ fontSize: "14px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "var(--surface-base)", padding: "10px 14px", borderRadius: "8px", border: "1px solid var(--surface-elevated)" }}>
@@ -1619,3 +1619,5 @@ return (
 // Mobile layout strict overflow fix
 
 // System patch: Live ledger scroll box active
+
+// System patch: Final V1.0 Cleanups (Search UI, Offline Sync, Rapid Fire)
