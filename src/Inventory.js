@@ -1631,3 +1631,5 @@ return (
 // System patch: UI-level packaging override for juices.
 
 // System patch: Absolute brute-force override for juice packaging.
+
+// System patch: Quick Action card buttons hardwired to master ledger
