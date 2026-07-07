@@ -650,7 +650,7 @@ export default function Inventory({ user }) {
     const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Manager", action: "Admin Override", qty: form.quantity - originalItem.quantity, flavor: originalItem.flavor, barcode: originalItem.barcode, lotNumber: originalItem.lotNumber };
     setAuditLog(prev => [logEntry, ...prev]);
 
-    setStock(prev => prev.map(item => item.barcode === barcode ? { ...item, ...form } : item));
+    setStock(prev => prev.map(item => (item.barcode === originalItem.barcode && item.lotNumber === originalItem.lotNumber) ? { ...item, ...form } : item));
     setEditModes(prev => ({...prev, [barcode]: false}));
 
     try {
@@ -670,7 +670,7 @@ export default function Inventory({ user }) {
   const handleExportCSV = () => {
     const headers = ["Brand", "Flavor", "Packaging Type", "Current Count", "Warehouse Zone", "Lot Number", "Expiry Date", "Vendor Route"];
     const csvRows = [headers.join(",")];
-    stock.forEach(item => { csvRows.push([ `"${item.brand}"`, `"${item.flavor}"`, `"${item.type}"`, item.quantity, `"${item.zone}"`, `"${item.lotNumber}"`, `"${item.expiryDate}"`, `"${item.vendorEmail}"` ].join(",")); });
+    stock.forEach(item => { csvRows.push([ `"${item.brand}"`, `"${item.flavor}"`, `"${item.type || item.packaging || 'Unspecified'}"`, item.quantity, `"${item.zone}"`, `"${item.lotNumber}"`, `"${item.expiryDate}"`, `"${item.vendorEmail}"` ].join(",")); });
     const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = `CS_Inventory_Snapshot_${new Date().toISOString().split('T')[0]}.csv`; a.click(); URL.revokeObjectURL(url);
@@ -872,7 +872,7 @@ return (
                 <div key={idx} style={{ fontSize: "12px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ color: "var(--text-secondary)", fontFamily: "monospace", minWidth: "65px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
                   <span style={{ flex: 1, margin: "0 8px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", lineHeight: "1.4", flex: 1, paddingRight: "8px" }}><span style={{ color: log.action.includes("Ship") ? "var(--brand-red)" : (log.action.includes("Receive") ? "var(--brand-green)" : (log.action.includes("Shrinkage") ? "var(--brand-orange)" : "var(--brand-blue)")), fontWeight: "700" }}>{log.action}</span> <span>{log.qty}bx</span> <span style={{ color: "var(--text-secondary)" }}>{log.flavor}</span> {log.orderNumber && <span style={{ color: "var(--brand-blue)", fontSize: "10px", fontWeight: "800", marginLeft: "6px", backgroundColor: "rgba(0,122,255,0.1)", padding: "2px 6px", borderRadius: "4px", border: "1px solid rgba(0,122,255,0.2)", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>} {log.destination && <span style={{ color: log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)", fontSize: "11px", fontWeight: "700", whiteSpace: "nowrap" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}{log.orderNumber && <span style={{ color: "var(--text-secondary)", fontSize: "11px", border: "1px solid var(--border-subtle)", padding: "2px 4px", borderRadius: "4px", backgroundColor: "var(--surface-raised)", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>}</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", lineHeight: "1.4", flex: 1, paddingRight: "8px" }}><span style={{ color: log.action.includes("Ship") ? "var(--brand-red)" : (log.action.includes("Receive") ? "var(--brand-green)" : (log.action.includes("Shrinkage") ? "var(--brand-orange)" : "var(--brand-blue)")), fontWeight: "700" }}>{log.action}</span> <span>{log.qty}bx</span> <span style={{ color: "var(--text-secondary)" }}>{log.flavor}</span> {log.orderNumber && <span style={{ color: "var(--brand-blue)", fontSize: "10px", fontWeight: "800", marginLeft: "6px", backgroundColor: "rgba(0,122,255,0.1)", padding: "2px 6px", borderRadius: "4px", border: "1px solid rgba(0,122,255,0.2)", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>} {log.destination && <span style={{ color: log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)", fontSize: "11px", fontWeight: "700", whiteSpace: "nowrap" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}</div>
                   </span>
                   <span style={{ color: "var(--text-secondary)", fontSize: "10px" }}>{log.user.split('@')[0]}</span>
                 </div>
@@ -897,7 +897,7 @@ return (
               <div key={idx} style={{ fontSize: "14px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "var(--surface-base)", padding: "10px 14px", borderRadius: "8px", border: "1px solid var(--surface-elevated)" }}>
                 <span style={{ color: "var(--text-secondary)", fontFamily: "monospace", fontSize: "12px", minWidth: "80px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
                 <span style={{ flex: 1, margin: "0 16px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", lineHeight: "1.4", flex: 1, paddingRight: "8px" }}><span style={{ color: log.action.includes("Ship") ? "var(--brand-red)" : (log.action.includes("Receive") ? "var(--brand-green)" : (log.action.includes("Shrinkage") ? "var(--brand-orange)" : "var(--brand-blue)")), fontWeight: "700" }}>{log.action}</span> <span>{log.qty}bx</span> <span style={{ color: "var(--text-secondary)" }}>{log.flavor}</span> {log.orderNumber && <span style={{ color: "var(--brand-blue)", fontSize: "10px", fontWeight: "800", marginLeft: "6px", backgroundColor: "rgba(0,122,255,0.1)", padding: "2px 6px", borderRadius: "4px", border: "1px solid rgba(0,122,255,0.2)", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>} {log.destination && <span style={{ color: log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)", fontSize: "11px", fontWeight: "700", whiteSpace: "nowrap" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}{log.orderNumber && <span style={{ color: "var(--text-secondary)", fontSize: "11px", border: "1px solid var(--border-subtle)", padding: "2px 4px", borderRadius: "4px", backgroundColor: "var(--surface-raised)", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>}</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", lineHeight: "1.4", flex: 1, paddingRight: "8px" }}><span style={{ color: log.action.includes("Ship") ? "var(--brand-red)" : (log.action.includes("Receive") ? "var(--brand-green)" : (log.action.includes("Shrinkage") ? "var(--brand-orange)" : "var(--brand-blue)")), fontWeight: "700" }}>{log.action}</span> <span>{log.qty}bx</span> <span style={{ color: "var(--text-secondary)" }}>{log.flavor}</span> {log.orderNumber && <span style={{ color: "var(--brand-blue)", fontSize: "10px", fontWeight: "800", marginLeft: "6px", backgroundColor: "rgba(0,122,255,0.1)", padding: "2px 6px", borderRadius: "4px", border: "1px solid rgba(0,122,255,0.2)", whiteSpace: "nowrap" }}>#{log.orderNumber}</span>} {log.destination && <span style={{ color: log.action.includes("Receive") ? "var(--brand-green)" : "var(--brand-blue)", fontSize: "11px", fontWeight: "700", whiteSpace: "nowrap" }}>➔ {log.destination.replace("ZONE-", "").replace("BAY-", "")}</span>}</div>
                 </span>
                 <span style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600" }}>{log.user.split('@')[0]}</span>
               </div>
@@ -1667,3 +1667,5 @@ return (
 // System patch: Quick Actions forcefully rewired via structural bracket parsing
 
 // System patch: executeSaveNewItem mathematically locked and wired to audit ledger.
+
+// System patch: Pro Mode Polish (Admin multi-lot clone fix, CSV data map fix, UI ledger duplication removed)
