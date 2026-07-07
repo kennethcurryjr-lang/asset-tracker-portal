@@ -986,7 +986,7 @@ return (
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: 'var(--surface-base)', color: 'var(--text-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>📦 {item.type}</span>{isLowStock && <span style={{ fontSize: '11px', fontWeight: "600", padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: 'var(--brand-red)', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}</div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: 'var(--surface-base)', color: 'var(--text-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>📦 {item.type || "Unknown Pkg"}</span>{isLowStock && <span style={{ fontSize: '11px', fontWeight: "600", padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: 'var(--brand-red)', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}</div>
                   
                   {(isDesktop || expandedCards.includes(item.barcode) || isFlipped) && ( <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px 0 8px 0', borderTop: '1px solid var(--border-subtle)', marginTop: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -1002,7 +1002,7 @@ return (
                 <div key={idx} style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
                   {scan.time} 
                   <span style={{ fontWeight: "600", marginLeft: '6px', fontSize: '13px', color: scan.action === 'Receive' ? 'var(--brand-green)' : (scan.action === 'Ship' ? 'var(--brand-red)' : (scan.action === 'Transfer' ? 'var(--brand-orange)' : 'var(--brand-purple)')) }}>
-                    {scan.qty}{scan.action === 'Receive' ? 'R' : (scan.action === 'Ship' ? 'S' : (scan.action === 'Transfer' ? 'T' : (scan.action === 'Shrinkage' ? '💥' : 'O')))}{scan.orderNumber ? ` #${scan.orderNumber}` : ''}
+                    {scan.qty} {scan.action.includes('Receive') ? 'RCV' : (scan.action.includes('Ship') && !scan.action.includes('UNDO') ? 'SHP' : (scan.action.includes('Transfer') ? 'TFR' : (scan.action.includes('Shrinkage') ? '💥' : (scan.action.includes('UNDO') ? '↩️ UNDO' : 'O'))))}{scan.orderNumber ? ` #${scan.orderNumber}` : ''}
                   </span>
                 </div>
               ))}
