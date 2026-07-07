@@ -1485,7 +1485,7 @@ return (
 
             <div style={{ display: "flex", gap: "12px" }}>
               <button onClick={() => { setShowConfirmModal(false); setOrderNumber(""); }} style={{ flex: 1, backgroundColor: "transparent", color: "var(--text-primary)", border: "1px solid var(--border-subtle)", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
-              <button onClick={handleConfirmAction} disabled={pendingAction.isShrinkage && shrinkageNote.length < 5} style={{ flex: 2, backgroundColor: pendingAction.actionName.includes("Ship") ? "var(--brand-red)" : "var(--brand-green)", color: "var(--text-primary)", border: "none", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: (pendingAction.isShrinkage && shrinkageNote.length < 5) ? "not-allowed" : "pointer", opacity: (pendingAction.isShrinkage && shrinkageNote.length < 5) ? 0.5 : 1 }}>{pendingAction.fifoWarningItem ? "Force Ship Anyway" : "Commit Action"}</button>
+              <button onClick={handleConfirmAction} disabled={isShrinkage && shrinkageNote.length < 5} style={{ flex: 2, backgroundColor: pendingAction?.actionName?.includes("Ship") ? "var(--brand-red)" : "var(--brand-green)", color: "var(--text-primary)", border: "none", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: (isShrinkage && shrinkageNote.length < 5) ? "not-allowed" : "pointer", opacity: (isShrinkage && shrinkageNote.length < 5) ? 0.5 : 1 }}>{pendingAction?.fifoWarningItem ? "Force Ship Anyway" : "Commit Action"}</button>
             </div>
           </div>
         </div>
