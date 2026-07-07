@@ -750,7 +750,8 @@ return (
           .mode-switch-group { max-width: 100% !important; width: 100% !important; box-sizing: border-box; margin: 0 !important; }
           .mode-switch-group button { padding: 12px 4px !important; font-size: 14px !important; }
           .action-group-right { width: 100% !important; align-items: stretch !important; }
-          .primary-row { justify-content: space-between !important; gap: 6px !important; flex-wrap: nowrap !important; width: 100% !important; }
+          .primary-row { justify-content: space-between !important; gap: 8px !important; flex-wrap: wrap !important; width: 100% !important; }
+          .primary-row > button:last-child { flex-basis: 100% !important; padding: 16px !important; font-size: 16px !important; } /* Force SCAN button to be a massive thumb-target on its own row */
           .primary-row > * { padding: 10px 8px !important; font-size: 13px !important; flex: 1; display: flex; justify-content: center; }
           .qty-box { padding: 4px !important; gap: 4px !important; }
           .hide-mobile { display: none !important; } 
@@ -1697,3 +1698,5 @@ return (
 // System patch: Removed double-badge (Ref: PO) from the Master Security Audit modal.
 
 // System patch: Final V1.0 Clean Sweep (Audit modal UI sanitized, UNDO array flatline protection locked).
+
+// System patch: Mobile scanner flex-wrap fix applied.

@@ -100,6 +100,7 @@ function App() {
   const isFleetTracker = userGroups.includes("Fleet-Trackers");
   const isAdmin = userGroups.includes("Admins") || (!isWarehouseManager && !isFleetTracker);
   const [activePortal, setActivePortal] = useState(isWarehouseManager && !isAdmin ? "inventory" : "gps");
+  const [comingSoonModule, setComingSoonModule] = useState(null);
 
   // Design Tokens: High-Contrast Monochromatic System
   const appContainerStyle = { backgroundColor: '#f5f5f7', color: '#1d1d1f', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: selectedDevices.length > 0 ? '140px' : '60px', fontSize: '15px', transition: 'padding-bottom 0.3s ease', overflowX: 'clip' };
@@ -1076,9 +1077,11 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             padding: activePortal === "inventory" ? "0px 12px 24px 12px" : "16px 12px 0 12px",
             borderBottom: activePortal === "inventory" ? "1px solid #3a3a3c" : "none"
           }}>
-            <div style={{ display: "flex", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.4)" }}>
-              <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📡 Kinetic Assets</button>
-              <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s" }}>📦 Kinetic Inventory</button>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.4)", maxWidth: "100%" }}>
+              <button onClick={() => setComingSoonModule("Kinetic Dispatch")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: "transparent", color: "#636366", transition: "all 0.2s", whiteSpace: "nowrap" }}>🤝 Kinetic Dispatch</button>
+              <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", whiteSpace: "nowrap" }}>📡 Kinetic Assets</button>
+              <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", whiteSpace: "nowrap" }}>📦 Kinetic Inventory</button>
+              <button onClick={() => setComingSoonModule("Kinetic Deployments")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: "transparent", color: "#636366", transition: "all 0.2s", whiteSpace: "nowrap" }}>🎪 Kinetic Deployments</button>
             </div>
           </div>
         )}
@@ -1567,6 +1570,19 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       </div>
 
         </>
+      )}
+
+      
+      {/* V2.0 COMING SOON MODAL */}
+      {comingSoonModule && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+            <div style={{ fontSize: "48px", lineHeight: "1", marginBottom: "-8px" }}>🚧</div>
+            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>Module Locked</h3>
+            <p style={{ margin: 0, color: "#86868b", fontSize: "15px", lineHeight: "1.6" }}>The <strong style={{ color: "#ffffff" }}>{comingSoonModule}</strong> architecture is currently in active development. It will be released in the Version 2.0 enterprise update.</p>
+            <button onClick={() => setComingSoonModule(null)} style={{ backgroundColor: "#007aff", color: "#ffffff", border: "none", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", marginTop: "12px", width: "100%", fontSize: "15px", transition: "all 0.2s" }}>Acknowledge</button>
+          </div>
+        </div>
       )}
 
       {/* STANDARD LEGAL FOOTER */}
