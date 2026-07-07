@@ -1057,7 +1057,7 @@ return (
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: 'var(--surface-base)', color: 'var(--text-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>📦 {item.type || "Unknown Pkg"}</span>{isLowStock && <span style={{ fontSize: '11px', fontWeight: "600", padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: 'var(--brand-red)', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}</div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', backgroundColor: 'var(--surface-base)', color: 'var(--text-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>{item.type ? "📦 " + item.type : "📦 Unspecified"}</span>{isLowStock && <span style={{ fontSize: '11px', fontWeight: "600", padding: '4px 10px', backgroundColor: 'rgba(255, 59, 48, 0.15)', color: 'var(--brand-red)', borderRadius: '8px' }}>⚠️ LOW STOCK</span>}</div>
                   
                   {(isDesktop || expandedCards.includes(item.barcode) || isFlipped) && ( <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px 0 8px 0', borderTop: '1px solid var(--border-subtle)', marginTop: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -1143,7 +1143,7 @@ return (
                     // STATS MODE
                     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px', marginBottom: '16px' }}>
-                        <div style={{ fontSize: '15px', fontWeight: "600", color: 'var(--text-primary)' }}>📊 Historical Velocity</div>
+                        <div style={{ fontSize: '15px', fontWeight: "600", color: 'var(--text-primary)' }}>📊 Historical Velocity <span style={{ fontSize: "11px", backgroundColor: "var(--surface-elevated)", color: "var(--text-primary)", padding: "4px 8px", borderRadius: "6px", border: "1px solid var(--border-subtle)", marginLeft: "8px" }}>{item.quantity} In Stock</span></div>
                         <div onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => prev.filter(id => id !== item.barcode)); }} style={{ fontSize: '10px', color: 'var(--brand-blue)', fontWeight: "600", backgroundColor: 'rgba(0,122,255,0.15)', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer' }}>FLIP BACK</div>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', flex: 1 }}>
