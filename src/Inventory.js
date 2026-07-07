@@ -839,7 +839,8 @@ return (
               <div style={{ paddingBottom: "12px" }}>
               <input type="text" placeholder="Search Master Audit (PO or Flavor)..." value={ledgerSearch} onChange={(e) => setLedgerSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: "100%", boxSizing: "border-box", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "10px 12px", borderRadius: "8px", fontSize: "12px", outline: "none", fontWeight: "600", transition: "all 0.2s" }} onFocus={(e) => e.target.style.borderColor = "var(--brand-blue)"} onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"} />
             </div>
-            {auditLog.filter(log => !ledgerSearch || (log.orderNumber && log.orderNumber.toLowerCase().includes(ledgerSearch.toLowerCase())) || (log.flavor && log.flavor.toLowerCase().includes(ledgerSearch.toLowerCase()))).slice(0, 15).map((log, idx) => (
+            <div style={{ maxHeight: "300px", overflowY: "auto", overflowX: "hidden", paddingRight: "8px", marginTop: "12px", borderRadius: "4px" }}>
+{auditLog.filter(log => !ledgerSearch || (log.orderNumber && log.orderNumber.toLowerCase().includes(ledgerSearch.toLowerCase())) || (log.flavor && log.flavor.toLowerCase().includes(ledgerSearch.toLowerCase()))).slice(0, 15).map((log, idx) => (
                 <div key={idx} style={{ fontSize: "12px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ color: "var(--text-secondary)", fontFamily: "monospace", minWidth: "65px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
                   <span style={{ flex: 1, margin: "0 8px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -848,6 +849,7 @@ return (
                   <span style={{ color: "var(--text-secondary)", fontSize: "10px" }}>{log.user.split('@')[0]}</span>
                 </div>
               ))}
+</div>
               {auditLog.length === 0 && <div style={{ fontSize: "12px", color: "var(--text-secondary)", textAlign: "center", fontStyle: "italic", marginTop: "4px" }}>No recent actions...</div>}
             </div>
           </div>
@@ -1615,3 +1617,5 @@ return (
 // System patch: Mobile ledger overflow fixed & Master Audit Search permanently active.
 
 // Mobile layout strict overflow fix
+
+// System patch: Live ledger scroll box active
