@@ -458,9 +458,15 @@ export default function Inventory({ user }) {
             alert("🛑 FIFO VIOLATION: " + newZone + " already contains an older lot of " + targetItem.flavor + ". Please select a different placement zone to prevent pallet trapping.");
             return; // Hard stop
         }
-        // Find the largest pool of stock to deduct from automatically
-        let source = updatedLocations.reduce((prev, current) => (prev.qty > current.qty) ? prev : current);
-        source.qty = Math.max(0, source.qty - boxAdjustment);
+        // Cascading deduction for Transfers to prevent fractional inflation
+        let remaining = boxAdjustment;
+        updatedLocations.sort((a, b) => b.qty - a.qty);
+        for (let loc of updatedLocations) {
+            if (remaining <= 0) break;
+            let deduct = Math.min(loc.qty, remaining);
+            loc.qty -= deduct;
+            remaining -= deduct;
+        }
         
         // Add the stock to the new zone
         let dest = updatedLocations.find(loc => loc.name === newZone);
@@ -487,7 +493,7 @@ export default function Inventory({ user }) {
     updatedLocations = updatedLocations.filter(loc => loc.qty > 0);
     const newQuantity = updatedLocations.reduce((sum, loc) => sum + loc.qty, 0);
     
-    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor, barcode: targetItem.barcode, lotNumber: targetItem.lotNumber, destination: actionName.includes("Transfer") ? newZone : (actionName.includes("Receive") ? (newZone || targetItem.zone || "Unassigned Warehouse") : null), orderNumber: orderNumber.trim() || null };
+    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z ()]/g, "").trim(), qty: boxAdjustment, flavor: targetItem.flavor, barcode: targetItem.barcode, lotNumber: targetItem.lotNumber, destination: actionName.includes("Transfer") ? newZone : (actionName.includes("Receive") ? (newZone || targetItem.zone || "Unassigned Warehouse") : null), orderNumber: orderNumber.trim() || null };
     setAuditLog(prev => [logEntry, ...prev]);
 
     const newScan = { action: logEntry.action, qty: boxAdjustment, time: logEntry.time, timestamp: logEntry.id, orderNumber: logEntry.orderNumber };
@@ -1304,7 +1310,7 @@ return (
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "var(--surface-base)", padding: "32px", borderRadius: "18px", border: "1px solid var(--border-subtle)", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
             <h3 style={{ margin: 0, color: "var(--text-primary)", fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>⚠️ Confirm Update</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center" }}>
-            <p style={{ margin: 0, color: "var(--text-primary)", fontSize: "17px", lineHeight: "1.5" }}>Action: <span style={{ color: pendingAction.isShrinkage ? "var(--brand-orange)" : (pendingAction.actionName.includes("Ship") ? "var(--brand-red)" : "var(--brand-green)"), fontWeight: "600" }}>{pendingAction.isShrinkage ? "Shrinkage" : pendingAction.actionName.replace(/[^a-zA-Z]/g, "")}</span> <strong style={{color: "var(--brand-blue)"}}>{pendingAction.targetItem.flavor}</strong></p>
+            <p style={{ margin: 0, color: "var(--text-primary)", fontSize: "17px", lineHeight: "1.5" }}>Action: <span style={{ color: pendingAction.isShrinkage ? "var(--brand-orange)" : (pendingAction.actionName.includes("Ship") ? "var(--brand-red)" : "var(--brand-green)"), fontWeight: "600" }}>{pendingAction.isShrinkage ? "Shrinkage" : pendingAction.actionName.replace(/[^a-zA-Z ()]/g, "").trim()}</span> <strong style={{color: "var(--brand-blue)"}}>{pendingAction.targetItem.flavor}</strong></p>
             <div style={{ backgroundColor: "var(--surface-elevated)", border: "1px solid var(--border-subtle)", padding: "6px 14px", borderRadius: "8px", fontSize: "13px", fontWeight: "600", color: "var(--text-secondary)", display: "inline-flex", alignItems: "center" }}>
               📦 Current Stock: <span style={{ color: "var(--text-primary)", fontSize: "16px", marginLeft: "6px", fontWeight: "700" }}>{pendingAction.targetItem.quantity} bx</span>
             </div>
