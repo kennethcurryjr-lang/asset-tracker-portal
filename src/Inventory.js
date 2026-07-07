@@ -557,7 +557,19 @@ export default function Inventory({ user }) {
     updatedLocations = updatedLocations.filter(loc => loc.qty > 0);
     const newQuantity = updatedLocations.reduce((sum, loc) => sum + loc.qty, 0);
     
-    const finalNote = isShrinkage ? shrinkageNote : null;
+    const isActuallyShrinkage = isShrinkage || actionName.includes("Shrinkage");
+    const finalNote = isActuallyShrinkage ? shrinkageNote : null;
+
+    if (isActuallyShrinkage && (!finalNote || finalNote.trim().length < 5)) {
+        alert(`🚨 COMPLIANCE STOP:
+
+Transaction Aborted. You cannot process shrinkage without providing a valid reason (min 5 characters).
+
+Please enter a note and try again.`);
+        setIsShrinkage(true);
+        return; // Physically halts the database save
+    }
+
     const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z ()]/g, "").trim(), qty: boxAdjustment, flavor: targetItem.flavor, barcode: targetItem.barcode, lotNumber: targetItem.lotNumber, destination: actionName.includes("Transfer") ? newZone : (actionName.includes("Receive") ? (newZone || targetItem.zone || "Unassigned Warehouse") : null), note: finalNote, orderNumber: orderNumber.trim() || null };
     setAuditLog(prev => [logEntry, ...prev]);
 
@@ -1485,7 +1497,7 @@ return (
 
             <div style={{ display: "flex", gap: "12px" }}>
               <button onClick={() => { setShowConfirmModal(false); setOrderNumber(""); }} style={{ flex: 1, backgroundColor: "transparent", color: "var(--text-primary)", border: "1px solid var(--border-subtle)", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
-              <button onClick={handleConfirmAction} disabled={isShrinkage && shrinkageNote.length < 5} style={{ flex: 2, backgroundColor: pendingAction?.actionName?.includes("Ship") ? "var(--brand-red)" : "var(--brand-green)", color: "var(--text-primary)", border: "none", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: (isShrinkage && shrinkageNote.length < 5) ? "not-allowed" : "pointer", opacity: (isShrinkage && shrinkageNote.length < 5) ? 0.5 : 1 }}>{pendingAction?.fifoWarningItem ? "Force Ship Anyway" : "Commit Action"}</button>
+              <button onClick={handleConfirmAction} disabled={(isShrinkage || pendingAction?.actionName?.includes("Shrinkage")) && shrinkageNote.length < 5} style={{ flex: 2, backgroundColor: pendingAction?.actionName?.includes("Ship") ? "var(--brand-red)" : "var(--brand-green)", color: "var(--text-primary)", border: "none", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: ((isShrinkage || pendingAction?.actionName?.includes("Shrinkage")) && shrinkageNote.length < 5) ? "not-allowed" : "pointer", opacity: ((isShrinkage || pendingAction?.actionName?.includes("Shrinkage")) && shrinkageNote.length < 5) ? 0.5 : 1 }}>{pendingAction?.fifoWarningItem ? "Force Ship Anyway" : "Commit Action"}</button>
             </div>
           </div>
         </div>
