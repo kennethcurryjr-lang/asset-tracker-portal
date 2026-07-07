@@ -448,7 +448,7 @@ export default function Inventory({ user }) {
         // Strict FIFO Check: Does this zone contain an older lot?
         const fifoViolation = stock.some(s => 
             s.flavor === targetItem.flavor && 
-            s.barcode !== targetItem.barcode && 
+            s.lotNumber !== targetItem.lotNumber && 
             s.quantity > 0 &&
             (s.locations || []).some(l => l.name === newZone) && 
             new Date(s.expiryDate || "2099-12-31") < new Date(targetItem.expiryDate || "2099-12-31") && !(s.expiryDate && s.expiryDate !== "N/A" && new Date(s.expiryDate) < new Date())
@@ -466,7 +466,7 @@ export default function Inventory({ user }) {
         let dest = updatedLocations.find(loc => loc.name === newZone);
         if (dest) dest.qty += boxAdjustment;
         else updatedLocations.push({ name: newZone, qty: boxAdjustment });
-    } else if (scanMode === "receive") {
+    } else if (actionName.includes("Receive")) {
         let destName = newZone || targetItem.zone || "Unassigned Warehouse";
         let dest = updatedLocations.find(loc => loc.name === destName);
         if (dest) dest.qty += boxAdjustment;
@@ -542,9 +542,13 @@ export default function Inventory({ user }) {
     if (!originalItem) { alert("Error: Item not found."); return; }
 
     // Reconcile Multi-Zone Arrays with the manual quantity edit
-    // Admin overrides are absolute. Consolidate stock into the designated zone to prevent fractional desyncs.
+    // Only consolidate locations if the manager actively changed the total stock or target zone
     form.quantity = parseInt(form.quantity) || 0;
-    form.locations = [{ name: form.zone || "Unassigned Warehouse", qty: form.quantity }];
+    if (form.quantity !== parseInt(originalItem.quantity) || form.zone !== originalItem.zone) {
+        form.locations = [{ name: form.zone || "Unassigned Warehouse", qty: form.quantity }];
+    } else {
+        form.locations = originalItem.locations || [{ name: originalItem.zone || "Unassigned Warehouse", qty: originalItem.quantity }];
+    }
     form.lastScanTimestamp = Date.now();
 
     const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Manager", action: "Admin Override", qty: form.quantity - originalItem.quantity, flavor: originalItem.flavor, barcode: originalItem.barcode, lotNumber: originalItem.lotNumber };
@@ -1166,7 +1170,7 @@ return (
               <input list="vendor-emails" placeholder="Vendor Email (Auto-PO Routing)" value={newItemForm.vendorEmail} onChange={e => setNewItemForm(prev => ({...prev, vendorEmail: e.target.value}))} style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none", fontSize: "14px" }} />
               
               <div style={{ display: "flex", gap: "8px" }}>
-                <input type="number" placeholder="Initial QTY" value={newItemForm.quantity || ""} onChange={e => setNewItemForm(prev => ({...prev, quantity: parseInt(e.target.value) || 0}))} style={{ flex: 1, backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none", fontSize: "14px" }} />
+                <input type="number" placeholder="Initial QTY" value={newItemForm.quantity || ""} onChange={e => setNewItemForm(prev => ({...prev, quantity: Math.max(0, Math.abs(parseInt(e.target.value) || 0))}))} style={{ flex: 1, backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none", fontSize: "14px" }} />
                 <CustomAutocomplete placeholder="Placement Zone" value={newItemForm.zone} onChange={val => setNewItemForm(prev => ({...prev, zone: val}))} options={[...new Set([...adminZones, ...stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone])])].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ flex: 2, backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none" }} />
               </div>
             </div>
