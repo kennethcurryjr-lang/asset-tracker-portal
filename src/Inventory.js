@@ -677,6 +677,8 @@ export default function Inventory({ user }) {
   };
 
   const processRef = useRef(); processRef.current = processScannedCode;
+  const rapidFireRef = useRef(rapidFire); rapidFireRef.current = rapidFire;
+  const lastScanRef = useRef(0);
   useEffect(() => {
     let qrCodeInstance;
     if (isScanning) {
@@ -686,11 +688,19 @@ export default function Inventory({ user }) {
           { facingMode: "environment" }, 
           { fps: 30, qrbox: { width: 300, height: 150 }, aspectRatio: 1.777778 },
           (decodedText) => {
+          if (rapidFireRef.current) {
+            const now = Date.now();
+            if (now - lastScanRef.current > 1500) {
+              lastScanRef.current = now;
+              if (processRef.current) processRef.current(decodedText);
+            }
+          } else {
             qrCodeInstance.stop().then(() => {
               setIsScanning(false);
               if (processRef.current) processRef.current(decodedText);
             }).catch(e => console.log(e));
-          },
+          }
+        },
           (error) => { }
         ).catch(err => {
           console.error("Camera start error:", err);
@@ -1681,3 +1691,5 @@ return (
 // System patch: Pro Mode Polish (Admin multi-lot clone fix, CSV data map fix, UI ledger duplication removed)
 
 // System patch: Critical Alerts logic patched to respect aggregated flavor totals.
+
+// System patch: Rapid Fire button hardwired to camera engine with 1.5s debounce.
