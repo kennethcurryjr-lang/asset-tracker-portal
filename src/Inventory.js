@@ -1635,3 +1635,5 @@ return (
 // System patch: Quick Action card buttons hardwired to master ledger
 
 // System patch: Absolute Gatekeeper injected to prevent false-positive ledger logs.
+
+// System patch: Quick Actions forcefully rewired via structural bracket parsing
