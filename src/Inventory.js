@@ -1623,3 +1623,5 @@ return (
 // System patch: Final V1.0 Cleanups (Search UI, Offline Sync, Rapid Fire)
 
 // System patch: Cards synced & packaging data backfilled
+
+// System patch: Packaging raw data backfilled for juices.
