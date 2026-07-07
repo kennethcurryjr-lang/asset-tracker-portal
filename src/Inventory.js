@@ -472,9 +472,15 @@ export default function Inventory({ user }) {
         if (dest) dest.qty += boxAdjustment;
         else updatedLocations.push({ name: destName, qty: boxAdjustment });
     } else {
-        // Shipping or Shrinkage: Deduct from the primary zone
-        let source = updatedLocations.reduce((prev, current) => (prev.qty > current.qty) ? prev : current);
-        source.qty = Math.max(0, source.qty - boxAdjustment);
+        // Shipping or Shrinkage: Cascading deduction to handle large bulk removals safely
+        let remaining = boxAdjustment;
+        updatedLocations.sort((a, b) => b.qty - a.qty);
+        for (let loc of updatedLocations) {
+            if (remaining <= 0) break;
+            let deduct = Math.min(loc.qty, remaining);
+            loc.qty -= deduct;
+            remaining -= deduct;
+        }
     }
 
     // Clean up empty zones so they disappear from the UI
@@ -484,10 +490,10 @@ export default function Inventory({ user }) {
     const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor, destination: actionName.includes("Transfer") ? newZone : (actionName.includes("Receive") ? (newZone || targetItem.zone || "Unassigned Warehouse") : null), orderNumber: orderNumber.trim() || null };
     setAuditLog(prev => [logEntry, ...prev]);
 
-    const newScan = { action: logEntry.action, qty: boxAdjustment, time: logEntry.time, timestamp: logEntry.id };
+    const newScan = { action: logEntry.action, qty: boxAdjustment, time: logEntry.time, timestamp: logEntry.id, orderNumber: logEntry.orderNumber };
     const updatedScans = [newScan, ...(targetItem.recentScans || [])].slice(0, 5);
 
-    setStock(prevStock => prevStock.map(item => item.barcode === targetItem.barcode ? { ...item, quantity: newQuantity, locations: updatedLocations, zone: newZone || item.zone, recentScans: updatedScans } : item));
+    setStock(prevStock => prevStock.map(item => (item.barcode === targetItem.barcode && item.lotNumber === targetItem.lotNumber) ? { ...item, quantity: newQuantity, locations: updatedLocations, zone: newZone || item.zone, recentScans: updatedScans } : item));
     setScanFeedback(`✅ ${logEntry.action} ${boxAdjustment}bx ${targetItem.flavor}` + (logEntry.destination ? ` ➔ ${logEntry.destination.replace("ZONE-", "").replace("BAY-", "")}` : ""));
     setShowConfirmModal(false); setPendingAction(null); setOrderNumber("");
 
@@ -1003,7 +1009,7 @@ return (
                 <div key={idx} style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
                   {scan.time} 
                   <span style={{ fontWeight: "600", marginLeft: '6px', fontSize: '13px', color: scan.action === 'Receive' ? 'var(--brand-green)' : (scan.action === 'Ship' ? 'var(--brand-red)' : (scan.action === 'Transfer' ? 'var(--brand-orange)' : 'var(--brand-purple)')) }}>
-                    {scan.qty}{scan.action === 'Receive' ? 'R' : (scan.action === 'Ship' ? 'S' : (scan.action === 'Transfer' ? 'T' : 'O'))}
+                    {scan.qty}{scan.action === 'Receive' ? 'R' : (scan.action === 'Ship' ? 'S' : (scan.action === 'Transfer' ? 'T' : (scan.action === 'Shrinkage' ? '💥' : 'O')))}{scan.orderNumber ? ` #${scan.orderNumber}` : ''}
                   </span>
                 </div>
               ))}
@@ -1083,9 +1089,9 @@ return (
                       </div>
                       
                       <div style={{ display: 'flex', gap: '8px', marginTop: '16px', marginBottom: '12px' }}>
-                        <button onClick={(e) => { e.stopPropagation(); setScanMode("receive"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(52, 199, 89, 0.15)', color: 'var(--brand-green)', border: '1px solid var(--brand-green)', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><Download size={14} className="lucide-icon-sm" /> RCV</button>
-                        <button onClick={(e) => { e.stopPropagation(); setScanMode("ship"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(255, 59, 48, 0.15)', color: 'var(--brand-red)', border: '1px solid var(--brand-red)', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><Truck size={14} className="lucide-icon-sm" /> SHP</button>
-                        <button onClick={(e) => { e.stopPropagation(); setScanMode("transfer"); setTimeout(() => { if (processRef.current) processRef.current(item.barcode); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(0, 122, 255, 0.15)', color: 'var(--brand-blue)', border: '1px solid var(--brand-blue)', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><ArrowRightLeft size={14} className="lucide-icon-sm" /> TFR</button>
+                        <button onClick={(e) => { e.stopPropagation(); setScanMode("receive"); setCustomQty(1); setIsPalletMode(false); setTimeout(() => { if (processRef.current) processRef.current(item.barcode, item); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(52, 199, 89, 0.15)', color: 'var(--brand-green)', border: '1px solid var(--brand-green)', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><Download size={14} className="lucide-icon-sm" /> RCV</button>
+                        <button onClick={(e) => { e.stopPropagation(); setScanMode("ship"); setCustomQty(1); setIsPalletMode(false); setTimeout(() => { if (processRef.current) processRef.current(item.barcode, item); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(255, 59, 48, 0.15)', color: 'var(--brand-red)', border: '1px solid var(--brand-red)', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><Truck size={14} className="lucide-icon-sm" /> SHP</button>
+                        <button onClick={(e) => { e.stopPropagation(); setScanMode("transfer"); setCustomQty(1); setIsPalletMode(false); setTimeout(() => { if (processRef.current) processRef.current(item.barcode, item); }, 100); }} style={{ flex: 1, backgroundColor: 'rgba(0, 122, 255, 0.15)', color: 'var(--brand-blue)', border: '1px solid var(--brand-blue)', padding: '8px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}><ArrowRightLeft size={14} className="lucide-icon-sm" /> TFR</button>
                       </div>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button 
