@@ -337,7 +337,7 @@ export default function Inventory({ user }) {
       setTimeout(() => setScanFeedback(""), 4000);
       return;
     }
-    const parsedQty = parseInt(customQty) || 1;
+    const parsedQty = Math.max(1, Math.abs(parseInt(customQty) || 1));
     const matchingItems = stock.filter(item => item.barcode === cleanScan || cleanScan.includes(item.barcode) || item.barcode.includes(cleanScan));
     
     if (!preSelectedTarget && matchingItems.length > 1 && scanMode !== "receive") {
@@ -407,7 +407,7 @@ export default function Inventory({ user }) {
 
 
   const handleUndoAction = (logEntry) => {
-    const targetItem = stock.find(i => i.flavor === logEntry.flavor);
+    const targetItem = stock.find(i => i.barcode === logEntry.barcode && i.lotNumber === logEntry.lotNumber);
     if (!targetItem) return alert("Error: Original product no longer found in active database.");
     
     let reverseAction = "";
@@ -487,7 +487,7 @@ export default function Inventory({ user }) {
     updatedLocations = updatedLocations.filter(loc => loc.qty > 0);
     const newQuantity = updatedLocations.reduce((sum, loc) => sum + loc.qty, 0);
     
-    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor, destination: actionName.includes("Transfer") ? newZone : (actionName.includes("Receive") ? (newZone || targetItem.zone || "Unassigned Warehouse") : null), orderNumber: orderNumber.trim() || null };
+    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z]/g, ""), qty: boxAdjustment, flavor: targetItem.flavor, barcode: targetItem.barcode, lotNumber: targetItem.lotNumber, destination: actionName.includes("Transfer") ? newZone : (actionName.includes("Receive") ? (newZone || targetItem.zone || "Unassigned Warehouse") : null), orderNumber: orderNumber.trim() || null };
     setAuditLog(prev => [logEntry, ...prev]);
 
     const newScan = { action: logEntry.action, qty: boxAdjustment, time: logEntry.time, timestamp: logEntry.id, orderNumber: logEntry.orderNumber };
@@ -542,18 +542,11 @@ export default function Inventory({ user }) {
     if (!originalItem) { alert("Error: Item not found."); return; }
 
     // Reconcile Multi-Zone Arrays with the manual quantity edit
-    let locSource = Array.isArray(originalItem.locations) ? originalItem.locations : [{name: originalItem.zone || "Unassigned", qty: originalItem.quantity}];
-    let updatedLocs = JSON.parse(JSON.stringify(locSource));
-    let diff = (parseInt(form.quantity) || 0) - (parseInt(originalItem.quantity) || 0);
-    if (diff !== 0) {
-        let targetLoc = updatedLocs.find(l => l.name === form.zone);
-        if (targetLoc) targetLoc.qty = Math.max(0, targetLoc.qty + diff);
-        else if (updatedLocs.length > 0) updatedLocs[0].qty = Math.max(0, updatedLocs[0].qty + diff);
-        else updatedLocs.push({name: form.zone || "Unassigned", qty: form.quantity});
-    }
-    form.locations = updatedLocs;
+    // Admin overrides are absolute. Consolidate stock into the designated zone to prevent fractional desyncs.
+    form.quantity = parseInt(form.quantity) || 0;
+    form.locations = [{ name: form.zone || "Unassigned Warehouse", qty: form.quantity }];
 
-    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Manager", action: "Admin Override", qty: form.quantity - originalItem.quantity, flavor: originalItem.flavor };
+    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Manager", action: "Admin Override", qty: form.quantity - originalItem.quantity, flavor: originalItem.flavor, barcode: originalItem.barcode, lotNumber: originalItem.lotNumber };
     setAuditLog(prev => [logEntry, ...prev]);
 
     setStock(prev => prev.map(item => item.barcode === barcode ? { ...item, ...form } : item));
@@ -1274,7 +1267,34 @@ return (
       </div>
     )}
     
-    {showConfirmModal && pendingAction && (
+          {/* 📦 MULTIPLE LOT SELECTION MODAL */}
+      {showLotModal && pendingLotMatches.length > 0 && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "var(--surface-base)", padding: "24px", borderRadius: "18px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", maxHeight: "85vh" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "12px" }}>
+              <h3 style={{ margin: 0, color: "var(--text-primary)", fontSize: "20px", fontWeight: "600", letterSpacing: "-0.01em" }}>📦 Select Target Lot</h3>
+              <button onClick={() => { setShowLotModal(false); setIsScanning(false); }} style={{ background: "transparent", color: "var(--brand-red)", border: "none", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Cancel ✕</button>
+            </div>
+            <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "14px", lineHeight: "1.5" }}>Multiple active lots detected for <strong style={{color: "var(--brand-blue)"}}>{pendingLotMatches[0].flavor}</strong>. Select the specific batch you are scanning:</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
+              {pendingLotMatches.map(lot => {
+                const isExp = lot.expiryDate && lot.expiryDate !== "N/A" && new Date(lot.expiryDate) < new Date();
+                return (
+                  <div key={lot.lotNumber} onClick={() => { setShowLotModal(false); if(processRef.current) processRef.current(lot.barcode, lot); }} style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "16px", borderRadius: "12px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--brand-blue)"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-subtle)"}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      <span style={{ fontSize: "14px", fontWeight: "700", color: "var(--text-primary)" }}>{lot.lotNumber}</span>
+                      <span style={{ fontSize: "12px", color: isExp ? "var(--brand-red)" : "var(--brand-orange)", fontWeight: "600" }}>{isExp ? `🚨 EXPIRED: ${lot.expiryDate}` : `Exp: ${lot.expiryDate}`}</span>
+                    </div>
+                    <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--brand-blue)" }}>{lot.quantity} bx</div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showConfirmModal && pendingAction && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "var(--surface-base)", padding: "32px", borderRadius: "18px", border: "1px solid var(--border-subtle)", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px" }}>
             <h3 style={{ margin: 0, color: "var(--text-primary)", fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>⚠️ Confirm Update</h3>
