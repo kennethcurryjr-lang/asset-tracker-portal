@@ -891,7 +891,7 @@ return (
           
           {(() => {
             const criticalAlerts = stock.filter(i => {
-              const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date() && i.quantity > 0;
+              const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date() && i.quantity > 0; const isZero = i.quantity === 0;
               return isExp || i.quantity < 50;
             });
             return criticalAlerts.length > 0 && (
@@ -927,14 +927,14 @@ return (
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto", minHeight: 0, flex: 1, paddingRight: "4px" }} className="custom-scrollbar-viewport">
                   {criticalAlerts.map(i => {
-                    const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date() && i.quantity > 0;
+                    const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date() && i.quantity > 0; const isZero = i.quantity === 0;
                     return (
                       <div key={i.barcode} style={{ backgroundColor: "rgba(0,0,0,0.3)", border: `1px solid ${isExp ? 'rgba(255,59,48,0.5)' : 'rgba(255,149,0,0.3)'}`, padding: "10px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div style={{ display: "flex", flexDirection: "column", maxWidth: "65%" }}>
-                          <span style={{ fontSize: "10px", color: isExp ? "var(--brand-red)" : "var(--brand-orange)", textTransform: "uppercase", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isExp ? "🚨 EXPIRED" : "LOW STOCK"} • {i.brand}</span>
+                          <span style={{ fontSize: "10px", color: isExp ? "var(--brand-red)" : (isZero ? "var(--text-secondary)" : "var(--brand-orange)"), textTransform: "uppercase", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isExp ? "🚨 EXPIRED" : (isZero ? "💥 DEPLETED" : "LOW STOCK")} • {i.brand}</span>
                           <strong style={{ color: "var(--text-primary)", fontSize: "13px", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{i.flavor}</strong>
                         </div>
-                        <span className={isExp ? "critical-expiry-badge" : ""} style={{ fontSize: "12px", color: isExp ? "var(--brand-red)" : "var(--brand-orange)", fontWeight: "700", whiteSpace: "nowrap" }}>{i.quantity} bx</span>
+                        <span className={isExp ? "critical-expiry-badge" : ""} style={{ fontSize: "12px", color: isExp ? "var(--brand-red)" : (isZero ? "var(--text-secondary)" : "var(--brand-orange)"), fontWeight: "700", whiteSpace: "nowrap" }}>{i.quantity} bx</span>
                       </div>
                     );
                   })}
@@ -1349,12 +1349,12 @@ return (
             <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "14px", lineHeight: "1.5" }}>Multiple active lots detected for <strong style={{color: "var(--brand-blue)"}}>{pendingLotMatches[0].flavor}</strong>. Select the specific batch you are scanning:</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
               {pendingLotMatches.map(lot => {
-                const isExp = lot.expiryDate && lot.expiryDate !== "N/A" && new Date(lot.expiryDate) < new Date() && lot.quantity > 0;
+                const isExp = lot.expiryDate && lot.expiryDate !== "N/A" && new Date(lot.expiryDate) < new Date() && lot.quantity > 0; const isZero = lot.quantity === 0;
                 return (
                   <div key={lot.lotNumber} onClick={() => { setShowLotModal(false); if(processRef.current) processRef.current(lot.barcode, lot); }} style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "16px", borderRadius: "12px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--brand-blue)"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-subtle)"}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                       <span style={{ fontSize: "14px", fontWeight: "700", color: "var(--text-primary)" }}>{lot.lotNumber}</span>
-                      <span style={{ fontSize: "12px", color: isExp ? "var(--brand-red)" : "var(--brand-orange)", fontWeight: "600" }}>{isExp ? `🚨 EXPIRED: ${lot.expiryDate}` : `Exp: ${lot.expiryDate}`}</span>
+                      <span style={{ fontSize: "12px", color: isExp ? "var(--brand-red)" : (isZero ? "var(--text-secondary)" : "var(--brand-orange)"), fontWeight: "600" }}>{isExp ? `🚨 EXPIRED: ${lot.expiryDate}` : `Exp: ${lot.expiryDate}`}</span>
                     </div>
                     <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--brand-blue)" }}>{lot.quantity} bx</div>
                   </div>
