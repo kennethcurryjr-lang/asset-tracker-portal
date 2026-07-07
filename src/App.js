@@ -369,7 +369,7 @@ function App() {
     const time = `${new Date().toLocaleDateString('en-US')} - ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
     const logMsg = newState 
       ? `🛡️ Watchdog Disabled (Service Mode Engaged by ${user.split('@')[0]})` 
-      : `📡 Watchdog Activated (Monitoring Live Position by ${user.split('@')[0]})`;
+      : `Watchdog Activated (Monitoring Live Position by ${user.split('@')[0]})`;
     
     try {
       await Promise.all([
@@ -1078,10 +1078,10 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             borderBottom: activePortal === "inventory" ? "1px solid #3a3a3c" : "none"
           }}>
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.4)", maxWidth: "100%" }}>
-              <button onClick={() => setComingSoonModule("Kinetic Dispatch")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: "transparent", color: "#636366", transition: "all 0.2s", whiteSpace: "nowrap" }}>🤝 Kinetic Dispatch</button>
-              <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", whiteSpace: "nowrap" }}>📡 Kinetic Assets</button>
-              <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", whiteSpace: "nowrap" }}>📦 Kinetic Inventory</button>
-              <button onClick={() => setComingSoonModule("Kinetic Deployments")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: "transparent", color: "#636366", transition: "all 0.2s", whiteSpace: "nowrap" }}>🎪 Kinetic Deployments</button>
+              <button onClick={() => setComingSoonModule("Kinetic Dispatch")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: "transparent", color: "#636366", transition: "all 0.2s", whiteSpace: "nowrap" }}>Kinetic Dispatch</button>
+              <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", whiteSpace: "nowrap" }}>Kinetic Assets</button>
+              <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", whiteSpace: "nowrap" }}>Kinetic Inventory</button>
+              <button onClick={() => setComingSoonModule("Kinetic Deployments")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: "transparent", color: "#636366", transition: "all 0.2s", whiteSpace: "nowrap" }}>Kinetic Deployments</button>
             </div>
           </div>
         )}
@@ -1163,7 +1163,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
               <div className="responsive-pill-options-sub-block">
                 <button onClick={() => setActiveGroupFilter("all")} style={getPillStyle(activeGroupFilter === "all")}>All</button>
                 {distinctGroups.map(grp => (
-                  <button key={grp} onClick={() => setActiveGroupFilter(grp)} style={getPillStyle(activeGroupFilter === grp)}>📦 {grp}</button>
+                  <button key={grp} onClick={() => setActiveGroupFilter(grp)} style={getPillStyle(activeGroupFilter === grp)}>{grp}</button>
                 ))}
               </div>
             </div>
@@ -1254,7 +1254,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         <div style={{ fontWeight: '500', color: '#1d1d1f' }}>{item.city || "Locating"}</div>
                         <div style={{ fontSize: '10px', color: '#86868b', marginTop: '2px' }}>Last seen: {item.lastSeen}</div>
                         <div style={{ fontSize: '11px' }}>ID: {item.deviceId.slice(-5)}</div>
-                        {item.group && <div style={{ fontSize: '11px', fontStyle: 'italic' }}>📦 {item.group}</div>}
+                        {item.group && <div style={{ fontSize: '11px', fontStyle: 'italic' }}>{item.group}</div>}
                         {item.homeLat && (
                           <div style={{ fontSize: '10px', color: '#007aff', marginTop: '4px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <span style={{width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#007aff'}}></span>
@@ -1487,7 +1487,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             • <strong>Set Up a Service Schedule</strong> Choose how often a card needs regular check-ups from the drop-down menu on the card and click <strong>Schedule Service</strong> to keep track of its upkeep timeline.<br/>
             • <strong>Choose Opt-Out to Cancel.</strong></span></div>
             
-            <div style={{ borderTop: "1px dashed #d2d2d7", paddingTop: "10px" }}><strong>📦 Section 3: Doing Actions in Bulk (Bottom Drawer)</strong><br/>
+            <div style={{ borderTop: "1px dashed #d2d2d7", paddingTop: "10px" }}><strong>Section 3: Doing Actions in Bulk (Bottom Drawer)</strong><br/>
             <span style={{ color: "#86868b", fontStyle: "italic" }}>Note: To use these options, you must first check the selection boxes on more than one card. This will slide open the menu drawer at the bottom of your screen.</span><br/>
             <span style={{ color: "#86868b" }}>• <strong>Move Cards into Group Folders:</strong> Type a folder name into <em>Assign to Group...</em> and click <strong>Move</strong> to group your selected cards together.<br/>
             • <strong>Auto-Number a Batch of Cards:</strong> If you want to name a bunch of cards sequentially, type any name into the box (like Cosmo) and click <strong>Sequence Name</strong>. The system will automatically add a number to them (Cosmo-1, Cosmo-2, Cosmo-3, etc.).<br/>
