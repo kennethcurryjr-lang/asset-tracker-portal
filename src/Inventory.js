@@ -94,6 +94,7 @@ return (
 };
 
 export default function Inventory({ user }) {
+  const [masterAuditSearch, setMasterAuditSearch] = React.useState("");
   const [ledgerSearch, setLedgerSearch] = React.useState("");
 
   // ==========================================
@@ -836,7 +837,7 @@ return (
             <div className="hide-desktop" style={{ backgroundColor: "#000", padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: "6px", minHeight: "60px", boxShadow: "inset 0 2px 10px rgba(0,0,0,0.5)" }}>
               <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "6px", marginBottom: "4px" }}>Global Ledger (Live)</div>
               <div style={{ paddingBottom: "12px" }}>
-              <input type="text" placeholder="Search Master Audit (PO or Flavor)..." value={ledgerSearch} onChange={(e) => setLedgerSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: "100%", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "10px 12px", borderRadius: "8px", fontSize: "12px", outline: "none", fontWeight: "600", transition: "all 0.2s" }} onFocus={(e) => e.target.style.borderColor = "var(--brand-blue)"} onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"} />
+              <input type="text" placeholder="Search Master Audit (PO or Flavor)..." value={ledgerSearch} onChange={(e) => setLedgerSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: "100%", boxSizing: "border-box", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "10px 12px", borderRadius: "8px", fontSize: "12px", outline: "none", fontWeight: "600", transition: "all 0.2s" }} onFocus={(e) => e.target.style.borderColor = "var(--brand-blue)"} onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"} />
             </div>
             {auditLog.filter(log => !ledgerSearch || (log.orderNumber && log.orderNumber.toLowerCase().includes(ledgerSearch.toLowerCase())) || (log.flavor && log.flavor.toLowerCase().includes(ledgerSearch.toLowerCase()))).slice(0, 15).map((log, idx) => (
                 <div key={idx} style={{ fontSize: "12px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -860,7 +861,7 @@ return (
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "8px", paddingBottom: "16px", flex: 1, maxHeight: window.innerWidth <= 768 ? "300px" : "100%", WebkitOverflowScrolling: "touch" }} className="custom-scrollbar-viewport">
             <div style={{ paddingBottom: "12px" }}>
-              <input type="text" placeholder="Search Master Audit (PO or Flavor)..." value={ledgerSearch} onChange={(e) => setLedgerSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: "100%", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "10px 12px", borderRadius: "8px", fontSize: "12px", outline: "none", fontWeight: "600", transition: "all 0.2s" }} onFocus={(e) => e.target.style.borderColor = "var(--brand-blue)"} onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"} />
+              <input type="text" placeholder="Search Master Audit (PO or Flavor)..." value={ledgerSearch} onChange={(e) => setLedgerSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: "100%", boxSizing: "border-box", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "10px 12px", borderRadius: "8px", fontSize: "12px", outline: "none", fontWeight: "600", transition: "all 0.2s" }} onFocus={(e) => e.target.style.borderColor = "var(--brand-blue)"} onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"} />
             </div>
             {auditLog.filter(log => !ledgerSearch || (log.orderNumber && log.orderNumber.toLowerCase().includes(ledgerSearch.toLowerCase())) || (log.flavor && log.flavor.toLowerCase().includes(ledgerSearch.toLowerCase()))).slice(0, 15).map((log, idx) => (
               <div key={idx} style={{ fontSize: "14px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "var(--surface-base)", padding: "10px 14px", borderRadius: "8px", border: "1px solid var(--surface-elevated)" }}>
@@ -1469,7 +1470,10 @@ return (
               </tr>
             </thead>
             <tbody>
-              {auditLog.length > 0 ? auditLog.map((log, idx) => (
+              <div style={{ paddingBottom: "16px", width: "100%", boxSizing: "border-box" }}>
+                <input type="text" placeholder="Search Master Security Audit (PO or Flavor)..." value={masterAuditSearch} onChange={(e) => setMasterAuditSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: "100%", boxSizing: "border-box", backgroundColor: "var(--bg-canvas)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "12px", borderRadius: "8px", fontSize: "14px", outline: "none", fontWeight: "600", transition: "border-color 0.2s" }} onFocus={(e) => e.target.style.borderColor = "var(--brand-blue)"} onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"} />
+              </div>
+              {auditLog.length > 0 ? auditLog.filter(log => !masterAuditSearch || (log.orderNumber && log.orderNumber.toLowerCase().includes(masterAuditSearch.toLowerCase())) || (log.flavor && log.flavor.toLowerCase().includes(masterAuditSearch.toLowerCase()))).map((log, idx) => (
                 <tr key={idx} style={{ borderBottom: "1px solid var(--surface-elevated)", backgroundColor: idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)", transition: "background-color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(0,122,255,0.1)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)"}>
                   <td style={{ padding: "16px 24px", color: "var(--text-secondary)", fontFamily: "monospace", fontSize: "13px" }}>{log.time}</td>
                   <td style={{ padding: "16px 24px", fontWeight: "700", color: log.action.includes("Ship") ? "var(--brand-red)" : (log.action.includes("Receive") ? "var(--brand-green)" : (log.action.includes("Shrinkage") ? "var(--brand-orange)" : "var(--brand-blue)")) }}>{log.action}</td>
@@ -1607,3 +1611,5 @@ return (
   );
 }
 // Force search bar injection
+
+// System patch: Mobile ledger overflow fixed & Master Audit Search permanently active.
