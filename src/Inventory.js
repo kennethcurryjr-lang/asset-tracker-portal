@@ -1613,3 +1613,5 @@ return (
 // Force search bar injection
 
 // System patch: Mobile ledger overflow fixed & Master Audit Search permanently active.
+
+// Mobile layout strict overflow fix
