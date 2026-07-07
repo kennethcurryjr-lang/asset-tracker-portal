@@ -504,7 +504,7 @@ export default function Inventory({ user }) {
     }
 
     // Initialize the locations array if it's an older single-zone card
-    let updatedLocations = targetItem.locations || [{ name: targetItem.zone || "Unassigned Warehouse", qty: targetItem.quantity }];
+    let updatedLocations = (targetItem.locations && targetItem.locations.length > 0) ? JSON.parse(JSON.stringify(targetItem.locations)) : [{ name: targetItem.zone || "Unassigned Warehouse", qty: parseInt(targetItem.quantity) || 0 }];
 
     if (actionName === "Transfer" && newZone) {
         // Strict FIFO Check: Does this zone contain an older lot?
@@ -1695,3 +1695,5 @@ return (
 // System patch: Rapid Fire button hardwired to camera engine with 1.5s debounce.
 
 // System patch: Removed double-badge (Ref: PO) from the Master Security Audit modal.
+
+// System patch: Final V1.0 Clean Sweep (Audit modal UI sanitized, UNDO array flatline protection locked).
