@@ -249,6 +249,7 @@ export default function Inventory({ user }) {
 
   const [pendingAction, setPendingAction] = useState(null);
   const [modalQty, setModalQty] = useState(1);
+  const [shrinkageNote, setShrinkageNote] = useState("");
   
   const [pendingModeSwitch, setPendingModeSwitch] = useState(null);
   const [showLotModal, setShowLotModal] = useState(false);
@@ -555,7 +556,8 @@ export default function Inventory({ user }) {
     updatedLocations = updatedLocations.filter(loc => loc.qty > 0);
     const newQuantity = updatedLocations.reduce((sum, loc) => sum + loc.qty, 0);
     
-    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z ()]/g, "").trim(), qty: boxAdjustment, flavor: targetItem.flavor, barcode: targetItem.barcode, lotNumber: targetItem.lotNumber, destination: actionName.includes("Transfer") ? newZone : (actionName.includes("Receive") ? (newZone || targetItem.zone || "Unassigned Warehouse") : null), orderNumber: orderNumber.trim() || null };
+    const finalNote = isShrinkage ? shrinkageNote : null;
+    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: actionName.replace(/[^a-zA-Z ()]/g, "").trim(), qty: boxAdjustment, flavor: targetItem.flavor, barcode: targetItem.barcode, lotNumber: targetItem.lotNumber, destination: actionName.includes("Transfer") ? newZone : (actionName.includes("Receive") ? (newZone || targetItem.zone || "Unassigned Warehouse") : null, note: finalNote), orderNumber: orderNumber.trim() || null };
     setAuditLog(prev => [logEntry, ...prev]);
 
     const newScan = { action: logEntry.action, qty: boxAdjustment, time: logEntry.time, timestamp: logEntry.id, orderNumber: logEntry.orderNumber };
@@ -600,6 +602,7 @@ export default function Inventory({ user }) {
       updatedItem = { ...newItemForm, quantity: adjQty, locations: [{ name: targetZone, qty: adjQty }] };
     }
 
+    const finalNote = isShrinkage ? shrinkageNote : null;
     const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: "Receive", qty: adjQty, flavor: updatedItem.flavor, barcode: updatedItem.barcode, lotNumber: updatedItem.lotNumber, destination: targetZone, orderNumber: null };
     
     setAuditLog(prev => [logEntry, ...prev]);
@@ -647,6 +650,7 @@ export default function Inventory({ user }) {
     }
     form.lastScanTimestamp = Date.now();
 
+    const finalNote = isShrinkage ? shrinkageNote : null;
     const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Manager", action: "Admin Override", qty: form.quantity - originalItem.quantity, flavor: originalItem.flavor, barcode: originalItem.barcode, lotNumber: originalItem.lotNumber };
     setAuditLog(prev => [logEntry, ...prev]);
 
@@ -1454,6 +1458,12 @@ return (
                 </div>
               )}
 
+                {pendingAction.isShrinkage && (
+                  <div style={{ marginTop: "12px", textAlign: "left" }}>
+                    <label style={{ fontSize: "11px", color: "var(--text-secondary)", display: "block", marginBottom: "6px", fontWeight: "bold", textTransform: "uppercase" }}>Shrinkage Explanation:</label>
+                    <input type="text" value={shrinkageNote} onChange={(e) => setShrinkageNote(e.target.value)} style={{ width: "100%", boxSizing: "border-box", backgroundColor: "var(--surface-base)", border: "1px solid var(--border-subtle)", color: "var(--text-primary)", padding: "12px", borderRadius: "8px", outline: "none", fontSize: "14px" }} placeholder="Explain why this was marked as shrinkage..." />
+                  </div>
+                )}
               {pendingAction.actionName === "Ship" && (
                 <button onClick={() => { if (!pendingAction.isShrinkage) { requireManager(() => setPendingAction(prev => ({...prev, isShrinkage: true}))); } else { setPendingAction(prev => ({...prev, isShrinkage: false})); } }} style={{ marginTop: '8px', backgroundColor: pendingAction.isShrinkage ? 'var(--brand-red)' : 'var(--surface-elevated)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}>
                   {pendingAction.isShrinkage ? '💥 MARKED AS SHRINKAGE / DAMAGE' : 'Flag as Damaged / Shrinkage'}
@@ -1474,7 +1484,7 @@ return (
 
             <div style={{ display: "flex", gap: "12px" }}>
               <button onClick={() => { setShowConfirmModal(false); setOrderNumber(""); }} style={{ flex: 1, backgroundColor: "transparent", color: "var(--text-primary)", border: "1px solid var(--border-subtle)", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
-              <button onClick={handleConfirmAction} style={{ flex: 2, backgroundColor: pendingAction.actionName.includes("Ship") ? "var(--brand-red)" : "var(--brand-green)", color: "var(--text-primary)", border: "none", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>{pendingAction.fifoWarningItem ? "Force Ship Anyway" : "Commit Action"}</button>
+              <button onClick={handleConfirmAction} disabled={pendingAction.isShrinkage && shrinkageNote.length < 5} style={{ flex: 2, backgroundColor: pendingAction.actionName.includes("Ship") ? "var(--brand-red)" : "var(--brand-green)", color: "var(--text-primary)", border: "none", padding: "16px", borderRadius: "8px", fontWeight: "600", cursor: (pendingAction.isShrinkage && shrinkageNote.length < 5) ? "not-allowed" : "pointer", opacity: (pendingAction.isShrinkage && shrinkageNote.length < 5) ? 0.5 : 1 }}>{pendingAction.fifoWarningItem ? "Force Ship Anyway" : "Commit Action"}</button>
             </div>
           </div>
         </div>
