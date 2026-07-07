@@ -929,9 +929,19 @@ return (
           
           {(() => {
             const criticalAlerts = stock.filter(i => {
-              const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date() && i.quantity > 0; const isZero = i.quantity === 0;
-              return isExp || i.quantity < 50;
-            });
+              const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date() && i.quantity > 0; 
+              
+              // Aggregate the total stock for this specific flavor across all active lots
+              const totalFlavorQty = stock.filter(s => s.flavor === i.flavor).reduce((sum, s) => sum + s.quantity, 0);
+              
+              // Only flag low stock if the ENTIRE flavor inventory is below 50, OR if this specific lot is expired
+              return isExp || totalFlavorQty < 50;
+            }).filter((item, index, self) => 
+              // Deduplicate so we don't show the same low stock warning twice for multiple empty lots
+              index === self.findIndex((t) => (
+                t.flavor === item.flavor && (new Date(t.expiryDate) < new Date() ? t.lotNumber === item.lotNumber : true)
+              ))
+            );
             return criticalAlerts.length > 0 && (
               <div style={{ width: "100%", backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid rgba(255, 149, 0, 0.4)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px", boxShadow: "0 4px 20px rgba(255, 149, 0, 0.1)", boxSizing: "border-box", maxHeight: isDesktop ? "65vh" : "350px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1669,3 +1679,5 @@ return (
 // System patch: executeSaveNewItem mathematically locked and wired to audit ledger.
 
 // System patch: Pro Mode Polish (Admin multi-lot clone fix, CSV data map fix, UI ledger duplication removed)
+
+// System patch: Critical Alerts logic patched to respect aggregated flavor totals.
