@@ -9,11 +9,11 @@ import { Download, Truck, ArrowRightLeft, Package, ScanLine, ClipboardList, File
 
 
 const initialMockData = [
-  { barcode: "082123456781", lotNumber: "LOT-2026-01", expiryDate: "2026-10-15", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", type: "", quantity: 420, zone: "Cooler Bay-01" },
-  { barcode: "082123456782", lotNumber: "LOT-2026-02", expiryDate: "2026-11-01", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "Apple Juice Premium", type: "", quantity: 180, zone: "Cooler Bay-01" },
+  { barcode: "082123456781", lotNumber: "LOT-2026-01", expiryDate: "2026-10-15", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", packaging: "3G Bag-in-Box", type: "", quantity: 420, zone: "Cooler Bay-01" },
+  { barcode: "082123456782", lotNumber: "LOT-2026-02", expiryDate: "2026-11-01", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "Apple Juice Premium", packaging: "3G Bag-in-Box", type: "", quantity: 180, zone: "Cooler Bay-01" },
   { barcode: "082123456783", lotNumber: "LOT-2026-03", expiryDate: "2027-01-20", vendorEmail: "wholesale@coolattitudes.com", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 310, zone: "Dry Aisle A" },
   { barcode: "082123456783-OLD", lotNumber: "LOT-2025-11", expiryDate: "2026-08-10", vendorEmail: "wholesale@coolattitudes.com", brand: "Cool Attitudes", flavor: "Top Shelf Margarita Mixer", type: "1G Jug Case", quantity: 45, zone: "Dry Aisle B" },
-  { barcode: "082123456784", lotNumber: "LOT-2026-04", expiryDate: "2026-12-05", vendorEmail: "distro@twistedbranch.com", brand: "Twisted Branch", flavor: "Craft Lemonade Base", type: "", quantity: 35, zone: "Dry Aisle B" },
+  { barcode: "082123456784", lotNumber: "LOT-2026-04", expiryDate: "2026-12-05", vendorEmail: "distro@twistedbranch.com", brand: "Twisted Branch", flavor: "Craft Lemonade Base", packaging: "3G Bag-in-Box", type: "", quantity: 35, zone: "Dry Aisle B" },
   { barcode: "082123456785", lotNumber: "LOT-2026-05", expiryDate: "2027-03-10", vendorEmail: "supply@madrinas.com", brand: "Madrinas Coffee", flavor: "Vanilla Cold Brew RTD", type: "24-Can Case", quantity: 300, zone: "Dry Aisle C" },
   { barcode: "082123456801", lotNumber: "LOT-2026-10", expiryDate: "2027-01-15", vendorEmail: "supply@madrinas.com", brand: "Madrinas Coffee", flavor: "Mocha Cold Brew", type: "24-Can Case", quantity: 410, zone: "Dry Aisle C" },
   { barcode: "082123456802", lotNumber: "LOT-2026-11", expiryDate: "2027-02-20", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "Peach Mango Tea", type: "3G Bag-in-Box", quantity: 150, zone: "Cooler Bay-02" },
@@ -1625,3 +1625,5 @@ return (
 // System patch: Cards synced & packaging data backfilled
 
 // System patch: Packaging raw data backfilled for juices.
+
+// System patch: Force-injected packaging keys for juices.
