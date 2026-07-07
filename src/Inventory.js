@@ -835,7 +835,10 @@ return (
             
             <div className="hide-desktop" style={{ backgroundColor: "#000", padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: "6px", minHeight: "60px", boxShadow: "inset 0 2px 10px rgba(0,0,0,0.5)" }}>
               <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "6px", marginBottom: "4px" }}>Global Ledger (Live)</div>
-              {auditLog.slice(0, 3).map((log, idx) => (
+              <div style={{ paddingBottom: "12px" }}>
+              <input type="text" placeholder="Search Master Audit (PO or Flavor)..." value={ledgerSearch} onChange={(e) => setLedgerSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: "100%", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "10px 12px", borderRadius: "8px", fontSize: "12px", outline: "none", fontWeight: "600", transition: "all 0.2s" }} onFocus={(e) => e.target.style.borderColor = "var(--brand-blue)"} onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"} />
+            </div>
+            {auditLog.filter(log => !ledgerSearch || (log.orderNumber && log.orderNumber.toLowerCase().includes(ledgerSearch.toLowerCase())) || (log.flavor && log.flavor.toLowerCase().includes(ledgerSearch.toLowerCase()))).slice(0, 15).map((log, idx) => (
                 <div key={idx} style={{ fontSize: "12px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ color: "var(--text-secondary)", fontFamily: "monospace", minWidth: "65px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
                   <span style={{ flex: 1, margin: "0 8px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -856,7 +859,10 @@ return (
             <span style={{ fontSize: "11px", color: "var(--brand-blue)", fontWeight: "700", backgroundColor: "rgba(0, 122, 255, 0.15)", padding: "4px 10px", borderRadius: "8px", border: "1px solid rgba(0, 122, 255, 0.3)" }}>{auditLog.length} Total Entries</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "8px", paddingBottom: "16px", flex: 1, maxHeight: window.innerWidth <= 768 ? "300px" : "100%", WebkitOverflowScrolling: "touch" }} className="custom-scrollbar-viewport">
-            {auditLog.slice(0, 8).map((log, idx) => (
+            <div style={{ paddingBottom: "12px" }}>
+              <input type="text" placeholder="Search Master Audit (PO or Flavor)..." value={ledgerSearch} onChange={(e) => setLedgerSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: "100%", backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-strong)", color: "var(--text-primary)", padding: "10px 12px", borderRadius: "8px", fontSize: "12px", outline: "none", fontWeight: "600", transition: "all 0.2s" }} onFocus={(e) => e.target.style.borderColor = "var(--brand-blue)"} onBlur={(e) => e.target.style.borderColor = "var(--border-strong)"} />
+            </div>
+            {auditLog.filter(log => !ledgerSearch || (log.orderNumber && log.orderNumber.toLowerCase().includes(ledgerSearch.toLowerCase())) || (log.flavor && log.flavor.toLowerCase().includes(ledgerSearch.toLowerCase()))).slice(0, 15).map((log, idx) => (
               <div key={idx} style={{ fontSize: "14px", color: "var(--text-primary)", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "var(--surface-base)", padding: "10px 14px", borderRadius: "8px", border: "1px solid var(--surface-elevated)" }}>
                 <span style={{ color: "var(--text-secondary)", fontFamily: "monospace", fontSize: "12px", minWidth: "80px" }}>[{log.time.split(',')[1]?.trim() || log.time}]</span>
                 <span style={{ flex: 1, margin: "0 16px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
