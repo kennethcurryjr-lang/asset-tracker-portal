@@ -8,6 +8,18 @@ import { useAuth } from 'react-oidc-context';
 import { Download, Truck, ArrowRightLeft, Package, ScanLine, ClipboardList, FileDown, Plus } from 'lucide-react';
 
 
+// 📦 V1.0 Bulk Seed Data (Extracted from Drive Labels)
+// You can map over this array to bulk-register these SKUs into DynamoDB
+const bulkSeedFlavors = [
+  { vendor: "Paradise Frozen Cocktails", productName: "Lime Margarita (2171-384)", packagingType: "📦 3G Bag-in-Box", upc: "782269217138", lotCode: "5154B", expirationDate: "2026-03-17", zone: "Dry Aisle A" },
+  { vendor: "Citrus Springs Juices", productName: "Ginger Ale (3024-384)", packagingType: "📦 3G Bag-in-Box", upc: "782269302438", lotCode: "6320H", expirationDate: "2026-11-16", zone: "Dry Aisle A" },
+  { vendor: "Citrus Springs Juices", productName: "Tonic (3026-384)", packagingType: "📦 3G Bag-in-Box", upc: "782269302636", lotCode: "6049H", expirationDate: "2026-10-21", zone: "Dry Aisle A" },
+  { vendor: "Paradise Juice & Mixers", productName: "Cranberry (1160-384)", packagingType: "📦 3G Bag-in-Box", upc: "782269116035", lotCode: "6155H", expirationDate: "2026-04-10", zone: "Dry Aisle A" },
+  { vendor: "Paradise Juice & Mixers", productName: "Orange Juice Blend (1012-384)", packagingType: "📦 3G Bag-in-Box", upc: "782269101239", lotCode: "6100H", expirationDate: "2026-02-08", zone: "Dry Aisle A" }
+];
+
+
+
 const initialMockData = [
   { barcode: "082123456781", lotNumber: "LOT-2026-01", expiryDate: "2026-10-15", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "100% Orange Juice Concentrate", packaging: "3G Bag-in-Box", type: "", quantity: 420, zone: "Cooler Bay-01" },
   { barcode: "082123456782", lotNumber: "LOT-2026-02", expiryDate: "2026-11-01", vendorEmail: "orders@citrussprings.com", brand: "Citrus Springs", flavor: "Apple Juice Premium", packaging: "3G Bag-in-Box", type: "", quantity: 180, zone: "Cooler Bay-01" },
