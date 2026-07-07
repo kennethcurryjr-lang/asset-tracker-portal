@@ -94,6 +94,7 @@ return (
 };
 
 export default function Inventory({ user }) {
+  const [ledgerSearch, setLedgerSearch] = React.useState("");
 
   // ==========================================
   // 🛡️ CENTRAL MATH CONTROLLER & GATEKEEPER
