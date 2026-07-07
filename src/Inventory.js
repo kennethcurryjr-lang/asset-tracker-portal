@@ -94,6 +94,66 @@ return (
 };
 
 export default function Inventory({ user }) {
+
+  // ==========================================
+  // 🛡️ CENTRAL MATH CONTROLLER & GATEKEEPER
+  // ==========================================
+  const processInventoryMath = (action, currentQty, locations, adjustmentQty, targetZone = "Unassigned Warehouse") => {
+    const cleanAdj = Math.max(0, Math.abs(parseInt(adjustmentQty) || 0));
+    if (cleanAdj === 0) throw new Error("Transaction quantity must be greater than zero.");
+
+    let updatedLocs = JSON.parse(JSON.stringify(locations || []));
+    if (updatedLocs.length === 0) updatedLocs = [{ name: targetZone, qty: currentQty }];
+    
+    let newTotal = parseInt(currentQty) || 0;
+
+    if (action.includes("Receive")) {
+      let loc = updatedLocs.find(l => l.name === targetZone);
+      if (loc) loc.qty += cleanAdj;
+      else updatedLocs.push({ name: targetZone, qty: cleanAdj });
+      newTotal += cleanAdj;
+      
+    } else if (action.includes("Ship") || action.includes("Shrinkage")) {
+      if (newTotal < cleanAdj) throw new Error(`Insufficient stock. Cannot remove ${cleanAdj} bx. (Only ${newTotal} bx available)`);
+      
+      let remaining = cleanAdj;
+      updatedLocs.sort((a, b) => b.qty - a.qty);
+      for (let loc of updatedLocs) {
+        if (remaining <= 0) break;
+        let deduct = Math.min(loc.qty, remaining);
+        loc.qty -= deduct;
+        remaining -= deduct;
+      }
+      newTotal -= cleanAdj;
+
+    } else if (action.includes("Transfer")) {
+      if (newTotal < cleanAdj) throw new Error(`Insufficient stock to transfer ${cleanAdj} bx.`);
+      
+      // Deduct from current zones
+      let remaining = cleanAdj;
+      updatedLocs.sort((a, b) => b.qty - a.qty);
+      for (let loc of updatedLocs) {
+        if (remaining <= 0) break;
+        let deduct = Math.min(loc.qty, remaining);
+        loc.qty -= deduct;
+        remaining -= deduct;
+      }
+      
+      // Add to target zone
+      let tLoc = updatedLocs.find(l => l.name === targetZone);
+      if (tLoc) tLoc.qty += cleanAdj;
+      else updatedLocs.push({ name: targetZone, qty: cleanAdj });
+    }
+
+    // Clean up empty zones
+    updatedLocs = updatedLocs.filter(l => l.qty > 0);
+    
+    return { 
+      validatedQty: newTotal, 
+      validatedLocations: updatedLocs 
+    };
+  };
+
   const auth = useAuth();
   React.useEffect(() => {
     let meta = document.querySelector('meta[name="viewport"]');
