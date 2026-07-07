@@ -584,24 +584,52 @@ export default function Inventory({ user }) {
   const handleSaveNewItem = () => { if (!newItemForm.barcode || !newItemForm.flavor || !newItemForm.lotNumber) return alert("Required fields missing."); executeSaveNewItem(); };
 
   const executeSaveNewItem = async () => {
-    setStock(prev => { 
-      const existingIdx = prev.findIndex(i => i.barcode === newItemForm.barcode && i.lotNumber === newItemForm.lotNumber);
-      if (existingIdx >= 0) {
+    const adjQty = parseInt(newItemForm.quantity) || 0;
+    if (adjQty <= 0) return alert("Quantity must be greater than zero.");
+    
+    const targetZone = newItemForm.zone || "Unassigned Warehouse";
+    const isExisting = stock.find(i => i.barcode === newItemForm.barcode && i.lotNumber === newItemForm.lotNumber);
+    
+    let updatedItem;
+    if (isExisting) {
+      let locs = JSON.parse(JSON.stringify(isExisting.locations || []));
+      let dest = locs.find(l => l.name === targetZone);
+      if (dest) dest.qty += adjQty; else locs.push({ name: targetZone, qty: adjQty });
+      updatedItem = { ...isExisting, ...newItemForm, quantity: parseInt(isExisting.quantity) + adjQty, locations: locs };
+    } else {
+      updatedItem = { ...newItemForm, quantity: adjQty, locations: [{ name: targetZone, qty: adjQty }] };
+    }
+
+    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Operator", action: "Receive", qty: adjQty, flavor: updatedItem.flavor, barcode: updatedItem.barcode, lotNumber: updatedItem.lotNumber, destination: targetZone, orderNumber: null };
+    
+    setAuditLog(prev => [logEntry, ...prev]);
+
+    const newScan = { action: "Receive", qty: adjQty, time: logEntry.time, timestamp: logEntry.id };
+    updatedItem.recentScans = [newScan, ...(updatedItem.recentScans || [])].slice(0, 5);
+
+    setStock(prev => {
+      const idx = prev.findIndex(i => i.barcode === updatedItem.barcode && i.lotNumber === updatedItem.lotNumber);
+      if (idx >= 0) {
         const updated = [...prev];
-        updated[existingIdx] = { ...updated[existingIdx], quantity: updated[existingIdx].quantity + (newItemForm.quantity || 0) };
+        updated[idx] = updatedItem;
         return updated;
       }
-      return [...prev, newItemForm]; 
+      return [...prev, updatedItem];
     });
+    
     setShowNewItemModal(false); 
-    setScanFeedback(`✅ 📥 Registered Product: ${newItemForm.flavor}`);
+    setScanFeedback(`✅ 📥 Received ${adjQty}bx ${updatedItem.flavor}`);
     setTimeout(() => setScanFeedback(""), 4000);
+    
+    Object.keys(updatedItem).forEach(key => updatedItem[key] === undefined && delete updatedItem[key]);
+
     if (isOffline) {
-      setOfflineQueue(prev => [...prev, { type: "NEW_ITEM", payload: newItemForm }]);
+      setOfflineQueue(prev => [...prev, { type: "NEW_ITEM", payload: updatedItem }]);
     } else {
-      try { await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: newItemForm })); } catch (err) { console.error("Failed to register:", err); }
+      try { await docClient.send(new PutCommand({ TableName: "BeverageInventoryData", Item: updatedItem })); } catch (err) { console.error("Failed to register:", err); }
+      try { await docClient.send(new PutCommand({ TableName: "BeverageAuditLogs", Item: logEntry })); } catch(e){}
     }
-  };
+  };;
 
   const handleSaveCardEdit = async (barcode) => {
     const form = editForms[barcode];
@@ -1637,3 +1665,5 @@ return (
 // System patch: Absolute Gatekeeper injected to prevent false-positive ledger logs.
 
 // System patch: Quick Actions forcefully rewired via structural bracket parsing
+
+// System patch: executeSaveNewItem mathematically locked and wired to audit ledger.
