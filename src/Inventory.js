@@ -545,6 +545,7 @@ export default function Inventory({ user }) {
     // Admin overrides are absolute. Consolidate stock into the designated zone to prevent fractional desyncs.
     form.quantity = parseInt(form.quantity) || 0;
     form.locations = [{ name: form.zone || "Unassigned Warehouse", qty: form.quantity }];
+    form.lastScanTimestamp = Date.now();
 
     const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Manager", action: "Admin Override", qty: form.quantity - originalItem.quantity, flavor: originalItem.flavor, barcode: originalItem.barcode, lotNumber: originalItem.lotNumber };
     setAuditLog(prev => [logEntry, ...prev]);
@@ -820,7 +821,7 @@ return (
           
           {(() => {
             const criticalAlerts = stock.filter(i => {
-              const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
+              const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date() && i.quantity > 0;
               return isExp || i.quantity < 50;
             });
             return criticalAlerts.length > 0 && (
@@ -856,7 +857,7 @@ return (
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto", minHeight: 0, flex: 1, paddingRight: "4px" }} className="custom-scrollbar-viewport">
                   {criticalAlerts.map(i => {
-                    const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date();
+                    const isExp = i.expiryDate && i.expiryDate !== "N/A" && new Date(i.expiryDate) < new Date() && i.quantity > 0;
                     return (
                       <div key={i.barcode} style={{ backgroundColor: "rgba(0,0,0,0.3)", border: `1px solid ${isExp ? 'rgba(255,59,48,0.5)' : 'rgba(255,149,0,0.3)'}`, padding: "10px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div style={{ display: "flex", flexDirection: "column", maxWidth: "65%" }}>
@@ -950,7 +951,7 @@ return (
           const isLowStock = item.quantity < 50;
           const isFlipped = flippedCards.includes(item.barcode);
           
-          const isExpired = item.expiryDate && item.expiryDate !== "N/A" && new Date(item.expiryDate) < new Date();
+          const isExpired = item.expiryDate && item.expiryDate !== "N/A" && new Date(item.expiryDate) < new Date() && item.quantity > 0;
           const baseBurn = (item.flavor.length * 4) + 15; 
           const monthlyBurn = baseBurn;
           const quarterlyBurn = monthlyBurn * 3;
@@ -1278,7 +1279,7 @@ return (
             <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "14px", lineHeight: "1.5" }}>Multiple active lots detected for <strong style={{color: "var(--brand-blue)"}}>{pendingLotMatches[0].flavor}</strong>. Select the specific batch you are scanning:</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
               {pendingLotMatches.map(lot => {
-                const isExp = lot.expiryDate && lot.expiryDate !== "N/A" && new Date(lot.expiryDate) < new Date();
+                const isExp = lot.expiryDate && lot.expiryDate !== "N/A" && new Date(lot.expiryDate) < new Date() && lot.quantity > 0;
                 return (
                   <div key={lot.lotNumber} onClick={() => { setShowLotModal(false); if(processRef.current) processRef.current(lot.barcode, lot); }} style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "16px", borderRadius: "12px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--brand-blue)"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-subtle)"}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
