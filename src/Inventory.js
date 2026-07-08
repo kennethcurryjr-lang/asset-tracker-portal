@@ -1223,7 +1223,12 @@ return (
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                           <label style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase' }}>Zone</label>
-                          <input value={editForms[item.barcode]?.zone ?? item.zone} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), zone: e.target.value}}))} style={{ backgroundColor: 'var(--surface-raised)', border: '1px solid var(--border-subtle)', padding: '8px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
+                          <select value={editForms[item.barcode]?.zone ?? item.zone} onChange={e => setEditForms(prev => ({...prev, [item.barcode]: {...(prev[item.barcode] || item), zone: e.target.value}}))} style={{ backgroundColor: 'var(--surface-raised)', border: '1px solid var(--border-subtle)', padding: '8px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', width: '100%' }}>
+                    <option value="" disabled>▼ Select Target Zone...</option>
+                    {[...new Set([...adminZones, ...stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone])])].filter(Boolean).sort().map((zoneName, idx) => (
+                      <option key={idx} value={zoneName}>{zoneName}</option>
+                    ))}
+                  </select>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                           <label style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600', textTransform: 'uppercase' }}>Qty</label>
@@ -1501,7 +1506,12 @@ return (
               {pendingAction.actionName === "Transfer" && (
                 <div style={{ marginTop: '8px', textAlign: 'left' }}>
                   <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}>New Placement Zone:</label>
-                  <CustomAutocomplete placeholder="Select existing bay or type a new one..." value={pendingAction.newZone || ''} onChange={val => setPendingAction({...pendingAction, newZone: val})} options={[...new Set([...adminZones, ...stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone])])].filter(Boolean).map(x => ({ value: x, label: x }))} style={{ backgroundColor: "var(--surface-base)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none", fontSize: "14px", width: "100%", boxSizing: "border-box" }} />
+                  <select value={pendingAction.newZone || ''} onChange={(e) => setPendingAction({...pendingAction, newZone: e.target.value})} style={{ backgroundColor: "var(--surface-base)", border: "1px solid var(--border-subtle)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)", outline: "none", fontSize: "14px", width: "100%", boxSizing: "border-box" }}>
+                    <option value="" disabled>▼ Select Destination Zone...</option>
+                    {[...new Set([...adminZones, ...stock.flatMap(i => i.locations ? i.locations.map(l => l.name) : [i.zone])])].filter(Boolean).sort().map((zoneName, idx) => (
+                      <option key={idx} value={zoneName}>{zoneName}</option>
+                    ))}
+                  </select>
                 </div>
               )}
 
