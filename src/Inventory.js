@@ -1176,7 +1176,7 @@ return (
             
             // If THIS card is the absolute oldest one in the list, light up the badge!
             if (validLots.length > 1 && validLots[0].lotNumber === item.lotNumber) {
-                return <span className="fifo-flash" style={{ fontSize: '10px', backgroundColor: 'var(--brand-green)', color: '#000', padding: '2px 8px', borderRadius: '12px', fontWeight: '800', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>🟢 PICK FIRST</span>;
+                return <span className="fifo-flash" style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '12px', fontWeight: '900', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>⚡ PICK FIRST</span>;
             }
             return null;
         })()}
