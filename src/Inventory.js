@@ -1515,6 +1515,39 @@ return (
             <div style={{ backgroundColor: "var(--surface-elevated)", border: "1px solid var(--border-subtle)", padding: "6px 14px", borderRadius: "8px", fontSize: "13px", fontWeight: "600", color: "var(--text-secondary)", display: "inline-flex", alignItems: "center" }}>
               📦 Current Stock: <span style={{ color: "var(--text-primary)", fontSize: "16px", marginLeft: "6px", fontWeight: "700" }}>{pendingAction.targetItem.quantity} bx</span>
             </div>
+            {(() => {
+              // We only want to aggressively warn them during outbound shipping actions
+              if (!pendingAction.actionName.includes("Ship")) return null;
+              const item = pendingAction.targetItem;
+              if (!item.expiryDate || item.expiryDate === "N/A") return null;
+              
+              // Find all valid lots of this exact flavor
+              const validLots = stock.filter(s => s.flavor === item.flavor && s.quantity > 0 && s.expiryDate && s.expiryDate !== "N/A" && new Date(s.expiryDate) >= new Date());
+              if (validLots.length <= 1) return null; // No comparison needed if it's the only lot
+              
+              // Sort to find the oldest date
+              validLots.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+              const oldestDate = validLots[0].expiryDate;
+              
+              if (item.expiryDate === oldestDate) {
+                // THE GOOD PATH: They scanned the correct box!
+                return (
+                  <div style={{ marginTop: '12px', padding: '8px 16px', backgroundColor: 'rgba(48, 209, 88, 0.15)', border: '1px solid #30d158', borderRadius: '8px', color: '#30d158', fontWeight: 'bold', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="hard-flash" style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#30d158', display: 'inline-block' }}></span>
+                    CORRECT LOT (OLDEST)
+                  </div>
+                );
+              } else {
+                // THE WARNING PATH: They scanned a newer box, intercept the action!
+                const oldestLots = validLots.filter(l => l.expiryDate === oldestDate).map(l => l.lotNumber).join(", ");
+                return (
+                  <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'rgba(255, 149, 0, 0.15)', border: '2px solid var(--brand-orange)', borderRadius: '8px', color: 'var(--brand-orange)', fontWeight: 'bold', fontSize: '13px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', textAlign: 'center', width: '100%', boxSizing: 'border-box' }}>
+                    <div style={{ fontSize: '15px' }}>⚠️ STOP: OLDER LOT AVAILABLE</div>
+                    <div style={{ color: 'var(--text-primary)' }}>Please pick from Lot: <span style={{color: 'var(--brand-orange)', fontSize: '15px', fontWeight: '900'}}>{oldestLots}</span></div>
+                  </div>
+                );
+              }
+            })()}
           </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", margin: "16px 0" }}>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px" }}>
