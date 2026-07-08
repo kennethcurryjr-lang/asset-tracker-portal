@@ -1,22 +1,36 @@
-# 📦 Kinetic Inventory - Operator Quick Start Guide
+# 📦 Kinetic Inventory - Step-by-Step Operator Guide
 
-Welcome to Kinetic Inventory! This system is designed to keep our warehouse organized, accurate, and easy to manage.
+## 📤 How to Ship Inventory (Order Fulfillment)
+1. Tap the **[Ship]** button on the product you need to pull.
+2. Tap the **Scan** button to open your device's camera.
+3. Point the camera at the product's physical barcode.
+4. **CRITICAL STEP:** If the screen shows multiple batches, ALWAYS tap the batch with the flashing **🟢 PICK FIRST** badge.
+5. Enter the quantity of boxes you are pulling.
+6. Enter the Order Number or Route in the reference box.
+7. Tap **Confirm**.
 
-## 🟢 1. The "Pick First" System
-To prevent products from expiring on our shelves, the application acts as your digital supervisor:
-* **The Flashing Green Badge:** Whenever you look at the dashboard or scan a barcode, look for the flashing **🟢 PICK FIRST** badge. Always grab the batch with this badge first!
-* **Scanner Warnings:** If you accidentally scan a newer box when an older batch is still on the shelf, the scanner will stop you and tell you exactly which Lot Number to go find instead.
+## 📥 How to Receive New Inventory
+1. Tap the **[Receive]** button on the product card.
+2. Enter the **Expiration Date** and **Lot Number** printed on the physical box.
+3. Tap the **Destination Zone** box and select the correct aisle from the dropdown menu.
+4. Enter the total number of boxes received.
+5. Tap **Submit** to add the items to the system.
 
-## 📲 2. Daily Operations
-Use the action buttons on the product cards to manage physical inventory:
-* **[📥 Receive]:** Tap this when new stock arrives from a vendor. Enter the Expiration Date, the Lot Number, and select the destination aisle from the dropdown menu.
-* **[📤 Ship]:** Tap this when loading product out to a customer. Scan the barcode and follow the screen prompts to ensure you are pulling the correct batch.
-* **[🔄 Transfer]:** Tap this to move boxes between different warehouse aisles. The total count won't change, but it keeps our maps accurate.
+## 🔄 How to Transfer Boxes Between Aisles
+1. Tap the **[Transfer]** button on the product card.
+2. Tap the destination dropdown menu and select the new physical zone (e.g., "Dry Aisle B").
+3. Enter the number of boxes you are physically moving.
+4. Tap **Confirm**.
 
-## ⚠️ 3. Damages and Expirations
-* **Shrinkage [💥]:** If a box is crushed, damaged, or spoiled, tap the Shrinkage button to remove it from the system. You must enter a short note (e.g., "Forklift damage") so managers know what happened.
-* **Critical Alerts:** Items that are actively expired will highlight in RED and trigger a warning at the top of your screen. These must be removed using the Shrinkage button.
+## 💥 How to Remove Damaged or Expired Goods
+1. Tap the **[Shrinkage]** button on the damaged/expired item.
+2. Enter the amount of ruined boxes.
+3. Type a brief reason in the Reference box (e.g., "Forklift damage" or "Expired on shelf").
+4. Tap **Confirm** to permanently remove them from active inventory.
 
-## ⚙️ 4. Manager Controls (Admin Only)
-* **Correcting Counts:** If a physical shelf count doesn't match the screen, click the **[🔒 Edit Details]** button to override the total quantity. 
-* **Adding New Aisles:** You cannot type random aisles into the transfer menus anymore. If you need to build a brand new physical zone in the warehouse, you must add it through the main **Settings Control Panel**.
+## ⚠️ Dealing with Scanner Warnings
+If you scan a box to ship and a **YELLOW WARNING** pops up on your screen telling you to stop:
+1. **Do not click Submit.**
+2. Read the specific Lot Number listed on the warning screen.
+3. Hit **Cancel**, walk back to the shelf, and find the box with that exact Lot Number. 
+4. Scan the correct box to proceed.
