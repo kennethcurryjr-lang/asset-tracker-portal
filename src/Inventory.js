@@ -701,6 +701,26 @@ Please enter a note and try again.`);
     const a = document.createElement("a"); a.href = url; a.download = `CS_Inventory_Snapshot_${new Date().toISOString().split('T')[0]}.csv`; a.click(); URL.revokeObjectURL(url);
   };
 
+  const handleAuditExportCSV = () => {
+    const headers = ["Timestamp", "Action", "Quantity", "Flavor", "Destination", "Order Number", "Operator", "Note"];
+    const csvRows = [headers.join(",")];
+    auditLog.forEach(log => { 
+        csvRows.push([ 
+            `"${log.time || ''}"`, 
+            `"${log.action || ''}"`, 
+            log.qty || 0, 
+            `"${log.flavor || ''}"`, 
+            `"${log.destination || ''}"`, 
+            `"${log.orderNumber || ''}"`, 
+            `"${log.user || ''}"`, 
+            `"${(log.note || '').replace(/"/g, '""')}"` 
+        ].join(",")); 
+    });
+    const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `CS_Security_Audit_${new Date().toISOString().split('T')[0]}.csv`; a.click(); URL.revokeObjectURL(url);
+  };
+
   const processRef = useRef(); processRef.current = processScannedCode;
   const rapidFireRef = useRef(rapidFire); rapidFireRef.current = rapidFire;
   const lastScanRef = useRef(0);
@@ -1581,7 +1601,7 @@ return (
         {/* Footer */}
         <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border-subtle)", backgroundColor: "var(--surface-elevated)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ color: "var(--text-secondary)", fontSize: "13px", fontWeight: "500" }}>Showing {auditLog.length} secure ledger entries</span>
-          <button onClick={handleExportCSV} style={{ backgroundColor: "var(--brand-blue)", color: "var(--text-primary)", border: "none", padding: "10px 20px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#0056b3"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "var(--brand-blue)"}><FileDown size={16} /> Export to CSV</button>
+          <button onClick={handleAuditExportCSV} style={{ backgroundColor: "var(--brand-blue)", color: "var(--text-primary)", border: "none", padding: "10px 20px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#0056b3"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "var(--brand-blue)"}><FileDown size={16} /> Export to CSV</button>
         </div>
 
       </div>
