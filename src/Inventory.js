@@ -537,6 +537,10 @@ export default function Inventory({ user }) {
         if (dest) dest.qty += boxAdjustment;
         else updatedLocations.push({ name: newZone, qty: boxAdjustment });
     } else if (actionName.includes("Receive")) {
+        if (targetItem.expiration && new Date(targetItem.expiration) < new Date()) {
+            alert(`🚨 COMPLIANCE STOP:\n\nTransaction Aborted. You cannot receive EXPIRED product.\n\nExpiration Date: ${targetItem.expiration}\n\nPlease quarantine this inventory and notify a manager.`);
+            return;
+        }
         let destName = newZone || targetItem.zone || "Unassigned Warehouse";
         let dest = updatedLocations.find(loc => loc.name === destName);
         if (dest) dest.qty += boxAdjustment;
@@ -656,16 +660,20 @@ Please enter a note and try again.`);
     // Reconcile Multi-Zone Arrays with the manual quantity edit
     // Only consolidate locations if the manager actively changed the total stock or target zone
     form.quantity = parseInt(form.quantity) || 0;
-    if (form.quantity !== parseInt(originalItem.quantity) || form.zone !== originalItem.zone) {
-        form.locations = [{ name: form.zone || "Unassigned Warehouse", qty: form.quantity }];
+    let currentLocSum = (originalItem.locations || []).reduce((s, l) => s + l.qty, 0);
+    if (form.quantity !== currentLocSum || form.quantity !== parseInt(originalItem.quantity) || form.zone !== originalItem.zone) {
+        form.locations = [{ name: form.zone || originalItem.zone || "Unassigned Warehouse", qty: form.quantity }];
     } else {
         form.locations = originalItem.locations || [{ name: originalItem.zone || "Unassigned Warehouse", qty: originalItem.quantity }];
     }
     form.lastScanTimestamp = Date.now();
 
     const finalNote = isShrinkage ? shrinkageNote : null;
-    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Manager", action: "Admin Override", qty: form.quantity - originalItem.quantity, flavor: originalItem.flavor, barcode: originalItem.barcode, lotNumber: originalItem.lotNumber };
-    setAuditLog(prev => [logEntry, ...prev]);
+    const qtyDiff = form.quantity - originalItem.quantity;
+    const logEntry = { id: Date.now(), time: new Date().toLocaleString(), user: user?.email || auth?.user?.profile?.email || "Manager", action: "Admin Override", qty: qtyDiff, flavor: originalItem.flavor, barcode: originalItem.barcode, lotNumber: originalItem.lotNumber };
+    if (qtyDiff !== 0) {
+        setAuditLog(prev => [logEntry, ...prev]);
+    }
 
     setStock(prev => prev.map(item => (item.barcode === originalItem.barcode && item.lotNumber === originalItem.lotNumber) ? { ...item, ...form } : item));
     setEditModes(prev => ({...prev, [barcode]: false}));
