@@ -1421,63 +1421,62 @@ return (
           
           <div style={{ display: "flex", flexDirection: "column", gap: "28px", color: "#d1d1d6", fontSize: "14px", lineHeight: "1.6" }}>
             
-            {/* Section 1 */}
+            {/* Step-by-Step SOP Guide */}
             <div>
-              <h4 style={{ color: "var(--text-primary)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>1. The Scanner (Action Modes)</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                  <div style={{ backgroundColor: "rgba(52, 199, 89, 0.15)", padding: "8px", borderRadius: "8px", display: "flex" }}><Download size={20} color="var(--brand-green)" /></div>
-                  <div><strong style={{ color: "var(--brand-green)", fontSize: "15px" }}>Receive (RCV)</strong><br/>Use when inbound freight arrives. Adds to total inventory count. You must assign a <strong>Placement Zone</strong> and optionally provide a <strong>Reference Number (PO#)</strong>.</div>
-                </div>
-                <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                  <div style={{ backgroundColor: "rgba(255, 59, 48, 0.15)", padding: "8px", borderRadius: "8px", display: "flex" }}><Truck size={20} color="var(--brand-red)" /></div>
-                  <div><strong style={{ color: "var(--brand-red)", fontSize: "15px" }}>Ship (SHP)</strong><br/>Use when loading outbound trucks. Deducts from total inventory. You should provide a <strong>Reference Number (SO#)</strong>. <em>System will block shipment if stock is 0.</em></div>
-                </div>
-                <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                  <div style={{ backgroundColor: "rgba(0, 122, 255, 0.15)", padding: "8px", borderRadius: "8px", display: "flex" }}><ArrowRightLeft size={20} color="var(--brand-blue)" /></div>
-                  <div><strong style={{ color: "var(--brand-blue)", fontSize: "15px" }}>Transfer (TFR)</strong><br/>Use for internal warehouse moves. Does not change total count, but formally updates the product's <strong>Target Zone</strong> in the database.</div>
-                </div>
-              </div>
+              <h4 style={{ color: "var(--brand-red)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>📤 How to Ship (Fulfill Orders)</h4>
+              <ol style={{ margin: 0, paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                <li>Tap the <strong>[Ship]</strong> button on the product card.</li>
+                <li>Tap the <strong>Scan</strong> button to open the camera.</li>
+                <li>Point the camera at the physical barcode.</li>
+                <li><strong>CRITICAL:</strong> If asked to pick a batch, ALWAYS tap the one with the flashing <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '8px', color: '#000', backgroundColor: 'var(--brand-green)', margin: '0 4px', display: 'inline-block', fontWeight: 'bold' }}>🟢 PICK FIRST</span> badge.</li>
+                <li>Enter the quantity you are pulling and the Reference (SO#).</li>
+                <li>Tap <strong>Confirm</strong>.</li>
+              </ol>
             </div>
 
-            {/* Section 2 */}
             <div>
-              <h4 style={{ color: "var(--text-primary)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>2. Special Operations</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px", backgroundColor: "var(--surface-raised)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border-subtle)" }}>
-                <div><strong style={{ color: "var(--brand-orange)" }}>📦 Multiple Lots:</strong> If you scan a barcode that belongs to multiple active batches, the scanner will pause and require you to select the correct <strong>Lot Number</strong> to maintain strict FIFO compliance.</div>
-                <div><strong style={{ color: "var(--brand-red)" }}>💥 Shrinkage / Damage:</strong> To report damaged product, enter <strong>Ship Mode</strong>, scan the item, and click the red "Flag as Damaged" toggle on the confirmation screen to remove it from live inventory.</div>
-                <div><strong style={{ color: "var(--text-primary)" }}>🧱 Pallet Mode:</strong> Toggle this on the top toolbar to automatically multiply your scanned quantity by a full pallet footprint.</div>
-              </div>
-            </div>
-
-            {/* Section 3 */}
-            <div>
-              <h4 style={{ color: "var(--text-primary)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>3. Dashboard Tools</h4>
-              <ul style={{ paddingLeft: "20px", margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
-                <li><strong style={{ color: "var(--brand-blue)" }}>Deep Search:</strong> The search bar checks names, barcodes, AND active zones. Type "Cooler Bay" to instantly isolate all stock currently sitting in the cooler.</li>
-                <li><strong style={{ color: "var(--brand-blue)" }}>Multi-Flip:</strong> Enable this toggle to flip the back of multiple inventory cards at once for side-by-side data comparison.</li>
-                <li><strong style={{ color: "var(--brand-green)" }}>Register New Product:</strong> Only use this green button to onboard brand new SKUs that have never existed in the database.</li>
-              </ul>
+              <h4 style={{ color: "var(--brand-green)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>📥 How to Receive New Stock</h4>
+              <ol style={{ margin: 0, paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                <li>Tap the <strong>[Receive]</strong> button on the product card.</li>
+                <li>Enter the <strong>Expiration Date</strong> and <strong>Lot Number</strong> printed on the box.</li>
+                <li>Select the correct <strong>Destination Zone</strong> from the dropdown menu.</li>
+                <li>Enter the total quantity received and tap <strong>Confirm</strong>.</li>
+              </ol>
             </div>
             
-            {/* Section 4 */}
             <div>
-              <h4 style={{ color: "var(--text-primary)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>4. Management & Security</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><ClipboardList size={16} color="var(--text-secondary)" /> <span><strong>Global Ledger:</strong> An immutable, cloud-synced ticker tracking every physical movement on the floor. Managers can click the AUDIT button for the master history.</span></div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><strong style={{ color: "var(--text-secondary)" }}>🔒 Admin Override:</strong> <span>Found on the back of cards. Allows managers to bypass the scanner and manually force stock or expiration date corrections. (Requires Manager PIN).</span></div>
-              </div>
+              <h4 style={{ color: "var(--brand-blue)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>🔄 How to Transfer Aisles</h4>
+              <ol style={{ margin: 0, paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                <li>Tap the <strong>[Transfer]</strong> button on the product card.</li>
+                <li>Select the new destination aisle from the dropdown menu.</li>
+                <li>Enter the quantity being moved and tap <strong>Confirm</strong>.</li>
+              </ol>
             </div>
 
+            <div>
+              <h4 style={{ color: "var(--brand-orange)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>⚠️ Scanner Warnings</h4>
+              <div style={{ backgroundColor: "rgba(255, 149, 0, 0.15)", border: "1px solid var(--brand-orange)", padding: "12px", borderRadius: "8px", color: "var(--text-primary)" }}>
+                If you scan a box and see a yellow <strong style={{ color: "var(--brand-orange)" }}>⚠️ STOP</strong> warning:
+                <ul style={{ margin: "8px 0 0 0", paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <li><strong>DO NOT</strong> hit Submit.</li>
+                  <li>Read the <strong>Lot Number</strong> it tells you to find.</li>
+                  <li>Hit <strong>Cancel</strong>, go back to the shelf, and scan the correct box.</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div>
+              <h4 style={{ color: "var(--text-secondary)", fontSize: "16px", borderBottom: "1px solid var(--surface-elevated)", paddingBottom: "8px", marginBottom: "16px", marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>💥 Damaged / Expired Goods</h4>
+              <ol style={{ margin: 0, paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                <li>Tap the <strong>[Shrinkage]</strong> button on the affected item.</li>
+                <li>Enter the quantity of ruined boxes.</li>
+                <li>Type a brief reason (e.g., "Forklift damage") and tap <strong>Confirm</strong>.</li>
+              </ol>
+            </div>
           </div>
-          
-          <div style={{ marginTop: "32px" }}>
-            <button onClick={() => setShowHelpModal(false)} style={{ width: "100%", padding: "16px", backgroundColor: "var(--brand-blue)", color: "var(--text-primary)", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "700", fontSize: "15px", transition: "all 0.2s" }}>Acknowledge & Close</button>
-          </div>
-          
         </div>
       </div>
-    )}
+      )}
     
           {/* 📦 MULTIPLE LOT SELECTION MODAL */}
       {showLotModal && pendingLotMatches.length > 0 && (
