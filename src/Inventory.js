@@ -1159,7 +1159,30 @@ return (
                 {/* 🟢 FRONT SIDE */}
                 <div style={{ backfaceVisibility: 'hidden', backgroundColor: 'var(--surface-elevated)', borderRadius: "14px", padding: '24px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)', minHeight: '120px', height: '100%', boxSizing: 'border-box' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div><div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: "600", letterSpacing: '0.05em', textTransform: 'uppercase' }}>{item.brand}</div><div style={{ fontSize: '18px', fontWeight: "600", letterSpacing: "-0.01em", color: 'var(--text-primary)', marginTop: '4px', lineHeight: '1.2' }}>{item.flavor}</div><div style={{ fontSize: '15px', fontWeight: "600", color: healthColor, marginTop: '8px' }}>{item.quantity} BOXES IN STOCK</div></div>
+                    <div>
+    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: "600", letterSpacing: '0.05em', textTransform: 'uppercase' }}>{item.brand}</div>
+    <div style={{ fontSize: '18px', fontWeight: "600", letterSpacing: "-0.01em", color: 'var(--text-primary)', marginTop: '4px', lineHeight: '1.2', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {item.flavor}
+        {(() => {
+            if (!item.expiryDate || item.expiryDate === "N/A" || item.quantity <= 0) return null;
+            const myDate = new Date(item.expiryDate);
+            if (myDate < new Date()) return null; // Don't flag expired stuff as "Pick First"
+            
+            // Find all valid lots of this exact flavor that are NOT expired and HAVE stock
+            const validLots = stock.filter(s => s.flavor === item.flavor && s.quantity > 0 && s.expiryDate && s.expiryDate !== "N/A" && new Date(s.expiryDate) >= new Date());
+            
+            // Sort them by expiration date (oldest first)
+            validLots.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+            
+            // If THIS card is the absolute oldest one in the list, light up the badge!
+            if (validLots.length > 1 && validLots[0].lotNumber === item.lotNumber) {
+                return <span style={{ fontSize: '10px', backgroundColor: 'var(--brand-green)', color: '#000', padding: '2px 8px', borderRadius: '12px', fontWeight: '800', letterSpacing: '0.05em', whiteSpace: 'nowrap', boxShadow: '0 0 10px rgba(48, 209, 88, 0.4)' }}>🟢 PICK FIRST</span>;
+            }
+            return null;
+        })()}
+    </div>
+    <div style={{ fontSize: '15px', fontWeight: "600", color: healthColor, marginTop: '8px' }}>{item.quantity} BOXES IN STOCK</div>
+</div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
               <button onClick={(e) => { e.stopPropagation(); if (isMultiFlipMode) { setFlippedCards(prev => prev.includes(item.barcode) ? prev.filter(id => id !== item.barcode) : [...prev, item.barcode]); } else { setFlippedCards(prev => prev.includes(item.barcode) && prev.length === 1 ? [] : [item.barcode]); } }} style={{ backgroundColor: 'var(--brand-blue)', color: 'var(--text-primary)', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,122,255,0.3)', marginBottom: '4px' }}>Flip</button>
               <div style={{ fontSize: '11px', color: 'var(--text-secondary)', backgroundColor: 'var(--surface-base)', padding: '4px 8px', borderRadius: '8px', border: '1px solid var(--border-subtle)', whiteSpace: 'nowrap' }}>Lot: {item.lotNumber}</div>
