@@ -1176,7 +1176,10 @@ return (
             
             // If THIS card is the absolute oldest one in the list, light up the badge!
             if (validLots.length > 1 && validLots[0].lotNumber === item.lotNumber) {
-                return <span className="hard-flash" style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '12px', fontWeight: '900', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>🟢 PICK FIRST</span>;
+                return <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '12px', fontWeight: '900', letterSpacing: '0.05em', whiteSpace: 'nowrap', animation: 'brute-force-blink 0.8s infinite', backgroundColor: 'rgba(48, 209, 88, 0.2)', border: '1px solid #30d158', display: 'inline-flex', alignItems: 'center' }}>
+                <style>{`@keyframes brute-force-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }`}</style>
+                🟢 PICK FIRST
+              </span>;
             }
             return null;
         })()}
