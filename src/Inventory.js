@@ -381,7 +381,13 @@ export default function Inventory({ user }) {
   useEffect(() => {
     fetchInventory();
     fetchAuditLogs();
-    const interval = setInterval(() => { fetchInventory(); fetchAuditLogs(); }, 45000); // Throttled to 45s to protect DynamoDB limits
+    const interval = setInterval(() => { 
+      // Only poll the database if the operator actually has the tab open and active
+      if (!document.hidden) {
+          fetchInventory(); 
+          fetchAuditLogs(); 
+      }
+    }, 12000); // Accelerated to 12s for near real-time cross-device sync
     
     // 🔥 Wake-Up Engine: Force sync when tab regains focus (bypasses browser throttling)
     const handleFocus = () => { fetchInventory(); fetchAuditLogs(); };
