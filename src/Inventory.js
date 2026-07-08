@@ -1173,7 +1173,7 @@ return (
     {(item.locations && item.locations.length > 0) ? item.locations.map((loc, idx) => (
       <div key={idx} style={{ fontSize: '13px', color: loc.name.includes("Unassigned") ? "var(--brand-orange)" : "var(--brand-blue)", fontWeight: '600', whiteSpace: 'nowrap' }}>📍 {loc.name} <span style={{ color: 'var(--text-secondary)', fontSize: '11px', marginLeft: '4px' }}>({loc.qty}bx)</span></div>
     )) : (
-      <div style={{ fontSize: '13px', color: (item.zone || "").includes("Unassigned") ? "var(--brand-orange)" : "var(--brand-blue)", fontWeight: '600' }}>📍 {item.zone}</div>
+      <div style={{ fontSize: '13px', color: (item.zone || "").includes("Unassigned") ? "var(--brand-orange)" : "var(--brand-blue)", fontWeight: '600', whiteSpace: 'nowrap' }}>📍 {item.zone} <span style={{ color: 'var(--text-secondary)', fontSize: '11px', marginLeft: '4px' }}>({item.quantity}bx)</span></div>
     )}
   </div>
 </div>
