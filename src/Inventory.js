@@ -1491,10 +1491,21 @@ return (
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", paddingRight: "4px" }} className="custom-scrollbar-viewport">
               {pendingLotMatches.map(lot => {
                 const isExp = lot.expiryDate && lot.expiryDate !== "N/A" && new Date(lot.expiryDate) < new Date() && lot.quantity > 0; const isZero = lot.quantity === 0;
+                const validMatches = pendingLotMatches.filter(l => l.quantity > 0 && l.expiryDate && l.expiryDate !== "N/A" && new Date(l.expiryDate) >= new Date());
+                validMatches.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+                const isOldest = validMatches.length > 1 && !isExp && !isZero && validMatches[0].expiryDate === lot.expiryDate;
                 return (
                   <div key={lot.lotNumber} onClick={() => { setShowLotModal(false); if(processRef.current) processRef.current(lot.barcode, lot); }} style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border-subtle)", padding: "16px", borderRadius: "12px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--brand-blue)"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-subtle)"}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <span style={{ fontSize: "14px", fontWeight: "700", color: "var(--text-primary)" }}>{lot.lotNumber}</span>
+                      <span style={{ fontSize: "14px", fontWeight: "700", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+                        {lot.lotNumber}
+                        {isOldest && (
+                          <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '12px', fontWeight: '900', letterSpacing: '0.05em', whiteSpace: 'nowrap', animation: 'brute-force-blink 0.8s infinite', backgroundColor: 'rgba(48, 209, 88, 0.2)', border: '1px solid #30d158', display: 'inline-flex', alignItems: 'center' }}>
+                            <style>{`@keyframes brute-force-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }`}</style>
+                            🟢 PICK FIRST
+                          </span>
+                        )}
+                      </span>
                       <span style={{ fontSize: "12px", color: isExp ? "var(--brand-red)" : (isZero ? "var(--text-secondary)" : "var(--brand-orange)"), fontWeight: "600" }}>{isExp ? `🚨 EXPIRED: ${lot.expiryDate}` : `Exp: ${lot.expiryDate}`}</span>
                     </div>
                     <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--brand-blue)" }}>{lot.quantity} bx</div>
