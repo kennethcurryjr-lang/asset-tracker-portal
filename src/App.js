@@ -122,7 +122,7 @@ function App() {
   };
   
   const cardStyle = { backgroundColor: '#ffffff', borderRadius: '14px', padding: '28px', border: '1px solid #d2d2d7', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)' };
-  const deviceCardStyle = { backgroundColor: '#e5e5ea', borderRadius: '14px', padding: '16px', border: '1px solid #d2d2d7', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', boxSizing: 'border-box', alignItems: 'stretch' };
+  const deviceCardStyle = { backgroundColor: '#e5e5ea', borderRadius: '14px', padding: '16px', border: '1px solid #d2d2d7', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '450px', margin: '0 auto', boxSizing: 'border-box', alignItems: 'stretch' };
   const inputStyle = { padding: '8px 12px', borderRadius: '8px', border: '1px solid #d2d2d7', fontSize: '14px', backgroundColor: '#ffffff', color: '#1d1d1f', outline: 'none', transition: 'all 0.2s' };
   const labelStyle = { fontSize: '11px', color: '#1d1d1f', fontWeight: '700', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' };
   
@@ -1111,7 +1111,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                   placeholder="Filter by ID, region, folder..." 
                   value={searchTerm} 
                   onChange={(e) => setSearchTerm(e.target.value)} 
-                  style={{ ...inputStyle, width: '100%', boxSizing: 'border-box' }} 
+                  style={{ ...inputStyle, width: '100%', maxWidth: '450px', margin: '0 auto', boxSizing: 'border-box' }} 
                 />
                 <datalist id="inventory-suggestions-list">
                   {inventorySuggestions.map(suggestion => (
@@ -1217,7 +1217,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', width: '100%', maxWidth: '450px', margin: '0 auto', boxSizing: 'border-box' }}>
           {filteredAssets.map(item => {
               const historicalNotes = item.notesList || [];
               const batteryLevel = item.batteryLevel !== undefined ? Number(item.batteryLevel) : 100;
