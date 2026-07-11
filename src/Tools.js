@@ -1,28 +1,29 @@
 import React, { useState, useMemo } from 'react';
 
-// Generates 100 standardized, high-quality mock tools
+// Generates 100 heavy-duty power tools and construction assets
 const generateTools = () => {
   const toolTemplates = [
-    // IT / Network / Diagnostics
-    { prefix: "FLUK", name: "Fluke MicroScanner2 Cable Verifier" },
-    { prefix: "KLEI", name: "Klein Tools VDV Commander" },
-    { prefix: "NTGR", name: "Netgear ProSAFE 24-Port Switch" },
-    { prefix: "UBNT", name: "Ubiquiti UniFi Dream Machine Pro" },
-    { prefix: "FLIR", name: "FLIR E8-XT Thermal Imager" },
-    // Event Production / AV
-    { prefix: "SHUR", name: "Shure QLX-D Wireless Mic System" },
-    { prefix: "BMDC", name: "Blackmagic ATEM Mini Pro" },
-    { prefix: "YAMH", name: "Yamaha TF1 Digital Audio Console" },
-    { prefix: "DJIG", name: "DJI Mavic 3 Pro Cine Drone" },
-    { prefix: "MOTO", name: "Motorola XPR 7550e Two-Way Radio" },
-    { prefix: "QSCG", name: "QSC K12.2 Active Loudspeaker" },
-    // Power / Staging / Facilities
-    { prefix: "HOND", name: "Honda EU3000iS Inverter Generator" },
-    { prefix: "PELI", name: "Pelican 1510 Protector Case" },
-    { prefix: "DWLT", name: "DeWalt 20V Max XR Hammer Drill" },
-    { prefix: "MILW", name: "Milwaukee M18 Fuel Impact Driver" },
+    { prefix: "MILW", name: "Milwaukee M18 Fuel Hammer Drill" },
+    { prefix: "MILW", name: "Milwaukee M18 Hackzall" },
+    { prefix: "MILW", name: "Milwaukee M18 Force Logic Press" },
+    { prefix: "MILW", name: "Milwaukee M12 ProPEX Expansion Tool" },
+    { prefix: "MILW", name: "Milwaukee M18 Angle Grinder" },
+    { prefix: "DWLT", name: "DeWalt 20V Max XR Impact Driver" },
+    { prefix: "DWLT", name: "DeWalt 20V Max Reciprocating Saw" },
+    { prefix: "DWLT", name: "DeWalt 20V Max Oscillating Multi-Tool" },
+    { prefix: "DWLT", name: "DeWalt 60V Max Flexvolt Circular Saw" },
+    { prefix: "DWLT", name: "DeWalt 20V Max Jobsite Blower" },
+    { prefix: "MAKI", name: "Makita 18V LXT Sub-Compact Drill" },
+    { prefix: "MAKI", name: "Makita 18V LXT Brushless Router" },
+    { prefix: "MAKI", name: "Makita 36V Rear Handle Circular Saw" },
     { prefix: "HILT", name: "Hilti TE 70-ATC Rotary Hammer" },
-    { prefix: "MAKI", name: "Makita 18V LXT Circular Saw" }
+    { prefix: "HILT", name: "Hilti DX 460 Powder-Actuated Tool" },
+    { prefix: "HILT", name: "Hilti PM 40-MG Multi-Line Laser" },
+    { prefix: "BSCH", name: "Bosch 18V Bulldog Extreme Rotary Hammer" },
+    { prefix: "BSCH", name: "Bosch GLM 400 CL Laser Measure" },
+    { prefix: "FEST", name: "Festool TS 55 REQ Track Saw" },
+    { prefix: "FEST", name: "Festool CT 15 HEPA Dust Extractor" },
+    { prefix: "RIDG", name: "Ridgid 18V Brushless Jobsite Table Saw" }
   ];
 
   const users = ["Mario Diaz", "Chris Evans", "Sarah Connor", "Marcus Johnson", "Elena Rodriguez", "David Kim", "James Holden"];
@@ -56,7 +57,7 @@ const generateTools = () => {
 function Tools({ user }) {
   const [tools, setTools] = useState(generateTools);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedToolId, setSelectedToolId] = useState("FLUK-001");
+  const [selectedToolId, setSelectedToolId] = useState("MILW-001");
   const [flippedCards, setFlippedCards] = useState({});
   const [cardTabs, setCardTabs] = useState({});
 
@@ -94,7 +95,7 @@ function Tools({ user }) {
         .tab-inactive:hover { background-color: #3a3a3c; color: #d2d2d7; }
         
         .custom-input { padding: 12px 16px; border-radius: 8px; border: 1px solid #3a3a3c; background-color: #1c1c1e; color: #ffffff; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; transition: border-color 0.2s; }
-        .custom-input:focus { border-color: #007aff; }
+        .custom-input:focus { border-color: #ffcc00; }
       `}</style>
 
       {/* LEFT COLUMN: THE MATRIX */}
@@ -132,7 +133,7 @@ function Tools({ user }) {
                 <div className={`card-flipper ${isFlipped ? 'flipped' : ''}`}>
                     
                     {/* FRONT OF CARD */}
-                    <div className="card-face card-front" style={{ padding: '16px', border: isSelected ? '2px solid #007aff' : '1px solid #3a3a3c', boxShadow: isSelected ? '0 0 15px rgba(0, 122, 255, 0.2)' : 'none', display: 'flex', flexDirection: 'column', gap: '12px', cursor: 'pointer' }}>
+                    <div className="card-face card-front" style={{ padding: '16px', border: isSelected ? '2px solid #ffcc00' : '1px solid #3a3a3c', boxShadow: isSelected ? '0 0 15px rgba(255, 204, 0, 0.15)' : 'none', display: 'flex', flexDirection: 'column', gap: '12px', cursor: 'pointer' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '4px', backgroundColor: isOut ? 'rgba(255,149,0,0.15)' : 'rgba(52,199,89,0.15)', color: isOut ? '#ff9500' : '#34c759', letterSpacing: '0.05em' }}>
                         {isOut ? 'DEPLOYED' : 'IN CRIB'}
@@ -152,7 +153,7 @@ function Tools({ user }) {
                     </div>
                     
                     <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-                        <button style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: isSelected ? '#007aff' : '#2c2c2e', color: '#ffffff', border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.15s' }}>
+                        <button style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: isSelected ? '#ffcc00' : '#2c2c2e', color: isSelected ? '#1d1d1f' : '#ffffff', border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.15s' }}>
                         {isOut ? 'RETURN' : 'CHECK OUT'}
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => ({...prev, [tool.toolId]: true})); }} style={{ padding: '10px', borderRadius: '8px', backgroundColor: 'transparent', color: '#d2d2d7', border: '1px solid #3a3a3c', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
@@ -162,7 +163,7 @@ function Tools({ user }) {
                     </div>
 
                     {/* BACK OF CARD (TABS) */}
-                    <div className="card-face card-back" style={{ border: isSelected ? '2px solid #007aff' : '1px solid #3a3a3c', boxShadow: isSelected ? '0 0 15px rgba(0, 122, 255, 0.2)' : 'none' }}>
+                    <div className="card-face card-back" style={{ border: isSelected ? '2px solid #ffcc00' : '1px solid #3a3a3c', boxShadow: isSelected ? '0 0 15px rgba(255, 204, 0, 0.15)' : 'none' }}>
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
                         <div style={{ display: 'flex', gap: '6px', flex: 1, marginRight: '12px' }}>
@@ -177,9 +178,9 @@ function Tools({ user }) {
                         {/* MANIFEST TAB */}
                         {activeTab === 'manifest' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {['Primary Unit', 'Battery / Power Source', 'Accessory Cables', 'Hard Shell Case'].map((item, i) => (
+                            {['Primary Tool Body', 'High-Capacity Battery Pair', 'Rapid Charger Base', 'Hard Shell Case'].map((item, i) => (
                             <label key={i} onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#d2d2d7', cursor: 'pointer' }}>
-                                <input type="checkbox" defaultChecked style={{ width: '14px', height: '14px', accentColor: '#007aff' }} /> {item}
+                                <input type="checkbox" defaultChecked style={{ width: '14px', height: '14px', accentColor: '#ffcc00' }} /> {item}
                             </label>
                             ))}
                         </div>
@@ -201,7 +202,7 @@ function Tools({ user }) {
                             <div><span style={{ color: '#d2d2d7', fontWeight: '600' }}>S/N:</span> {tool.toolId}-9X8B</div>
                             <div><span style={{ color: '#d2d2d7', fontWeight: '600' }}>Purchased:</span> Jan 14, 2024</div>
                             <div><span style={{ color: '#d2d2d7', fontWeight: '600' }}>Warranty:</span> Expires Jan 2029</div>
-                            <div style={{ color: '#007aff', fontWeight: '600', cursor: 'pointer', marginTop: '4px' }}>📄 Download PDF Manual</div>
+                            <div style={{ color: '#ffcc00', fontWeight: '600', cursor: 'pointer', marginTop: '4px' }}>📄 Download PDF Manual</div>
                         </div>
                         )}
                     </div>
@@ -224,7 +225,7 @@ function Tools({ user }) {
                 <div style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', color: '#ffffff' }}>
                     {selectedTool.toolId}
                 </div>
-                <div style={{ color: '#007aff', fontSize: '16px', fontWeight: '600', marginTop: '4px', lineHeight: '1.3' }}>{selectedTool.name}</div>
+                <div style={{ color: '#ffcc00', fontSize: '16px', fontWeight: '600', marginTop: '4px', lineHeight: '1.3' }}>{selectedTool.name}</div>
                 </div>
 
                 {/* LOG HISTORY BLOCK */}
