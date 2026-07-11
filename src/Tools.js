@@ -20,7 +20,7 @@ function Tools({ user }) {
   const selectedTool = tools.find(t => t.toolId === selectedToolId) || tools[0];
 
   return (
-    <div style={{ backgroundColor: 'transparent', minHeight: '100vh', padding: '16px 12px 40px 12px', color: '#ffffff', fontFamily: '"SF Pro Display", sans-serif', maxWidth: '1440px', margin: '0 auto', display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
+    <div style={{ backgroundColor: '#121212', minHeight: '100vh', padding: '16px 12px 40px 12px', color: '#ffffff', fontFamily: '"SF Pro Display", sans-serif', maxWidth: '1440px', margin: '0 auto', display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
       
       <style>{`
         .inspector-scroll::-webkit-scrollbar { width: 6px; }
@@ -42,7 +42,8 @@ function Tools({ user }) {
                 backgroundColor: '#1c1c1e', 
                 borderRadius: '12px', 
                 padding: '16px', 
-                border: isSelected ? '1px solid #ffffff' : '1px solid #3a3a3c', 
+                border: isSelected ? '2px solid #007aff' : '1px solid #3a3a3c', 
+                boxShadow: isSelected ? '0 0 15px rgba(0, 122, 255, 0.2)' : 'none',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
@@ -50,14 +51,13 @@ function Tools({ user }) {
                 transition: 'all 0.15s ease-in-out'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: isOut ? '#ff9500' : '#34c759' }}></span>
-                <span style={{ fontSize: '10px', fontWeight: '600', color: '#86868b', letterSpacing: '0.05em' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '4px', backgroundColor: isOut ? 'rgba(255,149,0,0.15)' : 'rgba(52,199,89,0.15)', color: isOut ? '#ff9500' : '#34c759', letterSpacing: '0.05em' }}>
                   {isOut ? 'DEPLOYED' : 'IN CRIB'}
                 </span>
               </div>
               
-              <div style={{ fontSize: '20px', fontWeight: '600', letterSpacing: '1px', textAlign: 'center', color: isSelected ? '#ffffff' : '#d2d2d7' }}>
+              <div style={{ fontSize: '20px', fontWeight: '700', letterSpacing: '1px', textAlign: 'center', color: '#ffffff' }}>
                 [ || {tool.toolId} ]
               </div>
               
@@ -65,15 +65,15 @@ function Tools({ user }) {
                 width: '100%', 
                 padding: '10px', 
                 borderRadius: '8px', 
-                backgroundColor: 'transparent', 
-                color: '#86868b',
-                border: '1px solid #3a3a3c',
-                fontWeight: '600',
-                fontSize: '12px',
+                backgroundColor: isSelected ? '#007aff' : '#2c2c2e', 
+                color: '#ffffff',
+                border: 'none',
+                fontWeight: '700',
+                fontSize: '13px',
                 cursor: 'pointer',
                 transition: 'all 0.15s'
               }}>
-                {isOut ? 'Return' : 'Check Out'}
+                {isOut ? 'RETURN' : 'CHECK OUT'}
               </button>
             </div>
           );
@@ -81,18 +81,19 @@ function Tools({ user }) {
       </div>
 
       {/* RIGHT COLUMN: THE INSPECTOR */}
-      <div style={{ width: '420px', backgroundColor: 'transparent', position: 'sticky', top: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ width: '420px', backgroundColor: '#1c1c1e', borderRadius: '16px', border: '1px solid #3a3a3c', padding: '24px', position: 'sticky', top: '24px', display: 'flex', flexDirection: 'column', gap: '24px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
         
         <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c' }}>
-          <div style={{ fontSize: '28px', fontWeight: '700', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ color: '#ffffff' }}>{selectedTool.toolId}</span>
+          <div style={{ fontSize: '13px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px' }}>INSPECTOR DASHBOARD</div>
+          <div style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', color: '#ffffff' }}>
+            {selectedTool.toolId}
           </div>
-          <div style={{ color: '#86868b', fontSize: '15px', marginTop: '4px' }}>{selectedTool.name}</div>
+          <div style={{ color: '#007aff', fontSize: '16px', fontWeight: '600', marginTop: '4px' }}>{selectedTool.name}</div>
         </div>
 
         {/* LOG HISTORY BLOCK */}
-        <div style={{ backgroundColor: '#1c1c1e', borderRadius: '12px', border: '1px solid #3a3a3c', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ fontSize: '11px', color: '#86868b', fontWeight: '600', letterSpacing: '0.05em' }}>LOG HISTORY</div>
+        <div style={{ backgroundColor: '#121212', borderRadius: '12px', border: '1px solid #3a3a3c', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>LOG HISTORY</div>
           <div className="inspector-scroll" style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '180px', overflowY: 'auto', paddingRight: '8px' }}>
             {selectedTool.history.length > 0 ? selectedTool.history.map((log, i) => (
               <div key={i} style={{ borderBottom: '1px solid #2c2c2e', paddingBottom: '8px' }}>
@@ -110,16 +111,17 @@ function Tools({ user }) {
 
         {/* STATUS READOUT */}
         <div style={{ padding: '12px 0' }}>
-          <div style={{ fontSize: '11px', color: '#86868b', fontWeight: '600', letterSpacing: '0.05em', marginBottom: '8px' }}>CURRENT STATUS</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: selectedTool.status === 'CHECKED_OUT' ? '#ff9500' : '#34c759' }}></span>
-             <span style={{ fontSize: '18px', fontWeight: '600', color: '#ffffff', letterSpacing: '1px' }}>
+          <div style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '12px' }}>CURRENT STATUS</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: '#121212', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
+             <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: selectedTool.status === 'CHECKED_OUT' ? '#ff9500' : '#34c759', boxShadow: `0 0 10px ${selectedTool.status === 'CHECKED_OUT' ? '#ff9500' : '#34c759'}` }}></span>
+             <span style={{ fontSize: '20px', fontWeight: '800', color: '#ffffff', letterSpacing: '1px' }}>
                 {selectedTool.status === 'CHECKED_OUT' ? 'DEPLOYED' : 'IN CRIB'}
              </span>
           </div>
           {selectedTool.status === 'CHECKED_OUT' && (
-            <div style={{ marginTop: '8px', color: '#86868b', fontSize: '13px' }}>
-              Assigned to <strong style={{ color: '#d2d2d7' }}>{selectedTool.assignedUser}</strong> • {selectedTool.daysOut} days ago
+            <div style={{ marginTop: '12px', color: '#86868b', fontSize: '14px', lineHeight: '1.5' }}>
+              Assigned to: <strong style={{ color: '#ffffff' }}>{selectedTool.assignedUser}</strong> <br/>
+              Time in field: <strong style={{ color: '#ff9500' }}>{selectedTool.daysOut} days</strong>
             </div>
           )}
         </div>
@@ -127,16 +129,16 @@ function Tools({ user }) {
         {/* MASTER ACTION DECK */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
           {selectedTool.status === 'AVAILABLE' ? (
-            <button style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#ffffff', color: '#1d1d1f', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>
-              Check Out to Employee
+            <button style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}>
+              CHECK OUT TO EMPLOYEE
             </button>
           ) : (
-            <button style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#2c2c2e', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>
-              Return to Tool Crib
+            <button style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#ff9500', color: '#ffffff', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}>
+              RETURN TO TOOL CRIB
             </button>
           )}
-          <button style={{ width: '100%', padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: 'transparent', color: '#86868b', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>
-            Flag as Damaged / Requires Maintenance
+          <button style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #ff3b30', backgroundColor: 'transparent', color: '#ff3b30', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}>
+            FLAG AS DAMAGED / MAINTENANCE
           </button>
         </div>
 
