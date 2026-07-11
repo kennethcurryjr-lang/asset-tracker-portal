@@ -758,9 +758,9 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     localStorage.clear();
     sessionStorage.clear();
     auth.removeUser();
-    const cognitoDomain = "us-east-2ck94skjac.auth.us-east-2.amazoncognito.com";
+    const cognitoDomain = "auth.titanassets.dev";
     const clientId = "51fu0mfnpb0r0e319ftppvcbaf";
-    const logoutUri = "https://main.d1qrq5npo0cqdy.amplifyapp.com/";
+    const logoutUri = "https://titanassets.dev/";
     window.location.href = `https://` + cognitoDomain + `/logout?client_id=` + clientId + `&logout_uri=` + encodeURIComponent(logoutUri);
   };
 
