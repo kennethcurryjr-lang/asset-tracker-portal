@@ -1,154 +1,152 @@
 import React, { useState } from 'react';
 
 function Tools({ user }) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [flippedCards, setFlippedCards] = useState({});
+  const [selectedToolId, setSelectedToolId] = useState("DEWALT-001");
   
-  // A solid array of demo data to show the client a busy, active system
+  // Dense matrix data simulation
   const [tools, setTools] = useState([
-    { toolId: "DEWALT-001", name: "20V Max Hammer Drill", status: "AVAILABLE", condition: "GOOD", assignedUser: null, daysOut: 0 },
-    { toolId: "FLIR-042", name: "Thermal Imaging Camera", status: "CHECKED_OUT", condition: "GOOD", assignedUser: "MARIO DIAZ", daysOut: 3 },
-    { toolId: "MILWK-077", name: "M18 Fuel Hackzall", status: "AVAILABLE", condition: "GOOD", assignedUser: null, daysOut: 0 },
-    { toolId: "HILTI-993", name: "TE 70-ATC Rotary Hammer", status: "CHECKED_OUT", condition: "FAIR", assignedUser: "CHRIS EVANS", daysOut: 1 },
-    { toolId: "DEWALT-005", name: "20V Max XR Impact Driver", status: "AVAILABLE", condition: "NEW", assignedUser: null, daysOut: 0 },
-    { toolId: "FLUKE-87V", name: "Industrial Multimeter", status: "CHECKED_OUT", condition: "GOOD", assignedUser: "SARAH CONNOR", daysOut: 5 }
+    { toolId: "DEWALT-001", name: "20V Max Hammer Drill", status: "AVAILABLE", condition: "Good", assignedUser: null, daysOut: 0, history: [{user: "Mario Diaz", action: "Returned", date: "3 days ago", condition: "Good"}, {user: "Mario Diaz", action: "Checked Out", date: "5 days ago", condition: "Good"}] },
+    { toolId: "FLIR-042", name: "Thermal Imaging Camera", status: "CHECKED_OUT", condition: "Good", assignedUser: "Mario Diaz", daysOut: 3, history: [{user: "Mario Diaz", action: "Checked Out", date: "3 days ago", condition: "Good"}] },
+    { toolId: "MILWK-077", name: "M18 Fuel Hackzall", status: "CHECKED_OUT", condition: "Fair", assignedUser: "Chris Evans", daysOut: 1, history: [{user: "Chris Evans", action: "Checked Out", date: "1 day ago", condition: "Fair"}] },
+    { toolId: "DEWALT-002", name: "20V Max XR Impact Driver", status: "AVAILABLE", condition: "New", assignedUser: null, daysOut: 0, history: [] },
+    { toolId: "DEWALT-003", name: "20V Max XR Impact Driver", status: "AVAILABLE", condition: "Good", assignedUser: null, daysOut: 0, history: [] },
+    { toolId: "MILWK-109", name: "M18 Search Light", status: "AVAILABLE", condition: "Good", assignedUser: null, daysOut: 0, history: [] },
+    { toolId: "MILWK-136", name: "M18 Packout Radio", status: "AVAILABLE", condition: "Good", assignedUser: null, daysOut: 0, history: [] },
+    { toolId: "MILWK-078", name: "M18 Rover Flood Light", status: "CHECKED_OUT", condition: "Good", assignedUser: "Sarah Connor", daysOut: 2, history: [] },
+    { toolId: "DEWALT-005", name: "20V Max Grinder", status: "AVAILABLE", condition: "Good", assignedUser: null, daysOut: 0, history: [] },
+    { toolId: "FLIR-097", name: "Thermal Sensor Mk II", status: "CHECKED_OUT", condition: "Good", assignedUser: "Mario Diaz", daysOut: 4, history: [] },
+    { toolId: "MILWK-080", name: "M18 Force Logic Press", status: "AVAILABLE", condition: "New", assignedUser: null, daysOut: 0, history: [] }
   ]);
 
-  const containerStyle = { backgroundColor: 'transparent', minHeight: '100vh', padding: '0 12px 40px 12px', color: '#ffffff', fontFamily: '"SF Pro Display", sans-serif', maxWidth: '1440px', margin: '0 auto' };
-  const inputStyle = { padding: '10px 14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#1c1c1e', color: '#ffffff', width: '100%', boxSizing: 'border-box' };
-  
+  const selectedTool = tools.find(t => t.toolId === selectedToolId) || tools[0];
+
   return (
-    <div style={containerStyle}>
+    <div style={{ backgroundColor: 'transparent', minHeight: '100vh', padding: '16px 12px 40px 12px', color: '#ffffff', fontFamily: '"SF Pro Display", sans-serif', maxWidth: '1440px', margin: '0 auto', display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
+      
       <style>{`
-        .card-perspective-wrapper { perspective: 1200px; height: 100%; display: flex; min-height: 240px; }
-        .card-flipper { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; display: flex; flex-direction: column; flex: 1; }
-        .card-flipper.flipped { transform: rotateY(180deg); }
-        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; flex: 1; box-sizing: border-box; border-radius: 14px; }
-        .card-front { transform: rotateY(0deg); z-index: 2; position: relative; }
-        .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #1c1c1e; border: 1px solid #3a3a3c; padding: 24px; display: flex; flex-direction: column; }
-        
-        .kinetic-tool-card {
-            background-color: #1c1c1e;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-        .kinetic-tool-card.checked-out {
-            border: 1px solid rgba(255, 149, 0, 0.6);
-            background: linear-gradient(180deg, rgba(255, 149, 0, 0.08) 0%, #1c1c1e 40%);
-            box-shadow: 0 0 15px rgba(255, 149, 0, 0.15);
-        }
-        .kinetic-tool-card.available {
-            border: 1px solid #3a3a3c;
-        }
-        
-        .pill-btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 13px; flex: 1; transition: opacity 0.2s; }
-        .pill-btn:hover { opacity: 0.8; }
-        .btn-checkout { background-color: #ffffff; color: #1d1d1f; }
-        .btn-return { background-color: #ff9500; color: #1d1d1f; }
-        .btn-flip { background-color: #2c2c2e; color: #d2d2d7; border: 1px solid #3a3a3c; }
-        
-        /* Custom Scrollbar for Timeline */
-        .timeline-scroll::-webkit-scrollbar { width: 6px; }
-        .timeline-scroll::-webkit-scrollbar-track { background: transparent; }
-        .timeline-scroll::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
+        /* Custom Scrollbar for Inspector Logs */
+        .inspector-scroll::-webkit-scrollbar { width: 6px; }
+        .inspector-scroll::-webkit-scrollbar-track { background: transparent; }
+        .inspector-scroll::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
       `}</style>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', marginTop: '16px' }}>
-        <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}></h2>
-        <div style={{ width: '100%', maxWidth: '400px' }}>
-          <input type="text" placeholder="Scan Barcode or Search ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={inputStyle} />
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+      {/* LEFT COLUMN: THE MATRIX */}
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', alignContent: 'start' }}>
         {tools.map(tool => {
-          const isFlipped = !!flippedCards[tool.toolId];
+          const isSelected = tool.toolId === selectedToolId;
           const isOut = tool.status === 'CHECKED_OUT';
-
+          
           return (
-            <div key={tool.toolId} className="card-perspective-wrapper">
-              <div className={`card-flipper ${isFlipped ? 'flipped' : ''}`}>
-                
-                {/* FRONT OF CARD */}
-                <div className={`card-face card-front kinetic-tool-card ${isOut ? 'checked-out' : 'available'}`}>
-                  
-                  {/* Header Row */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '4px', backgroundColor: isOut ? 'rgba(255,149,0,0.15)' : 'rgba(52,199,89,0.15)', color: isOut ? '#ff9500' : '#34c759', letterSpacing: '0.05em' }}>
-                      {isOut ? 'DEPLOYED' : 'IN CRIB'}
-                    </span>
-                    <span style={{ fontSize: '13px', color: '#86868b', fontFamily: 'monospace', letterSpacing: '1px' }}>[ || {tool.toolId} ]</span>
-                  </div>
-
-                  {/* Morphing Data Block */}
-                  {isOut ? (
-                    <div style={{ marginTop: '8px' }}>
-                      <div style={{ fontSize: '11px', color: '#86868b', textTransform: 'uppercase', fontWeight: '600', marginBottom: '2px', letterSpacing: '0.05em' }}>Assigned To</div>
-                      <div style={{ fontSize: '26px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.01em', marginBottom: '4px' }}>{tool.assignedUser}</div>
-                      <div style={{ fontSize: '14px', color: '#a1a1a6' }}>{tool.name}</div>
-                      <div style={{ marginTop: '16px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff9500', boxShadow: '0 0 8px rgba(255,149,0,0.6)' }}></span>
-                          <span style={{ color: '#ff9500', fontWeight: '600' }}>Time in field: {tool.daysOut} {tool.daysOut === 1 ? 'day' : 'days'}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ marginTop: '8px', paddingBottom: '16px' }}>
-                      <div style={{ fontSize: '22px', fontWeight: '600', color: '#ffffff', letterSpacing: '-0.01em', marginBottom: '8px' }}>{tool.name}</div>
-                      <div style={{ fontSize: '14px', color: '#86868b' }}>Condition: <span style={{ color: '#d2d2d7', fontWeight: '500' }}>{tool.condition}</span></div>
-                    </div>
-                  )}
-
-                  {/* Action Deck */}
-                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid #3a3a3c' }}>
-                    {isOut ? (
-                      <button className="pill-btn btn-return">[ RETURN TO CRIB ]</button>
-                    ) : (
-                      <button className="pill-btn btn-checkout">[ CHECK OUT ]</button>
-                    )}
-                    <button className="pill-btn btn-flip" style={{ flex: 0.3 }} onClick={() => setFlippedCards(prev => ({...prev, [tool.toolId]: !prev[tool.toolId]}))}>Flip ⤹</button>
-                  </div>
-                </div>
-
-                {/* BACK OF CARD (CUSTODY LOG) */}
-                <div className="card-face card-back">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '16px', marginBottom: '16px' }}>
-                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#ffffff' }}>Custody Log</div>
-                    <button className="pill-btn btn-flip" style={{ flex: 'none', padding: '6px 12px', fontSize: '11px' }} onClick={() => setFlippedCards(prev => ({...prev, [tool.toolId]: !prev[tool.toolId]}))}>⤶ Back</button>
-                  </div>
-                  
-                  <div className="timeline-scroll" style={{ flex: 1, overflowY: 'auto', paddingRight: '8px' }}>
-                    <div style={{ borderLeft: '2px solid #3a3a3c', marginLeft: '6px', paddingLeft: '16px', position: 'relative' }}>
-                      
-                      <div style={{ paddingBottom: '20px', position: 'relative' }}>
-                        <div style={{ position: 'absolute', left: '-21px', top: '4px', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ff9500', border: '2px solid #1c1c1e' }}></div>
-                        <div style={{ fontSize: '14px', color: '#ffffff', fontWeight: '600' }}>Checked out to {tool.assignedUser || 'Mario Diaz'}</div>
-                        <div style={{ fontSize: '11px', color: '#86868b', marginTop: '4px' }}>Jul 10, 2026 • Notes: Project Alpha</div>
-                      </div>
-
-                      <div style={{ paddingBottom: '20px', position: 'relative' }}>
-                        <div style={{ position: 'absolute', left: '-21px', top: '4px', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#34c759', border: '2px solid #1c1c1e' }}></div>
-                        <div style={{ fontSize: '14px', color: '#d2d2d7', fontWeight: '500' }}>Returned to Crib</div>
-                        <div style={{ fontSize: '11px', color: '#86868b', marginTop: '4px' }}>Jul 08, 2026 • Condition: Good</div>
-                      </div>
-                      
-                      <div style={{ paddingBottom: '8px', position: 'relative' }}>
-                        <div style={{ position: 'absolute', left: '-21px', top: '4px', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ff9500', border: '2px solid #1c1c1e' }}></div>
-                        <div style={{ fontSize: '14px', color: '#d2d2d7', fontWeight: '500' }}>Checked out to Chris Evans</div>
-                        <div style={{ fontSize: '11px', color: '#86868b', marginTop: '4px' }}>Jun 29, 2026 • Emergency Dispatch</div>
-                      </div>
-
-                    </div>
-                  </div>
-                </div>
-
+            <div 
+              key={tool.toolId} 
+              onClick={() => setSelectedToolId(tool.toolId)}
+              style={{ 
+                backgroundColor: '#1c1c1e', 
+                borderRadius: '12px', 
+                padding: '16px', 
+                border: isSelected ? '1px solid #007aff' : '1px solid #3a3a3c', 
+                boxShadow: isSelected ? '0 0 20px rgba(0, 122, 255, 0.25)' : 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px',
+                transition: 'all 0.15s ease-in-out'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <span style={{ fontSize: '10px', fontWeight: '700', color: isOut ? '#ff9500' : '#34c759', letterSpacing: '0.05em' }}>
+                  {isOut ? 'CHECKED_OUT' : 'AVAILABLE'}
+                </span>
               </div>
+              
+              <div style={{ fontSize: '20px', fontWeight: '600', letterSpacing: '1px', textAlign: 'center' }}>
+                [ || {tool.toolId} ]
+              </div>
+              
+              <button style={{ 
+                width: '100%', 
+                padding: '10px', 
+                borderRadius: '8px', 
+                backgroundColor: isSelected ? '#ffffff' : 'transparent', 
+                color: isSelected ? '#1d1d1f' : '#ffffff',
+                border: isSelected ? 'none' : '1px solid #ffffff',
+                fontWeight: '700',
+                fontSize: '13px',
+                cursor: 'pointer',
+                transition: 'all 0.15s'
+              }}>
+                [ {isOut ? 'RETURN' : 'CHECK OUT'} ]
+              </button>
             </div>
           );
         })}
+      </div>
+
+      {/* RIGHT COLUMN: THE INSPECTOR */}
+      <div style={{ width: '420px', backgroundColor: 'transparent', position: 'sticky', top: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        
+        <div>
+          <div style={{ fontSize: '28px', fontWeight: '700', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ color: '#d2d2d7' }}>INSPECTOR:</span> <span style={{ color: '#ff9500' }}>{selectedTool.toolId}</span>
+          </div>
+          <div style={{ color: '#86868b', fontSize: '15px', marginTop: '4px' }}>{selectedTool.name}</div>
+        </div>
+
+        {/* LOG HISTORY BLOCK */}
+        <div style={{ backgroundColor: '#1c1c1e', borderRadius: '12px', border: '1px solid #3a3a3c', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ fontSize: '11px', color: '#86868b', fontWeight: '600', letterSpacing: '0.05em' }}>LOG HISTORY</div>
+          <div className="inspector-scroll" style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '180px', overflowY: 'auto', paddingRight: '8px' }}>
+            {selectedTool.history.length > 0 ? selectedTool.history.map((log, i) => (
+              <div key={i} style={{ borderBottom: '1px solid #2c2c2e', paddingBottom: '8px' }}>
+                <div style={{ fontSize: '13px', color: '#d2d2d7', display: 'flex', justifyContent: 'space-between' }}>
+                  <span><strong style={{ color: '#ffffff' }}>[{log.user}]</strong> {log.action}</span>
+                </div>
+                <div style={{ fontSize: '11px', color: '#86868b', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>{log.date}</span>
+                  <span>Condition: {log.condition}</span>
+                </div>
+              </div>
+            )) : <div style={{ fontSize: '13px', color: '#86868b', fontStyle: 'italic' }}>No deployment history on record.</div>}
+          </div>
+        </div>
+
+        {/* MAINTENANCE RECORD BLOCK */}
+        <div style={{ backgroundColor: '#1c1c1e', borderRadius: '12px', border: '1px solid #3a3a3c', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ fontSize: '11px', color: '#86868b', fontWeight: '600', letterSpacing: '0.05em' }}>MAINTENANCE RECORD</div>
+          <div style={{ fontSize: '13px', color: '#86868b', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+             <div>[Date] Service Performed: Brush Replacement</div>
+             <div>[Date] Service Performed: Calibration Check</div>
+          </div>
+        </div>
+
+        {/* STATUS READOUT */}
+        <div style={{ textAlign: 'center', padding: '12px 0' }}>
+          <div style={{ fontSize: '26px', fontWeight: '700', color: selectedTool.status === 'CHECKED_OUT' ? '#ff9500' : '#34c759', letterSpacing: '1px' }}>
+            **{selectedTool.status}**
+          </div>
+          {selectedTool.status === 'CHECKED_OUT' && (
+            <div style={{ marginTop: '10px', color: '#d2d2d7', fontSize: '14px' }}>
+              Time in Field <br/>
+              <span style={{ color: '#86868b', fontSize: '13px' }}>Deployed {selectedTool.daysOut} days ago</span>
+            </div>
+          )}
+        </div>
+
+        {/* MASTER ACTION DECK */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button style={{ flex: 1, padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: selectedTool.status === 'AVAILABLE' ? 1 : 0.2 }}>
+              [CHECK OUT]
+            </button>
+            <button style={{ flex: 1, padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#1d1d1f', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: selectedTool.status === 'CHECKED_OUT' ? 1 : 0.2 }}>
+              [RETURN TO CRIB]
+            </button>
+          </div>
+          <button style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #ff3b30', backgroundColor: 'transparent', color: '#ff3b30', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>
+            [FLAG DAMAGED]
+          </button>
+        </div>
+
       </div>
     </div>
   );
