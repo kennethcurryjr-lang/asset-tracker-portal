@@ -58,6 +58,8 @@ function Tools({ user }) {
   const [flippedCards, setFlippedCards] = useState({});
   const [cardTabs, setCardTabs] = useState({});
   const [pendingAttachments, setPendingAttachments] = useState({});
+  const [serviceNotes, setServiceNotes] = useState({});
+  const [serviceChecklists, setServiceChecklists] = useState({});
   const [bulkSelectedTools, setBulkSelectedTools] = useState([]);
   
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
@@ -183,6 +185,7 @@ function Tools({ user }) {
 
   const logService = (toolId) => {
     const attachedFile = pendingAttachments[toolId];
+    const note = serviceNotes[toolId];
     setTools(prev => prev.map(t => {
       if (t.toolId === toolId) {
         const resetMetrics = t.metrics.map(m => ({ ...m, current: 0 }));
@@ -195,18 +198,17 @@ function Tools({ user }) {
             action: "PM Service Completed & Intervals Reset", 
             date: 'Just now', 
             condition: "Excellent",
-            attachment: attachedFile || null
+            attachment: attachedFile || null,
+            note: note || null
           }, ...t.history]
         };
       }
       return t;
     }));
     
-    setPendingAttachments(prev => {
-        const newState = { ...prev };
-        delete newState[toolId];
-        return newState;
-    });
+    setPendingAttachments(prev => { const newState = { ...prev }; delete newState[toolId]; return newState; });
+    setServiceNotes(prev => { const newState = { ...prev }; delete newState[toolId]; return newState; });
+    setServiceChecklists(prev => { const newState = { ...prev }; delete newState[toolId]; return newState; });
   };
 
   const logBulkService = () => {
@@ -426,13 +428,30 @@ function Tools({ user }) {
                                   })}
                                 </div>
                                 
-                                <label htmlFor={`file-${tool.toolId}`} onClick={(e) => e.stopPropagation()} style={{ display: 'block', padding: '10px', borderRadius: '8px', backgroundColor: pendingAttachments[tool.toolId] ? 'rgba(52,199,89,0.15)' : '#2c2c2e', border: pendingAttachments[tool.toolId] ? '1px solid #34c759' : '1px dashed #86868b', color: pendingAttachments[tool.toolId] ? '#34c759' : '#d2d2d7', fontSize: '12px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', marginTop: '4px', textAlign: 'center' }}>
-                                  {pendingAttachments[tool.toolId] ? `📎 ${pendingAttachments[tool.toolId]}` : '📷 Attach Photo / Doc'}
-                                </label>
-                                <input type="file" id={`file-${tool.toolId}`} style={{ display: 'none' }} onChange={(e) => { if(e.target.files[0]) { setPendingAttachments(prev => ({...prev, [tool.toolId]: e.target.files[0].name})); } }} />
+                                {/* PROCEDURAL CHECKLIST */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', backgroundColor: '#121212', padding: '8px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
+                                  {['Visual Inspection', 'Calibration', 'Safety Test'].map(step => {
+                                    const isChecked = (serviceChecklists[tool.toolId] || []).includes(step);
+                                    return (
+                                      <label key={step} onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isChecked ? '#34c759' : '#d2d2d7', cursor: 'pointer', fontWeight: '600', margin: 0 }}>
+                                        <input type="checkbox" checked={isChecked} onChange={() => { setServiceChecklists(prev => { const curr = prev[tool.toolId] || []; return { ...prev, [tool.toolId]: curr.includes(step) ? curr.filter(s => s !== step) : [...curr, step] }; }); }} style={{ width: '12px', height: '12px', accentColor: '#34c759', margin: 0 }} />
+                                        {step}
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                                
+                                {/* TECH NOTES & PHOTO */}
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                  <input type="text" placeholder="Add Service Notes..." value={serviceNotes[tool.toolId] || ''} onChange={(e) => setServiceNotes(prev => ({...prev, [tool.toolId]: e.target.value}))} onClick={(e) => e.stopPropagation()} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '11px', outline: 'none' }} />
+                                  <label htmlFor={`file-${tool.toolId}`} onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', borderRadius: '8px', backgroundColor: pendingAttachments[tool.toolId] ? 'rgba(52,199,89,0.15)' : '#2c2c2e', border: pendingAttachments[tool.toolId] ? '1px solid #34c759' : '1px dashed #86868b', color: pendingAttachments[tool.toolId] ? '#34c759' : '#d2d2d7', cursor: 'pointer', transition: 'all 0.2s' }}>
+                                    {pendingAttachments[tool.toolId] ? '📎' : '📷'}
+                                  </label>
+                                  <input type="file" id={`file-${tool.toolId}`} style={{ display: 'none' }} onChange={(e) => { if(e.target.files[0]) { setPendingAttachments(prev => ({...prev, [tool.toolId]: e.target.files[0].name})); } }} />
+                                </div>
 
-                                <button onClick={(e) => { e.stopPropagation(); logService(tool.toolId); }} style={{ marginTop: 'auto', padding: '12px', borderRadius: '8px', backgroundColor: '#34c759', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>
-                                  LOG SERVICE & RESET METRICS
+                                <button disabled={(serviceChecklists[tool.toolId] || []).length !== 3} onClick={(e) => { e.stopPropagation(); logService(tool.toolId); }} style={{ marginTop: 'auto', padding: '10px', borderRadius: '8px', backgroundColor: '#34c759', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer', opacity: (serviceChecklists[tool.toolId] || []).length === 3 ? 1 : 0.4 }}>
+                                  LOG SERVICE & RESET
                                 </button>
                               </div>
                             )}
@@ -501,6 +520,12 @@ function Tools({ user }) {
                             <div style={{ fontSize: '13px', color: '#d2d2d7', display: 'flex', justifyContent: 'space-between' }}>
                               <span><strong style={{ color: '#ffffff' }}>[{log.user}]</strong> {log.action}</span>
                             </div>
+                            
+                            {log.note && (
+                              <div style={{ fontSize: '12px', color: '#d2d2d7', marginTop: '6px', display: 'flex', alignItems: 'flex-start', gap: '6px', fontStyle: 'italic', backgroundColor: 'rgba(255,255,255,0.05)', padding: '6px 8px', borderRadius: '6px' }}>
+                                <span>📝</span> "{log.note}"
+                              </div>
+                            )}
                             
                             {log.attachment && (
                               <div style={{ fontSize: '12px', color: '#007aff', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: '600' }}>
