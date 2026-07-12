@@ -1,52 +1,50 @@
 import React, { useState, useMemo } from 'react';
 
-// Generates 100 heavy-duty power tools with PM data
+// Generates universal assets with dynamic PM metrics (Time, Usage, Cycles)
 const generateTools = () => {
-  const toolTemplates = [
-    { prefix: "MILW", name: "Milwaukee M18 Fuel Hammer Drill", value: 299, interval: 90 },
-    { prefix: "MILW", name: "Milwaukee M18 Hackzall", value: 159, interval: 120 },
-    { prefix: "MILW", name: "Milwaukee M18 Force Logic Press", value: 2400, interval: 60 },
-    { prefix: "MILW", name: "Milwaukee M12 ProPEX Expansion Tool", value: 450, interval: 180 },
-    { prefix: "DWLT", name: "DeWalt 20V Max XR Impact Driver", value: 149, interval: 90 },
-    { prefix: "DWLT", name: "DeWalt 60V Max Flexvolt Circular Saw", value: 399, interval: 90 },
-    { prefix: "HILT", name: "Hilti TE 70-ATC Rotary Hammer", value: 1850, interval: 45 },
-    { prefix: "HILT", name: "Hilti PM 40-MG Multi-Line Laser", value: 1200, interval: 365 },
-    { prefix: "BSCH", name: "Bosch GLM 400 CL Laser Measure", value: 299, interval: 365 },
-    { prefix: "FEST", name: "Festool CT 15 HEPA Dust Extractor", value: 499, interval: 60 }
+  const templates = [
+    { prefix: "VEH", name: "Ford F-150 Fleet Truck (Unit 42)", value: 45000, metrics: [{ unit: "Days", current: 150, interval: 180 }, { unit: "Miles", current: 4850, interval: 5000 }] },
+    { prefix: "HVAC", name: "Carrier 5-Ton Rooftop AC", value: 6500, metrics: [{ unit: "Days", current: 300, interval: 365 }, { unit: "Hours", current: 1950, interval: 2000 }] },
+    { prefix: "MILW", name: "Milwaukee M18 Force Logic Press", value: 2400, metrics: [{ unit: "Days", current: 45, interval: 60 }, { unit: "Crimps", current: 9800, interval: 10000 }] },
+    { prefix: "MILW", name: "Milwaukee M18 Fuel Hammer Drill", value: 299, metrics: [{ unit: "Days", current: 80, interval: 90 }] },
+    { prefix: "DWLT", name: "DeWalt 20V Max XR Impact Driver", value: 149, metrics: [{ unit: "Days", current: 10, interval: 90 }] },
+    { prefix: "HILT", name: "Hilti TE 70-ATC Rotary Hammer", value: 1850, metrics: [{ unit: "Days", current: 42, interval: 45 }] }
   ];
 
-  const users = ["Mario Diaz", "Chris Evans", "Sarah Connor", "Marcus Johnson", "Elena Rodriguez", "David Kim", "James Holden"];
-  const conditions = ["New", "Excellent", "Good", "Good", "Fair", "Requires Maintenance"];
+  const users = ["Mario Diaz", "Chris Evans", "Sarah Connor", "Marcus Johnson", "Elena Rodriguez", "David Kim"];
+  const conditions = ["New", "Excellent", "Good", "Fair", "Requires Maintenance"];
 
   let generated = [];
   for (let i = 1; i <= 100; i++) {
-    const template = toolTemplates[i % toolTemplates.length];
+    const t = templates[i % templates.length];
     const isOut = (i % 3 === 0); 
     const assignedUser = isOut ? users[i % users.length] : null;
     const daysOut = isOut ? (i % 14) + 1 : 0;
     const condition = conditions[i % conditions.length];
     const idNum = String(i).padStart(3, '0');
     
-    let daysSinceService;
-    if (i % 7 === 0) daysSinceService = template.interval + 3; 
-    else if (i % 6 === 0) daysSinceService = template.interval - 4; 
-    else if (i % 5 === 0) daysSinceService = template.interval - 10; 
-    else if (i % 4 === 0) daysSinceService = template.interval - 20; 
-    else daysSinceService = Math.floor(template.interval / 3); 
+    // Create variance in the metrics to trigger different UI states
+    const assetMetrics = t.metrics.map(m => {
+      let variance = 0;
+      if (i % 7 === 0) variance = m.interval * 1.1; // Overdue
+      else if (i % 6 === 0) variance = m.interval * 0.95; // Due this week
+      else if (i % 5 === 0) variance = m.interval * 0.85; // Due next week
+      else variance = m.interval * 0.4; // Healthy
+      return { ...m, current: Math.floor(variance) };
+    });
 
     generated.push({
-      toolId: `${template.prefix}-${idNum}`,
-      name: template.name,
-      value: template.value,
+      toolId: `${t.prefix}-${idNum}`,
+      name: t.name,
+      value: t.value,
       status: isOut ? "CHECKED_OUT" : "AVAILABLE",
       condition: condition,
       assignedUser: assignedUser,
       daysOut: daysOut,
-      serviceInterval: template.interval,
-      daysSinceService: daysSinceService,
+      metrics: assetMetrics,
       history: isOut ? [
         { user: assignedUser, action: "Checked Out", date: `${daysOut} days ago`, condition: condition }
-      ] : (i % 2 === 0 ? [{ user: users[(i+1)%users.length], action: "Returned", date: `${(i % 10)+2} days ago`, condition: condition }] : [])
+      ] : (i % 2 === 0 ? [{ user: users[(i+1)%users.length], action: "Returned", date: "2 days ago", condition: condition }] : [])
     });
   }
   return generated;
@@ -56,19 +54,18 @@ function Tools({ user }) {
   const [tools, setTools] = useState(generateTools);
   const [activeView, setActiveView] = useState('DISPATCH');
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedToolId, setSelectedToolId] = useState("MILW-001");
+  const [selectedToolId, setSelectedToolId] = useState("VEH-007");
   const [flippedCards, setFlippedCards] = useState({});
   const [cardTabs, setCardTabs] = useState({});
   const [pendingAttachments, setPendingAttachments] = useState({});
   const [bulkSelectedTools, setBulkSelectedTools] = useState([]);
   
-  // Modals State
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [dispatchUser, setDispatchUser] = useState("");
   const [dispatchProject, setDispatchProject] = useState("");
   
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', interval: '90' });
+  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '' });
 
   const filteredTools = useMemo(() => {
     if (!searchTerm.trim()) return tools;
@@ -87,15 +84,43 @@ function Tools({ user }) {
   const deployedValue = deployedTools.reduce((acc, t) => acc + t.value, 0);
   const cribValue = totalValue - deployedValue;
 
-  const overdueTools = tools.filter(t => t.daysSinceService >= t.serviceInterval);
-  const thisWeekTools = tools.filter(t => { const rem = t.serviceInterval - t.daysSinceService; return rem >= 0 && rem <= 7; });
-  const nextWeekTools = tools.filter(t => { const rem = t.serviceInterval - t.daysSinceService; return rem > 7 && rem <= 14; });
-  const thisMonthTools = tools.filter(t => { const rem = t.serviceInterval - t.daysSinceService; return rem > 14 && rem <= 30; });
+  // Universal Logic: An asset is overdue if ANY of its metrics exceed their interval.
+  const checkIsOverdue = (metrics) => metrics.some(m => m.current >= m.interval);
+  
+  // To sort the Kanban, we find the metric closest to failing (lowest percentage remaining)
+  const getMostCriticalMetric = (metrics) => {
+    return metrics.reduce((mostCritical, current) => {
+      const currentRemainingPct = (current.interval - current.current) / current.interval;
+      const mostCriticalRemainingPct = (mostCritical.interval - mostCritical.current) / mostCritical.interval;
+      return currentRemainingPct < mostCriticalRemainingPct ? current : mostCritical;
+    });
+  };
+
+  const overdueTools = tools.filter(t => checkIsOverdue(t.metrics));
+  
+  const thisWeekTools = tools.filter(t => {
+    if (checkIsOverdue(t.metrics)) return false;
+    const critical = getMostCriticalMetric(t.metrics);
+    const pct = critical.current / critical.interval;
+    return pct >= 0.90 && pct < 1.0; 
+  });
+  
+  const nextWeekTools = tools.filter(t => {
+    if (checkIsOverdue(t.metrics)) return false;
+    const critical = getMostCriticalMetric(t.metrics);
+    const pct = critical.current / critical.interval;
+    return pct >= 0.80 && pct < 0.90;
+  });
+  
+  const thisMonthTools = tools.filter(t => {
+    if (checkIsOverdue(t.metrics)) return false;
+    const critical = getMostCriticalMetric(t.metrics);
+    const pct = critical.current / critical.interval;
+    return pct >= 0.60 && pct < 0.80;
+  });
 
   const handleAddAsset = () => {
     if (!newTool.name || !newTool.value) return;
-    
-    // Generate a random 3-digit ID to simulate tracking assignment
     const idNum = String(Math.floor(Math.random() * 900) + 100);
     const generatedId = `${newTool.prefix}-${idNum}`;
     
@@ -107,14 +132,13 @@ function Tools({ user }) {
       condition: "New",
       assignedUser: null,
       daysOut: 0,
-      serviceInterval: parseInt(newTool.interval) || 90,
-      daysSinceService: 0,
+      metrics: [{ unit: "Days", current: 0, interval: 90 }], // Default universal metric
       history: [{ user: "Admin", action: "Asset Ingested to Database", date: "Just now", condition: "New" }]
     };
     
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
-    setNewTool({ prefix: 'MILW', name: '', value: '', interval: '90' });
+    setNewTool({ prefix: 'MILW', name: '', value: '' });
     setSelectedToolId(generatedId);
     setActiveView('DISPATCH');
   };
@@ -157,13 +181,14 @@ function Tools({ user }) {
     const attachedFile = pendingAttachments[toolId];
     setTools(prev => prev.map(t => {
       if (t.toolId === toolId) {
+        const resetMetrics = t.metrics.map(m => ({ ...m, current: 0 }));
         return {
           ...t,
-          daysSinceService: 0,
+          metrics: resetMetrics,
           condition: "Excellent",
           history: [{ 
             user: "Admin", 
-            action: "PM Service Completed", 
+            action: "PM Service Completed & Intervals Reset", 
             date: 'Just now', 
             condition: "Excellent",
             attachment: attachedFile || null
@@ -183,9 +208,10 @@ function Tools({ user }) {
   const logBulkService = () => {
     setTools(prev => prev.map(t => {
       if (bulkSelectedTools.includes(t.toolId)) {
+        const resetMetrics = t.metrics.map(m => ({ ...m, current: 0 }));
         return {
           ...t,
-          daysSinceService: 0,
+          metrics: resetMetrics,
           condition: "Excellent",
           history: [{ 
             user: "Admin", 
@@ -207,8 +233,9 @@ function Tools({ user }) {
   };
 
   const RenderKanbanCard = ({ tool, isOverdue }) => {
-    const remaining = tool.serviceInterval - tool.daysSinceService;
     const isSelected = bulkSelectedTools.includes(tool.toolId);
+    const critical = getMostCriticalMetric(tool.metrics);
+    const remaining = critical.interval - critical.current;
     
     return (
       <div 
@@ -222,8 +249,8 @@ function Tools({ user }) {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.02em' }}>[{tool.toolId}]</span>
-            <span style={{ fontSize: '11px', color: isOverdue ? '#ff3b30' : (remaining <= 7 ? '#ffcc00' : '#86868b'), fontWeight: '600' }}>
-              {isOverdue ? `LOCKED: ${Math.abs(remaining)} Days Overdue` : `Due in ${remaining} Days`}
+            <span style={{ fontSize: '11px', color: isOverdue ? '#ff3b30' : '#86868b', fontWeight: '600' }}>
+              {isOverdue ? `LOCKED: Overdue by ${Math.abs(remaining)} ${critical.unit}` : `Due in ${remaining} ${critical.unit}`}
             </span>
           </div>
         </div>
@@ -315,7 +342,7 @@ function Tools({ user }) {
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ flex: 1, position: 'relative' }}>
-                    <input type="text" placeholder="Search by Tool ID, Name, or Assigned Employee..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="custom-input" />
+                    <input type="text" placeholder="Search by Asset ID, Name, or Assigned Tech..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="custom-input" />
                 </div>
             </div>
 
@@ -323,7 +350,7 @@ function Tools({ user }) {
                 {filteredTools.map(tool => {
                 const isSelected = tool.toolId === selectedToolId;
                 const isOut = tool.status === 'CHECKED_OUT';
-                const isServiceDue = tool.daysSinceService >= tool.serviceInterval;
+                const isServiceDue = checkIsOverdue(tool.metrics);
                 const isFlipped = !!flippedCards[tool.toolId];
                 const activeTab = cardTabs[tool.toolId] || 'service';
                 
@@ -340,6 +367,7 @@ function Tools({ user }) {
                     <div key={tool.toolId} className="card-perspective-wrapper" onClick={() => setSelectedToolId(tool.toolId)}>
                     <div className={`card-flipper ${isFlipped ? 'flipped' : ''}`}>
                         
+                        {/* FRONT FACE */}
                         <div className="card-face card-front" style={{ padding: '16px', border: cardBorder, boxShadow: cardShadow, display: 'flex', flexDirection: 'column', gap: '12px', cursor: 'pointer', backgroundColor: isServiceDue ? '#221515' : '#1c1c1e' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '4px', backgroundColor: isServiceDue ? 'rgba(255,59,48,0.15)' : (isOut ? 'rgba(255,149,0,0.15)' : 'rgba(52,199,89,0.15)'), color: isServiceDue ? '#ff3b30' : (isOut ? '#ff9500' : '#34c759'), letterSpacing: '0.05em' }}>
@@ -363,6 +391,7 @@ function Tools({ user }) {
                         </div>
                         </div>
 
+                        {/* BACK FACE (UNIVERSAL METRICS) */}
                         <div className="card-face card-back" style={{ border: cardBorder, boxShadow: cardShadow }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
                             <div style={{ display: 'flex', gap: '4px', flex: 1, marginRight: '8px' }}>
@@ -376,25 +405,37 @@ function Tools({ user }) {
                         <div style={{ flex: 1, overflowY: 'auto' }}>
                             
                             {activeTab === 'service' && (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'center', justifyContent: 'center', height: '100%' }}>
-                                <div style={{ fontSize: '20px', fontWeight: '800', color: isServiceDue ? '#ff3b30' : '#ffffff' }}>
-                                  {tool.daysSinceService} / {tool.serviceInterval} <span style={{fontSize: '11px', color: '#86868b'}}>DAYS</span>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', height: '100%' }}>
+                                
+                                {/* DYNAMIC UNIVERSAL METRICS MAPPING */}
+                                <div style={{ flex: 1, overflowY: 'auto' }}>
+                                  {tool.metrics.map((metric, idx) => {
+                                    const isMetricDue = metric.current >= metric.interval;
+                                    return (
+                                      <div key={idx} style={{ marginBottom: '10px' }}>
+                                        <div style={{ fontSize: '10px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{metric.unit} INTERVAL</div>
+                                        <div style={{ fontSize: '18px', fontWeight: '800', color: isMetricDue ? '#ff3b30' : '#ffffff' }}>
+                                          {metric.current.toLocaleString()} / {metric.interval.toLocaleString()} <span style={{fontSize: '11px', color: '#86868b'}}>{metric.unit.toUpperCase()}</span>
+                                        </div>
+                                      </div>
+                                    )
+                                  })}
                                 </div>
                                 
-                                <label htmlFor={`file-${tool.toolId}`} onClick={(e) => e.stopPropagation()} style={{ display: 'block', padding: '10px', borderRadius: '8px', backgroundColor: pendingAttachments[tool.toolId] ? 'rgba(52,199,89,0.15)' : '#2c2c2e', border: pendingAttachments[tool.toolId] ? '1px solid #34c759' : '1px dashed #86868b', color: pendingAttachments[tool.toolId] ? '#34c759' : '#d2d2d7', fontSize: '12px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', marginTop: '4px' }}>
+                                <label htmlFor={`file-${tool.toolId}`} onClick={(e) => e.stopPropagation()} style={{ display: 'block', padding: '10px', borderRadius: '8px', backgroundColor: pendingAttachments[tool.toolId] ? 'rgba(52,199,89,0.15)' : '#2c2c2e', border: pendingAttachments[tool.toolId] ? '1px solid #34c759' : '1px dashed #86868b', color: pendingAttachments[tool.toolId] ? '#34c759' : '#d2d2d7', fontSize: '12px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', marginTop: '4px', textAlign: 'center' }}>
                                   {pendingAttachments[tool.toolId] ? `📎 ${pendingAttachments[tool.toolId]}` : '📷 Attach Photo / Doc'}
                                 </label>
                                 <input type="file" id={`file-${tool.toolId}`} style={{ display: 'none' }} onChange={(e) => { if(e.target.files[0]) { setPendingAttachments(prev => ({...prev, [tool.toolId]: e.target.files[0].name})); } }} />
 
                                 <button onClick={(e) => { e.stopPropagation(); logService(tool.toolId); }} style={{ marginTop: 'auto', padding: '12px', borderRadius: '8px', backgroundColor: '#34c759', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>
-                                  LOG SERVICE & RESET
+                                  LOG SERVICE & RESET METRICS
                                 </button>
                               </div>
                             )}
 
                             {activeTab === 'manifest' && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                {['Primary Tool Body', 'High-Capacity Battery', 'Charger Base', 'Hard Case'].map((item, i) => (
+                                {['Primary Body', 'Key Component / Battery', 'Accessories'].map((item, i) => (
                                 <label key={i} onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#d2d2d7', cursor: 'pointer' }}><input type="checkbox" defaultChecked style={{ width: '14px', height: '14px', accentColor: '#ffcc00' }} /> {item}</label>
                                 ))}
                             </div>
@@ -431,19 +472,19 @@ function Tools({ user }) {
             {selectedTool ? (
                 <>
                     <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', position: 'relative' }}>
-                    <div style={{ position: 'absolute', right: 0, top: 0, fontSize: '18px', fontWeight: '700', color: '#34c759' }}>${selectedTool.value}</div>
+                    <div style={{ position: 'absolute', right: 0, top: 0, fontSize: '18px', fontWeight: '700', color: '#34c759' }}>${selectedTool.value.toLocaleString()}</div>
                     <div style={{ fontSize: '13px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px' }}>INSPECTOR DASHBOARD</div>
                     <div style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', color: '#ffffff' }}>{selectedTool.toolId}</div>
-                    <div style={{ color: selectedTool.daysSinceService >= selectedTool.serviceInterval ? '#ff3b30' : '#ffcc00', fontSize: '16px', fontWeight: '600', marginTop: '4px', lineHeight: '1.3' }}>{selectedTool.name}</div>
+                    <div style={{ color: checkIsOverdue(selectedTool.metrics) ? '#ff3b30' : '#ffcc00', fontSize: '16px', fontWeight: '600', marginTop: '4px', lineHeight: '1.3' }}>{selectedTool.name}</div>
                     </div>
 
-                    {selectedTool.daysSinceService >= selectedTool.serviceInterval && (
+                    {checkIsOverdue(selectedTool.metrics) && (
                       <div style={{ backgroundColor: 'rgba(255,59,48,0.08)', border: '1px solid rgba(255,59,48,0.5)', padding: '16px', borderRadius: '12px', animation: 'criticalPulse 2s infinite' }}>
                         <div style={{ color: '#ff3b30', fontSize: '11px', fontWeight: '800', letterSpacing: '0.05em', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span>🛑</span> PREVENTATIVE MAINTENANCE LOCK
                         </div>
                         <div style={{ color: '#d2d2d7', fontSize: '13px', lineHeight: '1.5' }}>
-                          This asset has exceeded its <strong>{selectedTool.serviceInterval}-day</strong> service interval. Dispatch capabilities have been securely locked until a technician verifies tool integrity and resets the timer.
+                          This asset has exceeded one or more of its critical service intervals. Dispatch capabilities have been securely locked until a technician verifies integrity and resets the timers.
                         </div>
                       </div>
                     )}
@@ -489,10 +530,10 @@ function Tools({ user }) {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
                     {selectedTool.status === 'AVAILABLE' ? (
                         <button 
-                          disabled={selectedTool.daysSinceService >= selectedTool.serviceInterval}
+                          disabled={checkIsOverdue(selectedTool.metrics)}
                           onClick={() => setCheckoutModalOpen(true)} 
-                          style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: selectedTool.daysSinceService >= selectedTool.serviceInterval ? '#2c2c2e' : '#34c759', color: selectedTool.daysSinceService >= selectedTool.serviceInterval ? '#636366' : '#ffffff', fontWeight: '800', fontSize: '15px', cursor: selectedTool.daysSinceService >= selectedTool.serviceInterval ? 'not-allowed' : 'pointer' }}>
-                          {selectedTool.daysSinceService >= selectedTool.serviceInterval ? 'LOCKED: PM REQUIRED' : 'CHECK OUT TO EMPLOYEE'}
+                          style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: checkIsOverdue(selectedTool.metrics) ? '#2c2c2e' : '#34c759', color: checkIsOverdue(selectedTool.metrics) ? '#636366' : '#ffffff', fontWeight: '800', fontSize: '15px', cursor: checkIsOverdue(selectedTool.metrics) ? 'not-allowed' : 'pointer' }}>
+                          {checkIsOverdue(selectedTool.metrics) ? 'LOCKED: PM REQUIRED' : 'CHECK OUT TO EMPLOYEE'}
                         </button>
                     ) : (
                         <button onClick={handleReturn} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#ff9500', color: '#ffffff', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}>
@@ -577,25 +618,23 @@ function Tools({ user }) {
               
               <div style={{ display: 'flex', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>BRAND PREFIX</label>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>BRAND / TYPE PREFIX</label>
                   <select 
                     value={newTool.prefix} 
                     onChange={(e) => setNewTool({...newTool, prefix: e.target.value})} 
                     style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}
                   >
+                    <option value="VEH">VEH (Vehicle)</option>
+                    <option value="HVAC">HVAC (Climate Control)</option>
                     <option value="MILW">MILW (Milwaukee)</option>
                     <option value="DWLT">DWLT (DeWalt)</option>
-                    <option value="HILT">HILT (Hilti)</option>
-                    <option value="MAKI">MAKI (Makita)</option>
-                    <option value="BSCH">BSCH (Bosch)</option>
-                    <option value="FEST">FEST (Festool)</option>
                   </select>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>REPLACEMENT VALUE ($)</label>
                   <input 
                     type="number" 
-                    placeholder="e.g. 299" 
+                    placeholder="e.g. 45000" 
                     value={newTool.value}
                     onChange={(e) => setNewTool({...newTool, value: e.target.value})}
                     style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}
@@ -607,20 +646,9 @@ function Tools({ user }) {
                 <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>ASSET NAME / MODEL</label>
                 <input 
                   type="text" 
-                  placeholder="e.g. 18V Brushless Impact Driver" 
+                  placeholder="e.g. Ford F-150 Fleet Truck" 
                   value={newTool.name}
                   onChange={(e) => setNewTool({...newTool, name: e.target.value})}
-                  style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>MAINTENANCE INTERVAL (DAYS)</label>
-                <input 
-                  type="number" 
-                  placeholder="e.g. 90" 
-                  value={newTool.interval}
-                  onChange={(e) => setNewTool({...newTool, interval: e.target.value})}
                   style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}
                 />
               </div>
