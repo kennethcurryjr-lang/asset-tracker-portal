@@ -619,17 +619,23 @@ function Tools({ user }) {
               
               <div style={{ display: 'flex', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>BRAND / TYPE PREFIX</label>
-                  <select 
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>BRAND PREFIX (CUSTOM OR PRESET)</label>
+                  <input 
+                    list="prefix-options"
+                    placeholder="e.g. MILW, CAT, JD"
                     value={newTool.prefix} 
-                    onChange={(e) => setNewTool({...newTool, prefix: e.target.value})} 
+                    onChange={(e) => setNewTool({...newTool, prefix: e.target.value.toUpperCase()})} 
                     style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}
-                  >
-                    <option value="VEH">VEH (Vehicle)</option>
-                    <option value="HVAC">HVAC (Climate Control)</option>
-                    <option value="MILW">MILW (Milwaukee)</option>
-                    <option value="DWLT">DWLT (DeWalt)</option>
-                  </select>
+                  />
+                  <datalist id="prefix-options">
+                    <option value="VEH">Vehicle</option>
+                    <option value="HVAC">Climate Control</option>
+                    <option value="MILW">Milwaukee</option>
+                    <option value="DWLT">DeWalt</option>
+                    <option value="HILT">Hilti</option>
+                    <option value="MAKI">Makita</option>
+                    <option value="BSCH">Bosch</option>
+                  </datalist>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>REPLACEMENT VALUE ($)</label>
