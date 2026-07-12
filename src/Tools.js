@@ -27,7 +27,7 @@ const generateTools = () => {
     const condition = conditions[i % conditions.length];
     const idNum = String(i).padStart(3, '0');
     
-    // Simulate PM data (Creates a spread of Overdue, This Week, Next Week, Next Month)
+    // Simulate PM data
     let daysSinceService;
     if (i % 7 === 0) daysSinceService = template.interval + 3; // Overdue
     else if (i % 6 === 0) daysSinceService = template.interval - 4; // This week
@@ -55,7 +55,7 @@ const generateTools = () => {
 
 function Tools({ user }) {
   const [tools, setTools] = useState(generateTools);
-  const [activeView, setActiveView] = useState('DISPATCH'); // 'DISPATCH' or 'MAINTENANCE'
+  const [activeView, setActiveView] = useState('DISPATCH');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedToolId, setSelectedToolId] = useState("MILW-001");
   const [flippedCards, setFlippedCards] = useState({});
@@ -63,7 +63,6 @@ function Tools({ user }) {
   const [pendingAttachments, setPendingAttachments] = useState({});
   const [bulkSelectedTools, setBulkSelectedTools] = useState([]);
   
-  // Dispatch Modal State
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [dispatchUser, setDispatchUser] = useState("");
   const [dispatchProject, setDispatchProject] = useState("");
@@ -80,13 +79,11 @@ function Tools({ user }) {
 
   const selectedTool = tools.find(t => t.toolId === selectedToolId) || filteredTools[0] || tools[0];
 
-  // HUD Calcs
   const totalValue = tools.reduce((acc, t) => acc + t.value, 0);
   const deployedTools = tools.filter(t => t.status === 'CHECKED_OUT');
   const deployedValue = deployedTools.reduce((acc, t) => acc + t.value, 0);
   const cribValue = totalValue - deployedValue;
 
-  // Maintenance Hub Grouping
   const overdueTools = tools.filter(t => t.daysSinceService >= t.serviceInterval);
   const thisWeekTools = tools.filter(t => { const rem = t.serviceInterval - t.daysSinceService; return rem >= 0 && rem <= 7; });
   const nextWeekTools = tools.filter(t => { const rem = t.serviceInterval - t.daysSinceService; return rem > 7 && rem <= 14; });
@@ -184,18 +181,35 @@ function Tools({ user }) {
     const isSelected = bulkSelectedTools.includes(tool.toolId);
     
     return (
-      <div style={{ backgroundColor: isOverdue ? 'rgba(255,59,48,0.1)' : '#2c2c2e', border: isOverdue ? '1px solid #ff3b30' : (isSelected ? '1px solid #34c759' : '1px solid #3a3a3c'), borderRadius: '12px', padding: '16px', display: 'flex', gap: '12px', alignItems: 'center', transition: 'all 0.15s', cursor: 'pointer' }} onClick={() => toggleBulkSelection(tool.toolId)}>
+      <div 
+        style={{ 
+          backgroundColor: isOverdue ? 'rgba(255,59,48,0.08)' : (isSelected ? 'rgba(52,199,89,0.05)' : '#2c2c2e'), 
+          border: isOverdue ? '1px solid #ff3b30' : (isSelected ? '1px solid #34c759' : '1px solid #3a3a3c'), 
+          borderRadius: '8px', 
+          padding: '10px 12px', 
+          display: 'flex', 
+          gap: '12px', 
+          alignItems: 'center', 
+          transition: 'all 0.15s', 
+          cursor: 'pointer' 
+        }} 
+        onClick={() => toggleBulkSelection(tool.toolId)}
+      >
         <input 
           type="checkbox" 
           checked={isSelected} 
           onChange={() => {}} 
-          style={{ width: '18px', height: '18px', accentColor: '#34c759', cursor: 'pointer' }} 
+          style={{ width: '15px', height: '15px', accentColor: '#34c759', cursor: 'pointer', margin: 0 }} 
         />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '11px', color: isOverdue ? '#ff3b30' : '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>[{tool.toolId}]</div>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff', lineHeight: '1.3', margin: '4px 0' }}>{tool.name}</div>
-          <div style={{ fontSize: '12px', color: isOverdue ? '#ff3b30' : '#d2d2d7', fontWeight: '600' }}>
-            {isOverdue ? `LOCKED: ${Math.abs(remaining)} Days Overdue` : `Due in ${remaining} Days`}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: '#ffffff', lineHeight: '1.2' }}>{tool.name}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.02em' }}>[{tool.toolId}]</span>
+            <span style={{ fontSize: '11px', color: isOverdue ? '#ff3b30' : (remaining <= 7 ? '#ffcc00' : '#86868b'), fontWeight: '600' }}>
+              {isOverdue ? `LOCKED: ${Math.abs(remaining)} Days Overdue` : `Due in ${remaining} Days`}
+            </span>
           </div>
         </div>
       </div>
@@ -227,7 +241,7 @@ function Tools({ user }) {
         .hud-layout { display: flex; justify-content: space-between; align-items: center; background-color: #1c1c1e; padding: 16px 24px; border-radius: 12px; border: 1px solid #3a3a3c; margin-top: 16px; flex-direction: row; }
         .hud-divider { width: 1px; height: 40px; background-color: #3a3a3c; }
         .hud-stat-block { display: flex; flex-direction: column; }
-        .kanban-col { flex: 1; display: flex; flexDirection: column; gap: 12px; background-color: #1c1c1e; padding: 20px; border-radius: 16px; border: 1px solid #3a3a3c; min-height: 400px; }
+        .kanban-col { flex: 1; display: flex; flex-direction: column; gap: 8px; background-color: #1c1c1e; padding: 16px; border-radius: 16px; border: 1px solid #3a3a3c; min-height: 400px; }
 
         @media (max-width: 960px) {
           .desktop-layout { flex-direction: column-reverse; gap: 24px; }
@@ -487,7 +501,7 @@ function Tools({ user }) {
               <span style={{ fontSize: '16px', fontWeight: '800', color: '#ff3b30', letterSpacing: '0.05em' }}>TRIAGE ALERT CENTER: ACTION REQUIRED</span>
             </div>
             {overdueTools.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
                 {overdueTools.map(t => <RenderKanbanCard key={t.toolId} tool={t} isOverdue={true} />)}
               </div>
             ) : (
@@ -498,7 +512,7 @@ function Tools({ user }) {
           {/* 30-DAY ROLLING KANBAN CALENDAR */}
           <div className="kanban-scroll-wrapper">
             <div className="kanban-col">
-              <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', marginBottom: '8px' }}>
+              <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', marginBottom: '4px' }}>
                 <div style={{ fontSize: '12px', color: '#ffcc00', fontWeight: '800', letterSpacing: '0.05em' }}>DUE THIS WEEK</div>
                 <div style={{ fontSize: '14px', color: '#86868b', marginTop: '4px' }}>{thisWeekTools.length} Assets Pending</div>
               </div>
@@ -506,7 +520,7 @@ function Tools({ user }) {
             </div>
             
             <div className="kanban-col">
-              <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', marginBottom: '8px' }}>
+              <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', marginBottom: '4px' }}>
                 <div style={{ fontSize: '12px', color: '#34c759', fontWeight: '800', letterSpacing: '0.05em' }}>DUE NEXT WEEK</div>
                 <div style={{ fontSize: '14px', color: '#86868b', marginTop: '4px' }}>{nextWeekTools.length} Assets Pending</div>
               </div>
@@ -514,7 +528,7 @@ function Tools({ user }) {
             </div>
 
             <div className="kanban-col">
-              <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', marginBottom: '8px' }}>
+              <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', marginBottom: '4px' }}>
                 <div style={{ fontSize: '12px', color: '#007aff', fontWeight: '800', letterSpacing: '0.05em' }}>DUE THIS MONTH</div>
                 <div style={{ fontSize: '14px', color: '#86868b', marginTop: '4px' }}>{thisMonthTools.length} Assets Pending</div>
               </div>
