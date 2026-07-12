@@ -125,47 +125,68 @@ function Tools({ user }) {
         .inspector-scroll::-webkit-scrollbar { width: 6px; }
         .inspector-scroll::-webkit-scrollbar-track { background: transparent; }
         .inspector-scroll::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
+        
         .card-perspective-wrapper { perspective: 1200px; height: 100%; display: flex; min-height: 200px; }
         .card-flipper { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; display: flex; flex-direction: column; flex: 1; }
         .card-flipper.flipped { transform: rotateY(180deg); }
         .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; flex: 1; box-sizing: border-box; border-radius: 12px; }
         .card-front { transform: rotateY(0deg); z-index: 2; position: relative; background-color: #1c1c1e; }
         .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #1c1c1e; display: flex; flex-direction: column; padding: 16px; overflow: hidden; }
+        
         .tab-btn { flex: 1; padding: 6px; font-size: 11px; font-weight: 700; cursor: pointer; border-radius: 6px; text-align: center; border: none; transition: all 0.2s; }
         .tab-active { background-color: #ffffff; color: #1d1d1f; }
         .tab-inactive { background-color: #2c2c2e; color: #86868b; }
         .custom-input { padding: 12px 16px; border-radius: 8px; border: 1px solid #3a3a3c; background-color: #1c1c1e; color: #ffffff; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; transition: border-color 0.2s; }
         .custom-input:focus { border-color: #ffcc00; }
         @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(255,149,0,0.4); } 70% { box-shadow: 0 0 0 10px rgba(255,149,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,149,0,0); } }
+
+        /* 📱 RESPONSIVE MOBILE ARCHITECTURE */
+        .desktop-layout { display: flex; gap: 32px; align-items: flex-start; flex: 1; flex-direction: row; }
+        .inspector-container { width: 420px; background-color: #1c1c1e; border-radius: 16px; border: 1px solid #3a3a3c; padding: 24px; position: sticky; top: 24px; display: flex; flex-direction: column; gap: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); box-sizing: border-box; }
+        .hud-layout { display: flex; justify-content: space-between; align-items: center; background-color: #1c1c1e; padding: 16px 24px; border-radius: 12px; border: 1px solid #3a3a3c; margin-top: 16px; flex-direction: row; }
+        .hud-divider { width: 1px; height: 40px; background-color: #3a3a3c; }
+        .hud-stat-block { display: flex; flex-direction: column; }
+        .modal-container { background-color: #1c1c1e; padding: 32px; border-radius: 20px; width: 100%; max-width: 440px; border: 1px solid #3a3a3c; box-shadow: 0 25px 50px rgba(0,0,0,0.5); box-sizing: border-box; }
+
+        @media (max-width: 960px) {
+          .desktop-layout { flex-direction: column-reverse; gap: 24px; }
+          .inspector-container { width: 100%; position: relative; top: 0; padding: 16px; }
+          .hud-layout { flex-direction: column; align-items: stretch; gap: 16px; padding: 16px; }
+          .hud-divider { width: 100%; height: 1px; }
+          .hud-stat-block { flex-direction: row; justify-content: space-between; align-items: center; width: 100%; }
+          .hud-stat-label { font-size: 10px !important; }
+          .hud-stat-value { font-size: 20px !important; }
+          .modal-container { margin: 16px; padding: 24px; }
+        }
       `}</style>
 
       {/* EXECUTIVE FINANCIAL HUD */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '16px 24px', borderRadius: '12px', border: '1px solid #3a3a3c', marginTop: '16px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOTAL FLEET ASSET VALUE</span>
-          <span style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.02em', color: '#ffffff' }}>${totalValue.toLocaleString()}</span>
+      <div className="hud-layout">
+        <div className="hud-stat-block">
+          <span className="hud-stat-label" style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOTAL FLEET ASSET VALUE</span>
+          <span className="hud-stat-value" style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.02em', color: '#ffffff' }}>${totalValue.toLocaleString()}</span>
         </div>
-        <div style={{ width: '1px', height: '40px', backgroundColor: '#3a3a3c' }}></div>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>VALUE DEPLOYED IN FIELD</span>
+        <div className="hud-divider"></div>
+        <div className="hud-stat-block">
+          <span className="hud-stat-label" style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>VALUE DEPLOYED IN FIELD</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff9500' }}></span>
-            <span style={{ fontSize: '24px', fontWeight: '700', color: '#ff9500' }}>${deployedValue.toLocaleString()} <span style={{ fontSize: '14px', color: '#86868b' }}>({deployedTools.length} Units)</span></span>
+            <span className="hud-stat-value" style={{ fontSize: '24px', fontWeight: '700', color: '#ff9500' }}>${deployedValue.toLocaleString()} <span style={{ fontSize: '12px', color: '#86868b' }}>({deployedTools.length} Units)</span></span>
           </div>
         </div>
-        <div style={{ width: '1px', height: '40px', backgroundColor: '#3a3a3c' }}></div>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>SECURED IN TOOL CRIB</span>
+        <div className="hud-divider"></div>
+        <div className="hud-stat-block">
+          <span className="hud-stat-label" style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>SECURED IN TOOL CRIB</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#34c759' }}></span>
-            <span style={{ fontSize: '24px', fontWeight: '700', color: '#34c759' }}>${cribValue.toLocaleString()} <span style={{ fontSize: '14px', color: '#86868b' }}>({tools.length - deployedTools.length} Units)</span></span>
+            <span className="hud-stat-value" style={{ fontSize: '24px', fontWeight: '700', color: '#34c759' }}>${cribValue.toLocaleString()} <span style={{ fontSize: '12px', color: '#86868b' }}>({tools.length - deployedTools.length} Units)</span></span>
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start', flex: 1 }}>
+      <div className="desktop-layout">
         {/* LEFT COLUMN: THE MATRIX */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ flex: 1, position: 'relative' }}>
@@ -249,7 +270,7 @@ function Tools({ user }) {
         </div>
 
         {/* RIGHT COLUMN: THE INSPECTOR */}
-        <div style={{ width: '420px', backgroundColor: '#1c1c1e', borderRadius: '16px', border: '1px solid #3a3a3c', padding: '24px', position: 'sticky', top: '24px', display: 'flex', flexDirection: 'column', gap: '24px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+        <div className="inspector-container">
           {selectedTool ? (
               <>
                   <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', position: 'relative' }}>
@@ -326,7 +347,7 @@ function Tools({ user }) {
       {/* RAPID DISPATCH MODAL */}
       {checkoutModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '20px', width: '100%', maxWidth: '440px', border: '1px solid #3a3a3c', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
+          <div className="modal-container">
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Dispatch Asset</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Transferring custody of <strong style={{color: '#ffcc00'}}>[{selectedTool.toolId}]</strong></p>
             
