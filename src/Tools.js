@@ -589,12 +589,15 @@ function Tools({ user }) {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
                     {selectedTool.status === 'AVAILABLE' ? (
-                        <button 
-                          disabled={checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged'}
-                          onClick={() => setCheckoutModalOpen(true)} 
-                          style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#2c2c2e' : '#34c759', color: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#636366' : '#ffffff', fontWeight: '800', fontSize: '15px', cursor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'not-allowed' : 'pointer' }}>
-                          {(checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'LOCKED: SERVICE REQUIRED' : 'CHECK OUT TO EMPLOYEE'}
-                        </button>
+                        selectedTool.isDispatchable !== false ? (
+                          <button disabled={checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged'} onClick={() => setCheckoutModalOpen(true)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#2c2c2e' : '#34c759', color: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#636366' : '#ffffff', fontWeight: '800', fontSize: '15px', cursor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'not-allowed' : 'pointer' }}>
+                            {(checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'LOCKED: SERVICE REQUIRED' : 'CHECK OUT TO EMPLOYEE'}
+                          </button>
+                        ) : (
+                          <button disabled style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#1c1c1e', color: '#86868b', fontWeight: '800', fontSize: '15px', cursor: 'not-allowed' }}>
+                            STATIC ASSET (NON-DISPATCHABLE)
+                          </button>
+                        )
                     ) : (
                         <button onClick={handleReturn} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#ff9500', color: '#ffffff', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}>
                         RETURN TO TOOL CRIB
