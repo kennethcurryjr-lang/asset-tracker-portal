@@ -273,7 +273,7 @@ function Tools({ user }) {
         .inspector-scroll::-webkit-scrollbar, .inspector-container::-webkit-scrollbar { width: 6px; }
         .inspector-scroll::-webkit-scrollbar-track, .inspector-container::-webkit-scrollbar-track { background: transparent; }
         .inspector-scroll::-webkit-scrollbar-thumb, .inspector-container::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
-        .card-perspective-wrapper { perspective: 1200px; height: 100%; display: flex; min-height: 200px; }
+        .card-perspective-wrapper { perspective: 1200px; height: 100%; display: flex; min-height: 280px; }
         .card-flipper { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; display: flex; flex-direction: column; flex: 1; }
         .card-flipper.flipped { transform: rotateY(180deg); }
         .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; flex: 1; box-sizing: border-box; border-radius: 12px; }
