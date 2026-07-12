@@ -65,7 +65,7 @@ function Tools({ user }) {
   const [dispatchProject, setDispatchProject] = useState("");
   
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', condition: 'New', pmMetric: 'Days', pmInterval: '90' });
+  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90' });
 
   const filteredTools = useMemo(() => {
     if (!searchTerm.trim()) return tools;
@@ -131,6 +131,7 @@ function Tools({ user }) {
       category: newTool.category || 'General',
       location: newTool.location || 'Unassigned',
       serial: newTool.serial || 'N/A',
+      link: newTool.link || '',
       status: "AVAILABLE",
       condition: newTool.condition,
       assignedUser: null,
@@ -141,7 +142,7 @@ function Tools({ user }) {
     
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
-    setNewTool({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', condition: 'New', pmMetric: 'Days', pmInterval: '90' });
+    setNewTool({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90' });
     setSelectedToolId(generatedId);
     setActiveView('DISPATCH');
   };
@@ -695,6 +696,10 @@ function Tools({ user }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>SERIAL NUMBER / VIN</label>
                   <input type="text" placeholder="e.g. 1FTEW1E49K..." value={newTool.serial} onChange={(e) => setNewTool({...newTool, serial: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>EXTERNAL LINK / URL</label>
+                  <input type="text" placeholder="e.g. https://..." value={newTool.link} onChange={(e) => setNewTool({...newTool, link: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
               </div>
 
