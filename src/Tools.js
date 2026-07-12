@@ -52,8 +52,10 @@ const generateTools = () => {
 };
 
 function Tools({ user }) {
+  const [inventory, setInventory] = useState({ 'HVAC': [{ item: '24x24x2 Pleated Air Filter', stock: 45 }, { item: 'R-410A Refrigerant (lbs)', stock: 12 }], 'MILW': [{ item: 'M18 REDLITHIUM 5.0Ah Battery', stock: 22 }, { item: 'Press Tool Jaw Grease', stock: 6 }], 'VEH': [{ item: '5W-30 Synthetic Oil (Qts)', stock: 32 }, { item: 'Wiper Fluid (Gal)', stock: 14 }] });
   const [tools, setTools] = useState(generateTools);
   const [activeView, setActiveView] = useState('DISPATCH');
+  const [userRole, setUserRole] = useState('ADMIN');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedToolId, setSelectedToolId] = useState("VEH-007");
   const [flippedCards, setFlippedCards] = useState({});
@@ -341,16 +343,20 @@ function Tools({ user }) {
 
       {/* MASTER TOGGLE & INGEST ACTION DECK */}
       <div style={{ display: 'flex', gap: '8px', backgroundColor: '#1c1c1e', padding: '6px', borderRadius: '12px', width: 'fit-content', margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <button onClick={() => setActiveView('DISPATCH')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'DISPATCH' ? '#ffcc00' : 'transparent', color: activeView === 'DISPATCH' ? '#1d1d1f' : '#86868b' }}>
+        <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#1c1c1e', borderRadius: '8px', padding: '4px', border: '1px solid #3a3a3c', marginRight: '16px' }}>
+      <button onClick={() => setUserRole('TECH')} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', backgroundColor: userRole === 'TECH' ? '#34c759' : 'transparent', color: userRole === 'TECH' ? '#1d1d1f' : '#86868b', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>TECH</button>
+      <button onClick={() => setUserRole('ADMIN')} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', backgroundColor: userRole === 'ADMIN' ? '#ffcc00' : 'transparent', color: userRole === 'ADMIN' ? '#1d1d1f' : '#86868b', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>ADMIN</button>
+    </div>
+    <button onClick={() => setActiveView('DISPATCH')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'DISPATCH' ? '#ffcc00' : 'transparent', color: activeView === 'DISPATCH' ? '#1d1d1f' : '#86868b' }}>
           📦 FLEET DISPATCH
         </button>
-        <button onClick={() => setActiveView('MAINTENANCE')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'MAINTENANCE' ? '#ffcc00' : 'transparent', color: activeView === 'MAINTENANCE' ? '#1d1d1f' : '#86868b' }}>
+        {userRole === 'ADMIN' && <button onClick={() => setActiveView('MAINTENANCE')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'MAINTENANCE' ? '#ffcc00' : 'transparent', color: activeView === 'MAINTENANCE' ? '#1d1d1f' : '#86868b' }}>
           🛠️ MAINTENANCE HUB
-        </button>
+        </button>}
         <div style={{ width: '1px', backgroundColor: '#3a3a3c', margin: '4px 8px' }}></div>
-        <button onClick={() => setAddModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #34c759', backgroundColor: 'transparent', color: '#34c759', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>
+        {userRole === 'ADMIN' && <button onClick={() => setAddModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #34c759', backgroundColor: 'transparent', color: '#34c759', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>
           + INGEST ASSET
-        </button>
+        </button>}
       </div>
 
       {/* VIEW ROUTING */}
@@ -513,7 +519,14 @@ function Tools({ user }) {
                 <>
                     <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', position: 'relative' }}>
                     <div style={{ position: 'absolute', right: 0, top: 0, fontSize: '18px', fontWeight: '700', color: '#34c759' }}>${selectedTool.value.toLocaleString()}</div>
-                    <div style={{ fontSize: '13px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px' }}>INSPECTOR DASHBOARD</div>
+                    <div style={{ fontSize: '13px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px' }}>{userRole === 'TECH' && (
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(28,28,30,0.85)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }}>
+            <span style={{ fontSize: '48px', marginBottom: '16px' }}>📱</span>
+            <h3 style={{ color: '#ffffff', margin: '0 0 8px 0', fontSize: '18px', fontWeight: '800' }}>SCANNER MODE</h3>
+            <p style={{ color: '#86868b', fontSize: '13px', textAlign: 'center', maxWidth: '80%', lineHeight: '1.5' }}>Admin telemetry is locked. Tap tools in the matrix to deploy.</p>
+        </div>
+    )}
+    INSPECTOR DASHBOARD</div>
                     <div style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', color: '#ffffff' }}>{selectedTool.toolId}</div>
                     <div style={{ color: checkIsOverdue(selectedTool.metrics) ? '#ff3b30' : '#ffcc00', fontSize: '16px', fontWeight: '600', marginTop: '4px', lineHeight: '1.3' }}>{selectedTool.name}</div>
                     </div>
@@ -587,7 +600,22 @@ function Tools({ user }) {
                         </button>
                       )}
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
+                    {selectedTool && inventory[selectedTool.prefix] && (
+        <div style={{ backgroundColor: '#121212', border: '1px solid #3a3a3c', padding: '16px', borderRadius: '12px', marginBottom: '12px' }}>
+            <div style={{ color: '#86868b', fontSize: '11px', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>🧰</span> REQUIRED CONSUMABLES & PARTS
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {inventory[selectedTool.prefix].map((item, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '10px 12px', borderRadius: '8px', border: '1px solid #2c2c2e' }}>
+                        <span style={{ color: '#d2d2d7', fontSize: '13px', fontWeight: '600' }}>{item.item}</span>
+                        <span style={{ color: item.stock < 15 ? '#ff9500' : '#34c759', fontSize: '13px', fontWeight: '800', backgroundColor: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '4px' }}>{item.stock} IN STOCK</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
                     {selectedTool.status === 'AVAILABLE' ? (
                         selectedTool.isDispatchable !== false ? (
                           <button disabled={checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged'} onClick={() => setCheckoutModalOpen(true)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#2c2c2e' : '#34c759', color: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#636366' : '#ffffff', fontWeight: '800', fontSize: '15px', cursor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'not-allowed' : 'pointer' }}>
