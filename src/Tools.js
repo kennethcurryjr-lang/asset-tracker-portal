@@ -54,6 +54,24 @@ const generateTools = () => {
 };
 
 function Tools({ user }) {
+
+  const fetchDB = async () => {
+    try {
+      const data = await docClient.send(new ScanCommand({ TableName: 'KineticToolsData' }));
+      if (data.Items && data.Items.length > 0) {
+        setTools(data.Items);
+      }
+    } catch (err) { console.error("DB Fetch Error:", err); }
+  };
+
+  const syncDB = async (item) => {
+    try {
+      await docClient.send(new PutCommand({ TableName: 'KineticToolsData', Item: item }));
+    } catch (err) { console.error("DB Sync Error:", err); }
+  };
+
+  React.useEffect(() => { fetchDB(); }, []);
+
   const [inventory, setInventory] = useState({ 'HVAC': [{ item: '24x24x2 Pleated Air Filter', stock: 45 }, { item: 'R-410A Refrigerant (lbs)', stock: 12 }], 'MILW': [{ item: 'M18 REDLITHIUM 5.0Ah Battery', stock: 22 }, { item: 'Press Tool Jaw Grease', stock: 6 }], 'VEH': [{ item: '5W-30 Synthetic Oil (Qts)', stock: 32 }, { item: 'Wiper Fluid (Gal)', stock: 14 }] });
   const [tools, setTools] = useState(generateTools);
   const [activeView, setActiveView] = useState('DISPATCH');
