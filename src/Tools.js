@@ -54,6 +54,7 @@ function Tools({ user }) {
   const [selectedToolId, setSelectedToolId] = useState("MILW-001");
   const [flippedCards, setFlippedCards] = useState({});
   const [cardTabs, setCardTabs] = useState({});
+  const [pendingAttachments, setPendingAttachments] = useState({});
   
   // Dispatch Modal State
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
@@ -113,17 +114,31 @@ function Tools({ user }) {
   };
 
   const logService = (toolId) => {
+    const attachedFile = pendingAttachments[toolId];
     setTools(prev => prev.map(t => {
       if (t.toolId === toolId) {
         return {
           ...t,
           daysSinceService: 0,
           condition: "Excellent",
-          history: [{ user: "Admin", action: "PM Service Completed", date: 'Just now', condition: "Excellent" }, ...t.history]
+          history: [{ 
+            user: "Admin", 
+            action: "PM Service Completed", 
+            date: 'Just now', 
+            condition: "Excellent",
+            attachment: attachedFile || null
+          }, ...t.history]
         };
       }
       return t;
     }));
+    
+    // Clear the pending attachment for this tool after logging
+    setPendingAttachments(prev => {
+        const newState = { ...prev };
+        delete newState[toolId];
+        return newState;
+    });
   };
 
   return (
@@ -205,6 +220,7 @@ function Tools({ user }) {
               const isServiceDue = tool.daysSinceService >= tool.serviceInterval;
               const isFlipped = !!flippedCards[tool.toolId];
               const activeTab = cardTabs[tool.toolId] || 'service';
+              const stagedFile = pendingAttachments[tool.toolId];
               
               let cardBorder = '1px solid #3a3a3c';
               let cardShadow = 'none';
@@ -254,15 +270,29 @@ function Tools({ user }) {
                       </div>
                       <div style={{ flex: 1, overflowY: 'auto' }}>
                           
-                          {/* PREVENTATIVE MAINTENANCE TAB */}
+                          {/* PREVENTATIVE MAINTENANCE TAB WITH ATTACHMENT UPLOAD */}
                           {activeTab === 'service' && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'center', justifyContent: 'center', height: '100%' }}>
-                              <div style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>PM INTERVAL</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'center', justifyContent: 'center', height: '100%' }}>
                               <div style={{ fontSize: '20px', fontWeight: '800', color: isServiceDue ? '#ff3b30' : '#ffffff' }}>
-                                {tool.daysSinceService} / {tool.serviceInterval} Days
+                                {tool.daysSinceService} / {tool.serviceInterval} <span style={{fontSize: '11px', color: '#86868b'}}>DAYS</span>
                               </div>
-                              {isServiceDue && <div style={{ fontSize: '11px', color: '#ff3b30', fontWeight: '700' }}>⚠️ MAINTENANCE OVERDUE</div>}
-                              <button onClick={(e) => { e.stopPropagation(); logService(tool.toolId); }} style={{ marginTop: '8px', padding: '12px', borderRadius: '8px', backgroundColor: '#34c759', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>
+                              
+                              {/* Native File Input Wrapper */}
+                              <label htmlFor={`file-${tool.toolId}`} onClick={(e) => e.stopPropagation()} style={{ display: 'block', padding: '10px', borderRadius: '8px', backgroundColor: stagedFile ? 'rgba(52,199,89,0.15)' : '#2c2c2e', border: stagedFile ? '1px solid #34c759' : '1px dashed #86868b', color: stagedFile ? '#34c759' : '#d2d2d7', fontSize: '12px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', marginTop: '4px' }}>
+                                {stagedFile ? `📎 ${stagedFile}` : '📷 Attach Photo / Doc'}
+                              </label>
+                              <input 
+                                type="file" 
+                                id={`file-${tool.toolId}`} 
+                                style={{ display: 'none' }} 
+                                onChange={(e) => { 
+                                    if(e.target.files[0]) { 
+                                        setPendingAttachments(prev => ({...prev, [tool.toolId]: e.target.files[0].name})); 
+                                    } 
+                                }} 
+                              />
+
+                              <button onClick={(e) => { e.stopPropagation(); logService(tool.toolId); }} style={{ marginTop: 'auto', padding: '12px', borderRadius: '8px', backgroundColor: '#34c759', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>
                                 LOG SERVICE & RESET
                               </button>
                             </div>
@@ -283,7 +313,6 @@ function Tools({ user }) {
                           </div>
                           )}
 
-                          {/* THE RESTORED SPECS TAB */}
                           {activeTab === 'specs' && (
                           <div style={{ fontSize: '12px', color: '#86868b', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                               <div><span style={{ color: '#d2d2d7', fontWeight: '600' }}>Value:</span> ${tool.value}</div>
@@ -332,11 +361,19 @@ function Tools({ user }) {
                       {selectedTool.history.length > 0 ? selectedTool.history.map((log, i) => (
                       <div key={i} style={{ borderBottom: '1px solid #2c2c2e', paddingBottom: '8px' }}>
                           <div style={{ fontSize: '13px', color: '#d2d2d7', display: 'flex', justifyContent: 'space-between' }}>
-                          <span><strong style={{ color: '#ffffff' }}>[{log.user}]</strong> {log.action}</span>
+                            <span><strong style={{ color: '#ffffff' }}>[{log.user}]</strong> {log.action}</span>
                           </div>
+                          
+                          {/* RENDER ATTACHMENT IF PRESENT */}
+                          {log.attachment && (
+                            <div style={{ fontSize: '12px', color: '#007aff', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: '600' }}>
+                              <span>📎</span> {log.attachment}
+                            </div>
+                          )}
+
                           <div style={{ fontSize: '11px', color: '#86868b', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                          <span>{log.date}</span>
-                          <span>Condition: {log.condition}</span>
+                            <span>{log.date}</span>
+                            <span>Condition: {log.condition}</span>
                           </div>
                       </div>
                       )) : <div style={{ fontSize: '13px', color: '#86868b', fontStyle: 'italic' }}>No deployment history on record.</div>}
