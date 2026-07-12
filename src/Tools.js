@@ -65,7 +65,7 @@ function Tools({ user }) {
   const [dispatchProject, setDispatchProject] = useState("");
   
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '' });
+  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', serial: '', condition: 'New', pmMetric: 'Days', pmInterval: '90' });
 
   const filteredTools = useMemo(() => {
     if (!searchTerm.trim()) return tools;
@@ -128,17 +128,18 @@ function Tools({ user }) {
       toolId: generatedId,
       name: newTool.name,
       value: parseInt(newTool.value) || 0,
+      serial: newTool.serial || 'N/A',
       status: "AVAILABLE",
-      condition: "New",
+      condition: newTool.condition,
       assignedUser: null,
       daysOut: 0,
-      metrics: [{ unit: "Days", current: 0, interval: 90 }], // Default universal metric
-      history: [{ user: "Admin", action: "Asset Ingested to Database", date: "Just now", condition: "New" }]
+      metrics: [{ unit: newTool.pmMetric, current: 0, interval: parseInt(newTool.pmInterval) || 90 }],
+      history: [{ user: "Admin", action: "Asset Ingested to Database", date: "Just now", condition: newTool.condition }]
     };
     
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
-    setNewTool({ prefix: 'MILW', name: '', value: '' });
+    setNewTool({ prefix: 'MILW', name: '', value: '', serial: '', condition: 'New', pmMetric: 'Days', pmInterval: '90' });
     setSelectedToolId(generatedId);
     setActiveView('DISPATCH');
   };
@@ -642,15 +643,42 @@ function Tools({ user }) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>ASSET NAME / MODEL</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Ford F-150 Fleet Truck" 
-                  value={newTool.name}
-                  onChange={(e) => setNewTool({...newTool, name: e.target.value})}
-                  style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}
-                />
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 2 }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>ASSET NAME / MODEL</label>
+                  <input type="text" placeholder="e.g. Ford F-150 Fleet Truck" value={newTool.name} onChange={(e) => setNewTool({...newTool, name: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>CONDITION</label>
+                  <select value={newTool.condition} onChange={(e) => setNewTool({...newTool, condition: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}>
+                    <option value="New">New</option>
+                    <option value="Refurbished">Refurbished</option>
+                    <option value="Used">Used</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>SERIAL NUMBER / VIN</label>
+                  <input type="text" placeholder="e.g. 1FTEW1E49K..." value={newTool.serial} onChange={(e) => setNewTool({...newTool, serial: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>PM METRIC</label>
+                  <select value={newTool.pmMetric} onChange={(e) => setNewTool({...newTool, pmMetric: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}>
+                    <option value="Days">Days</option>
+                    <option value="Miles">Miles</option>
+                    <option value="Hours">Hours</option>
+                    <option value="Crimps">Cycles / Crimps</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>PM INTERVAL LIMIT</label>
+                  <input type="number" placeholder="e.g. 90, 5000" value={newTool.pmInterval} onChange={(e) => setNewTool({...newTool, pmInterval: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
               </div>
 
             </div>
