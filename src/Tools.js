@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 const generateTools = () => {
   const templates = [
     { prefix: "VEH", name: "Ford F-150 Fleet Truck (Unit 42)", value: 45000, metrics: [{ unit: "Days", current: 150, interval: 180 }, { unit: "Miles", current: 4850, interval: 5000 }] },
-    { prefix: "HVAC", name: "Carrier 5-Ton Rooftop AC", value: 6500, metrics: [{ unit: "Days", current: 300, interval: 365 }, { unit: "Hours", current: 1950, interval: 2000 }] },
+    { prefix: "HVAC", name: "Carrier 5-Ton Rooftop AC", value: 6500, isDispatchable: false, metrics: [{ unit: "Days", current: 300, interval: 365 }, { unit: "Hours", current: 1950, interval: 2000 }] },
     { prefix: "MILW", name: "Milwaukee M18 Force Logic Press", value: 2400, metrics: [{ unit: "Days", current: 45, interval: 60 }, { unit: "Crimps", current: 9800, interval: 10000 }] },
     { prefix: "MILW", name: "Milwaukee M18 Fuel Hammer Drill", value: 299, metrics: [{ unit: "Days", current: 80, interval: 90 }] },
     { prefix: "DWLT", name: "DeWalt 20V Max XR Impact Driver", value: 149, metrics: [{ unit: "Days", current: 10, interval: 90 }] },
@@ -41,6 +41,7 @@ const generateTools = () => {
       condition: condition,
       assignedUser: assignedUser,
       daysOut: daysOut,
+      isDispatchable: t.isDispatchable !== false,
       metrics: assetMetrics,
       history: isOut ? [
         { user: assignedUser, action: "Checked Out", date: `${daysOut} days ago`, condition: condition }
@@ -67,7 +68,7 @@ function Tools({ user }) {
   const [dispatchProject, setDispatchProject] = useState("");
   
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90' });
+  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true });
 
   const filteredTools = useMemo(() => {
     if (!searchTerm.trim()) return tools;
@@ -134,6 +135,7 @@ function Tools({ user }) {
       location: newTool.location || 'Unassigned',
       serial: newTool.serial || 'N/A',
       link: newTool.link || '',
+      isDispatchable: newTool.isDispatchable,
       status: "AVAILABLE",
       condition: newTool.condition,
       assignedUser: null,
@@ -144,7 +146,7 @@ function Tools({ user }) {
     
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
-    setNewTool({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90' });
+    setNewTool({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true });
     setSelectedToolId(generatedId);
     setActiveView('DISPATCH');
   };
@@ -388,9 +390,13 @@ function Tools({ user }) {
                         </div>
                         
                         <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-                            <button disabled={isServiceDue && !isOut} onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); isOut ? handleReturn() : setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: isServiceDue ? '#2c2c2e' : (isSelected ? '#ffcc00' : '#2c2c2e'), color: isServiceDue ? '#636366' : (isSelected ? '#1d1d1f' : '#ffffff'), border: 'none', fontWeight: '700', fontSize: '12px', cursor: isServiceDue && !isOut ? 'not-allowed' : 'pointer' }}>
-                              {isServiceDue && !isOut ? 'LOCKED' : (isOut ? 'RETURN' : 'CHECK OUT')}
-                            </button>
+                            {tool.isDispatchable !== false ? (
+                              <button disabled={isServiceDue && !isOut} onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); isOut ? handleReturn() : setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: isServiceDue ? '#2c2c2e' : (isSelected ? '#ffcc00' : '#2c2c2e'), color: isServiceDue ? '#636366' : (isSelected ? '#1d1d1f' : '#ffffff'), border: 'none', fontWeight: '700', fontSize: '12px', cursor: isServiceDue && !isOut ? 'not-allowed' : 'pointer' }}>
+                                {isServiceDue && !isOut ? 'LOCKED' : (isOut ? 'RETURN' : 'CHECK OUT')}
+                              </button>
+                            ) : (
+                              <div style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#1c1c1e', color: '#86868b', border: '1px solid #3a3a3c', fontWeight: '700', fontSize: '12px', textAlign: 'center', boxSizing: 'border-box' }}>STATIC ASSET</div>
+                            )}
                             <button onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => ({...prev, [tool.toolId]: true})); }} style={{ padding: '10px', borderRadius: '8px', backgroundColor: 'transparent', color: '#d2d2d7', border: '1px solid #3a3a3c', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
                               Flip ⤹
                             </button>
@@ -741,6 +747,14 @@ function Tools({ user }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>PM INTERVAL LIMIT</label>
                   <input type="number" placeholder="e.g. 90, 5000" value={newTool.pmInterval} onChange={(e) => setNewTool({...newTool, pmInterval: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
+                <input type="checkbox" id="dispatchableToggle" checked={newTool.isDispatchable} onChange={(e) => setNewTool({...newTool, isDispatchable: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#34c759', cursor: 'pointer' }} />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <label htmlFor="dispatchableToggle" style={{ fontSize: '14px', color: '#ffffff', fontWeight: '700', cursor: 'pointer' }}>Enable Field Checkout</label>
+                  <span style={{ fontSize: '11px', color: '#86868b' }}>If disabled, this asset will be permanently locked to its home location.</span>
                 </div>
               </div>
 
