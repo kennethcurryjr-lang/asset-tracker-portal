@@ -27,13 +27,12 @@ const generateTools = () => {
     const condition = conditions[i % conditions.length];
     const idNum = String(i).padStart(3, '0');
     
-    // Simulate PM data
     let daysSinceService;
-    if (i % 7 === 0) daysSinceService = template.interval + 3; // Overdue
-    else if (i % 6 === 0) daysSinceService = template.interval - 4; // This week
-    else if (i % 5 === 0) daysSinceService = template.interval - 10; // Next week
-    else if (i % 4 === 0) daysSinceService = template.interval - 20; // This month
-    else daysSinceService = Math.floor(template.interval / 3); // Healthy
+    if (i % 7 === 0) daysSinceService = template.interval + 3; 
+    else if (i % 6 === 0) daysSinceService = template.interval - 4; 
+    else if (i % 5 === 0) daysSinceService = template.interval - 10; 
+    else if (i % 4 === 0) daysSinceService = template.interval - 20; 
+    else daysSinceService = Math.floor(template.interval / 3); 
 
     generated.push({
       toolId: `${template.prefix}-${idNum}`,
@@ -63,9 +62,13 @@ function Tools({ user }) {
   const [pendingAttachments, setPendingAttachments] = useState({});
   const [bulkSelectedTools, setBulkSelectedTools] = useState([]);
   
+  // Modals State
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [dispatchUser, setDispatchUser] = useState("");
   const [dispatchProject, setDispatchProject] = useState("");
+  
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', interval: '90' });
 
   const filteredTools = useMemo(() => {
     if (!searchTerm.trim()) return tools;
@@ -88,6 +91,33 @@ function Tools({ user }) {
   const thisWeekTools = tools.filter(t => { const rem = t.serviceInterval - t.daysSinceService; return rem >= 0 && rem <= 7; });
   const nextWeekTools = tools.filter(t => { const rem = t.serviceInterval - t.daysSinceService; return rem > 7 && rem <= 14; });
   const thisMonthTools = tools.filter(t => { const rem = t.serviceInterval - t.daysSinceService; return rem > 14 && rem <= 30; });
+
+  const handleAddAsset = () => {
+    if (!newTool.name || !newTool.value) return;
+    
+    // Generate a random 3-digit ID to simulate tracking assignment
+    const idNum = String(Math.floor(Math.random() * 900) + 100);
+    const generatedId = `${newTool.prefix}-${idNum}`;
+    
+    const newToolObj = {
+      toolId: generatedId,
+      name: newTool.name,
+      value: parseInt(newTool.value) || 0,
+      status: "AVAILABLE",
+      condition: "New",
+      assignedUser: null,
+      daysOut: 0,
+      serviceInterval: parseInt(newTool.interval) || 90,
+      daysSinceService: 0,
+      history: [{ user: "Admin", action: "Asset Ingested to Database", date: "Just now", condition: "New" }]
+    };
+    
+    setTools(prev => [newToolObj, ...prev]);
+    setAddModalOpen(false);
+    setNewTool({ prefix: 'MILW', name: '', value: '', interval: '90' });
+    setSelectedToolId(generatedId);
+    setActiveView('DISPATCH');
+  };
 
   const handleCheckout = () => {
     if (!dispatchUser) return;
@@ -182,25 +212,10 @@ function Tools({ user }) {
     
     return (
       <div 
-        style={{ 
-          backgroundColor: isOverdue ? 'rgba(255,59,48,0.08)' : (isSelected ? 'rgba(52,199,89,0.05)' : '#2c2c2e'), 
-          border: isOverdue ? '1px solid #ff3b30' : (isSelected ? '1px solid #34c759' : '1px solid #3a3a3c'), 
-          borderRadius: '8px', 
-          padding: '10px 12px', 
-          display: 'flex', 
-          gap: '12px', 
-          alignItems: 'center', 
-          transition: 'all 0.15s', 
-          cursor: 'pointer' 
-        }} 
+        style={{ backgroundColor: isOverdue ? 'rgba(255,59,48,0.08)' : (isSelected ? 'rgba(52,199,89,0.05)' : '#2c2c2e'), border: isOverdue ? '1px solid #ff3b30' : (isSelected ? '1px solid #34c759' : '1px solid #3a3a3c'), borderRadius: '8px', padding: '10px 12px', display: 'flex', gap: '12px', alignItems: 'center', transition: 'all 0.15s', cursor: 'pointer' }} 
         onClick={() => toggleBulkSelection(tool.toolId)}
       >
-        <input 
-          type="checkbox" 
-          checked={isSelected} 
-          onChange={() => {}} 
-          style={{ width: '15px', height: '15px', accentColor: '#34c759', cursor: 'pointer', margin: 0 }} 
-        />
+        <input type="checkbox" checked={isSelected} onChange={() => {}} style={{ width: '15px', height: '15px', accentColor: '#34c759', cursor: 'pointer', margin: 0 }} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '13px', fontWeight: '600', color: '#ffffff', lineHeight: '1.2' }}>{tool.name}</span>
@@ -278,13 +293,17 @@ function Tools({ user }) {
         </div>
       </div>
 
-      {/* MASTER TOGGLE */}
-      <div style={{ display: 'flex', gap: '8px', backgroundColor: '#1c1c1e', padding: '6px', borderRadius: '12px', width: 'fit-content', margin: '0 auto' }}>
+      {/* MASTER TOGGLE & INGEST ACTION DECK */}
+      <div style={{ display: 'flex', gap: '8px', backgroundColor: '#1c1c1e', padding: '6px', borderRadius: '12px', width: 'fit-content', margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center' }}>
         <button onClick={() => setActiveView('DISPATCH')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'DISPATCH' ? '#ffcc00' : 'transparent', color: activeView === 'DISPATCH' ? '#1d1d1f' : '#86868b' }}>
           📦 FLEET DISPATCH
         </button>
         <button onClick={() => setActiveView('MAINTENANCE')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'MAINTENANCE' ? '#ffcc00' : 'transparent', color: activeView === 'MAINTENANCE' ? '#1d1d1f' : '#86868b' }}>
           🛠️ MAINTENANCE HUB
+        </button>
+        <div style={{ width: '1px', backgroundColor: '#3a3a3c', margin: '4px 8px' }}></div>
+        <button onClick={() => setAddModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #34c759', backgroundColor: 'transparent', color: '#34c759', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>
+          + INGEST ASSET
         </button>
       </div>
 
@@ -356,7 +375,6 @@ function Tools({ user }) {
                         </div>
                         <div style={{ flex: 1, overflowY: 'auto' }}>
                             
-                            {/* PREVENTATIVE MAINTENANCE TAB WITH ATTACHMENT UPLOAD */}
                             {activeTab === 'service' && (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'center', justifyContent: 'center', height: '100%' }}>
                                 <div style={{ fontSize: '20px', fontWeight: '800', color: isServiceDue ? '#ff3b30' : '#ffffff' }}>
@@ -419,7 +437,6 @@ function Tools({ user }) {
                     <div style={{ color: selectedTool.daysSinceService >= selectedTool.serviceInterval ? '#ff3b30' : '#ffcc00', fontSize: '16px', fontWeight: '600', marginTop: '4px', lineHeight: '1.3' }}>{selectedTool.name}</div>
                     </div>
 
-                    {/* PREDICTIVE PM LOCK WARNING */}
                     {selectedTool.daysSinceService >= selectedTool.serviceInterval && (
                       <div style={{ backgroundColor: 'rgba(255,59,48,0.08)', border: '1px solid rgba(255,59,48,0.5)', padding: '16px', borderRadius: '12px', animation: 'criticalPulse 2s infinite' }}>
                         <div style={{ color: '#ff3b30', fontSize: '11px', fontWeight: '800', letterSpacing: '0.05em', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -440,7 +457,6 @@ function Tools({ user }) {
                               <span><strong style={{ color: '#ffffff' }}>[{log.user}]</strong> {log.action}</span>
                             </div>
                             
-                            {/* RENDER ATTACHMENT IF PRESENT */}
                             {log.attachment && (
                               <div style={{ fontSize: '12px', color: '#007aff', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: '600' }}>
                                 <span>📎</span> {log.attachment}
@@ -494,7 +510,6 @@ function Tools({ user }) {
         /* MAINTENANCE HUB VIEW */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
-          {/* TRIAGE ALERT CENTER */}
           <div style={{ backgroundColor: 'rgba(255,59,48,0.05)', border: '1px solid #ff3b30', borderRadius: '16px', padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <span style={{ fontSize: '18px' }}>🚨</span>
@@ -509,7 +524,6 @@ function Tools({ user }) {
             )}
           </div>
 
-          {/* 30-DAY ROLLING KANBAN CALENDAR */}
           <div className="kanban-scroll-wrapper">
             <div className="kanban-col">
               <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', marginBottom: '4px' }}>
@@ -549,6 +563,75 @@ function Tools({ user }) {
           <button onClick={logBulkService} style={{ padding: '16px 32px', backgroundColor: '#34c759', color: '#ffffff', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 4px 15px rgba(52,199,89,0.3)' }}>
             LOG BULK PM SERVICE
           </button>
+        </div>
+      )}
+
+      {/* INGEST ASSET MODAL */}
+      {addModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-container">
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Ingest New Asset</h2>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Register hardware into the active matrix.</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
+              
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>BRAND PREFIX</label>
+                  <select 
+                    value={newTool.prefix} 
+                    onChange={(e) => setNewTool({...newTool, prefix: e.target.value})} 
+                    style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}
+                  >
+                    <option value="MILW">MILW (Milwaukee)</option>
+                    <option value="DWLT">DWLT (DeWalt)</option>
+                    <option value="HILT">HILT (Hilti)</option>
+                    <option value="MAKI">MAKI (Makita)</option>
+                    <option value="BSCH">BSCH (Bosch)</option>
+                    <option value="FEST">FEST (Festool)</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>REPLACEMENT VALUE ($)</label>
+                  <input 
+                    type="number" 
+                    placeholder="e.g. 299" 
+                    value={newTool.value}
+                    onChange={(e) => setNewTool({...newTool, value: e.target.value})}
+                    style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>ASSET NAME / MODEL</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. 18V Brushless Impact Driver" 
+                  value={newTool.name}
+                  onChange={(e) => setNewTool({...newTool, name: e.target.value})}
+                  style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>MAINTENANCE INTERVAL (DAYS)</label>
+                <input 
+                  type="number" 
+                  placeholder="e.g. 90" 
+                  value={newTool.interval}
+                  onChange={(e) => setNewTool({...newTool, interval: e.target.value})}
+                  style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}
+                />
+              </div>
+
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setAddModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleAddAsset} disabled={!newTool.name || !newTool.value} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (!newTool.name || !newTool.value) ? 0.4 : 1 }}>ADD TO INVENTORY</button>
+            </div>
+          </div>
         </div>
       )}
 
