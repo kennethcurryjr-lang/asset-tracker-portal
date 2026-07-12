@@ -234,6 +234,17 @@ function Tools({ user }) {
     setBulkSelectedTools([]);
   };
 
+  const reportDamage = (toolId) => {
+    const note = window.prompt("Enter details about the damage or fault:");
+    if (note === null) return;
+    setTools(prev => prev.map(t => {
+      if (t.toolId === toolId) {
+        return { ...t, condition: "Damaged", history: [{ user: "Admin", action: "Flagged as Damaged 🚩", date: 'Just now', condition: "Damaged", note: note }, ...t.history] };
+      }
+      return t;
+    }));
+  };
+
   const toggleBulkSelection = (toolId) => {
     setBulkSelectedTools(prev => 
       prev.includes(toolId) ? prev.filter(id => id !== toolId) : [...prev, toolId]
@@ -507,6 +518,16 @@ function Tools({ user }) {
                     <div style={{ color: checkIsOverdue(selectedTool.metrics) ? '#ff3b30' : '#ffcc00', fontSize: '16px', fontWeight: '600', marginTop: '4px', lineHeight: '1.3' }}>{selectedTool.name}</div>
                     </div>
 
+                    {selectedTool.condition === 'Damaged' && (
+                      <div style={{ backgroundColor: 'rgba(255,149,0,0.08)', border: '1px solid rgba(255,149,0,0.5)', padding: '16px', borderRadius: '12px', marginBottom: '12px' }}>
+                        <div style={{ color: '#ff9500', fontSize: '11px', fontWeight: '800', letterSpacing: '0.05em', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>🚩</span> ASSET DAMAGED / OUT OF SERVICE
+                        </div>
+                        <div style={{ color: '#d2d2d7', fontSize: '13px', lineHeight: '1.5' }}>
+                          This asset has been manually flagged as damaged. It cannot be dispatched until a technician logs a repair service.
+                        </div>
+                      </div>
+                    )}
                     {checkIsOverdue(selectedTool.metrics) && (
                       <div style={{ backgroundColor: 'rgba(255,59,48,0.08)', border: '1px solid rgba(255,59,48,0.5)', padding: '16px', borderRadius: '12px', animation: 'criticalPulse 2s infinite' }}>
                         <div style={{ color: '#ff3b30', fontSize: '11px', fontWeight: '800', letterSpacing: '0.05em', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -560,15 +581,19 @@ function Tools({ user }) {
                         Time in field: <strong style={{ color: '#ff9500' }}>{selectedTool.daysOut} {selectedTool.daysOut === 1 ? 'day' : 'days'}</strong>
                         </div>
                     )}
+                      {selectedTool.condition !== 'Damaged' && (
+                        <button onClick={() => reportDamage(selectedTool.toolId)} style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,59,48,0.5)', backgroundColor: 'transparent', color: '#ff3b30', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                          🚩 REPORT DAMAGE / FAULT
+                        </button>
+                      )}
                     </div>
-
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
                     {selectedTool.status === 'AVAILABLE' ? (
                         <button 
-                          disabled={checkIsOverdue(selectedTool.metrics)}
+                          disabled={checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged'}
                           onClick={() => setCheckoutModalOpen(true)} 
-                          style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: checkIsOverdue(selectedTool.metrics) ? '#2c2c2e' : '#34c759', color: checkIsOverdue(selectedTool.metrics) ? '#636366' : '#ffffff', fontWeight: '800', fontSize: '15px', cursor: checkIsOverdue(selectedTool.metrics) ? 'not-allowed' : 'pointer' }}>
-                          {checkIsOverdue(selectedTool.metrics) ? 'LOCKED: PM REQUIRED' : 'CHECK OUT TO EMPLOYEE'}
+                          style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#2c2c2e' : '#34c759', color: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#636366' : '#ffffff', fontWeight: '800', fontSize: '15px', cursor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'not-allowed' : 'pointer' }}>
+                          {(checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'LOCKED: SERVICE REQUIRED' : 'CHECK OUT TO EMPLOYEE'}
                         </button>
                     ) : (
                         <button onClick={handleReturn} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#ff9500', color: '#ffffff', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}>
