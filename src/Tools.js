@@ -65,7 +65,7 @@ function Tools({ user }) {
   const [dispatchProject, setDispatchProject] = useState("");
   
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', serial: '', condition: 'New', pmMetric: 'Days', pmInterval: '90' });
+  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', condition: 'New', pmMetric: 'Days', pmInterval: '90' });
 
   const filteredTools = useMemo(() => {
     if (!searchTerm.trim()) return tools;
@@ -128,6 +128,8 @@ function Tools({ user }) {
       toolId: generatedId,
       name: newTool.name,
       value: parseInt(newTool.value) || 0,
+      category: newTool.category || 'General',
+      location: newTool.location || 'Unassigned',
       serial: newTool.serial || 'N/A',
       status: "AVAILABLE",
       condition: newTool.condition,
@@ -139,7 +141,7 @@ function Tools({ user }) {
     
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
-    setNewTool({ prefix: 'MILW', name: '', value: '', serial: '', condition: 'New', pmMetric: 'Days', pmInterval: '90' });
+    setNewTool({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', condition: 'New', pmMetric: 'Days', pmInterval: '90' });
     setSelectedToolId(generatedId);
     setActiveView('DISPATCH');
   };
@@ -661,6 +663,31 @@ function Tools({ user }) {
                     <option value="Refurbished">Refurbished</option>
                     <option value="Used">Used</option>
                   </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>ASSET CLASS / CATEGORY</label>
+                  <input list="category-options" placeholder="e.g. HVAC, Power Tool" value={newTool.category} onChange={(e) => setNewTool({...newTool, category: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                  <datalist id="category-options">
+                    <option value="Power Tool">Power Tool</option>
+                    <option value="Heavy Machinery">Heavy Machinery</option>
+                    <option value="HVAC Equipment">HVAC</option>
+                    <option value="Plumbing Fixture">Plumbing</option>
+                    <option value="Fleet Vehicle">Fleet Vehicle</option>
+                    <option value="IT Equipment">IT Equipment</option>
+                  </datalist>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>HOME LOCATION / ZONE</label>
+                  <input list="location-options" placeholder="e.g. Roof, Lot B" value={newTool.location} onChange={(e) => setNewTool({...newTool, location: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                  <datalist id="location-options">
+                    <option value="Main Tool Crib">Main Tool Crib</option>
+                    <option value="Fleet Lot A">Fleet Lot A</option>
+                    <option value="Roof Deck">Roof Deck</option>
+                    <option value="Basement Utility">Basement Utility</option>
+                  </datalist>
                 </div>
               </div>
 
