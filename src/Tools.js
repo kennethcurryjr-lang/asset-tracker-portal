@@ -1,3 +1,5 @@
+import { docClient } from './dynamoClient';
+import { ScanCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import React, { useState, useMemo } from 'react';
 
 // Generates universal assets with dynamic PM metrics (Time, Usage, Cycles)
@@ -146,6 +148,7 @@ function Tools({ user }) {
       history: [{ user: "Admin", action: "Asset Ingested to Database", date: "Just now", condition: newTool.condition }]
     };
     
+    syncDB(newToolObj);
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
     setNewTool({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true });
@@ -193,7 +196,7 @@ function Tools({ user }) {
     setTools(prev => prev.map(t => {
       if (t.toolId === toolId) {
         const resetMetrics = t.metrics.map(m => ({ ...m, current: 0 }));
-        return {
+        const ut = {
           ...t,
           metrics: resetMetrics,
           condition: "Excellent",
@@ -206,6 +209,8 @@ function Tools({ user }) {
             note: note || null
           }, ...t.history]
         };
+        syncDB(ut);
+        return ut;
       }
       return t;
     }));
@@ -241,7 +246,9 @@ function Tools({ user }) {
     if (note === null) return;
     setTools(prev => prev.map(t => {
       if (t.toolId === toolId) {
-        return { ...t, condition: "Damaged", history: [{ user: "Admin", action: "Flagged as Damaged 🚩", date: 'Just now', condition: "Damaged", note: note }, ...t.history] };
+        const ut = { ...t, condition: "Damaged", history: [{ user: "Admin", action: "Flagged as Damaged 🚩", date: 'Just now', condition: "Damaged", note: note }, ...t.history] };
+        syncDB(ut);
+        return ut;
       }
       return t;
     }));
