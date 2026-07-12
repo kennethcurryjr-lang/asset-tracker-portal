@@ -139,7 +139,7 @@ function Tools({ user }) {
         .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; flex: 1; box-sizing: border-box; border-radius: 12px; }
         .card-front { transform: rotateY(0deg); z-index: 2; position: relative; background-color: #1c1c1e; }
         .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #1c1c1e; display: flex; flex-direction: column; padding: 16px; overflow: hidden; }
-        .tab-btn { flex: 1; padding: 6px; font-size: 11px; font-weight: 700; cursor: pointer; border-radius: 6px; text-align: center; border: none; transition: all 0.2s; }
+        .tab-btn { flex: 1; padding: 4px; font-size: 10px; font-weight: 700; cursor: pointer; border-radius: 6px; text-align: center; border: none; transition: all 0.2s; white-space: nowrap; }
         .tab-active { background-color: #ffffff; color: #1d1d1f; }
         .tab-inactive { background-color: #2c2c2e; color: #86868b; }
         .custom-input { padding: 12px 16px; border-radius: 8px; border: 1px solid #3a3a3c; background-color: #1c1c1e; color: #ffffff; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; transition: border-color 0.2s; }
@@ -204,9 +204,8 @@ function Tools({ user }) {
               const isOut = tool.status === 'CHECKED_OUT';
               const isServiceDue = tool.daysSinceService >= tool.serviceInterval;
               const isFlipped = !!flippedCards[tool.toolId];
-              const activeTab = cardTabs[tool.toolId] || 'service'; // Defaulting to service to show off PM
+              const activeTab = cardTabs[tool.toolId] || 'service';
               
-              // Dynamic border logic based on condition
               let cardBorder = '1px solid #3a3a3c';
               let cardShadow = 'none';
               if (isSelected) {
@@ -245,16 +244,17 @@ function Tools({ user }) {
 
                       <div className="card-face card-back" style={{ border: cardBorder, boxShadow: cardShadow }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', gap: '6px', flex: 1, marginRight: '12px' }}>
+                          <div style={{ display: 'flex', gap: '4px', flex: 1, marginRight: '8px' }}>
                           <button className={`tab-btn ${activeTab === 'service' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'service'})); }}>Service</button>
                           <button className={`tab-btn ${activeTab === 'manifest' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'manifest'})); }}>Kits</button>
                           <button className={`tab-btn ${activeTab === 'qr' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'qr'})); }}>QR</button>
+                          <button className={`tab-btn ${activeTab === 'specs' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'specs'})); }}>Specs</button>
                           </div>
                           <button onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => ({...prev, [tool.toolId]: false})); }} style={{ background: 'transparent', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '16px', padding: 0 }}>✕</button>
                       </div>
                       <div style={{ flex: 1, overflowY: 'auto' }}>
                           
-                          {/* NEW PREVENTATIVE MAINTENANCE TAB */}
+                          {/* PREVENTATIVE MAINTENANCE TAB */}
                           {activeTab === 'service' && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'center', justifyContent: 'center', height: '100%' }}>
                               <div style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>PM INTERVAL</div>
@@ -275,12 +275,24 @@ function Tools({ user }) {
                               ))}
                           </div>
                           )}
+                          
                           {activeTab === 'qr' && (
                           <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                               <div style={{ padding: '8px', backgroundColor: '#ffffff', borderRadius: '8px', display: 'inline-block' }}><img src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=TRANSFER_${tool.toolId}&color=000000&bgcolor=ffffff`} alt="QR" style={{ width: '80px', height: '80px', display: 'block' }} /></div>
                               <div style={{ fontSize: '11px', color: '#86868b', marginTop: '8px', fontWeight: '600' }}>SCAN FOR CUSTODY</div>
                           </div>
                           )}
+
+                          {/* THE RESTORED SPECS TAB */}
+                          {activeTab === 'specs' && (
+                          <div style={{ fontSize: '12px', color: '#86868b', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              <div><span style={{ color: '#d2d2d7', fontWeight: '600' }}>Value:</span> ${tool.value}</div>
+                              <div><span style={{ color: '#d2d2d7', fontWeight: '600' }}>Purchased:</span> Jan 14, 2024</div>
+                              <div><span style={{ color: '#d2d2d7', fontWeight: '600' }}>Warranty:</span> Expires Jan 2029</div>
+                              <div style={{ color: '#ffcc00', fontWeight: '600', cursor: 'pointer', marginTop: '4px' }}>📄 Download PDF Manual</div>
+                          </div>
+                          )}
+
                       </div>
                       </div>
 
