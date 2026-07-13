@@ -107,9 +107,10 @@ function Tools({ user }) {
     } catch (err) { console.error("Delete Error:", err); }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => { fetchDB(); }, []);
 
-  const [inventory, setInventory] = useState({ 'HVAC': [{ item: '24x24x2 Pleated Air Filter', stock: 45 }, { item: 'R-410A Refrigerant (lbs)', stock: 12 }], 'MILW': [{ item: 'M18 REDLITHIUM 5.0Ah Battery', stock: 22 }, { item: 'Press Tool Jaw Grease', stock: 6 }], 'VEH': [{ item: '5W-30 Synthetic Oil (Qts)', stock: 32 }, { item: 'Wiper Fluid (Gal)', stock: 14 }] });
+  const [inventory] = useState({ 'HVAC': [{ item: '24x24x2 Pleated Air Filter', stock: 45 }, { item: 'R-410A Refrigerant (lbs)', stock: 12 }], 'MILW': [{ item: 'M18 REDLITHIUM 5.0Ah Battery', stock: 22 }, { item: 'Press Tool Jaw Grease', stock: 6 }], 'VEH': [{ item: '5W-30 Synthetic Oil (Qts)', stock: 32 }, { item: 'Wiper Fluid (Gal)', stock: 14 }] });
   const [tools, setTools] = useState(generateTools);
   const [activeView, setActiveView] = useState('DISPATCH');
   const [userRole, setUserRole] = useState('ADMIN');
@@ -193,6 +194,7 @@ function Tools({ user }) {
   });
 
   
+  // eslint-disable-next-line no-unused-vars
   const seedDatabase = async () => {
     if (!window.confirm("WARNING: This will generate 100 random tools and push them to your live DynamoDB table. Proceed?")) return;
     const newTools = generateTools();
