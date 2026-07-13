@@ -1060,7 +1060,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           boxShadow: activePortal === "inventory" ? 'none' : headerStyle.boxShadow,
           marginBottom: 0
         }}>
-          <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />
+          {activePortal !== "tools" && <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />}
           
           <div style={{ color: '#ffffff', fontSize: '15px', fontWeight: '500', letterSpacing: '-0.02em', textAlign: 'center' }}>
               {auth.user?.profile.email} 
