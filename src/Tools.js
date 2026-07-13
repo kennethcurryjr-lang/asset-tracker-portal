@@ -2,7 +2,7 @@ import { docClient } from './dynamoClient';
 import { ScanCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import React, { useState, useMemo } from 'react';
 
-// Generates universal assets with dynamic PM metrics (Time, Usage, Cycles)
+// Generates universal tools with dynamic PM metrics (Time, Usage, Cycles)
 const generateTools = () => {
   const templates = [
     { prefix: "VEH", name: "Ford F-150 Fleet Truck", value: 45000, metrics: [{ unit: "Days", current: 0, interval: 180 }, { unit: "Miles", current: 0, interval: 5000 }] },
@@ -46,7 +46,7 @@ const generateTools = () => {
     const idNum = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
     const generatedId = `${t.prefix}-${idNum}`;
     
-    const assetMetrics = t.metrics.map(m => {
+    const toolMetrics = t.metrics.map(m => {
       let variance = m.interval * (Math.random() * 1.15); // Randomize up to 115% of interval to create some overdues
       return { ...m, current: Math.floor(variance) };
     });
@@ -65,7 +65,7 @@ const generateTools = () => {
       daysOut: daysOut,
       isDispatchable: t.isDispatchable !== false,
       isSpecialty: t.value >= 20000,
-      metrics: assetMetrics,
+      metrics: toolMetrics,
       history: isOut ? [
         { user: assignedUser, action: "Checked Out", date: `${daysOut} days ago`, condition: condition }
       ] : (Math.random() > 0.5 ? [{ user: "Admin", action: "Returned", date: "2 days ago", condition: condition }] : [])
@@ -156,7 +156,7 @@ function Tools({ user }) {
   const deployedValue = deployedTools.reduce((acc, t) => acc + t.value, 0);
   const cribValue = totalValue - deployedValue;
 
-  // Universal Logic: An asset is overdue if ANY of its metrics exceed their interval.
+  // Universal Logic: An tool is overdue if ANY of its metrics exceed their interval.
   const checkIsOverdue = (metrics) => metrics.some(m => m.current >= m.interval);
   
   // To sort the Kanban, we find the metric closest to failing (lowest percentage remaining)
@@ -193,7 +193,7 @@ function Tools({ user }) {
 
   
   const seedDatabase = async () => {
-    if (!window.confirm("WARNING: This will generate 100 random assets and push them to your live DynamoDB table. Proceed?")) return;
+    if (!window.confirm("WARNING: This will generate 100 random tools and push them to your live DynamoDB table. Proceed?")) return;
     const newTools = generateTools();
     
     setTools(prev => [...newTools, ...prev]);
@@ -202,10 +202,10 @@ function Tools({ user }) {
       await syncDB(t);
     }
     console.log("✅ Seed complete!");
-    alert("100 Assets successfully seeded to DynamoDB!");
+    alert("100 Tools successfully seeded to DynamoDB!");
   };
 
-  const handleAddAsset = () => {
+  const handleAddTool = () => {
     if (!newTool.name || !newTool.value) return;
     const idNum = String(Math.floor(Math.random() * 900) + 100);
     const generatedId = `${newTool.prefix}-${idNum}`;
@@ -225,7 +225,7 @@ function Tools({ user }) {
       assignedUser: null,
       daysOut: 0,
       metrics: [{ unit: newTool.pmMetric, current: 0, interval: parseInt(newTool.pmInterval) || 90 }],
-      history: [{ user: "Admin", action: "Asset Ingested to Database", date: "Just now", condition: newTool.condition }]
+      history: [{ user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }]
     };
     
     syncDB(newToolObj);
@@ -432,7 +432,7 @@ function Tools({ user }) {
         </button>}
         <div style={{ width: '1px', backgroundColor: '#3a3a3c', margin: '4px 8px' }}></div>
         {userRole === 'ADMIN' && <button onClick={() => setAddModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #34c759', backgroundColor: 'transparent', color: '#34c759', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>
-          + INGEST ASSET
+          + INGEST TOOL
         </button>}
         {userRole === 'ADMIN' && <button onClick={() => setAlertsModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>🔔 ALERT SETTINGS</button>}
         {userRole === 'ADMIN' && <button onClick={() => setFinanceModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #86868b', backgroundColor: 'transparent', color: '#d2d2d7', fontWeight: '800', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>📊 FLEET VALUE</button>}
@@ -446,7 +446,7 @@ function Tools({ user }) {
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ flex: 1, position: 'relative' }}>
-                    <input type="text" placeholder="Search by Asset ID, Name, or Assigned Tech..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="custom-input" />
+                    <input type="text" placeholder="Search by Tool ID, Name, or Assigned Tech..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="custom-input" />
                 </div>
             </div>
 
@@ -491,7 +491,7 @@ function Tools({ user }) {
                                 {isServiceDue && !isOut ? 'LOCKED' : (isOut ? 'RETURN' : 'CHECK OUT')}
                               </button>
                             ) : (
-                              <div style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#1c1c1e', color: '#86868b', border: '1px solid #3a3a3c', fontWeight: '700', fontSize: '12px', textAlign: 'center', boxSizing: 'border-box' }}>STATIC ASSET</div>
+                              <div style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#1c1c1e', color: '#86868b', border: '1px solid #3a3a3c', fontWeight: '700', fontSize: '12px', textAlign: 'center', boxSizing: 'border-box' }}>STATIC TOOL</div>
                             )}
                             <button onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => ({...prev, [tool.toolId]: true})); }} style={{ padding: '10px', borderRadius: '8px', backgroundColor: 'transparent', color: '#d2d2d7', border: '1px solid #3a3a3c', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
                               Flip ⤹
@@ -613,10 +613,10 @@ function Tools({ user }) {
                     {selectedTool.condition === 'Damaged' && (
                       <div style={{ backgroundColor: 'rgba(255,149,0,0.08)', border: '1px solid rgba(255,149,0,0.5)', padding: '16px', borderRadius: '12px', marginBottom: '12px' }}>
                         <div style={{ color: '#ff9500', fontSize: '11px', fontWeight: '800', letterSpacing: '0.05em', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span>🚩</span> ASSET DAMAGED / OUT OF SERVICE
+                          <span>🚩</span> TOOL DAMAGED / OUT OF SERVICE
                         </div>
                         <div style={{ color: '#d2d2d7', fontSize: '13px', lineHeight: '1.5' }}>
-                          This asset has been manually flagged as damaged. It cannot be dispatched until a technician logs a repair service.
+                          This tool has been manually flagged as damaged. It cannot be dispatched until a technician logs a repair service.
                         </div>
                       </div>
                     )}
@@ -626,7 +626,7 @@ function Tools({ user }) {
                           <span>🛑</span> PREVENTATIVE MAINTENANCE LOCK
                         </div>
                         <div style={{ color: '#d2d2d7', fontSize: '13px', lineHeight: '1.5' }}>
-                          This asset has exceeded one or more of its critical service intervals. Dispatch capabilities have been securely locked until a technician verifies integrity and resets the timers.
+                          This tool has exceeded one or more of its critical service intervals. Dispatch capabilities have been securely locked until a technician verifies integrity and resets the timers.
                         </div>
                       </div>
                     )}
@@ -680,7 +680,7 @@ function Tools({ user }) {
                       )}
                       {userRole === 'ADMIN' && (
                         <button onClick={() => deleteTool(selectedTool.toolId)} style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '6px', border: 'none', backgroundColor: '#ff3b30', color: '#ffffff', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
-                          🗑️ PERMANENTLY DELETE ASSET
+                          🗑️ PERMANENTLY DELETE TOOL
                         </button>
                       )}
                     </div>
@@ -707,7 +707,7 @@ function Tools({ user }) {
                           </button>
                         ) : (
                           <button disabled style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#1c1c1e', color: '#86868b', fontWeight: '800', fontSize: '15px', cursor: 'not-allowed' }}>
-                            STATIC ASSET (NON-DISPATCHABLE)
+                            STATIC TOOL (NON-DISPATCHABLE)
                           </button>
                         )
                     ) : (
@@ -718,7 +718,7 @@ function Tools({ user }) {
                     </div>
                 </>
             ) : (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#86868b', fontStyle: 'italic', fontSize: '14px' }}>No assets match your search.</div>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#86868b', fontStyle: 'italic', fontSize: '14px' }}>No tools match your search.</div>
             )}
           </div>
         </div>
@@ -736,7 +736,7 @@ function Tools({ user }) {
                 {overdueTools.map(t => <RenderKanbanCard key={t.toolId} tool={t} isOverdue={true} />)}
               </div>
             ) : (
-              <div style={{ color: '#86868b', fontSize: '14px', fontStyle: 'italic' }}>No assets are currently overdue for maintenance.</div>
+              <div style={{ color: '#86868b', fontSize: '14px', fontStyle: 'italic' }}>No tools are currently overdue for maintenance.</div>
             )}
           </div>
 
@@ -744,7 +744,7 @@ function Tools({ user }) {
             <div className="kanban-col">
               <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', marginBottom: '4px' }}>
                 <div style={{ fontSize: '12px', color: '#ffcc00', fontWeight: '800', letterSpacing: '0.05em' }}>DUE THIS WEEK</div>
-                <div style={{ fontSize: '14px', color: '#86868b', marginTop: '4px' }}>{thisWeekTools.length} Assets Pending</div>
+                <div style={{ fontSize: '14px', color: '#86868b', marginTop: '4px' }}>{thisWeekTools.length} Tools Pending</div>
               </div>
               {thisWeekTools.map(t => <RenderKanbanCard key={t.toolId} tool={t} isOverdue={false} />)}
             </div>
@@ -752,7 +752,7 @@ function Tools({ user }) {
             <div className="kanban-col">
               <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', marginBottom: '4px' }}>
                 <div style={{ fontSize: '12px', color: '#34c759', fontWeight: '800', letterSpacing: '0.05em' }}>DUE NEXT WEEK</div>
-                <div style={{ fontSize: '14px', color: '#86868b', marginTop: '4px' }}>{nextWeekTools.length} Assets Pending</div>
+                <div style={{ fontSize: '14px', color: '#86868b', marginTop: '4px' }}>{nextWeekTools.length} Tools Pending</div>
               </div>
               {nextWeekTools.map(t => <RenderKanbanCard key={t.toolId} tool={t} isOverdue={false} />)}
             </div>
@@ -760,7 +760,7 @@ function Tools({ user }) {
             <div className="kanban-col">
               <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', marginBottom: '4px' }}>
                 <div style={{ fontSize: '12px', color: '#007aff', fontWeight: '800', letterSpacing: '0.05em' }}>DUE THIS MONTH</div>
-                <div style={{ fontSize: '14px', color: '#86868b', marginTop: '4px' }}>{thisMonthTools.length} Assets Pending</div>
+                <div style={{ fontSize: '14px', color: '#86868b', marginTop: '4px' }}>{thisMonthTools.length} Tools Pending</div>
               </div>
               {thisMonthTools.map(t => <RenderKanbanCard key={t.toolId} tool={t} isOverdue={false} />)}
             </div>
@@ -773,7 +773,7 @@ function Tools({ user }) {
       {bulkSelectedTools.length > 0 && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#1c1c1e', borderTop: '1px solid #3a3a3c', padding: '20px 40px', zIndex: 5000, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 -10px 40px rgba(0,0,0,0.5)' }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '20px', fontWeight: '800', color: '#ffffff' }}>{bulkSelectedTools.length} Assets Selected</span>
+            <span style={{ fontSize: '20px', fontWeight: '800', color: '#ffffff' }}>{bulkSelectedTools.length} Tools Selected</span>
             <span style={{ fontSize: '13px', color: '#86868b', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setBulkSelectedTools([])}>Clear Selection</span>
           </div>
           <button onClick={logBulkService} style={{ padding: '16px 32px', backgroundColor: '#34c759', color: '#ffffff', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 4px 15px rgba(52,199,89,0.3)' }}>
@@ -782,11 +782,11 @@ function Tools({ user }) {
         </div>
       )}
 
-      {/* INGEST ASSET MODAL */}
+      {/* INGEST TOOL MODAL */}
       {addModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-container">
-            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Ingest New Asset</h2>
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Ingest New Tool</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Register hardware into the active matrix.</p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
@@ -825,7 +825,7 @@ function Tools({ user }) {
 
               <div style={{ display: 'flex', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 2 }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>ASSET NAME / MODEL</label>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOOL NAME / MODEL</label>
                   <input type="text" placeholder="e.g. Ford F-150 Fleet Truck" value={newTool.name} onChange={(e) => setNewTool({...newTool, name: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
@@ -840,7 +840,7 @@ function Tools({ user }) {
 
               <div style={{ display: 'flex', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>ASSET CLASS / CATEGORY</label>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOOL CLASS / CATEGORY</label>
                   <input list="category-options" placeholder="e.g. HVAC, Power Tool" value={newTool.category} onChange={(e) => setNewTool({...newTool, category: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                   <datalist id="category-options">
                     <option value="Power Tool">Power Tool</option>
@@ -895,7 +895,7 @@ function Tools({ user }) {
                 <input type="checkbox" id="dispatchableToggle" checked={newTool.isDispatchable} onChange={(e) => setNewTool({...newTool, isDispatchable: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#34c759', cursor: 'pointer' }} />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <label htmlFor="dispatchableToggle" style={{ fontSize: '14px', color: '#ffffff', fontWeight: '700', cursor: 'pointer' }}>Enable Field Checkout</label>
-                  <span style={{ fontSize: '11px', color: '#86868b' }}>If disabled, this asset will be permanently locked to its home location.</span>
+                  <span style={{ fontSize: '11px', color: '#86868b' }}>If disabled, this tool will be permanently locked to its home location.</span>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(255,204,0,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,204,0,0.3)', flex: 1 }}>
@@ -911,7 +911,7 @@ function Tools({ user }) {
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <button onClick={() => setAddModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleAddAsset} disabled={!newTool.name || !newTool.value} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (!newTool.name || !newTool.value) ? 0.4 : 1 }}>ADD TO INVENTORY</button>
+              <button onClick={handleAddTool} disabled={!newTool.name || !newTool.value} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (!newTool.name || !newTool.value) ? 0.4 : 1 }}>ADD TO INVENTORY</button>
             </div>
           </div>
         </div>
@@ -921,7 +921,7 @@ function Tools({ user }) {
       {checkoutModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-container">
-            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Dispatch Asset</h2>
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Dispatch Tool</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Transferring custody of <strong style={{color: '#ffcc00'}}>[{selectedTool.toolId}]</strong></p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
@@ -967,7 +967,7 @@ function Tools({ user }) {
                 <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px' }}>ALERT TRIGGERS</label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
                   <input type="checkbox" checked={alertPrefs.notifyDamaged} onChange={(e) => setAlertPrefs({...alertPrefs, notifyDamaged: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: '#ff3b30' }} />
-                  Asset Flagged as Damaged 🚩
+                  Tool Flagged as Damaged 🚩
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
                   <input type="checkbox" checked={alertPrefs.notifyOverdue} onChange={(e) => setAlertPrefs({...alertPrefs, notifyOverdue: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: '#ffcc00' }} />
@@ -975,7 +975,7 @@ function Tools({ user }) {
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
                   <input type="checkbox" checked={alertPrefs.notifyNew} onChange={(e) => setAlertPrefs({...alertPrefs, notifyNew: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: '#34c759' }} />
-                  New Asset Ingested 📦
+                  New Tool Ingested 📦
                 </label>
               </div>
             </div>
@@ -993,13 +993,13 @@ function Tools({ user }) {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-container" style={{ backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', width: '500px', maxWidth: '90%', color: '#ffffff' }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffcc00', letterSpacing: '-0.02em' }}>Audit Required</h2>
-            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Confirm the manifest for high-value asset <strong style={{color: '#ffffff'}}>[{selectedTool.toolId}]</strong></p>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Confirm the manifest for high-value tool <strong style={{color: '#ffffff'}}>[{selectedTool.toolId}]</strong></p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
               {Object.keys(returnChecklist).map((key) => (
                 <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px', color: returnChecklist[key] ? '#34c759' : '#ffffff', cursor: 'pointer', padding: '16px', backgroundColor: '#121212', borderRadius: '8px', border: returnChecklist[key] ? '1px solid #34c759' : '1px solid #3a3a3c', margin: 0, fontWeight: '600' }}>
                   <input type="checkbox" checked={returnChecklist[key]} onChange={(e) => setReturnChecklist({...returnChecklist, [key]: e.target.checked})} style={{ width: '20px', height: '20px', accentColor: '#34c759', margin: 0 }} />
-                  {key === 'primary' ? 'Primary Asset Body' : key === 'battery' ? 'Battery / Power Unit' : 'All Provided Accessories'}
+                  {key === 'primary' ? 'Primary Tool Body' : key === 'battery' ? 'Battery / Power Unit' : 'All Provided Accessories'}
                 </label>
               ))}
             </div>
@@ -1033,7 +1033,7 @@ function Tools({ user }) {
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#121212', padding: '24px', borderRadius: '12px', border: '1px solid #3a3a3c', flexDirection: 'row' }}>
               <div className="hud-stat-block">
-                <span className="hud-stat-label" style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOTAL FLEET ASSET VALUE</span>
+                <span className="hud-stat-label" style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOTAL FLEET TOOL VALUE</span>
                 <span className="hud-stat-value" style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.02em', color: '#ffffff' }}>${totalValue.toLocaleString()}</span>
               </div>
               <div className="hud-divider" style={{ width: '1px', height: '40px', backgroundColor: '#3a3a3c' }}></div>
