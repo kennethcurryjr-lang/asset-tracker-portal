@@ -114,6 +114,7 @@ function Tools({ user }) {
   const [returnModalOpen, setReturnModalOpen] = useState(false);
   const [returnChecklist, setReturnChecklist] = useState({ primary: false, battery: false, accessories: false });
   const [alertsModalOpen, setAlertsModalOpen] = useState(false);
+  const [financeModalOpen, setFinanceModalOpen] = useState(false);
   const [alertPrefs, setAlertPrefs] = useState({ 
     email: 'kennethcurryjr@gmail.com', 
     frequency: 'Daily Digest', 
@@ -399,30 +400,6 @@ function Tools({ user }) {
         }
       `}</style>
 
-      {/* EXECUTIVE FINANCIAL HUD */}
-      <div className="hud-layout">
-        <div className="hud-stat-block">
-          <span className="hud-stat-label" style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOTAL FLEET ASSET VALUE</span>
-          <span className="hud-stat-value" style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.02em', color: '#ffffff' }}>${totalValue.toLocaleString()}</span>
-        </div>
-        <div className="hud-divider"></div>
-        <div className="hud-stat-block">
-          <span className="hud-stat-label" style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>VALUE DEPLOYED IN FIELD</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff9500' }}></span>
-            <span className="hud-stat-value" style={{ fontSize: '24px', fontWeight: '700', color: '#ff9500' }}>${deployedValue.toLocaleString()} <span style={{ fontSize: '12px', color: '#86868b' }}>({deployedTools.length} Units)</span></span>
-          </div>
-        </div>
-        <div className="hud-divider"></div>
-        <div className="hud-stat-block">
-          <span className="hud-stat-label" style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>SECURED IN TOOL CRIB</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#34c759' }}></span>
-            <span className="hud-stat-value" style={{ fontSize: '24px', fontWeight: '700', color: '#34c759' }}>${cribValue.toLocaleString()} <span style={{ fontSize: '12px', color: '#86868b' }}>({tools.length - deployedTools.length} Units)</span></span>
-          </div>
-        </div>
-      </div>
-
       {/* MASTER TOGGLE & INGEST ACTION DECK */}
       <div style={{ display: 'flex', gap: '8px', backgroundColor: '#1c1c1e', padding: '6px', borderRadius: '12px', width: 'fit-content', margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#1c1c1e', borderRadius: '8px', padding: '4px', border: '1px solid #3a3a3c', marginRight: '16px' }}>
@@ -441,6 +418,7 @@ function Tools({ user }) {
         </button>}
         {userRole === 'ADMIN' && <button onClick={() => setAlertsModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>🔔 ALERT SETTINGS</button>}
         {userRole === 'ADMIN' && <button onClick={seedDatabase} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px dashed #ff9500', backgroundColor: 'transparent', color: '#ff9500', fontWeight: '800', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>🎲 SEED DB</button>}
+        {userRole === 'ADMIN' && <button onClick={() => setFinanceModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #86868b', backgroundColor: 'transparent', color: '#d2d2d7', fontWeight: '800', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>📊 FLEET VALUE</button>}
       </div>
 
       {/* VIEW ROUTING */}
@@ -1018,6 +996,45 @@ function Tools({ user }) {
           </div>
         </div>
       )}
+    
+      {/* FINANCIAL MODAL */}
+      {financeModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-container" style={{ backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', width: '800px', maxWidth: '90%', color: '#ffffff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div>
+                <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em', color: '#ffffff' }}>Fleet Financial Summary</h2>
+                <p style={{ margin: '0', fontSize: '14px', color: '#86868b' }}>Capital expenditure and current deployment valuation.</p>
+              </div>
+              <button onClick={() => setFinanceModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '20px' }}>✕</button>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#121212', padding: '24px', borderRadius: '12px', border: '1px solid #3a3a3c', flexDirection: 'row' }}>
+              <div className="hud-stat-block">
+                <span className="hud-stat-label" style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOTAL FLEET ASSET VALUE</span>
+                <span className="hud-stat-value" style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.02em', color: '#ffffff' }}>${totalValue.toLocaleString()}</span>
+              </div>
+              <div className="hud-divider" style={{ width: '1px', height: '40px', backgroundColor: '#3a3a3c' }}></div>
+              <div className="hud-stat-block">
+                <span className="hud-stat-label" style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>VALUE DEPLOYED IN FIELD</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff9500' }}></span>
+                  <span className="hud-stat-value" style={{ fontSize: '24px', fontWeight: '700', color: '#ff9500' }}>${deployedValue.toLocaleString()} <span style={{ fontSize: '12px', color: '#86868b' }}>({deployedTools.length} Units)</span></span>
+                </div>
+              </div>
+              <div className="hud-divider" style={{ width: '1px', height: '40px', backgroundColor: '#3a3a3c' }}></div>
+              <div className="hud-stat-block">
+                <span className="hud-stat-label" style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>SECURED IN TOOL CRIB</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#34c759' }}></span>
+                  <span className="hud-stat-value" style={{ fontSize: '24px', fontWeight: '700', color: '#34c759' }}>${cribValue.toLocaleString()} <span style={{ fontSize: '12px', color: '#86868b' }}>({tools.length - deployedTools.length} Units)</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
