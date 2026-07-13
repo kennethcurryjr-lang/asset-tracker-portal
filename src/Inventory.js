@@ -346,7 +346,13 @@ export default function Inventory({ user }) {
 
   const fetchInventory = async () => {
     try {
-      const response = await docClient.send(new ScanCommand({ TableName: "BeverageInventoryData" }));
+      const tenantId = user?.profile?.["custom:tenant_id"] || auth?.user?.profile?.["custom:tenant_id"];
+      let invParams = { TableName: "BeverageInventoryData" };
+      if (tenantId) {
+        invParams.FilterExpression = "tenant_id = :tid";
+        params.ExpressionAttributeValues = { ":tid": tenantId };
+      }
+      const response = await docClient.send(new ScanCommand(invParams));
       if (response.Items && response.Items.length >= initialMockData.length) {
         setStock(prev => JSON.stringify(prev) === JSON.stringify(response.Items) ? prev : response.Items);
       } else {
@@ -367,7 +373,13 @@ export default function Inventory({ user }) {
 
   const fetchAuditLogs = async () => {
     try {
-      const response = await docClient.send(new ScanCommand({ TableName: "BeverageAuditLogs" }));
+      const tenantId = user?.profile?.["custom:tenant_id"] || auth?.user?.profile?.["custom:tenant_id"];
+      let logParams = { TableName: "BeverageAuditLogs" };
+      if (tenantId) {
+        logParams.FilterExpression = "tenant_id = :tid";
+        logParams.ExpressionAttributeValues = { ":tid": tenantId };
+      }
+      const response = await docClient.send(new ScanCommand(logParams));
       // ONLY update local state if the cloud actually has data!
       if (response.Items && response.Items.length > 0) { 
         const sorted = response.Items.sort((a, b) => b.id - a.id); 
