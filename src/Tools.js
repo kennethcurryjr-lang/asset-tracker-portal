@@ -128,6 +128,7 @@ function Tools({ user }) {
   const [dispatchUser, setDispatchUser] = useState("");
   const [dispatchProject, setDispatchProject] = useState("");
   const [dispatchTerms, setDispatchTerms] = useState(false);
+  const [ingestTerms, setIngestTerms] = useState(false);
   const sigPad = React.useRef(null);
   
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -220,6 +221,16 @@ function Tools({ user }) {
         return;
       }
     }
+    
+    const isKit = newTool.prefix?.toUpperCase() === 'KIT';
+    if (isKit && newTool.assignee) {
+      if (!ingestTerms || !sigPad.current || sigPad.current.isEmpty()) {
+        alert("Please accept the terms and provide a signature to rapid-assign this kit.");
+        return;
+      }
+    }
+    const ingestSigData = (isKit && newTool.assignee && sigPad.current && !sigPad.current.isEmpty()) ? sigPad.current.getTrimmedCanvas().toDataURL('image/png') : null;
+
     const idNum = String(Math.floor(Math.random() * 900) + 100);
     const generatedId = `${newTool.prefix}-${idNum}`;
     
@@ -238,13 +249,15 @@ function Tools({ user }) {
       assignedUser: newTool.assignee || null,
       daysOut: 0,
       metrics: [{ unit: newTool.pmMetric, current: 0, interval: parseInt(newTool.pmInterval) || 90 }],
-      history: newTool.assignee ? [{ user: newTool.assignee, action: "Auto-Dispatched during ingestion", date: "Just now", condition: newTool.condition }, { user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }] : [{ user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }]
+      history: newTool.assignee ? [{ user: newTool.assignee, action: "Auto-Dispatched during ingestion" + (isKit ? " | E-Signed" : ""), ...(ingestSigData && { signatureUrl: ingestSigData }), date: "Just now", condition: newTool.condition }, { user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }] : [{ user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }]
     };
     
     syncDB(newToolObj);
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
     setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false, assignee: '' });
+    setIngestTerms(false);
+    if (sigPad.current) sigPad.current.clear();
     setSelectedToolId(generatedId);
     setActiveView('DISPATCH');
   };
@@ -930,6 +943,23 @@ function Tools({ user }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                   <label style={{ fontSize: '11px', color: '#ff9500', fontWeight: '800', letterSpacing: '0.05em' }}>RAPID ASSIGN TO EMPLOYEE (OPTIONAL)</label>
                   <input type="text" placeholder="e.g. Sarah Connor (Leave blank to ingest to Tool Crib)" value={newTool.assignee || ''} onChange={(e) => setNewTool({...newTool, assignee: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid rgba(255,149,0,0.5)', backgroundColor: 'rgba(255,149,0,0.08)', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                  {newTool.assignee && (
+                    <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#121212', padding: '16px', borderRadius: '8px', border: '1px solid #ff9500' }}>
+                      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '13px', color: '#d2d2d7', cursor: 'pointer', lineHeight: '1.4' }}>
+                        <input type="checkbox" checked={ingestTerms} onChange={(e) => setIngestTerms(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#ff9500', marginTop: '2px' }} />
+                        I acknowledge receipt of this standard kit and accept full responsibility for its condition.
+                      </label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', opacity: ingestTerms ? 1 : 0.4, pointerEvents: ingestTerms ? 'auto' : 'none', transition: 'opacity 0.2s' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <label style={{ fontSize: '11px', color: '#ff9500', fontWeight: '800', letterSpacing: '0.05em' }}>DRAW SIGNATURE</label>
+                          <button onClick={(e) => { e.preventDefault(); sigPad.current?.clear(); }} type="button" style={{ background: 'transparent', border: 'none', color: '#ffcc00', fontSize: '11px', cursor: 'pointer', fontWeight: '700' }}>CLEAR PAD</button>
+                        </div>
+                        <div style={{ border: '1px solid #3a3a3c', borderRadius: '8px', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+                          <SignatureCanvas ref={sigPad} penColor="black" canvasProps={{width: 434, height: 150, className: 'sigCanvas'}} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -969,7 +999,7 @@ function Tools({ user }) {
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => setAddModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setAddModalOpen(false); setIngestTerms(false); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
               <button onClick={handleAddTool} disabled={!newTool.name || !newTool.value} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (!newTool.name || !newTool.value) ? 0.4 : 1 }}>ADD TO INVENTORY</button>
             </div>
           </div>
