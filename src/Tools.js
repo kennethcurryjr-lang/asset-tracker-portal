@@ -254,8 +254,10 @@ function Tools({ user }) {
     setReturnModalOpen(false);
   };
 
-  const handleReturn = () => {
-    const toolToReturn = tools.find(t => t.toolId === selectedToolId);
+  const handleReturn = (targetId) => {
+    const idToUse = typeof targetId === 'string' ? targetId : selectedToolId;
+    const toolToReturn = tools.find(t => t.toolId === idToUse);
+    if (toolToReturn) setSelectedToolId(idToUse);
     if (toolToReturn && toolToReturn.isSpecialty) {
       setReturnChecklist({ primary: false, battery: false, accessories: false });
       setReturnModalOpen(true);
@@ -294,6 +296,7 @@ function Tools({ user }) {
     setPendingAttachments(prev => { const newState = { ...prev }; delete newState[toolId]; return newState; });
     setServiceNotes(prev => { const newState = { ...prev }; delete newState[toolId]; return newState; });
     setServiceChecklists(prev => { const newState = { ...prev }; delete newState[toolId]; return newState; });
+    setFlippedCards(prev => { const newState = { ...prev }; newState[toolId] = false; return newState; });
   };
 
   const logBulkService = () => {
@@ -470,7 +473,7 @@ function Tools({ user }) {
                         
                         <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
                             {tool.isDispatchable !== false ? (
-                              <button disabled={isServiceDue && !isOut} onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); isOut ? handleReturn() : setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: isServiceDue ? '#2c2c2e' : (isSelected ? '#ffcc00' : '#2c2c2e'), color: isServiceDue ? '#636366' : (isSelected ? '#1d1d1f' : '#ffffff'), border: 'none', fontWeight: '700', fontSize: '12px', cursor: isServiceDue && !isOut ? 'not-allowed' : 'pointer' }}>
+                              <button disabled={isServiceDue && !isOut} onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); isOut ? handleReturn(tool.toolId) : setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: isServiceDue ? '#2c2c2e' : (isSelected ? '#ffcc00' : '#2c2c2e'), color: isServiceDue ? '#636366' : (isSelected ? '#1d1d1f' : '#ffffff'), border: 'none', fontWeight: '700', fontSize: '12px', cursor: isServiceDue && !isOut ? 'not-allowed' : 'pointer' }}>
                                 {isServiceDue && !isOut ? 'LOCKED' : (isOut ? 'RETURN' : 'CHECK OUT')}
                               </button>
                             ) : (
