@@ -4,7 +4,7 @@ export const storage = defineStorage({
   name: 'kineticAssetStorage',
   access: (allow) => ({
     'public/*': [
-      allow.guest.to(['read', 'write', 'delete']),
+      allow.guest.to(['read', 'write', 'delete', 'write', 'delete']),
       allow.authenticated.to(['read', 'write', 'delete'])
     ]
   })
