@@ -64,6 +64,7 @@ const generateTools = () => {
       assignedUser: assignedUser,
       daysOut: daysOut,
       isDispatchable: t.isDispatchable !== false,
+      isSpecialty: t.value >= 20000,
       metrics: assetMetrics,
       history: isOut ? [
         { user: assignedUser, action: "Checked Out", date: `${daysOut} days ago`, condition: condition }
@@ -110,6 +111,8 @@ function Tools({ user }) {
   const [dispatchProject, setDispatchProject] = useState("");
   
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [returnChecklist, setReturnChecklist] = useState({ primary: false, battery: false, accessories: false });
   const [alertsModalOpen, setAlertsModalOpen] = useState(false);
   const [alertPrefs, setAlertPrefs] = useState({ 
     email: 'kennethcurryjr@gmail.com', 
@@ -118,7 +121,7 @@ function Tools({ user }) {
     notifyOverdue: true, 
     notifyNew: false 
   });
-  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true });
+  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false });
 
   const filteredTools = useMemo(() => {
     if (!searchTerm.trim()) return tools;
@@ -200,6 +203,7 @@ function Tools({ user }) {
       serial: newTool.serial || 'N/A',
       link: newTool.link || '',
       isDispatchable: newTool.isDispatchable,
+      isSpecialty: newTool.isSpecialty,
       status: "AVAILABLE",
       condition: newTool.condition,
       assignedUser: null,
@@ -211,7 +215,7 @@ function Tools({ user }) {
     syncDB(newToolObj);
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
-    setNewTool({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true });
+    setNewTool({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false });
     setSelectedToolId(generatedId);
     setActiveView('DISPATCH');
   };
@@ -235,19 +239,30 @@ function Tools({ user }) {
     setDispatchProject("");
   };
 
+  const executeReturn = (tool, newCondition, actionText) => {
+    const ut = {
+      ...tool,
+      status: 'AVAILABLE',
+      assignedUser: null,
+      daysOut: 0,
+      condition: newCondition,
+      history: [{ user: "Admin", action: actionText, date: 'Just now', condition: newCondition }, ...tool.history]
+    };
+    syncDB(ut); // SILENT BUG FIXED: Return actions now save to cloud
+    setTools(prev => prev.map(t => t.toolId === tool.toolId ? ut : t));
+    setReturnModalOpen(false);
+  };
+
   const handleReturn = () => {
-    setTools(prev => prev.map(t => {
-      if (t.toolId === selectedToolId) {
-        return {
-          ...t,
-          status: 'AVAILABLE',
-          assignedUser: null,
-          daysOut: 0,
-          history: [{ user: "Admin", action: "Returned to Crib", date: 'Just now', condition: t.condition }, ...t.history]
-        };
-      }
-      return t;
-    }));
+    const toolToReturn = tools.find(t => t.toolId === selectedToolId);
+    if (toolToReturn && toolToReturn.isSpecialty) {
+      setReturnChecklist({ primary: false, battery: false, accessories: false });
+      setReturnModalOpen(true);
+      return;
+    }
+    if (toolToReturn) {
+      executeReturn(toolToReturn, toolToReturn.condition, "Returned to Crib");
+    }
   };
 
   const logService = (toolId) => {
@@ -875,13 +890,22 @@ function Tools({ user }) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c', flex: 1 }}>
                 <input type="checkbox" id="dispatchableToggle" checked={newTool.isDispatchable} onChange={(e) => setNewTool({...newTool, isDispatchable: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#34c759', cursor: 'pointer' }} />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <label htmlFor="dispatchableToggle" style={{ fontSize: '14px', color: '#ffffff', fontWeight: '700', cursor: 'pointer' }}>Enable Field Checkout</label>
                   <span style={{ fontSize: '11px', color: '#86868b' }}>If disabled, this asset will be permanently locked to its home location.</span>
                 </div>
               </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(255,204,0,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,204,0,0.3)', flex: 1 }}>
+                <input type="checkbox" id="specialtyToggle" checked={newTool.isSpecialty} onChange={(e) => setNewTool({...newTool, isSpecialty: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#ffcc00', cursor: 'pointer' }} />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <label htmlFor="specialtyToggle" style={{ fontSize: '14px', color: '#ffcc00', fontWeight: '700', cursor: 'pointer' }}>Specialty / High-Value</label>
+                  <span style={{ fontSize: '11px', color: '#86868b' }}>Enforces physical manifest audit upon return.</span>
+                </div>
+              </div>
+            </div>
 
             </div>
 
@@ -959,6 +983,37 @@ function Tools({ user }) {
             <div style={{ display: 'flex', gap: '12px' }}>
               <button onClick={() => setAlertsModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
               <button onClick={() => setAlertsModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>SAVE PREFERENCES</button>
+            </div>
+          </div>
+        </div>
+      )}
+    
+      {/* RETURN AUDIT MODAL */}
+      {returnModalOpen && selectedTool && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-container" style={{ backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', width: '500px', maxWidth: '90%', color: '#ffffff' }}>
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffcc00', letterSpacing: '-0.02em' }}>Audit Required</h2>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Confirm the manifest for high-value asset <strong style={{color: '#ffffff'}}>[{selectedTool.toolId}]</strong></p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+              {Object.keys(returnChecklist).map((key) => (
+                <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px', color: returnChecklist[key] ? '#34c759' : '#ffffff', cursor: 'pointer', padding: '16px', backgroundColor: '#121212', borderRadius: '8px', border: returnChecklist[key] ? '1px solid #34c759' : '1px solid #3a3a3c', margin: 0, fontWeight: '600' }}>
+                  <input type="checkbox" checked={returnChecklist[key]} onChange={(e) => setReturnChecklist({...returnChecklist, [key]: e.target.checked})} style={{ width: '20px', height: '20px', accentColor: '#34c759', margin: 0 }} />
+                  {key === 'primary' ? 'Primary Asset Body' : key === 'battery' ? 'Battery / Power Unit' : 'All Provided Accessories'}
+                </label>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setReturnModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => {
+                const allChecked = Object.values(returnChecklist).every(Boolean);
+                const condition = allChecked ? selectedTool.condition : "Damaged";
+                const action = allChecked ? "Audited & Returned" : "Returned Incomplete/Damaged 🚩";
+                executeReturn(selectedTool, condition, action);
+              }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: Object.values(returnChecklist).every(Boolean) ? '#34c759' : '#ff3b30', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>
+                {Object.values(returnChecklist).every(Boolean) ? "CONFIRM SECURE RETURN" : "FLAG AS INCOMPLETE"}
+              </button>
             </div>
           </div>
         </div>
