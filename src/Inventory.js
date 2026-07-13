@@ -350,7 +350,7 @@ export default function Inventory({ user }) {
       let invParams = { TableName: "BeverageInventoryData" };
       if (tenantId) {
         invParams.FilterExpression = "tenant_id = :tid";
-        params.ExpressionAttributeValues = { ":tid": tenantId };
+        invParams.ExpressionAttributeValues = { ":tid": tenantId };
       }
       const response = await docClient.send(new ScanCommand(invParams));
       if (response.Items && response.Items.length >= initialMockData.length) {
