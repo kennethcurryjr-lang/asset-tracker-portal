@@ -1,5 +1,5 @@
 import { docClient } from './dynamoClient';
-import { ScanCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { ScanCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import React, { useState, useMemo } from 'react';
 
 // Generates universal assets with dynamic PM metrics (Time, Usage, Cycles)
@@ -95,6 +95,15 @@ function Tools({ user }) {
     try {
       await docClient.send(new PutCommand({ TableName: 'KineticToolsData', Item: item }));
     } catch (err) { console.error("DB Sync Error:", err); }
+  };
+
+  const deleteTool = async (toolId) => {
+    if (!window.confirm(`WARNING: Are you sure you want to permanently delete ${toolId} from the database? This cannot be undone.`)) return;
+    try {
+      await docClient.send(new DeleteCommand({ TableName: "KineticToolsData", Key: { toolId } }));
+      setTools(prev => prev.filter(t => t.toolId !== toolId));
+      setSelectedToolId(null);
+    } catch (err) { console.error("Delete Error:", err); }
   };
 
   React.useEffect(() => { fetchDB(); }, []);
@@ -668,6 +677,11 @@ function Tools({ user }) {
                       {selectedTool.condition !== 'Damaged' && (
                         <button onClick={() => reportDamage(selectedTool.toolId)} style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,59,48,0.5)', backgroundColor: 'transparent', color: '#ff3b30', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                           🚩 REPORT DAMAGE / FAULT
+                        </button>
+                      )}
+                      {userRole === 'ADMIN' && (
+                        <button onClick={() => deleteTool(selectedTool.toolId)} style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '6px', border: 'none', backgroundColor: '#ff3b30', color: '#ffffff', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                          🗑️ PERMANENTLY DELETE ASSET
                         </button>
                       )}
                     </div>
