@@ -100,8 +100,22 @@ function App() {
   const isClient = userGroups.includes("Client");
   const isWarehouseManager = userGroups.includes("Warehouse-Managers");
   const isFleetTracker = userGroups.includes("Fleet-Trackers");
-  const isAdmin = userGroups.includes("Admins") || (!isWarehouseManager && !isFleetTracker && !isClient);
-  const [activePortal, setActivePortal] = useState(isClient ? "tools" : (isWarehouseManager && !isAdmin ? "inventory" : "gps"));
+  
+  // Explicitly map the new Kinetic Tools groups
+  const isToolsAdmin = userGroups.includes("KineticToolsAdmins") || userGroups.includes("Kinetic-Tools-Admins");
+  const isToolsTech = userGroups.includes("KineticToolsTechs") || userGroups.includes("Kinetic-Tools-Techs");
+
+  // Only global Admins get the app switcher
+  const isSuperAdmin = userGroups.includes("Admins") || (!isWarehouseManager && !isFleetTracker && !isClient && !isToolsAdmin && !isToolsTech);
+  
+  // But a Tools Admin still gets all the local admin buttons inside the dashboard
+  const isAdmin = isSuperAdmin || isToolsAdmin;
+
+  // Force Tools Admins and Techs directly into the tools portal
+  const [activePortal, setActivePortal] = useState(
+    (isClient || isToolsAdmin || isToolsTech) ? "tools" : 
+    (isWarehouseManager && !isSuperAdmin ? "inventory" : "gps")
+  );
   const [comingSoonModule, setComingSoonModule] = useState(null);
 
   // Design Tokens: High-Contrast Monochromatic System
@@ -1072,7 +1086,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           </button>
         </header>
 
-        {isAdmin && (
+        {isSuperAdmin && (
           <div style={{ 
             display: "flex", 
             justifyContent: "center", 
