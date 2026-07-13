@@ -435,7 +435,6 @@ function Tools({ user }) {
           + INGEST ASSET
         </button>}
         {userRole === 'ADMIN' && <button onClick={() => setAlertsModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>🔔 ALERT SETTINGS</button>}
-        {userRole === 'ADMIN' && <button onClick={seedDatabase} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px dashed #ff9500', backgroundColor: 'transparent', color: '#ff9500', fontWeight: '800', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>🎲 SEED DB</button>}
         {userRole === 'ADMIN' && <button onClick={() => setFinanceModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #86868b', backgroundColor: 'transparent', color: '#d2d2d7', fontWeight: '800', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>📊 FLEET VALUE</button>}
       </div>
 
