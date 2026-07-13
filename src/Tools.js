@@ -5,40 +5,60 @@ import React, { useState, useMemo } from 'react';
 // Generates universal assets with dynamic PM metrics (Time, Usage, Cycles)
 const generateTools = () => {
   const templates = [
-    { prefix: "VEH", name: "Ford F-150 Fleet Truck (Unit 42)", value: 45000, metrics: [{ unit: "Days", current: 150, interval: 180 }, { unit: "Miles", current: 4850, interval: 5000 }] },
-    { prefix: "HVAC", name: "Carrier 5-Ton Rooftop AC", value: 6500, isDispatchable: false, metrics: [{ unit: "Days", current: 300, interval: 365 }, { unit: "Hours", current: 1950, interval: 2000 }] },
-    { prefix: "MILW", name: "Milwaukee M18 Force Logic Press", value: 2400, metrics: [{ unit: "Days", current: 45, interval: 60 }, { unit: "Crimps", current: 9800, interval: 10000 }] },
-    { prefix: "MILW", name: "Milwaukee M18 Fuel Hammer Drill", value: 299, metrics: [{ unit: "Days", current: 80, interval: 90 }] },
-    { prefix: "DWLT", name: "DeWalt 20V Max XR Impact Driver", value: 149, metrics: [{ unit: "Days", current: 10, interval: 90 }] },
-    { prefix: "HILT", name: "Hilti TE 70-ATC Rotary Hammer", value: 1850, metrics: [{ unit: "Days", current: 42, interval: 45 }] }
+    { prefix: "VEH", name: "Ford F-150 Fleet Truck", value: 45000, metrics: [{ unit: "Days", current: 0, interval: 180 }, { unit: "Miles", current: 0, interval: 5000 }] },
+    { prefix: "VEH", name: "RAM 2500 Heavy Duty", value: 55000, metrics: [{ unit: "Days", current: 0, interval: 180 }, { unit: "Miles", current: 0, interval: 5000 }] },
+    { prefix: "VEH", name: "Tesla Model 3 (Site Supervisor)", value: 42000, metrics: [{ unit: "Days", current: 0, interval: 365 }, { unit: "Miles", current: 0, interval: 10000 }] },
+    { prefix: "CAT", name: "Caterpillar 320 Excavator", value: 185000, isDispatchable: false, metrics: [{ unit: "Hours", current: 0, interval: 500 }, { unit: "Days", current: 0, interval: 180 }] },
+    { prefix: "CAT", name: "CAT 259D3 Compact Track Loader", value: 65000, metrics: [{ unit: "Hours", current: 0, interval: 250 }] },
+    { prefix: "LIFT", name: "JLG 1930ES Scissor Lift", value: 15000, metrics: [{ unit: "Days", current: 0, interval: 90 }, { unit: "Hours", current: 0, interval: 150 }] },
+    { prefix: "LIFT", name: "Genie Z-45 XC Boom Lift", value: 85000, metrics: [{ unit: "Days", current: 0, interval: 90 }] },
+    { prefix: "GEN", name: "Honda EU3000iS Generator", value: 2500, metrics: [{ unit: "Hours", current: 0, interval: 100 }] },
+    { prefix: "GEN", name: "Generac Mobile Diesel Light Tower", value: 14000, metrics: [{ unit: "Hours", current: 0, interval: 200 }] },
+    { prefix: "HVAC", name: "Carrier 5-Ton Rooftop AC", value: 6500, isDispatchable: false, metrics: [{ unit: "Days", current: 0, interval: 365 }, { unit: "Hours", current: 0, interval: 2000 }] },
+    { prefix: "HVAC", name: "Trane Portable Chiller Unit", value: 12000, metrics: [{ unit: "Days", current: 0, interval: 180 }] },
+    { prefix: "MILW", name: "Milwaukee M18 Force Logic Press", value: 2400, metrics: [{ unit: "Days", current: 0, interval: 60 }, { unit: "Crimps", current: 0, interval: 10000 }] },
+    { prefix: "MILW", name: "Milwaukee M18 Fuel Hammer Drill", value: 299, metrics: [{ unit: "Days", current: 0, interval: 90 }] },
+    { prefix: "MILW", name: "Milwaukee M18 Super Hawg", value: 450, metrics: [{ unit: "Days", current: 0, interval: 90 }] },
+    { prefix: "MILW", name: "Milwaukee Packout Radio/Charger", value: 299, metrics: [{ unit: "Days", current: 0, interval: 365 }] },
+    { prefix: "DWLT", name: "DeWalt 20V Max XR Impact Driver", value: 149, metrics: [{ unit: "Days", current: 0, interval: 90 }] },
+    { prefix: "DWLT", name: "DeWalt Flexvolt Table Saw", value: 599, metrics: [{ unit: "Days", current: 0, interval: 90 }] },
+    { prefix: "HILT", name: "Hilti TE 70-ATC Rotary Hammer", value: 1850, metrics: [{ unit: "Days", current: 0, interval: 45 }] },
+    { prefix: "TECH", name: "Panasonic Toughbook 55", value: 2200, metrics: [{ unit: "Days", current: 0, interval: 365 }] },
+    { prefix: "TECH", name: "FLIR E8-XT Thermal Camera", value: 3400, metrics: [{ unit: "Days", current: 0, interval: 365 }] },
+    { prefix: "TECH", name: "Cisco Catalyst 9300 Switch", value: 4500, isDispatchable: false, metrics: [{ unit: "Days", current: 0, interval: 365 }] },
+    { prefix: "SURV", name: "Leica TS16 Total Station", value: 28000, metrics: [{ unit: "Days", current: 0, interval: 180 }, { unit: "Uses", current: 0, interval: 50 }] }
   ];
 
-  const users = ["Mario Diaz", "Chris Evans", "Sarah Connor", "Marcus Johnson", "Elena Rodriguez", "David Kim"];
+  const users = ["Mario Diaz", "Chris Evans", "Sarah Connor", "Marcus Johnson", "Elena Rodriguez", "David Kim", "Priya Patel", "John Wick", "Ellen Ripley", "Tony Stark"];
   const conditions = ["New", "Excellent", "Good", "Fair", "Requires Maintenance"];
 
   let generated = [];
   for (let i = 1; i <= 100; i++) {
-    const t = templates[i % templates.length];
-    const isOut = (i % 3 === 0); 
-    const assignedUser = isOut ? users[i % users.length] : null;
-    const daysOut = isOut ? (i % 14) + 1 : 0;
-    const condition = conditions[i % conditions.length];
-    const idNum = String(i).padStart(3, '0');
+    const t = templates[Math.floor(Math.random() * templates.length)];
+    const isOut = (Math.random() > 0.6); 
+    const assignedUser = isOut ? users[Math.floor(Math.random() * users.length)] : null;
+    const daysOut = isOut ? Math.floor(Math.random() * 20) + 1 : 0;
     
-    // Create variance in the metrics to trigger different UI states
+    // 5% chance it's literally flagged as Damaged
+    const isDamaged = Math.random() > 0.95;
+    const condition = isDamaged ? "Damaged" : conditions[Math.floor(Math.random() * conditions.length)];
+    
+    const idNum = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
+    const generatedId = `${t.prefix}-${idNum}`;
+    
     const assetMetrics = t.metrics.map(m => {
-      let variance = 0;
-      if (i % 7 === 0) variance = m.interval * 1.1; // Overdue
-      else if (i % 6 === 0) variance = m.interval * 0.95; // Due this week
-      else if (i % 5 === 0) variance = m.interval * 0.85; // Due next week
-      else variance = m.interval * 0.4; // Healthy
+      let variance = m.interval * (Math.random() * 1.15); // Randomize up to 115% of interval to create some overdues
       return { ...m, current: Math.floor(variance) };
     });
 
     generated.push({
-      toolId: `${t.prefix}-${idNum}`,
+      toolId: generatedId,
       name: t.name,
       value: t.value,
+      category: t.prefix === "TECH" ? "IT Equipment" : (t.prefix === "VEH" ? "Fleet Vehicle" : "Heavy/Power Tools"),
+      location: isOut ? "Field" : "Main Tool Crib",
+      serial: "SN-" + Math.floor(Math.random() * 100000000),
+      link: "",
       status: isOut ? "CHECKED_OUT" : "AVAILABLE",
       condition: condition,
       assignedUser: assignedUser,
@@ -47,7 +67,7 @@ const generateTools = () => {
       metrics: assetMetrics,
       history: isOut ? [
         { user: assignedUser, action: "Checked Out", date: `${daysOut} days ago`, condition: condition }
-      ] : (i % 2 === 0 ? [{ user: users[(i+1)%users.length], action: "Returned", date: "2 days ago", condition: condition }] : [])
+      ] : (Math.random() > 0.5 ? [{ user: "Admin", action: "Returned", date: "2 days ago", condition: condition }] : [])
     });
   }
   return generated;
@@ -151,6 +171,20 @@ function Tools({ user }) {
     const pct = critical.current / critical.interval;
     return pct >= 0.60 && pct < 0.80;
   });
+
+  
+  const seedDatabase = async () => {
+    if (!window.confirm("WARNING: This will generate 100 random assets and push them to your live DynamoDB table. Proceed?")) return;
+    const newTools = generateTools();
+    
+    setTools(prev => [...newTools, ...prev]);
+    
+    for (const t of newTools) {
+      await syncDB(t);
+    }
+    console.log("✅ Seed complete!");
+    alert("100 Assets successfully seeded to DynamoDB!");
+  };
 
   const handleAddAsset = () => {
     if (!newTool.name || !newTool.value) return;
@@ -391,6 +425,7 @@ function Tools({ user }) {
           + INGEST ASSET
         </button>}
         {userRole === 'ADMIN' && <button onClick={() => setAlertsModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>🔔 ALERT SETTINGS</button>}
+        {userRole === 'ADMIN' && <button onClick={seedDatabase} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px dashed #ff9500', backgroundColor: 'transparent', color: '#ff9500', fontWeight: '800', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>🎲 SEED DB</button>}
       </div>
 
       {/* VIEW ROUTING */}
