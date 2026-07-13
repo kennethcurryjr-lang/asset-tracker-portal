@@ -224,24 +224,24 @@ function Tools({ user }) {
       toolId: generatedId,
       name: newTool.name,
       value: parseInt(newTool.value) || 0,
-      category: newTool.category || 'General',
+      category: newTool.prefix?.toUpperCase() === 'KIT' ? 'Standard Kit' : (newTool.category || 'General'),
       location: newTool.location || 'Unassigned',
       serial: newTool.serial || 'N/A',
       link: newTool.link || '',
       isDispatchable: newTool.isDispatchable,
       isSpecialty: newTool.isSpecialty,
-      status: "AVAILABLE",
+      status: newTool.assignee ? "CHECKED_OUT" : "AVAILABLE",
       condition: newTool.condition,
-      assignedUser: null,
+      assignedUser: newTool.assignee || null,
       daysOut: 0,
       metrics: [{ unit: newTool.pmMetric, current: 0, interval: parseInt(newTool.pmInterval) || 90 }],
-      history: [{ user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }]
+      history: newTool.assignee ? [{ user: newTool.assignee, action: "Auto-Dispatched during ingestion", date: "Just now", condition: newTool.condition }, { user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }] : [{ user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }]
     };
     
     syncDB(newToolObj);
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
-    setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false });
+    setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false, assignee: '' });
     setSelectedToolId(generatedId);
     setActiveView('DISPATCH');
   };
@@ -850,7 +850,7 @@ function Tools({ user }) {
 
               <div style={{ display: 'flex', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 2 }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOOL NAME / MODEL</label>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>{newTool.prefix?.toUpperCase() === "KIT" ? "NAME: KIT DESCRIPTION" : "NAME: TOOL NAME / MODEL"}</label>
                   <input type="text" placeholder="e.g. Ford F-150 Fleet Truck" value={newTool.name} onChange={(e) => setNewTool({...newTool, name: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
@@ -866,7 +866,7 @@ function Tools({ user }) {
               <div style={{ display: 'flex', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOOL CLASS / CATEGORY</label>
-                  <input list="category-options" placeholder="e.g. HVAC, Power Tool" value={newTool.category} onChange={(e) => setNewTool({...newTool, category: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                  <input list="category-options" placeholder={newTool.prefix?.toUpperCase() === "KIT" ? "Auto-assigned" : "e.g. HVAC, Power Tool"} value={newTool.prefix?.toUpperCase() === "KIT" ? "Standard Kit" : newTool.category} disabled={newTool.prefix?.toUpperCase() === "KIT"} onChange={(e) => setNewTool({...newTool, category: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none', opacity: newTool.prefix?.toUpperCase() === "KIT" ? 0.5 : 1 }} />
                   <datalist id="category-options">
                     <option value="Power Tool">Power Tool</option>
                     <option value="Heavy Machinery">Heavy Machinery</option>
@@ -890,7 +890,7 @@ function Tools({ user }) {
 
               <div style={{ display: 'flex', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>SERIAL NUMBER / VIN</label>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>{newTool.prefix?.toUpperCase() === "KIT" ? "SERIAL NUMBERS (COMMA SEPARATED)" : "SERIAL NUMBER / VIN"}</label>
                   <input type="text" placeholder="e.g. 1FTEW1E49K..." value={newTool.serial} onChange={(e) => setNewTool({...newTool, serial: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
@@ -899,6 +899,12 @@ function Tools({ user }) {
                 </div>
               </div>
 
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                  <label style={{ fontSize: '11px', color: '#ff9500', fontWeight: '800', letterSpacing: '0.05em' }}>RAPID ASSIGN TO EMPLOYEE (OPTIONAL)</label>
+                  <input type="text" placeholder="e.g. Sarah Connor (Leave blank to ingest to Tool Crib)" value={newTool.assignee || ''} onChange={(e) => setNewTool({...newTool, assignee: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid rgba(255,149,0,0.5)', backgroundColor: 'rgba(255,149,0,0.08)', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+              </div>
               <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>PM METRIC</label>
