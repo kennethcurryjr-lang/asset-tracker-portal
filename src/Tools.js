@@ -1,6 +1,7 @@
 import { docClient } from './dynamoClient';
 import { ScanCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import React, { useState, useMemo } from 'react';
+import { uploadData, getUrl } from "aws-amplify/storage";
 
 // Generates universal tools with dynamic PM metrics (Time, Usage, Cycles)
 const generateTools = () => {
@@ -283,9 +284,23 @@ function Tools({ user }) {
     }
   };
 
-  const logService = (toolId) => {
-    const attachedFile = pendingAttachments[toolId];
+  const logService = async (toolId) => {
+    const fileObj = pendingAttachments[toolId];
     const note = serviceNotes[toolId];
+    let uploadedFilename = null;
+    let viewableUrl = null;
+    if (fileObj) {
+      try {
+        uploadedFilename = `${toolId}-${Date.now()}-${fileObj.name}`;
+        await uploadData({
+          path: `public/service-logs/${uploadedFilename}`,
+          data: fileObj,
+          options: { contentType: fileObj.type }
+        }).result;
+        const link = await getUrl({ path: `public/service-logs/${uploadedFilename}` });
+        viewableUrl = link.url.toString();
+      } catch (err) { console.error("S3 Upload Failed:", err); }
+    }
     setTools(prev => prev.map(t => {
       if (t.toolId === toolId) {
         const resetMetrics = t.metrics.map(m => ({ ...m, current: 0 }));
@@ -296,9 +311,10 @@ function Tools({ user }) {
           history: [{ 
             user: "Admin", 
             action: "PM Service Completed & Intervals Reset", 
-            date: 'Just now', 
+            date: "Just now", 
             condition: "Excellent",
-            attachment: attachedFile || null,
+            attachment: fileObj ? fileObj.name : null,
+            attachmentUrl: viewableUrl,
             note: note || null
           }, ...t.history]
         };
@@ -307,7 +323,6 @@ function Tools({ user }) {
       }
       return t;
     }));
-    
     setPendingAttachments(prev => { const newState = { ...prev }; delete newState[toolId]; return newState; });
     setServiceNotes(prev => { const newState = { ...prev }; delete newState[toolId]; return newState; });
     setServiceChecklists(prev => { const newState = { ...prev }; delete newState[toolId]; return newState; });
@@ -549,7 +564,7 @@ function Tools({ user }) {
                                   <label htmlFor={`file-${tool.toolId}`} onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', borderRadius: '8px', backgroundColor: pendingAttachments[tool.toolId] ? 'rgba(52,199,89,0.15)' : '#2c2c2e', border: pendingAttachments[tool.toolId] ? '1px solid #34c759' : '1px dashed #86868b', color: pendingAttachments[tool.toolId] ? '#34c759' : '#d2d2d7', cursor: 'pointer', transition: 'all 0.2s' }}>
                                     {pendingAttachments[tool.toolId] ? '📎' : '📷'}
                                   </label>
-                                  <input type="file" id={`file-${tool.toolId}`} style={{ display: 'none' }} onChange={(e) => { if(e.target.files[0]) { setPendingAttachments(prev => ({...prev, [tool.toolId]: e.target.files[0].name})); } }} />
+                                  <input type="file" id={`file-${tool.toolId}`} style={{ display: 'none' }} onChange={(e) => { if(e.target.files[0]) { setPendingAttachments(prev => ({...prev, [tool.toolId]: e.target.files[0]})); } }} />
                                 </div>
 
                                 <button disabled={(serviceChecklists[tool.toolId] || []).length !== 3} onClick={(e) => { e.stopPropagation(); logService(tool.toolId); }} style={{ marginTop: 'auto', padding: '10px', borderRadius: '8px', backgroundColor: '#34c759', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer', opacity: (serviceChecklists[tool.toolId] || []).length === 3 ? 1 : 0.4 }}>
@@ -647,7 +662,7 @@ function Tools({ user }) {
                             )}
                             
                             {log.attachment && (
-                              <div style={{ fontSize: '12px', color: '#007aff', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: '600' }}>
+                              <div onClick={() => log.attachmentUrl && window.open(log.attachmentUrl, "_blank")} style={{ fontSize: "12px", color: log.attachmentUrl ? "#007aff" : "#86868b", marginTop: "6px", display: "flex", alignItems: "center", gap: "6px", cursor: log.attachmentUrl ? "pointer" : "default", fontWeight: "600", textDecoration: log.attachmentUrl ? "underline" : "none" }}>
                                 <span>📎</span> {log.attachment}
                               </div>
                             )}
