@@ -129,8 +129,6 @@ function Tools({ user }) {
   const [dispatchProject, setDispatchProject] = useState("");
   const [dispatchTerms, setDispatchTerms] = useState(false);
   const sigPad = React.useRef(null);
-  const [dispatchSignature, setDispatchSignature] = useState("");
-  const [dispatchTerms, setDispatchTerms] = useState(false);
   
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [returnModalOpen, setReturnModalOpen] = useState(false);
@@ -925,12 +923,14 @@ function Tools({ user }) {
                 </div>
               </div>
 
+              {newTool.prefix?.toUpperCase() === 'KIT' && (
               <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                   <label style={{ fontSize: '11px', color: '#ff9500', fontWeight: '800', letterSpacing: '0.05em' }}>RAPID ASSIGN TO EMPLOYEE (OPTIONAL)</label>
                   <input type="text" placeholder="e.g. Sarah Connor (Leave blank to ingest to Tool Crib)" value={newTool.assignee || ''} onChange={(e) => setNewTool({...newTool, assignee: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid rgba(255,149,0,0.5)', backgroundColor: 'rgba(255,149,0,0.08)', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
               </div>
+            )}
               <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>PM METRIC</label>
