@@ -117,7 +117,9 @@
           "public/*": {
             "guest": [
               "get",
-              "list"
+              "list",
+              "write",
+              "delete"
             ],
             "authenticated": [
               "get",

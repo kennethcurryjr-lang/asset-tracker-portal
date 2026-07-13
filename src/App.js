@@ -762,7 +762,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     auth.removeUser();
     const cognitoDomain = "auth.titanassets.dev";
     const clientId = "51fu0mfnpb0r0e319ftppvcbaf";
-    const logoutUri = "https://titanassets.dev/";
+    const logoutUri = window.location.hostname === 'localhost' ? 'http://localhost:3000/' : 'https://titanassets.dev/';
     window.location.href = `https://` + cognitoDomain + `/logout?client_id=` + clientId + `&logout_uri=` + encodeURIComponent(logoutUri);
   };
 

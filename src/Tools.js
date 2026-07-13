@@ -102,9 +102,7 @@ function Tools({ user }) {
   const deleteTool = async (toolId) => {
     if (!window.confirm(`WARNING: Are you sure you want to permanently delete ${toolId} from the database? This cannot be undone.`)) return;
     try {
-      await docClient.send(new DeleteCommand({ TableName: "KineticToolsData", Key: { toolId } }));
-      setTools(prev => prev.filter(t => t.toolId !== toolId));
-      setSelectedToolId(null);
+      setTools(prev => prev.filter(t => t.toolId !== toolId)); setSelectedToolId(null); await docClient.send(new DeleteCommand({ TableName: 'KineticToolsData', Key: { toolId } }));
     } catch (err) { console.error("Delete Error:", err); }
   };
 
@@ -123,15 +121,23 @@ function Tools({ user }) {
   const [serviceNotes, setServiceNotes] = useState({});
   const [serviceChecklists, setServiceChecklists] = useState({});
   const [bulkSelectedTools, setBulkSelectedTools] = useState([]);
+  const [selectedLedgerLogs, setSelectedLedgerLogs] = useState([]);
+  const [auditCleared, setAuditCleared] = useState({});
   
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [dispatchUser, setDispatchUser] = useState("");
+  const [dispatchCondition, setDispatchCondition] = useState("Excellent");
+  const [dispatchNotes, setDispatchNotes] = useState("");
   const [dispatchProject, setDispatchProject] = useState("");
   const [dispatchTerms, setDispatchTerms] = useState(false);
   const [ingestTerms, setIngestTerms] = useState(false);
+  const [ingestPhoto, setIngestPhoto] = useState(null);
   const sigPad = React.useRef(null);
   
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [csvData, setCsvData] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
   const [returnModalOpen, setReturnModalOpen] = useState(false);
   const [returnChecklist, setReturnChecklist] = useState({ primary: false, battery: false, accessories: false });
   const [alertsModalOpen, setAlertsModalOpen] = useState(false);
@@ -174,23 +180,23 @@ function Tools({ user }) {
     });
   };
 
-  const overdueTools = tools.filter(t => checkIsOverdue(t.metrics));
+  const overdueTools = filteredTools.filter(t => checkIsOverdue(t.metrics));
   
-  const thisWeekTools = tools.filter(t => {
+  const thisWeekTools = filteredTools.filter(t => {
     if (checkIsOverdue(t.metrics)) return false;
     const critical = getMostCriticalMetric(t.metrics);
     const pct = critical.current / critical.interval;
     return pct >= 0.90 && pct < 1.0; 
   });
   
-  const nextWeekTools = tools.filter(t => {
+  const nextWeekTools = filteredTools.filter(t => {
     if (checkIsOverdue(t.metrics)) return false;
     const critical = getMostCriticalMetric(t.metrics);
     const pct = critical.current / critical.interval;
     return pct >= 0.80 && pct < 0.90;
   });
   
-  const thisMonthTools = tools.filter(t => {
+  const thisMonthTools = filteredTools.filter(t => {
     if (checkIsOverdue(t.metrics)) return false;
     const critical = getMostCriticalMetric(t.metrics);
     const pct = critical.current / critical.interval;
@@ -212,8 +218,8 @@ function Tools({ user }) {
     alert("100 Tools successfully seeded to DynamoDB!");
   };
 
-  const handleAddTool = () => {
-    if (!newTool.prefix || !newTool.name || !newTool.value) return;
+  const handleAddTool = async () => {
+    if (!newTool.prefix || (!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value) return;
     
     const standardPrefixes = ['VEH', 'HVAC', 'MILW', 'DWLT', 'HILT', 'MAKI', 'BSCH', 'CAT', 'LIFT', 'GEN', 'TECH', 'SURV', 'KIT'];
     if (!standardPrefixes.includes(newTool.prefix.toUpperCase())) {
@@ -229,27 +235,43 @@ function Tools({ user }) {
         return;
       }
     }
-    const ingestSigData = (isKit && newTool.assignee && sigPad.current && !sigPad.current.isEmpty()) ? sigPad.current.getTrimmedCanvas().toDataURL('image/png') : null;
+    const ingestSigData = (isKit && newTool.assignee && sigPad.current && !sigPad.current.isEmpty()) ? sigPad.current.getCanvas().toDataURL('image/png') : null;
+
+    let ingestPhotoUrl = null;
+    let ingestPhotoName = null;
+    if (isKit && newTool.assignee && ingestPhoto) {
+      try {
+        const uploadedFilename = `KIT-${Date.now()}-${ingestPhoto.name.replace(/\s+/g, '_')}`;
+        await uploadData({
+          path: `public/service-logs/${uploadedFilename}`,
+          data: ingestPhoto,
+          options: { contentType: ingestPhoto.type }
+        }).result;
+        const link = await getUrl({ path: `public/service-logs/${uploadedFilename}` });
+        ingestPhotoUrl = link.url.toString();
+        ingestPhotoName = ingestPhoto.name;
+      } catch (err) { console.error("Kit Photo Upload Failed:", err); }
+    }
 
     const idNum = String(Math.floor(Math.random() * 900) + 100);
     const generatedId = `${newTool.prefix}-${idNum}`;
     
     const newToolObj = {
       toolId: generatedId,
-      name: newTool.name,
+      name: newTool.prefix?.toUpperCase() === 'KIT' ? 'Standard Deployment Kit' : newTool.name,
       value: parseInt(newTool.value) || 0,
       category: newTool.prefix?.toUpperCase() === 'KIT' ? 'Standard Kit' : (newTool.category || 'General'),
       location: newTool.location || 'Unassigned',
       serial: newTool.serial || 'N/A',
       link: newTool.link || '',
-      isDispatchable: newTool.isDispatchable,
+      isDispatchable: newTool.prefix?.toUpperCase() === 'KIT' ? true : newTool.isDispatchable,
       isSpecialty: newTool.isSpecialty,
       status: newTool.assignee ? "CHECKED_OUT" : "AVAILABLE",
       condition: newTool.condition,
       assignedUser: newTool.assignee || null,
       daysOut: 0,
       metrics: [{ unit: newTool.pmMetric, current: 0, interval: parseInt(newTool.pmInterval) || 90 }],
-      history: newTool.assignee ? [{ user: newTool.assignee, action: "Auto-Dispatched during ingestion" + (isKit ? " | E-Signed" : ""), ...(ingestSigData && { signatureUrl: ingestSigData }), date: "Just now", condition: newTool.condition }, { user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }] : [{ user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }]
+      history: newTool.assignee ? [{ user: newTool.assignee, action: "Auto-Dispatched during ingestion" + (isKit ? " | E-Signed" : ""), ...(ingestSigData && { signatureUrl: ingestSigData }), ...(ingestPhotoUrl && { attachmentUrl: ingestPhotoUrl, attachment: '📷 Kit Manifest: ' + ingestPhotoName }), date: "Just now", condition: newTool.condition }, { user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }] : [{ user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }]
     };
     
     syncDB(newToolObj);
@@ -257,44 +279,71 @@ function Tools({ user }) {
     setAddModalOpen(false);
     setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false, assignee: '' });
     setIngestTerms(false);
+    setIngestPhoto(null);
     if (sigPad.current) sigPad.current.clear();
     setSelectedToolId(generatedId);
     setActiveView('DISPATCH');
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!dispatchUser) return;
-    const isKit = selectedTool && selectedTool.prefix === 'KIT';
     
-    if (isKit && (!dispatchTerms || !sigPad.current || sigPad.current.isEmpty())) {
-      alert("Please accept the terms and provide a signature for this kit.");
+    
+    if (!dispatchTerms || !sigPad.current || sigPad.current.isEmpty()) {
+      alert("Please accept the terms and provide a signature to authorize this dispatch.");
       return;
     }
     
-    const sigData = (isKit && sigPad.current && !sigPad.current.isEmpty()) ? sigPad.current.getTrimmedCanvas().toDataURL('image/png') : null;
+    const sigData = (sigPad.current && !sigPad.current.isEmpty()) ? sigPad.current.getCanvas().toDataURL('image/png') : null;
+
+    // --- TELEMETRY CAPTURE ---
+    let ipAddress = "Unknown IP";
+    try {
+      const res = await fetch('https://api.ipify.org?format=json');
+      const data = await res.json();
+      ipAddress = data.ip;
+    } catch(err) { console.warn("IP fetch failed"); }
+
+    let deviceId = localStorage.getItem('kinetic_device_id');
+    if (!deviceId) {
+      deviceId = 'AUTH-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+      localStorage.setItem('kinetic_device_id', deviceId);
+    }
+    
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+    const telemetryData = `IP: ${ipAddress} | ID: ${deviceId} | ${isMobile}`;
+    // -------------------------
     
     setTools(prev => prev.map(t => {
-      if (t.toolId === selectedToolId) {
-        return {
-          ...t,
-          status: 'CHECKED_OUT',
-          assignedUser: dispatchUser,
-          daysOut: 0,
-          history: [{ 
-            user: dispatchUser, 
-            action: `Dispatched to: ${dispatchProject || 'Field'}${isKit ? ' | E-Signed' : ''}`, 
-            ...(sigData && { signatureUrl: sigData }),
-            date: 'Just now', 
-            condition: t.condition 
-          }, ...t.history]
-        };
-      }
-      return t;
-    }));
+if (t.toolId === selectedToolId) {
+const ut = {
+  ...t,
+  status: 'CHECKED_OUT',
+  assignedUser: dispatchUser,
+  daysOut: 0,
+  condition: dispatchCondition,
+  history: [{ 
+    user: dispatchUser, 
+    action: `Dispatched to: ${dispatchProject || 'Field'} | E-Signed`, 
+    ...(sigData && { signatureUrl: sigData }),
+    note: dispatchNotes,
+    date: 'Just now', 
+    condition: dispatchCondition,
+    telemetry: telemetryData
+  }, ...t.history]
+};
+syncDB(ut); // Save the updated condition to the database
+return ut;
+}
+return t;
+}));
     
     setCheckoutModalOpen(false);
+    setAuditCleared(prev => { const newState = { ...prev }; delete newState[selectedToolId]; return newState; });
     setDispatchUser("");
     setDispatchProject("");
+    setDispatchCondition("Excellent");
+    setDispatchNotes("");
     setDispatchTerms(false);
     if (sigPad.current) sigPad.current.clear();
   };
@@ -311,6 +360,7 @@ function Tools({ user }) {
     syncDB(ut); // SILENT BUG FIXED: Return actions now save to cloud
     setTools(prev => prev.map(t => t.toolId === tool.toolId ? ut : t));
     setReturnModalOpen(false);
+    setAuditCleared(prev => { const newState = { ...prev }; delete newState[tool.toolId]; return newState; });
   };
 
   const handleReturn = (targetId) => {
@@ -348,12 +398,15 @@ function Tools({ user }) {
       if (t.toolId === toolId) {
         const resetMetrics = t.metrics.map(m => ({ ...m, current: 0 }));
         const ut = {
-          ...t,
-          metrics: resetMetrics,
-          condition: "Excellent",
-          history: [{ 
-            user: "Admin", 
-            action: "PM Service Completed & Intervals Reset", 
+                  ...t,
+                  metrics: resetMetrics,
+                  condition: "Excellent",
+                  status: t.status === 'CHECKED_OUT' ? 'AVAILABLE' : t.status,
+                  assignedUser: t.status === 'CHECKED_OUT' ? null : t.assignedUser,
+                  daysOut: t.status === 'CHECKED_OUT' ? 0 : t.daysOut,
+                  history: [{ 
+                    user: t.status === 'CHECKED_OUT' ? (t.assignedUser || "Admin") : "Admin", 
+                    action: t.status === 'CHECKED_OUT' ? "Returned, Audited & Serviced" : "PM Service Completed & Intervals Reset", 
             date: "Just now", 
             condition: "Excellent",
             attachment: fileObj ? fileObj.name : null,
@@ -477,25 +530,62 @@ function Tools({ user }) {
       `}</style>
 
       {/* MASTER TOGGLE & INGEST ACTION DECK */}
-      <div style={{ display: 'flex', gap: '8px', backgroundColor: '#1c1c1e', padding: '6px', borderRadius: '12px', width: 'fit-content', margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#1c1c1e', borderRadius: '8px', padding: '4px', border: '1px solid #3a3a3c', marginRight: '16px' }}>
-      <button onClick={() => setUserRole('TECH')} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', backgroundColor: userRole === 'TECH' ? '#34c759' : 'transparent', color: userRole === 'TECH' ? '#1d1d1f' : '#86868b', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>TECH</button>
-      <button onClick={() => setUserRole('ADMIN')} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', backgroundColor: userRole === 'ADMIN' ? '#ffcc00' : 'transparent', color: userRole === 'ADMIN' ? '#1d1d1f' : '#86868b', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>ADMIN</button>
-    </div>
-    <button onClick={() => setActiveView('DISPATCH')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'DISPATCH' ? '#ffcc00' : 'transparent', color: activeView === 'DISPATCH' ? '#1d1d1f' : '#86868b' }}>
-          📦 FLEET DISPATCH
-        </button>
-        {userRole === 'ADMIN' && <button onClick={() => setActiveView('MAINTENANCE')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'MAINTENANCE' ? '#ffcc00' : 'transparent', color: activeView === 'MAINTENANCE' ? '#1d1d1f' : '#86868b' }}>
-          🛠️ MAINTENANCE HUB
-        </button>}
-        <div style={{ width: '1px', backgroundColor: '#3a3a3c', margin: '4px 8px' }}></div>
-        {userRole === 'ADMIN' && <button onClick={() => setAddModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #34c759', backgroundColor: 'transparent', color: '#34c759', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>
-          + INGEST TOOL
-        </button>}
-        {userRole === 'ADMIN' && <button onClick={() => setAlertsModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>🔔 ALERT SETTINGS</button>}
-        {userRole === 'ADMIN' && <button onClick={() => setFinanceModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #86868b', backgroundColor: 'transparent', color: '#d2d2d7', fontWeight: '800', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>📊 FLEET VALUE</button>}
-      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '12px 24px', borderRadius: '16px', width: '100%', boxSizing: 'border-box', border: '1px solid #3a3a3c', marginTop: '24px', marginBottom: '12px' }}>
+        
+        {/* LEFT: Role Toggle */}
+        <div style={{ display: 'flex', flex: 1, justifyContent: 'flex-start' }}>
+          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#121212', borderRadius: '8px', padding: '4px', border: '1px solid #3a3a3c' }}>
+            <button onClick={() => setUserRole('TECH')} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', backgroundColor: userRole === 'TECH' ? '#ffffff' : 'transparent', color: userRole === 'TECH' ? '#121212' : '#86868b', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>TECH</button>
+            <button onClick={() => setUserRole('ADMIN')} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', backgroundColor: userRole === 'ADMIN' ? '#ffffff' : 'transparent', color: userRole === 'ADMIN' ? '#121212' : '#86868b', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>ADMIN</button>
+          </div>
+        </div>
 
+        {/* CENTER: Main Operations */}
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={() => setActiveView('DISPATCH')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'DISPATCH' ? '#ffffff' : 'transparent', color: activeView === 'DISPATCH' ? '#121212' : '#86868b' }}>
+            📦 FLEET DISPATCH
+          </button>
+          {userRole === 'ADMIN' && (
+            <button onClick={() => setActiveView('MAINTENANCE')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'MAINTENANCE' ? '#ffffff' : 'transparent', color: activeView === 'MAINTENANCE' ? '#121212' : '#86868b' }}>
+              🛠️ MAINTENANCE HUB
+            </button>
+          )}
+          
+          {userRole === 'ADMIN' && (
+            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#121212', borderRadius: '8px', padding: '4px', border: '1px solid #3a3a3c', marginLeft: '8px' }}>
+              <button onClick={() => setAddModalOpen(true)} style={{ padding: '6px 14px', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'background-color 0.2s' }}>
+                + SINGLE
+              </button>
+              <div style={{ width: '1px', height: '16px', backgroundColor: '#3a3a3c', margin: '0 4px' }}></div>
+              <button onClick={() => setBulkModalOpen(true)} style={{ padding: '6px 14px', borderRadius: '6px', border: 'none', backgroundColor: 'rgba(255,204,0,0.1)', color: '#ffcc00', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'background-color 0.2s' }}>
+                + BULK CSV
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT: Admin Tools (Cohesive Control Pad) */}
+        <div style={{ display: 'flex', flex: 1, justifyContent: 'flex-end' }}>
+          {userRole === 'ADMIN' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', backgroundColor: '#121212', padding: '2px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
+              <button onClick={() => setActiveView('LEDGER')} style={{ padding: '4px 14px', borderRadius: '6px', border: 'none', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'LEDGER' ? '#ffffff' : 'transparent', color: activeView === 'LEDGER' ? '#121212' : '#86868b', width: '100%', textAlign: 'center' }}>
+                📜 MASTER LEDGER
+              </button>
+              <div style={{ display: 'flex', gap: '2px' }}>
+                <button onClick={() => setAlertsModalOpen(true)} style={{ flex: 1, padding: '4px 10px', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'background-color 0.2s', whiteSpace: 'nowrap' }}>
+                  🔔 ALERTS
+                </button>
+                <div style={{ width: '1px', backgroundColor: '#3a3a3c', margin: '2px 0' }}></div>
+                <button onClick={() => setFinanceModalOpen(true)} style={{ flex: 1, padding: '4px 10px', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#d2d2d7', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'background-color 0.2s', whiteSpace: 'nowrap' }}>
+                  📊 FINANCE
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+      </div>
+      
       {/* VIEW ROUTING */}
       {activeView === 'DISPATCH' ? (
         <div className="desktop-layout">
@@ -518,19 +608,19 @@ function Tools({ user }) {
                 
                 let cardBorder = '1px solid #3a3a3c';
                 let cardShadow = 'none';
+                let cardBg = isServiceDue ? '#221515' : '#1c1c1e';
                 if (isSelected) {
-                  cardBorder = isServiceDue ? '2px solid #ff3b30' : '2px solid #ffcc00';
-                  cardShadow = isServiceDue ? '0 0 15px rgba(255, 59, 48, 0.2)' : '0 0 15px rgba(255, 204, 0, 0.15)';
-                } else if (isServiceDue) {
-                  cardBorder = '1px solid rgba(255,59,48,0.5)';
-                }
+                  cardBorder = '1px solid #007aff';
+                  cardShadow = '0 0 0 1px #007aff';
+                  cardBg = isServiceDue ? '#2a1a1a' : '#222226';
+                } else if (isServiceDue) { cardBorder = '1px solid #3a3a3c'; }
 
                 return (
                     <div key={tool.toolId} className="card-perspective-wrapper" onClick={() => setSelectedToolId(tool.toolId)}>
                     <div className={`card-flipper ${isFlipped ? 'flipped' : ''}`}>
                         
                         {/* FRONT FACE */}
-                        <div className="card-face card-front" style={{ padding: '16px', border: cardBorder, boxShadow: cardShadow, display: 'flex', flexDirection: 'column', gap: '12px', cursor: 'pointer', backgroundColor: isServiceDue ? '#221515' : '#1c1c1e' }}>
+                        <div className="card-face card-front" style={{ padding: '16px', border: cardBorder, boxShadow: cardShadow, display: 'flex', flexDirection: 'column', gap: '12px', cursor: 'pointer', backgroundColor: cardBg }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '4px', backgroundColor: isServiceDue ? 'rgba(255,59,48,0.15)' : (isOut ? 'rgba(255,149,0,0.15)' : 'rgba(52,199,89,0.15)'), color: isServiceDue ? '#ff3b30' : (isOut ? '#ff9500' : '#34c759'), letterSpacing: '0.05em' }}>
                             {isServiceDue ? 'SERVICE DUE' : (isOut ? 'DEPLOYED' : 'IN CRIB')}
@@ -545,9 +635,7 @@ function Tools({ user }) {
                         
                         <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
                             {tool.isDispatchable !== false ? (
-                              <button disabled={isServiceDue && !isOut} onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); isOut ? handleReturn(tool.toolId) : setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: isServiceDue ? '#2c2c2e' : (isSelected ? '#ffcc00' : '#2c2c2e'), color: isServiceDue ? '#636366' : (isSelected ? '#1d1d1f' : '#ffffff'), border: 'none', fontWeight: '700', fontSize: '12px', cursor: isServiceDue && !isOut ? 'not-allowed' : 'pointer' }}>
-                                {isServiceDue && !isOut ? 'LOCKED' : (isOut ? 'RETURN' : 'CHECK OUT')}
-                              </button>
+                              <button disabled={isServiceDue && !isOut} onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); isOut ? setFlippedCards(prev => ({...prev, [tool.toolId]: true})) : setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: isServiceDue ? '#2c2c2e' : '#007aff', color: isServiceDue ? '#636366' : '#ffffff', border: 'none', fontWeight: '800', fontSize: '11px', cursor: isServiceDue && !isOut ? 'not-allowed' : 'pointer' }}>{isServiceDue && !isOut ? 'LOCKED' : (isOut ? 'RETURN' : 'CHECK OUT')}</button>
                             ) : (
                               <div style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#1c1c1e', color: '#86868b', border: '1px solid #3a3a3c', fontWeight: '700', fontSize: '12px', textAlign: 'center', boxSizing: 'border-box' }}>STATIC TOOL</div>
                             )}
@@ -562,8 +650,8 @@ function Tools({ user }) {
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'flex-start' }}>
                             <div style={{ display: 'flex', gap: '4px', flex: 1, marginRight: '8px', flexWrap: 'wrap' }}>
                             <button className={`tab-btn ${activeTab === 'service' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'service'})); }}>🛠️ PM</button>
-                            <button className={`tab-btn ${activeTab === 'manifest' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'manifest'})); }}>🧰 KITS</button>
-                            <button className={`tab-btn ${activeTab === 'qr' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'qr'})); }}>📱 QR</button>
+                            {tool.isDispatchable !== false && (<button className={`tab-btn ${activeTab === 'manifest' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'manifest'})); }}>🧰 KITS</button>)}
+                            {tool.isDispatchable !== false && (<button className={`tab-btn ${activeTab === 'qr' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'qr'})); }}>📱 QR</button>)}
                             <button className={`tab-btn ${activeTab === 'specs' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'specs'})); }}>📄 INFO</button>
                             </div>
                             <button onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => ({...prev, [tool.toolId]: false})); }} style={{ background: 'transparent', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '16px', padding: 0, marginTop: '2px' }}>✕</button>
@@ -610,9 +698,7 @@ function Tools({ user }) {
                                   <input type="file" id={`file-${tool.toolId}`} style={{ display: 'none' }} onChange={(e) => { if(e.target.files[0]) { setPendingAttachments(prev => ({...prev, [tool.toolId]: e.target.files[0]})); } }} />
                                 </div>
 
-                                <button disabled={(serviceChecklists[tool.toolId] || []).length !== 3} onClick={(e) => { e.stopPropagation(); logService(tool.toolId); }} style={{ marginTop: 'auto', padding: '10px', borderRadius: '8px', backgroundColor: '#34c759', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer', opacity: (serviceChecklists[tool.toolId] || []).length === 3 ? 1 : 0.4 }}>
-                                  LOG SERVICE & RESET
-                                </button>
+                                <button disabled={(serviceChecklists[tool.toolId] || []).length !== 3} onClick={(e) => { e.stopPropagation(); logService(tool.toolId); }} style={{ marginTop: 'auto', padding: '10px', borderRadius: '8px', backgroundColor: '#34c759', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer', opacity: (serviceChecklists[tool.toolId] || []).length === 3 ? 1 : 0.4 }}>{isOut ? 'LOG RETURN & RESET' : 'LOG SERVICE & RESET'}</button>
                               </div>
                             )}
 
@@ -636,11 +722,35 @@ function Tools({ user }) {
                                 <div><span style={{ color: '#d2d2d7', fontWeight: '600' }}>Value:</span> ${tool.value}</div>
                                 <div><span style={{ color: '#d2d2d7', fontWeight: '600' }}>Purchased:</span> Jan 14, 2024</div>
                                 <div><span style={{ color: '#d2d2d7', fontWeight: '600' }}>Warranty:</span> Expires Jan 2029</div>
-                                <div style={{ color: '#ffcc00', fontWeight: '600', cursor: 'pointer', marginTop: '4px' }}>📄 Download PDF Manual</div>
+                                {tool.manualUrl ? (
+      <div onClick={(e) => { e.stopPropagation(); window.open(tool.manualUrl, "_blank"); }} style={{ color: '#007aff', fontWeight: '800', cursor: 'pointer', marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', backgroundColor: 'rgba(0,122,255,0.1)', borderRadius: '6px', border: '1px solid rgba(0,122,255,0.3)' }}>
+        <span>📄</span> VIEW PDF MANUAL
+      </div>
+    ) : (
+      <div style={{ marginTop: '8px' }}>
+        <label htmlFor={`manual-${tool.toolId}`} onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '6px', border: '1px dashed #ff9500', color: '#ff9500', fontWeight: '800', fontSize: '11px', cursor: 'pointer', backgroundColor: 'rgba(255,149,0,0.05)', transition: 'all 0.2s' }}>
+          <span>⬆️</span> UPLOAD PDF MANUAL
+        </label>
+        <input type="file" id={`manual-${tool.toolId}`} accept="application/pdf" style={{ display: 'none' }} onChange={async (e) => {
+          if(e.target.files[0]) {
+            try {
+              const file = e.target.files[0];
+              const filename = `manuals/${tool.toolId}-${Date.now()}.pdf`;
+              await uploadData({ path: `public/${filename}`, data: file, options: { contentType: 'application/pdf' } }).result;
+              const link = await getUrl({ path: `public/${filename}` });
+              const updatedTool = { ...tool, manualUrl: link.url.toString() };
+              syncDB(updatedTool);
+              setTools(prev => prev.map(t => t.toolId === tool.toolId ? updatedTool : t));
+            } catch(err) { console.error("Manual Upload Failed:", err); }
+          }
+        }} />
+      </div>
+    )}
                             </div>
                             )}
 
                         </div>
+                        
                         </div>
 
                     </div>
@@ -656,14 +766,7 @@ function Tools({ user }) {
                 <>
                     <div style={{ paddingBottom: '16px', borderBottom: '1px solid #3a3a3c', position: 'relative' }}>
                     <div style={{ position: 'absolute', right: 0, top: 0, fontSize: '18px', fontWeight: '700', color: '#34c759' }}>${selectedTool.value.toLocaleString()}</div>
-                    <div style={{ fontSize: '13px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px' }}>{userRole === 'TECH' && (
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(28,28,30,0.85)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }}>
-            <span style={{ fontSize: '48px', marginBottom: '16px' }}>📱</span>
-            <h3 style={{ color: '#ffffff', margin: '0 0 8px 0', fontSize: '18px', fontWeight: '800' }}>SCANNER MODE</h3>
-            <p style={{ color: '#86868b', fontSize: '13px', textAlign: 'center', maxWidth: '80%', lineHeight: '1.5' }}>Admin telemetry is locked. Tap tools in the matrix to deploy.</p>
-        </div>
-    )}
-    INSPECTOR DASHBOARD</div>
+                    <div style={{ fontSize: '13px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px' }}>INSPECTOR DASHBOARD</div>
                     <div style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', color: '#ffffff' }}>{selectedTool.toolId}</div>
                     <div style={{ color: checkIsOverdue(selectedTool.metrics) ? '#ff3b30' : '#ffcc00', fontSize: '16px', fontWeight: '600', marginTop: '4px', lineHeight: '1.3' }}>{selectedTool.name}</div>
                     </div>
@@ -719,6 +822,11 @@ function Tools({ user }) {
                               <span>{log.date}</span>
                               <span>Condition: {log.condition}</span>
                             </div>
+                            {log.telemetry && (
+                              <div style={{ fontSize: '9px', color: '#636366', marginTop: '6px', fontFamily: 'monospace', letterSpacing: '0.02em', borderTop: '1px solid #2c2c2e', paddingTop: '4px' }}>
+                                [SYS_AUTH] {log.telemetry}
+                              </div>
+                            )}
                         </div>
                         )) : <div style={{ fontSize: '13px', color: '#86868b', fontStyle: 'italic' }}>No deployment history on record.</div>}
                     </div>
@@ -737,12 +845,12 @@ function Tools({ user }) {
                         </div>
                     )}
                       {selectedTool.condition !== 'Damaged' && (
-                        <button onClick={() => reportDamage(selectedTool.toolId)} style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,59,48,0.5)', backgroundColor: 'transparent', color: '#ff3b30', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <button onClick={() => reportDamage(selectedTool.toolId)} style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ff3b30', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                           🚩 REPORT DAMAGE / FAULT
                         </button>
                       )}
                       {userRole === 'ADMIN' && (
-                        <button onClick={() => deleteTool(selectedTool.toolId)} style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '6px', border: 'none', backgroundColor: '#ff3b30', color: '#ffffff', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <button onClick={() => deleteTool(selectedTool.toolId)} style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ff3b30', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                           🗑️ PERMANENTLY DELETE TOOL
                         </button>
                       )}
@@ -765,18 +873,14 @@ function Tools({ user }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
                     {selectedTool.status === 'AVAILABLE' ? (
                         selectedTool.isDispatchable !== false ? (
-                          <button disabled={checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged'} onClick={() => setCheckoutModalOpen(true)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#2c2c2e' : '#34c759', color: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#636366' : '#ffffff', fontWeight: '800', fontSize: '15px', cursor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'not-allowed' : 'pointer' }}>
-                            {(checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'LOCKED: SERVICE REQUIRED' : 'CHECK OUT TO EMPLOYEE'}
-                          </button>
+                          <button disabled={checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged'} onClick={() => setCheckoutModalOpen(true)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#2c2c2e' : '#007aff', color: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#636366' : '#ffffff', fontWeight: '800', fontSize: '15px', cursor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'not-allowed' : 'pointer' }}>{(checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'LOCKED: SERVICE REQUIRED' : 'CHECK OUT TO EMPLOYEE'}</button>
                         ) : (
                           <button disabled style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#1c1c1e', color: '#86868b', fontWeight: '800', fontSize: '15px', cursor: 'not-allowed' }}>
                             STATIC TOOL (NON-DISPATCHABLE)
                           </button>
                         )
                     ) : (
-                        <button onClick={handleReturn} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#ff9500', color: '#ffffff', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}>
-                        RETURN TO TOOL CRIB
-                        </button>
+                        <button onClick={() => { setFlippedCards(prev => ({...prev, [selectedTool.toolId]: true})); }} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#ffffff', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}>FLIP CARD TO LOG RETURN</button>
                     )}
                     </div>
                 </>
@@ -785,9 +889,10 @@ function Tools({ user }) {
             )}
           </div>
         </div>
-      ) : (
+      ) : activeView === 'MAINTENANCE' ? (
         /* MAINTENANCE HUB VIEW */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><div style={{ flex: 1, position: 'relative' }}><input type="text" placeholder="Search Triage & Kanban by Tool ID or Name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="custom-input" /></div></div>
           
           <div style={{ backgroundColor: 'rgba(255,59,48,0.05)', border: '1px solid #ff3b30', borderRadius: '16px', padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
@@ -830,9 +935,83 @@ function Tools({ user }) {
           </div>
 
         </div>
-      )}
+      ) : activeView === 'LEDGER' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '24px', borderRadius: '16px', border: '1px solid #3a3a3c' }}>
+            <div>
+              <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Global Audit Ledger</h2>
+              <p style={{ margin: '0', fontSize: '14px', color: '#86868b' }}>Immutable record of all fleet transactions, checkouts, and maintenance logs.</p>
+              {selectedLedgerLogs.length > 0 && (
+                <div style={{ marginTop: '12px', fontSize: '13px', color: '#ffcc00', fontWeight: '600' }}>
+                  {selectedLedgerLogs.length} specific entry selected for export. <span style={{ textDecoration: 'underline', cursor: 'pointer', marginLeft: '8px' }} onClick={() => setSelectedLedgerLogs([])}>Clear Selection</span>
+                </div>
+              )}
+            </div>
+            <button onClick={async () => {
+              const allLogs = tools.flatMap(t => t.history.map(h => ({...h, toolId: t.toolId, toolName: t.name}))).sort((a, b) => a.date === 'Just now' ? -1 : 1);
+              const logsToExport = selectedLedgerLogs.length > 0 ? allLogs.filter((_, i) => selectedLedgerLogs.includes(i)) : allLogs;
 
-      {/* BULK SERVICE DRAWER */}
+              const payload = {
+                  targetEmail: alertPrefs.email,
+                  logs: logsToExport.map(l => ({
+                      date: l.date,
+                      toolName: l.toolName,
+                      toolId: l.toolId,
+                      user: l.user,
+                      action: l.action,
+                      condition: l.condition,
+                      telemetry: l.telemetry || null,
+                      signature: l.signatureUrl || null // The massive Base64 string payload
+                  }))
+              };
+
+              try {
+                  // We will drop your AWS API Gateway URL right here shortly
+                  const API_URL = process.env.REACT_APP_API_URL;
+                  
+                  await fetch(API_URL, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(payload)
+                  });
+                  
+                  console.log("🚀 Payload ready for AWS:", payload);
+                  alert('✅ Audit log securely dispatched via AWS SES!');
+              } catch(err) {
+                  alert('❌ API Export failed.');
+              }
+            }} style={{ padding: '12px 24px', borderRadius: '8px', border: 'none', backgroundColor: selectedLedgerLogs.length > 0 ? '#ffcc00' : '#007aff', color: selectedLedgerLogs.length > 0 ? '#121212' : '#ffffff', fontWeight: '800', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}>
+              <span>📤</span> {selectedLedgerLogs.length > 0 ? 'EXPORT SELECTED LOGS' : 'EXPORT ALL LOGS'}
+            </button>
+          </div>
+          <div style={{ backgroundColor: '#121212', borderRadius: '16px', border: '1px solid #3a3a3c', overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '40px 1.5fr 1fr 2fr 1fr 1.5fr', gap: '16px', padding: '16px 24px', backgroundColor: '#1c1c1e', borderBottom: '1px solid #3a3a3c', fontSize: '11px', fontWeight: '800', color: '#86868b', letterSpacing: '0.05em', alignItems: 'center' }}>
+              <div>
+                <input type="checkbox" checked={selectedLedgerLogs.length === tools.reduce((acc, t) => acc + t.history.length, 0) && selectedLedgerLogs.length > 0} onChange={(e) => {
+                  const totalCount = tools.reduce((acc, t) => acc + t.history.length, 0);
+                  if (e.target.checked) { setSelectedLedgerLogs(Array.from({length: totalCount}, (_, i) => i)); } else { setSelectedLedgerLogs([]); }
+                }} style={{ width: '16px', height: '16px', accentColor: '#ffcc00', cursor: 'pointer' }} title="Select All" />
+              </div>
+              <div>ASSET</div><div>USER</div><div>ACTION</div><div>CONDITION</div><div>TIMESTAMP & TELEMETRY</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '600px', overflowY: 'auto' }}>
+              {tools.flatMap(t => t.history.map(h => ({...h, toolId: t.toolId, toolName: t.name}))).sort((a, b) => a.date === 'Just now' ? -1 : 1).map((log, i) => (
+                <div key={i} onClick={() => setSelectedLedgerLogs(prev => prev.includes(i) ? prev.filter(idx => idx !== i) : [...prev, i])} style={{ display: 'grid', gridTemplateColumns: '40px 1.5fr 1fr 2fr 1fr 1.5fr', gap: '16px', padding: '16px 24px', borderBottom: '1px solid #2c2c2e', alignItems: 'center', transition: 'background-color 0.2s', cursor: 'pointer', backgroundColor: selectedLedgerLogs.includes(i) ? 'rgba(255,204,0,0.05)' : 'transparent' }}>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <input type="checkbox" checked={selectedLedgerLogs.includes(i)} onChange={() => setSelectedLedgerLogs(prev => prev.includes(i) ? prev.filter(idx => idx !== i) : [...prev, i])} style={{ width: '16px', height: '16px', accentColor: '#ffcc00', cursor: 'pointer' }} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}><span style={{ fontSize: '14px', fontWeight: '700', color: '#ffffff' }}>{log.toolName}</span><span style={{ fontSize: '12px', color: '#86868b' }}>[{log.toolId}]</span></div>
+                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#d2d2d7' }}>{log.user}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}><span style={{ fontSize: '13px', color: '#ffffff' }}>{log.action}</span>{log.note && <span style={{ fontSize: '12px', color: '#ffcc00', fontStyle: 'italic' }}>"{log.note}"</span>}</div>
+                  <div><span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '4px', backgroundColor: log.condition === 'Damaged' ? 'rgba(255,59,48,0.15)' : 'rgba(255,255,255,0.05)', color: log.condition === 'Damaged' ? '#ff3b30' : '#d2d2d7' }}>{log.condition}</span></div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}><span style={{ fontSize: '13px', color: '#86868b' }}>{log.date}</span>{log.telemetry && <span style={{ fontSize: '9px', color: '#636366', fontFamily: 'monospace' }}>{log.telemetry.split(' | ')[0]}</span>}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {bulkSelectedTools.length > 0 && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#1c1c1e', borderTop: '1px solid #3a3a3c', padding: '20px 40px', zIndex: 5000, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 -10px 40px rgba(0,0,0,0.5)' }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -848,7 +1027,7 @@ function Tools({ user }) {
       {/* INGEST TOOL MODAL */}
       {addModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container">
+          <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto" }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Ingest New Tool</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Register hardware into the active matrix.</p>
             
@@ -888,7 +1067,7 @@ function Tools({ user }) {
               </div>
 
               <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 2 }}>
+                <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', flexDirection: 'column', gap: '8px', flex: 2 }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>{newTool.prefix?.toUpperCase() === "KIT" ? "NAME: KIT DESCRIPTION" : "NAME: TOOL NAME / MODEL"}</label>
                   <input type="text" placeholder="e.g. Ford F-150 Fleet Truck" value={newTool.name} onChange={(e) => setNewTool({...newTool, name: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
@@ -916,7 +1095,7 @@ function Tools({ user }) {
                   </datalist>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>HOME LOCATION / ZONE</label>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>HOME LOCATION / ZONE / EMP TITLE</label>
                   <input list="location-options" placeholder="e.g. Roof, Lot B" value={newTool.location} onChange={(e) => setNewTool({...newTool, location: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                   <datalist id="location-options">
                     <option value="Main Tool Crib">Main Tool Crib</option>
@@ -932,7 +1111,7 @@ function Tools({ user }) {
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>{newTool.prefix?.toUpperCase() === "KIT" ? "SERIAL NUMBERS (COMMA SEPARATED)" : "SERIAL NUMBER / VIN"}</label>
                   <input type="text" placeholder="e.g. 1FTEW1E49K..." value={newTool.serial} onChange={(e) => setNewTool({...newTool, serial: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>EXTERNAL LINK / URL</label>
                   <input type="text" placeholder="e.g. https://..." value={newTool.link} onChange={(e) => setNewTool({...newTool, link: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
@@ -952,11 +1131,21 @@ function Tools({ user }) {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', opacity: ingestTerms ? 1 : 0.4, pointerEvents: ingestTerms ? 'auto' : 'none', transition: 'opacity 0.2s' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <label style={{ fontSize: '11px', color: '#ff9500', fontWeight: '800', letterSpacing: '0.05em' }}>DRAW SIGNATURE</label>
-                          <button onClick={(e) => { e.preventDefault(); sigPad.current?.clear(); }} type="button" style={{ background: 'transparent', border: 'none', color: '#ffcc00', fontSize: '11px', cursor: 'pointer', fontWeight: '700' }}>CLEAR PAD</button>
+                          <button onClick={(e) => { e.preventDefault(); sigPad.current?.clear(); sigPad.current?.on();; }} type="button" style={{ background: 'transparent', border: 'none', color: '#ffcc00', fontSize: '11px', cursor: 'pointer', fontWeight: '700' }}>CLEAR PAD</button><button onClick={(e) => { e.preventDefault(); sigPad.current?.off(); }} type="button" style={{ background: 'transparent', border: 'none', color: '#34c759', fontSize: '11px', cursor: 'pointer', fontWeight: '700', marginLeft: '16px' }}>LOCK PAD</button>
                         </div>
                         <div style={{ border: '1px solid #3a3a3c', borderRadius: '8px', backgroundColor: '#ffffff', overflow: 'hidden' }}>
-                          <SignatureCanvas ref={sigPad} penColor="black" canvasProps={{width: 434, height: 150, className: 'sigCanvas'}} />
+                          <SignatureCanvas ref={sigPad} penColor="black" canvasProps={{className: 'sigCanvas', style: { width: '100%', height: '150px', touchAction: 'none' }}} />
                         </div>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,149,0,0.05)', padding: '12px', borderRadius: '8px', border: '1px dashed rgba(255,149,0,0.3)', marginTop: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                           <label style={{ fontSize: '11px', color: '#ff9500', fontWeight: '800', letterSpacing: '0.05em' }}>KIT MANIFEST PHOTO</label>
+                           <span style={{ fontSize: '11px', color: '#86868b' }}>Attach a photo of the complete kit contents.</span>
+                        </div>
+                        <label htmlFor="ingest-photo" style={{ padding: '8px 16px', borderRadius: '6px', border: ingestPhoto ? '1px solid #34c759' : '1px solid #ff9500', color: ingestPhoto ? '#34c759' : '#ff9500', cursor: 'pointer', fontSize: '11px', fontWeight: '800', backgroundColor: ingestPhoto ? 'rgba(52,199,89,0.1)' : 'transparent', transition: 'all 0.2s', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
+                          {ingestPhoto ? '✅ ' + ingestPhoto.name : '📷 UPLOAD PHOTO'}
+                        </label>
+                        <input type="file" id="ingest-photo" style={{ display: 'none' }} accept="image/*" onChange={(e) => { if(e.target.files[0]) setIngestPhoto(e.target.files[0]); }} />
                       </div>
                     </div>
                   )}
@@ -980,8 +1169,8 @@ function Tools({ user }) {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c', flex: 1 }}>
-                <input type="checkbox" id="dispatchableToggle" checked={newTool.isDispatchable} onChange={(e) => setNewTool({...newTool, isDispatchable: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#34c759', cursor: 'pointer' }} />
+              <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c', flex: 1 }}>
+                <input type="checkbox" id="dispatchableToggle" checked={(newTool.prefix?.toUpperCase() === 'KIT' && newTool.assignee) ? true : newTool.isDispatchable} onChange={(e) => setNewTool({...newTool, isDispatchable: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#34c759', cursor: 'pointer' }} />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <label htmlFor="dispatchableToggle" style={{ fontSize: '14px', color: '#ffffff', fontWeight: '700', cursor: 'pointer' }}>Enable Field Checkout</label>
                   <span style={{ fontSize: '11px', color: '#86868b' }}>If disabled, this tool will be permanently locked to its home location.</span>
@@ -1001,27 +1190,152 @@ function Tools({ user }) {
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => { setAddModalOpen(false); setIngestTerms(false); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleAddTool} disabled={!newTool.name || !newTool.value} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (!newTool.name || !newTool.value) ? 0.4 : 1 }}>ADD TO INVENTORY</button>
+              <button onClick={() => { setAddModalOpen(false); setIngestTerms(false); setIngestPhoto(null); setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false, assignee: '' }); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleAddTool} disabled={(!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: ((!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value) ? 0.4 : 1 }}>ADD TO INVENTORY</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* BULK INGEST MODAL */}
+      {bulkModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto", backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', width: '800px', maxWidth: '90%', color: '#ffffff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}>Bulk Ingest Assets (CSV)</h2>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Upload a standard CSV file to rapidly deploy multiple tools into the matrix.</p>
+            
+            {!csvData.length ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px', border: '2px dashed #3a3a3c', borderRadius: '12px', backgroundColor: '#121212', cursor: 'pointer', transition: 'border-color 0.2s' }} onClick={() => document.getElementById('csv-upload').click()}>
+                    <span style={{ fontSize: '32px', marginBottom: '16px' }}>📄</span>
+                    <span style={{ fontSize: '15px', fontWeight: '700', color: '#ffffff' }}>Click to Browse or Drag CSV Here</span>
+                    <span style={{ fontSize: '13px', color: '#86868b', marginTop: '8px' }}>Expected columns: prefix, name, value, category, location</span>
+                    <input type="file" id="csv-upload" accept=".csv" style={{ display: 'none' }} onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                const text = event.target.result;
+                                const lines = text.split('\n').filter(l => l.trim().length > 0);
+                                if(lines.length > 1) {
+                                    // Strip weird characters from headers
+                                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
+                                    const parsed = lines.slice(1).map(line => {
+                                        const values = line.split(',');
+                                        let obj = {};
+                                        headers.forEach((h, i) => obj[h] = values[i] ? values[i].trim() : '');
+                                        return obj;
+                                    });
+                                    setCsvData(parsed);
+                                } else {
+                                    alert('CSV appears empty or invalid.');
+                                }
+                            };
+                            reader.readAsText(file);
+                        }
+                    }} />
+                </div>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ padding: '16px', backgroundColor: '#121212', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <span style={{ fontSize: '14px', fontWeight: '700', color: '#34c759' }}>✅ {csvData.length} records parsed and staged for review</span>
+                            <button onClick={() => setCsvData([])} style={{ background: 'transparent', border: 'none', color: '#ff3b30', fontSize: '12px', cursor: 'pointer', fontWeight: '800' }}>✕ CLEAR & RESTART</button>
+                        </div>
+                        <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #2c2c2e', borderRadius: '8px' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+                                <thead style={{ position: 'sticky', top: 0, backgroundColor: '#2c2c2e' }}>
+                                    <tr>
+                                        {Object.keys(csvData[0]).map((key, i) => <th key={i} style={{ padding: '10px 12px', borderBottom: '1px solid #3a3a3c', color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{key}</th>)}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {csvData.slice(0, 50).map((row, i) => (
+                                        <tr key={i} style={{ borderBottom: '1px solid #2c2c2e', backgroundColor: i % 2 === 0 ? '#1c1c1e' : '#121212' }}>
+                                            {Object.values(row).map((val, j) => <td key={j} style={{ padding: '10px 12px', color: '#d2d2d7' }}>{val}</td>)}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        {csvData.length > 50 && <div style={{ fontSize: '11px', color: '#86868b', textAlign: 'center', marginTop: '12px', fontStyle: 'italic' }}>Showing first 50 records...</div>}
+                    </div>
+                </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button onClick={() => { setBulkModalOpen(false); setCsvData([]); setIsUploading(false); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button disabled={!csvData.length || isUploading} onClick={async () => {
+                  setIsUploading(true);
+                  const newTools = [];
+                  for (const row of csvData) {
+                      const idNum = String(Math.floor(Math.random() * 900) + 100);
+                      const prefix = (row.prefix || 'GEN').toUpperCase().substring(0, 4);
+                      const generatedId = prefix + '-' + idNum;
+                      
+                      const newToolObj = {
+                          toolId: generatedId,
+                          name: row.name || 'Imported Tool',
+                          value: parseInt(row.value) || 0,
+                          category: row.category || 'General',
+                          location: row.location || 'Main Tool Crib',
+                          serial: row.serial || 'N/A',
+                          link: '',
+                          isDispatchable: true,
+                          isSpecialty: false,
+                          status: "AVAILABLE",
+                          condition: "New",
+                          assignedUser: null,
+                          daysOut: 0,
+                          metrics: [{ unit: 'Days', current: 0, interval: 90 }],
+                          history: [{ user: "Admin", action: "Bulk CSV Ingestion", date: "Just now", condition: "New" }]
+                      };
+                      newTools.push(newToolObj);
+                      await syncDB(newToolObj);
+                      // Add a tiny 25ms delay to prevent throttling DynamoDB write capacity
+                      await new Promise(r => setTimeout(r, 25)); 
+                  }
+                  setTools(prev => [...newTools, ...prev]);
+                  setIsUploading(false);
+                  setCsvData([]);
+                  setBulkModalOpen(false);
+                  alert(newTools.length + " tools successfully ingested to the fleet matrix!");
+              }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#ffcc00', color: '#121212', fontWeight: '800', fontSize: '14px', cursor: 'pointer', opacity: (!csvData.length || isUploading) ? 0.4 : 1, transition: 'all 0.2s' }}>
+                  {isUploading ? 'INGESTING TO AWS CLOUD...' : 'PUSH BATCH TO DATABASE'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+  
       {/* RAPID DISPATCH MODAL */}
       {checkoutModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ width: '500px', maxWidth: '90%', backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', color: '#ffffff' }}>
+          <div className="modal-container" style={{ margin: "0 auto", maxHeight: '90vh', overflowY: 'auto',  width: '500px', maxWidth: '90%', backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', color: '#ffffff' }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}>Dispatch Tool</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Transferring custody of <strong style={{color: '#ffcc00'}}>[{selectedTool?.toolId}]</strong></p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>EMPLOYEE / TECH NAME</label>
-                <input type="text" placeholder="e.g. Chris Evans" value={dispatchUser} onChange={(e) => setDispatchUser(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} autoFocus />
-              </div>
+        <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>EMPLOYEE / TECH NAME</label>
+        <input type="text" placeholder="e.g. Chris Evans" value={dispatchUser} onChange={(e) => setDispatchUser(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} autoFocus />
+      </div>
+      <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+          <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOOL CONDITION</label>
+          <select value={dispatchCondition} onChange={(e) => setDispatchCondition(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}>
+            <option value="New">New</option>
+            <option value="Excellent">Excellent</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+            <option value="Damaged">Damaged / Missing Parts</option>
+          </select>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 2 }}>
+          <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>DISPATCH NOTES</label>
+          <input type="text" placeholder="e.g. Scratched case, missing battery..." value={dispatchNotes} onChange={(e) => setDispatchNotes(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+        </div>
+      </div>
               
-              {selectedTool?.prefix === 'KIT' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#121212', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '13px', color: '#d2d2d7', cursor: 'pointer', lineHeight: '1.4' }}>
                   <input type="checkbox" checked={dispatchTerms} onChange={(e) => setDispatchTerms(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#34c759', marginTop: '2px' }} />
@@ -1031,19 +1345,18 @@ function Tools({ user }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', opacity: dispatchTerms ? 1 : 0.4, pointerEvents: dispatchTerms ? 'auto' : 'none', transition: 'opacity 0.2s' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>DRAW SIGNATURE</label>
-                    <button onClick={() => sigPad.current?.clear()} style={{ background: 'transparent', border: 'none', color: '#ffcc00', fontSize: '11px', cursor: 'pointer', fontWeight: '700' }}>CLEAR PAD</button>
+                    <button onClick={() => { sigPad.current?.clear(); sigPad.current?.on(); }} style={{ background: 'transparent', border: 'none', color: '#ffcc00', fontSize: '11px', cursor: 'pointer', fontWeight: '700' }}>CLEAR PAD</button><button onClick={(e) => { e.preventDefault(); sigPad.current?.off(); }} type="button" style={{ background: 'transparent', border: 'none', color: '#34c759', fontSize: '11px', cursor: 'pointer', fontWeight: '700', marginLeft: '16px' }}>LOCK PAD</button>
                   </div>
                   <div style={{ border: '1px solid #3a3a3c', borderRadius: '8px', backgroundColor: '#ffffff', overflow: 'hidden' }}>
-                    <SignatureCanvas ref={sigPad} penColor="black" canvasProps={{width: 434, height: 150, className: 'sigCanvas'}} />
+                    <SignatureCanvas ref={sigPad} penColor="black" canvasProps={{className: 'sigCanvas', style: { width: '100%', height: '150px', touchAction: 'none' }}} />
                   </div>
                 </div>
               </div>
-              )}
-            </div>
+              </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => { setCheckoutModalOpen(false); setDispatchUser(""); setDispatchTerms(false); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleCheckout} disabled={!dispatchUser.trim() || (selectedTool?.prefix === 'KIT' && !dispatchTerms)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (dispatchUser.trim() && (selectedTool?.prefix !== 'KIT' || dispatchTerms)) ? 1 : 0.4 }}>AUTHORIZE</button>
+              <button onClick={() => { setCheckoutModalOpen(false); setDispatchUser(""); setDispatchCondition("Excellent"); setDispatchNotes(""); setDispatchTerms(false); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleCheckout} disabled={!dispatchUser.trim() || !dispatchTerms} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (dispatchUser.trim() && dispatchTerms) ? 1 : 0.4 }}>AUTHORIZE</button>
             </div>
           </div>
         </div>
@@ -1052,7 +1365,7 @@ function Tools({ user }) {
       {/* ALERTS MODAL */}
       {alertsModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', width: '500px', maxWidth: '90%', color: '#ffffff' }}>
+          <div className="modal-container" style={{ margin: "0 auto", maxHeight: '90vh', overflowY: 'auto',  backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', width: '500px', maxWidth: '90%', color: '#ffffff' }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}>Notification Preferences</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Configure how and when the system alerts you.</p>
 
@@ -1100,7 +1413,7 @@ function Tools({ user }) {
       {/* RETURN AUDIT MODAL */}
       {returnModalOpen && selectedTool && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', width: '500px', maxWidth: '90%', color: '#ffffff' }}>
+          <div className="modal-container" style={{ margin: "0 auto", maxHeight: '90vh', overflowY: 'auto',  backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', width: '500px', maxWidth: '90%', color: '#ffffff' }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffcc00', letterSpacing: '-0.02em' }}>Audit Required</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Confirm the manifest for high-value tool <strong style={{color: '#ffffff'}}>[{selectedTool.toolId}]</strong></p>
 
@@ -1131,7 +1444,7 @@ function Tools({ user }) {
       {/* FINANCIAL MODAL */}
       {financeModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', width: '800px', maxWidth: '90%', color: '#ffffff' }}>
+          <div className="modal-container" style={{ margin: "0 auto", maxHeight: '90vh', overflowY: 'auto',  backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', width: '800px', maxWidth: '90%', color: '#ffffff' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <div>
                 <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em', color: '#ffffff' }}>Fleet Financial Summary</h2>
