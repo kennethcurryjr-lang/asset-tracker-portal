@@ -250,13 +250,15 @@ function Tools({ user }) {
   };
 
   const handleCheckout = () => {
-    if (!dispatchUser || !dispatchTerms || !sigPad.current || sigPad.current.isEmpty()) {
-      alert("Please accept the terms and provide a signature.");
+    if (!dispatchUser) return;
+    const isKit = selectedTool && selectedTool.prefix === 'KIT';
+    
+    if (isKit && (!dispatchTerms || !sigPad.current || sigPad.current.isEmpty())) {
+      alert("Please accept the terms and provide a signature for this kit.");
       return;
     }
     
-    // Capture the drawn signature as a lightweight Base64 PNG
-    const sigData = sigPad.current.getTrimmedCanvas().toDataURL('image/png');
+    const sigData = (isKit && sigPad.current && !sigPad.current.isEmpty()) ? sigPad.current.getTrimmedCanvas().toDataURL('image/png') : null;
     
     setTools(prev => prev.map(t => {
       if (t.toolId === selectedToolId) {
@@ -267,8 +269,8 @@ function Tools({ user }) {
           daysOut: 0,
           history: [{ 
             user: dispatchUser, 
-            action: `Dispatched to: ${dispatchProject || 'Field'} | E-Signed`, 
-            signatureUrl: sigData,
+            action: `Dispatched to: ${dispatchProject || 'Field'}${isKit ? ' | E-Signed' : ''}`, 
+            ...(sigData && { signatureUrl: sigData }),
             date: 'Just now', 
             condition: t.condition 
           }, ...t.history]
@@ -987,6 +989,7 @@ function Tools({ user }) {
                 <input type="text" placeholder="e.g. Chris Evans" value={dispatchUser} onChange={(e) => setDispatchUser(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} autoFocus />
               </div>
               
+              {selectedTool?.prefix === 'KIT' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#121212', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '13px', color: '#d2d2d7', cursor: 'pointer', lineHeight: '1.4' }}>
                   <input type="checkbox" checked={dispatchTerms} onChange={(e) => setDispatchTerms(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#34c759', marginTop: '2px' }} />
@@ -1003,11 +1006,12 @@ function Tools({ user }) {
                   </div>
                 </div>
               </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <button onClick={() => { setCheckoutModalOpen(false); setDispatchUser(""); setDispatchTerms(false); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleCheckout} disabled={!dispatchUser.trim() || !dispatchTerms} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (dispatchUser.trim() && dispatchTerms) ? 1 : 0.4 }}>AUTHORIZE</button>
+              <button onClick={handleCheckout} disabled={!dispatchUser.trim() || (selectedTool?.prefix === 'KIT' && !dispatchTerms)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (dispatchUser.trim() && (selectedTool?.prefix !== 'KIT' || dispatchTerms)) ? 1 : 0.4 }}>AUTHORIZE</button>
             </div>
           </div>
         </div>
