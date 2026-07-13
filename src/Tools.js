@@ -1,5 +1,6 @@
 import { docClient } from './dynamoClient';
 import { ScanCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import SignatureCanvas from 'react-signature-canvas';
 import React, { useState, useMemo } from 'react';
 import { uploadData, getUrl } from "aws-amplify/storage";
 
@@ -126,6 +127,8 @@ function Tools({ user }) {
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [dispatchUser, setDispatchUser] = useState("");
   const [dispatchProject, setDispatchProject] = useState("");
+  const [dispatchTerms, setDispatchTerms] = useState(false);
+  const sigPad = React.useRef(null);
   const [dispatchSignature, setDispatchSignature] = useState("");
   const [dispatchTerms, setDispatchTerms] = useState(false);
   
@@ -249,7 +252,14 @@ function Tools({ user }) {
   };
 
   const handleCheckout = () => {
-    if (!dispatchUser || !dispatchTerms || dispatchSignature.trim().toLowerCase() !== dispatchUser.trim().toLowerCase()) return;
+    if (!dispatchUser || !dispatchTerms || !sigPad.current || sigPad.current.isEmpty()) {
+      alert("Please accept the terms and provide a signature.");
+      return;
+    }
+    
+    // Capture the drawn signature as a lightweight Base64 PNG
+    const sigData = sigPad.current.getTrimmedCanvas().toDataURL('image/png');
+    
     setTools(prev => prev.map(t => {
       if (t.toolId === selectedToolId) {
         return {
@@ -257,16 +267,23 @@ function Tools({ user }) {
           status: 'CHECKED_OUT',
           assignedUser: dispatchUser,
           daysOut: 0,
-          history: [{ user: dispatchUser, action: `Dispatched to: ${dispatchProject || 'Field'} | E-Signed: ${dispatchSignature}`, date: 'Just now', condition: t.condition }, ...t.history]
+          history: [{ 
+            user: dispatchUser, 
+            action: `Dispatched to: ${dispatchProject || 'Field'} | E-Signed`, 
+            signatureUrl: sigData,
+            date: 'Just now', 
+            condition: t.condition 
+          }, ...t.history]
         };
       }
       return t;
     }));
+    
     setCheckoutModalOpen(false);
     setDispatchUser("");
     setDispatchProject("");
-    setDispatchSignature("");
     setDispatchTerms(false);
+    if (sigPad.current) sigPad.current.clear();
   };
 
   const executeReturn = (tool, newCondition, actionText) => {
@@ -674,6 +691,11 @@ function Tools({ user }) {
                               </div>
                             )}
                             
+                            {log.signatureUrl && (
+                              <div style={{ marginTop: '8px', padding: '4px', backgroundColor: '#ffffff', borderRadius: '4px', display: 'inline-block', border: '1px solid #3a3a3c' }}>
+                                <img src={log.signatureUrl} alt="Signature" style={{ height: '40px', display: 'block' }} />
+                              </div>
+                            )}
                             {log.attachment && (
                               <div onClick={() => log.attachmentUrl && window.open(log.attachmentUrl, "_blank")} style={{ fontSize: "12px", color: log.attachmentUrl ? "#007aff" : "#86868b", marginTop: "6px", display: "flex", alignItems: "center", gap: "6px", cursor: log.attachmentUrl ? "pointer" : "default", fontWeight: "600", textDecoration: log.attachmentUrl ? "underline" : "none" }}>
                                 <span>📎</span> {log.attachment}
@@ -955,37 +977,42 @@ function Tools({ user }) {
       {/* RAPID DISPATCH MODAL */}
       {checkoutModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container">
-            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Dispatch Tool</h2>
-            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Transferring custody of <strong style={{color: '#ffcc00'}}>[{selectedTool.toolId}]</strong></p>
+          <div className="modal-container" style={{ width: '500px', maxWidth: '90%', backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', color: '#ffffff' }}>
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}>Dispatch Tool</h2>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Transferring custody of <strong style={{color: '#ffcc00'}}>[{selectedTool?.toolId}]</strong></p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>EMPLOYEE / TECH NAME</label>
                 <input type="text" placeholder="e.g. Chris Evans" value={dispatchUser} onChange={(e) => setDispatchUser(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} autoFocus />
               </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#121212', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#121212', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '13px', color: '#d2d2d7', cursor: 'pointer', lineHeight: '1.4' }}>
                   <input type="checkbox" checked={dispatchTerms} onChange={(e) => setDispatchTerms(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#34c759', marginTop: '2px' }} />
                   I acknowledge receipt of this asset and accept full responsibility for its condition and return.
                 </label>
+                
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', opacity: dispatchTerms ? 1 : 0.4, pointerEvents: dispatchTerms ? 'auto' : 'none', transition: 'opacity 0.2s' }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>E-SIGNATURE (TYPE FULL NAME TO ACCEPT)</label>
-                  <input type="text" placeholder="Type name exactly as above..." value={dispatchSignature} onChange={(e) => setDispatchSignature(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#1c1c1e', color: '#ffffff', fontSize: '15px', outline: 'none', fontFamily: 'monospace' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>DRAW SIGNATURE</label>
+                    <button onClick={() => sigPad.current?.clear()} style={{ background: 'transparent', border: 'none', color: '#ffcc00', fontSize: '11px', cursor: 'pointer', fontWeight: '700' }}>CLEAR PAD</button>
+                  </div>
+                  <div style={{ border: '1px solid #3a3a3c', borderRadius: '8px', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+                    <SignatureCanvas ref={sigPad} penColor="black" canvasProps={{width: 434, height: 150, className: 'sigCanvas'}} />
+                  </div>
                 </div>
               </div>
+            </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => { setCheckoutModalOpen(false); setDispatchUser(""); setDispatchSignature(""); setDispatchTerms(false); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleCheckout} disabled={!dispatchUser.trim() || !dispatchTerms || dispatchSignature.trim().toLowerCase() !== dispatchUser.trim().toLowerCase()} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (dispatchUser.trim() && dispatchTerms && dispatchSignature.trim().toLowerCase() === dispatchUser.trim().toLowerCase()) ? 1 : 0.4 }}>AUTHORIZE</button>
+              <button onClick={() => { setCheckoutModalOpen(false); setDispatchUser(""); setDispatchTerms(false); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleCheckout} disabled={!dispatchUser.trim() || !dispatchTerms} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (dispatchUser.trim() && dispatchTerms) ? 1 : 0.4 }}>AUTHORIZE</button>
             </div>
           </div>
         </div>
       )}
 
-    
       {/* ALERTS MODAL */}
       {alertsModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
