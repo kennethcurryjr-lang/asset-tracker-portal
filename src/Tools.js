@@ -90,6 +90,14 @@ function Tools({ user }) {
   const [dispatchProject, setDispatchProject] = useState("");
   
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [alertsModalOpen, setAlertsModalOpen] = useState(false);
+  const [alertPrefs, setAlertPrefs] = useState({ 
+    email: 'kennethcurryjr@gmail.com', 
+    frequency: 'Daily Digest', 
+    notifyDamaged: true, 
+    notifyOverdue: true, 
+    notifyNew: false 
+  });
   const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true });
 
   const filteredTools = useMemo(() => {
@@ -382,6 +390,7 @@ function Tools({ user }) {
         {userRole === 'ADMIN' && <button onClick={() => setAddModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #34c759', backgroundColor: 'transparent', color: '#34c759', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>
           + INGEST ASSET
         </button>}
+        {userRole === 'ADMIN' && <button onClick={() => setAlertsModalOpen(true)} style={{ padding: '10px 24px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '8px' }}>🔔 ALERT SETTINGS</button>}
       </div>
 
       {/* VIEW ROUTING */}
@@ -871,6 +880,54 @@ function Tools({ user }) {
         </div>
       )}
 
+    
+      {/* ALERTS MODAL */}
+      {alertsModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-container" style={{ backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', width: '500px', maxWidth: '90%', color: '#ffffff' }}>
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}>Notification Preferences</h2>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Configure how and when the system alerts you.</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TARGET EMAIL</label>
+                <input type="email" value={alertPrefs.email} onChange={(e) => setAlertPrefs({...alertPrefs, email: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>DIGEST FREQUENCY</label>
+                <select value={alertPrefs.frequency} onChange={(e) => setAlertPrefs({...alertPrefs, frequency: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}>
+                  <option value="Instant">Instant (On Event)</option>
+                  <option value="Daily Digest">Daily Digest (7:00 AM)</option>
+                  <option value="Weekly Digest">Weekly Summary (Friday 5PM)</option>
+                  <option value="Muted">Muted (No Emails)</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: '#121212', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
+                <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px' }}>ALERT TRIGGERS</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={alertPrefs.notifyDamaged} onChange={(e) => setAlertPrefs({...alertPrefs, notifyDamaged: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: '#ff3b30' }} />
+                  Asset Flagged as Damaged 🚩
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={alertPrefs.notifyOverdue} onChange={(e) => setAlertPrefs({...alertPrefs, notifyOverdue: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: '#ffcc00' }} />
+                  PM Service Interval Overdue 🛑
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={alertPrefs.notifyNew} onChange={(e) => setAlertPrefs({...alertPrefs, notifyNew: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: '#34c759' }} />
+                  New Asset Ingested 📦
+                </label>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setAlertsModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => setAlertsModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>SAVE PREFERENCES</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
