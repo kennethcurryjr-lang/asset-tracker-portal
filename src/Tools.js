@@ -139,7 +139,7 @@ function Tools({ user }) {
     notifyOverdue: true, 
     notifyNew: false 
   });
-  const [newTool, setNewTool] = useState({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false });
+  const [newTool, setNewTool] = useState({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false });
 
   const filteredTools = useMemo(() => {
     if (!searchTerm.trim()) return tools;
@@ -209,7 +209,14 @@ function Tools({ user }) {
   };
 
   const handleAddTool = () => {
-    if (!newTool.name || !newTool.value) return;
+    if (!newTool.prefix || !newTool.name || !newTool.value) return;
+    
+    const standardPrefixes = ['VEH', 'HVAC', 'MILW', 'DWLT', 'HILT', 'MAKI', 'BSCH', 'CAT', 'LIFT', 'GEN', 'TECH', 'SURV', 'KIT'];
+    if (!standardPrefixes.includes(newTool.prefix.toUpperCase())) {
+      if (!window.confirm(`Warning: "${newTool.prefix.toUpperCase()}" is not a standard brand prefix in your matrix.\n\nAre you sure it is spelled correctly?`)) {
+        return;
+      }
+    }
     const idNum = String(Math.floor(Math.random() * 900) + 100);
     const generatedId = `${newTool.prefix}-${idNum}`;
     
@@ -234,7 +241,7 @@ function Tools({ user }) {
     syncDB(newToolObj);
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
-    setNewTool({ prefix: 'MILW', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false });
+    setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false });
     setSelectedToolId(generatedId);
     setActiveView('DISPATCH');
   };
@@ -810,7 +817,7 @@ function Tools({ user }) {
               
               <div style={{ display: 'flex', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>BRAND PREFIX (CUSTOM OR PRESET)</label>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>BRAND (Single OR EMP KIT)</label>
                   <input 
                     list="prefix-options"
                     placeholder="e.g. MILW, CAT, JD"
@@ -819,6 +826,7 @@ function Tools({ user }) {
                     style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}
                   />
                   <datalist id="prefix-options">
+                    <option value="KIT">Standard Employee Kit</option>
                     <option value="VEH">Vehicle</option>
                     <option value="HVAC">Climate Control</option>
                     <option value="MILW">Milwaukee</option>
