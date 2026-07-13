@@ -116,6 +116,15 @@ function App() {
     (isClient || isToolsAdmin || isToolsTech) ? "tools" : 
     (isWarehouseManager && !isSuperAdmin ? "inventory" : "gps")
   );
+
+  // 🛡️ THE FIX: Auto-correct the view once Cognito finishes loading
+  useEffect(() => {
+    if (auth.isAuthenticated) {
+      if (isClient || isToolsAdmin || isToolsTech) {
+        setActivePortal("tools");
+      }
+    }
+  }, [auth.isAuthenticated, isClient, isToolsAdmin, isToolsTech]);
   const [comingSoonModule, setComingSoonModule] = useState(null);
 
   // Design Tokens: High-Contrast Monochromatic System
