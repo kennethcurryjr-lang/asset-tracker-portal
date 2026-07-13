@@ -126,6 +126,8 @@ function Tools({ user }) {
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [dispatchUser, setDispatchUser] = useState("");
   const [dispatchProject, setDispatchProject] = useState("");
+  const [dispatchSignature, setDispatchSignature] = useState("");
+  const [dispatchTerms, setDispatchTerms] = useState(false);
   
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [returnModalOpen, setReturnModalOpen] = useState(false);
@@ -247,7 +249,7 @@ function Tools({ user }) {
   };
 
   const handleCheckout = () => {
-    if (!dispatchUser) return;
+    if (!dispatchUser || !dispatchTerms || dispatchSignature.trim().toLowerCase() !== dispatchUser.trim().toLowerCase()) return;
     setTools(prev => prev.map(t => {
       if (t.toolId === selectedToolId) {
         return {
@@ -255,7 +257,7 @@ function Tools({ user }) {
           status: 'CHECKED_OUT',
           assignedUser: dispatchUser,
           daysOut: 0,
-          history: [{ user: dispatchUser, action: `Dispatched to: ${dispatchProject || 'Field'}`, date: 'Just now', condition: t.condition }, ...t.history]
+          history: [{ user: dispatchUser, action: `Dispatched to: ${dispatchProject || 'Field'} | E-Signed: ${dispatchSignature}`, date: 'Just now', condition: t.condition }, ...t.history]
         };
       }
       return t;
@@ -263,6 +265,8 @@ function Tools({ user }) {
     setCheckoutModalOpen(false);
     setDispatchUser("");
     setDispatchProject("");
+    setDispatchSignature("");
+    setDispatchTerms(false);
   };
 
   const executeReturn = (tool, newCondition, actionText) => {
@@ -962,9 +966,20 @@ function Tools({ user }) {
               </div>
             </div>
 
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#121212', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '13px', color: '#d2d2d7', cursor: 'pointer', lineHeight: '1.4' }}>
+                  <input type="checkbox" checked={dispatchTerms} onChange={(e) => setDispatchTerms(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#34c759', marginTop: '2px' }} />
+                  I acknowledge receipt of this asset and accept full responsibility for its condition and return.
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', opacity: dispatchTerms ? 1 : 0.4, pointerEvents: dispatchTerms ? 'auto' : 'none', transition: 'opacity 0.2s' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>E-SIGNATURE (TYPE FULL NAME TO ACCEPT)</label>
+                  <input type="text" placeholder="Type name exactly as above..." value={dispatchSignature} onChange={(e) => setDispatchSignature(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#1c1c1e', color: '#ffffff', fontSize: '15px', outline: 'none', fontFamily: 'monospace' }} />
+                </div>
+              </div>
+
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => { setCheckoutModalOpen(false); setDispatchUser(""); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleCheckout} disabled={!dispatchUser.trim()} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: dispatchUser.trim() ? 1 : 0.4 }}>AUTHORIZE</button>
+              <button onClick={() => { setCheckoutModalOpen(false); setDispatchUser(""); setDispatchSignature(""); setDispatchTerms(false); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleCheckout} disabled={!dispatchUser.trim() || !dispatchTerms || dispatchSignature.trim().toLowerCase() !== dispatchUser.trim().toLowerCase()} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (dispatchUser.trim() && dispatchTerms && dispatchSignature.trim().toLowerCase() === dispatchUser.trim().toLowerCase()) ? 1 : 0.4 }}>AUTHORIZE</button>
             </div>
           </div>
         </div>
