@@ -78,8 +78,14 @@ function Tools({ user }) {
 
   const fetchDB = async () => {
     try {
-      const data = await docClient.send(new ScanCommand({ TableName: 'KineticToolsData' }));
-      if (data.Items && data.Items.length > 0) {
+      const tenantId = user?.profile?.["custom:tenant_id"];
+      let params = { TableName: "KineticToolsData" };
+      if (tenantId) {
+        params.FilterExpression = "tenant_id = :tid";
+        params.ExpressionAttributeValues = { ":tid": tenantId };
+      }
+      const data = await docClient.send(new ScanCommand(params));
+      if (data.Items) {
         setTools(data.Items);
       }
     } catch (err) { console.error("DB Fetch Error:", err); }

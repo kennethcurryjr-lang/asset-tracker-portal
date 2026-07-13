@@ -97,10 +97,11 @@ function App() {
   const isSharePage = useMemo(() => window.location.pathname.includes('/share') || !!shareTokenParam, [shareTokenParam]);
 
   const userGroups = auth.user?.profile?.["cognito:groups"] || [];
+  const isClient = userGroups.includes("Client");
   const isWarehouseManager = userGroups.includes("Warehouse-Managers");
   const isFleetTracker = userGroups.includes("Fleet-Trackers");
-  const isAdmin = userGroups.includes("Admins") || (!isWarehouseManager && !isFleetTracker);
-  const [activePortal, setActivePortal] = useState(isWarehouseManager && !isAdmin ? "inventory" : "gps");
+  const isAdmin = userGroups.includes("Admins") || (!isWarehouseManager && !isFleetTracker && !isClient);
+  const [activePortal, setActivePortal] = useState(isClient ? "tools" : (isWarehouseManager && !isAdmin ? "inventory" : "gps"));
   const [comingSoonModule, setComingSoonModule] = useState(null);
 
   // Design Tokens: High-Contrast Monochromatic System
