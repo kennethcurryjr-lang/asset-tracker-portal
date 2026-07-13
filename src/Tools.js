@@ -990,7 +990,9 @@ function Tools({ user }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(255,204,0,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,204,0,0.3)', flex: 1 }}>
                 <input type="checkbox" id="specialtyToggle" checked={newTool.isSpecialty} onChange={(e) => setNewTool({...newTool, isSpecialty: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#ffcc00', cursor: 'pointer' }} />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <label htmlFor="specialtyToggle" style={{ fontSize: '14px', color: '#ffcc00', fontWeight: '700', cursor: 'pointer' }}>Specialty / High-Value</label>
+                  {newTool.prefix?.toUpperCase() !== 'KIT' && (
+              <label htmlFor="specialtyToggle" style={{ fontSize: '14px', color: '#ffcc00', fontWeight: '700', cursor: 'pointer' }}>Specialty / High-Value</label>
+            )}
                   <span style={{ fontSize: '11px', color: '#86868b' }}>Enforces physical manifest audit upon return.</span>
                 </div>
               </div>
