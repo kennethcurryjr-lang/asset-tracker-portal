@@ -258,7 +258,7 @@ function Tools({ user }) {
     const idToUse = typeof targetId === 'string' ? targetId : selectedToolId;
     const toolToReturn = tools.find(t => t.toolId === idToUse);
     if (toolToReturn) setSelectedToolId(idToUse);
-    if (toolToReturn && toolToReturn.isSpecialty) {
+    if (toolToReturn && (toolToReturn.isSpecialty || toolToReturn.value >= 20000)) {
       setReturnChecklist({ primary: false, battery: false, accessories: false });
       setReturnModalOpen(true);
       return;
