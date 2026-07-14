@@ -609,6 +609,7 @@ return t;
                 const isOut = tool.status === 'CHECKED_OUT';
                 const isServiceDue = checkIsOverdue(tool.metrics);
                 const isFlipped = !!flippedCards[tool.toolId];
+                const canReturn = userRole === 'ADMIN' || tool.assignedUser === (user?.profile?.email || dispatchUser);
                 const activeTab = cardTabs[tool.toolId] || 'service';
                 
                 let cardBorder = '1px solid #3a3a3c';
@@ -638,11 +639,21 @@ return t;
                             {isOut && (<div style={{ fontSize: '12px', color: '#ff9500', marginTop: '6px', fontWeight: '600' }}>👤 {tool.assignedUser}</div>)}
                         </div>
                         
-                        <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', position: 'relative' }}>
                             {tool.isDispatchable !== false ? (
-                              <button disabled={isServiceDue && !isOut} onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); isOut ? setFlippedCards(prev => ({...prev, [tool.toolId]: true})) : setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: isServiceDue ? '#2c2c2e' : '#007aff', color: isServiceDue ? '#636366' : '#ffffff', border: 'none', fontWeight: '800', fontSize: '11px', cursor: isServiceDue && !isOut ? 'not-allowed' : 'pointer' }}>{isServiceDue && !isOut ? 'LOCKED' : (isOut ? 'RETURN' : 'CHECK OUT')}</button>
+                              (() => {
+                                const isAdmin = userRole === 'ADMIN';
+                                const isLocked = isServiceDue || tool.condition === 'Damaged';
+                                if (isOut) {
+                                  if (!canReturn) return <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(28,28,30,0.9)', borderRadius: '8px', fontSize: '11px', fontWeight: '800', color: '#ff3b30', border: '1px solid #ff3b30' }}>🔒 LOCKED</div>;
+                                  return <button onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); setFlippedCards(prev => ({...prev, [tool.toolId]: true})); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#007aff', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>RETURN</button>;
+                                }
+                                if (isLocked && !isAdmin) return <button disabled style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#2c2c2e', color: '#636366', border: 'none', fontWeight: '800', fontSize: '11px', cursor: 'not-allowed' }}>LOCKED</button>;
+                                if (isLocked && isAdmin) return <button onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: 'rgba(255,149,0,0.1)', color: '#ff9500', border: '1px solid #ff9500', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>OVERRIDE</button>;
+                                return <button onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#007aff', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>CHECK OUT</button>;
+                              })()
                             ) : (
-                              <div style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#1c1c1e', color: '#86868b', border: '1px solid #3a3a3c', fontWeight: '700', fontSize: '12px', textAlign: 'center', boxSizing: 'border-box' }}>STATIC TOOL</div>
+                              <div style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#1c1c1e', color: '#86868b', border: '1px solid #3a3a3c', fontWeight: '700', fontSize: '12px', textAlign: 'center', boxSizing: 'border-box' }}>STATIC</div>
                             )}
                             <button onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => ({...prev, [tool.toolId]: true})); }} style={{ padding: '10px', borderRadius: '8px', backgroundColor: 'transparent', color: '#d2d2d7', border: '1px solid #3a3a3c', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
                               Flip ⤹
@@ -878,14 +889,22 @@ return t;
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
                     {selectedTool.status === 'AVAILABLE' ? (
                         selectedTool.isDispatchable !== false ? (
-                          <button disabled={checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged'} onClick={() => setCheckoutModalOpen(true)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#2c2c2e' : '#007aff', color: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? '#636366' : '#ffffff', fontWeight: '800', fontSize: '15px', cursor: (checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'not-allowed' : 'pointer' }}>{(checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged') ? 'LOCKED: SERVICE REQUIRED' : 'CHECK OUT TO EMPLOYEE'}</button>
+                            (() => {
+                                const isLocked = checkIsOverdue(selectedTool.metrics) || selectedTool.condition === 'Damaged';
+                                const isAdmin = userRole === 'ADMIN';
+                                if (isLocked && !isAdmin) return <button disabled style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#2c2c2e', color: '#636366', fontWeight: '800', fontSize: '15px', cursor: 'not-allowed' }}>LOCKED: SERVICE REQUIRED</button>;
+                                if (isLocked && isAdmin) return <button onClick={() => setCheckoutModalOpen(true)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #ff9500', backgroundColor: 'rgba(255,149,0,0.1)', color: '#ff9500', fontWeight: '800', fontSize: '15px', cursor: 'pointer', transition: 'all 0.2s' }}>⚠️ ADMIN OVERRIDE: FORCE DISPATCH</button>;
+                                return <button onClick={() => setCheckoutModalOpen(true)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#ffffff', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}>CHECK OUT TO EMPLOYEE</button>;
+                            })()
                         ) : (
-                          <button disabled style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#1c1c1e', color: '#86868b', fontWeight: '800', fontSize: '15px', cursor: 'not-allowed' }}>
-                            STATIC TOOL (NON-DISPATCHABLE)
-                          </button>
+                            <button disabled style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#1c1c1e', color: '#86868b', fontWeight: '800', fontSize: '15px', cursor: 'not-allowed' }}>STATIC TOOL (NON-DISPATCHABLE)</button>
                         )
                     ) : (
-                        <button onClick={() => { setFlippedCards(prev => ({...prev, [selectedTool.toolId]: true})); }} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#ffffff', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}>FLIP CARD TO LOG RETURN</button>
+                        (userRole === 'ADMIN' || selectedTool.assignedUser === user?.profile?.email) ? (
+                            <button onClick={() => { setFlippedCards(prev => ({...prev, [selectedTool.toolId]: true})); }} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#ffffff', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}>FLIP CARD TO LOG RETURN</button>
+                        ) : (
+                            <button disabled style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #ff3b30', backgroundColor: 'rgba(255,59,48,0.1)', color: '#ff3b30', fontWeight: '800', fontSize: '15px', cursor: 'not-allowed' }}>🔒 CUSTODY LOCKED TO {selectedTool.assignedUser}</button>
+                        )
                     )}
                     </div>
                 </>
