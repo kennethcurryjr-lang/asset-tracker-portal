@@ -144,7 +144,7 @@ function Tools({ user }) {
   const [financeModalOpen, setFinanceModalOpen] = useState(false);
   const [guideModalOpen, setGuideModalOpen] = useState(false);
   const [alertPrefs, setAlertPrefs] = useState({ 
-    email: 'kennethcurryjr@gmail.com', 
+    email: '', 
     frequency: 'Daily Digest', 
     notifyDamaged: true, 
     notifyOverdue: true, 
@@ -528,13 +528,14 @@ return t;
           .kanban-col { min-width: 100%; }
           .kanban-scroll-wrapper { overflow-x: auto; display: flex; gap: 16px; padding-bottom: 16px; }
         }
+        @media (max-width: 960px) { .responsive-header-col { justify-content: center !important; min-width: 100% !important; flex: 1 1 100% !important; margin-bottom: 8px; } }
       `}</style>
 
       {/* MASTER TOGGLE & INGEST ACTION DECK */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '12px 24px', borderRadius: '16px', width: '100%', boxSizing: 'border-box', border: '1px solid #3a3a3c', marginTop: '24px', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '12px 24px', borderRadius: '16px', width: '100%', boxSizing: 'border-box', flexWrap: 'wrap', gap: '16px', border: '1px solid #3a3a3c', marginTop: '24px', marginBottom: '12px' }}>
         
         {/* LEFT: Role Toggle */}
-        <div style={{ display: 'flex', flex: 1, justifyContent: 'flex-start' }}>
+        <div className="responsive-header-col" style={{ display: 'flex', flex: 1, justifyContent: 'flex-start' }}>
           <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#121212', borderRadius: '8px', padding: '4px', border: '1px solid #3a3a3c' }}>
             <button onClick={() => setUserRole('TECH')} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', backgroundColor: userRole === 'TECH' ? '#ffffff' : 'transparent', color: userRole === 'TECH' ? '#121212' : '#86868b', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>TECH</button>
             <button onClick={() => setUserRole('ADMIN')} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', backgroundColor: userRole === 'ADMIN' ? '#ffffff' : 'transparent', color: userRole === 'ADMIN' ? '#121212' : '#86868b', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>ADMIN</button>
@@ -542,7 +543,7 @@ return t;
         </div>
 
         {/* CENTER: Main Operations */}
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="responsive-header-col" style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
           <button onClick={() => setActiveView('DISPATCH')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'DISPATCH' ? '#ffffff' : 'transparent', color: activeView === 'DISPATCH' ? '#121212' : '#86868b' }}>
             📦 ASSET HUB
           </button>
@@ -566,7 +567,7 @@ return t;
         </div>
 
         {/* RIGHT: Admin Tools (Cohesive Control Pad) */}
-        <div style={{ display: 'flex', flex: 1, justifyContent: 'flex-end' }}>
+        <div className="responsive-header-col" style={{ display: 'flex', flex: 1, justifyContent: 'flex-end' }}>
           {userRole === 'ADMIN' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', backgroundColor: '#121212', padding: '2px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
               <button onClick={() => setActiveView('LEDGER')} style={{ padding: '4px 14px', borderRadius: '6px', border: 'none', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'LEDGER' ? '#ffffff' : 'transparent', color: activeView === 'LEDGER' ? '#121212' : '#86868b', width: '100%', textAlign: 'center' }}>
@@ -629,7 +630,7 @@ return t;
                         <div className="card-face card-front" style={{ padding: '16px', border: cardBorder, boxShadow: cardShadow, display: 'flex', flexDirection: 'column', gap: '12px', cursor: 'pointer', backgroundColor: cardBg }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '4px', backgroundColor: isServiceDue ? 'rgba(255,59,48,0.15)' : (isOut ? 'rgba(255,149,0,0.15)' : 'rgba(52,199,89,0.15)'), color: isServiceDue ? '#ff3b30' : (isOut ? '#ff9500' : '#34c759'), letterSpacing: '0.05em' }}>
-                            {isServiceDue ? 'SERVICE DUE' : (isOut ? 'DEPLOYED' : 'IN CRIB')}
+                            {isServiceDue ? 'SERVICE DUE' : (isOut ? 'DEPLOYED' : 'IN-STOCK')}
                             </span>
                             <span style={{ fontSize: '11px', color: '#86868b', fontWeight: '600' }}>[ {tool.toolId} ]</span>
                         </div>
@@ -853,7 +854,7 @@ return t;
                     <div style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '12px' }}>CURRENT STATUS</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: '#121212', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
                         <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: selectedTool.status === 'CHECKED_OUT' ? '#ff9500' : '#34c759', boxShadow: `0 0 10px ${selectedTool.status === 'CHECKED_OUT' ? '#ff9500' : '#34c759'}` }}></span>
-                        <span style={{ fontSize: '20px', fontWeight: '800', color: '#ffffff', letterSpacing: '1px' }}>{selectedTool.status === 'CHECKED_OUT' ? 'DEPLOYED' : 'IN CRIB'}</span>
+                        <span style={{ fontSize: '20px', fontWeight: '800', color: '#ffffff', letterSpacing: '1px' }}>{selectedTool.status === 'CHECKED_OUT' ? 'DEPLOYED' : 'IN-STOCK'}</span>
                     </div>
                     {selectedTool.status === 'CHECKED_OUT' && (
                         <div style={{ marginTop: '12px', color: '#86868b', fontSize: '14px', lineHeight: '1.5' }}>
@@ -1052,14 +1053,14 @@ return t;
       {/* INGEST TOOL MODAL */}
       {addModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto" }}>
+          <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "16px", border: "1px solid #3a3a3c", width: "800px", maxWidth: "90%", color: "#ffffff", boxSizing: "border-box" }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Ingest New Tool</h2>
-            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Register hardware into the active matrix.</p>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>REGISTER ASSETS.</p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
               
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>BRAND (Single OR EMP KIT)</label>
                   <input 
                     list="prefix-options"
@@ -1079,7 +1080,7 @@ return t;
                     <option value="BSCH">Bosch</option>
                   </datalist>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>REPLACEMENT VALUE ($)</label>
                   <input 
                     type="number" 
@@ -1091,12 +1092,12 @@ return t;
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', flexDirection: 'column', gap: '8px', flex: 2 }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>{newTool.prefix?.toUpperCase() === "KIT" ? "NAME: KIT DESCRIPTION" : "NAME: TOOL NAME / MODEL"}</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', flexDirection: 'column', gap: '8px', flex: '2 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>{newTool.prefix?.toUpperCase() === "KIT" ? "NAME: KIT DESCRIPTION" : "ASSET NAME / MODEL"}</label>
                   <input type="text" placeholder="e.g. Ford F-150 Fleet Truck" value={newTool.name} onChange={(e) => setNewTool({...newTool, name: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>CONDITION</label>
                   <select value={newTool.condition} onChange={(e) => setNewTool({...newTool, condition: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}>
                     <option value="New">New</option>
@@ -1106,9 +1107,9 @@ return t;
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOOL CLASS / CATEGORY</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>ASSET / TOOL CLASS / CATEGORY</label>
                   <input list="category-options" placeholder={newTool.prefix?.toUpperCase() === "KIT" ? "Auto-assigned" : "e.g. HVAC, Power Tool"} value={newTool.prefix?.toUpperCase() === "KIT" ? "Standard Kit" : newTool.category} disabled={newTool.prefix?.toUpperCase() === "KIT"} onChange={(e) => setNewTool({...newTool, category: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none', opacity: newTool.prefix?.toUpperCase() === "KIT" ? 0.5 : 1 }} />
                   <datalist id="category-options">
                     <option value="Power Tool">Power Tool</option>
@@ -1119,7 +1120,7 @@ return t;
                     <option value="IT Equipment">IT Equipment</option>
                   </datalist>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>HOME LOCATION / ZONE / EMP TITLE</label>
                   <input list="location-options" placeholder="e.g. Roof, Lot B" value={newTool.location} onChange={(e) => setNewTool({...newTool, location: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                   <datalist id="location-options">
@@ -1131,12 +1132,12 @@ return t;
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>{newTool.prefix?.toUpperCase() === "KIT" ? "SERIAL NUMBERS (COMMA SEPARATED)" : "SERIAL NUMBER / VIN"}</label>
                   <input type="text" placeholder="e.g. 1FTEW1E49K..." value={newTool.serial} onChange={(e) => setNewTool({...newTool, serial: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
-                <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>EXTERNAL LINK / URL</label>
                   <input type="text" placeholder="e.g. https://..." value={newTool.link} onChange={(e) => setNewTool({...newTool, link: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
@@ -1144,7 +1145,7 @@ return t;
 
               {newTool.prefix?.toUpperCase() === 'KIT' && (
               <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#ff9500', fontWeight: '800', letterSpacing: '0.05em' }}>RAPID ASSIGN TO EMPLOYEE (OPTIONAL)</label>
                   <input type="text" placeholder="e.g. Sarah Connor (Leave blank to ingest to Tool Crib)" value={newTool.assignee || ''} onChange={(e) => setNewTool({...newTool, assignee: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid rgba(255,149,0,0.5)', backgroundColor: 'rgba(255,149,0,0.08)', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                   {newTool.assignee && (
@@ -1178,8 +1179,8 @@ return t;
               </div>
             )}
               <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>PM METRIC</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>SET PM METRIC</label>
                   <select value={newTool.pmMetric} onChange={(e) => setNewTool({...newTool, pmMetric: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}>
                     <option value="Days">Days</option>
                     <option value="Miles">Miles</option>
@@ -1187,13 +1188,13 @@ return t;
                     <option value="Crimps">Cycles / Crimps</option>
                   </select>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>PM INTERVAL LIMIT</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>SET PM ALERT (DAYS)</label>
                   <input type="number" placeholder="e.g. 90, 5000" value={newTool.pmInterval} onChange={(e) => setNewTool({...newTool, pmInterval: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'stretch' }}>
               <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c', flex: 1 }}>
                 <input type="checkbox" id="dispatchableToggle" checked={(newTool.prefix?.toUpperCase() === 'KIT' && newTool.assignee) ? true : newTool.isDispatchable} onChange={(e) => setNewTool({...newTool, isDispatchable: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#34c759', cursor: 'pointer' }} />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -1214,7 +1215,7 @@ return t;
 
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               <button onClick={() => { setAddModalOpen(false); setIngestTerms(false); setIngestPhoto(null); setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false, assignee: '' }); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
               <button onClick={handleAddTool} disabled={(!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: ((!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value) ? 0.4 : 1 }}>ADD TO INVENTORY</button>
             </div>
@@ -1344,8 +1345,8 @@ return t;
         <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>EMPLOYEE / TECH NAME</label>
         <input type="text" placeholder="e.g. Chris Evans" value={dispatchUser} onChange={(e) => setDispatchUser(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} autoFocus />
       </div>
-      <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
           <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>TOOL CONDITION</label>
           <select value={dispatchCondition} onChange={(e) => setDispatchCondition(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}>
             <option value="New">New</option>
@@ -1355,7 +1356,7 @@ return t;
             <option value="Damaged">Damaged / Missing Parts</option>
           </select>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 2 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '2 1 250px', minWidth: '250px' }}>
           <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>DISPATCH NOTES</label>
           <input type="text" placeholder="e.g. Scratched case, missing battery..." value={dispatchNotes} onChange={(e) => setDispatchNotes(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
         </div>
@@ -1379,7 +1380,7 @@ return t;
               </div>
               </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               <button onClick={() => { setCheckoutModalOpen(false); setDispatchUser(""); setDispatchCondition("Excellent"); setDispatchNotes(""); setDispatchTerms(false); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
               <button onClick={handleCheckout} disabled={!dispatchUser.trim() || !dispatchTerms} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (dispatchUser.trim() && dispatchTerms) ? 1 : 0.4 }}>AUTHORIZE</button>
             </div>
@@ -1427,7 +1428,7 @@ return t;
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               <button onClick={() => setAlertsModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
               <button onClick={() => setAlertsModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>SAVE PREFERENCES</button>
             </div>
@@ -1451,7 +1452,7 @@ return t;
               ))}
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               <button onClick={() => setReturnModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
               <button onClick={() => {
                 const allChecked = Object.values(returnChecklist).every(Boolean);
@@ -1522,7 +1523,7 @@ return t;
                 <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#ffcc00', letterSpacing: '0.05em', textTransform: 'uppercase' }}>👷 FIELD TECHNICIAN PROTOCOLS</h3>
                 <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <li><strong style={{color: '#ffffff'}}>🔍 Locating Equipment:</strong> Use the search bar in the <em>FLEET DISPATCH</em> view to instantly find a specific tool by its ID, Tag, or Category.</li>
-                  <li><strong style={{color: '#ffffff'}}>📦 Checking Tools Out/In:</strong> When taking a tool to the field, click <em>CHECK OUT</em>. When returning it to the crib, click <em>RETURN</em> to clear your liability and mark it IN CRIB.</li>
+                  <li><strong style={{color: '#ffffff'}}>📦 Checking Tools Out/In:</strong> When taking a tool to the field, click <em>CHECK OUT</em>. When returning it to the crib, click <em>RETURN</em> to clear your liability and mark it IN-STOCK.</li>
                   <li><strong style={{color: '#ffffff'}}>⚠️ Reporting Damage:</strong> If a tool is broken or missing components upon return, click <em>REPORT DAMAGE / FAULT</em> so the Admin team knows to pull it for maintenance.</li>
                 </ul>
               </div>
