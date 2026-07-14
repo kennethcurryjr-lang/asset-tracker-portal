@@ -1,8 +1,31 @@
 import { docClient } from './dynamoClient';
 import { ScanCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import SignatureCanvas from 'react-signature-canvas';
-import React, { useState, useMemo } from 'react';
+import React, { useEffect,  useState, useMemo } from 'react';
 import { uploadData, getUrl } from "aws-amplify/storage";
+
+// NLP Ingest Engine for Smart Checklists
+const generateSmartChecklist = (id, name) => {
+  const lowerName = (name || '').toLowerCase();
+  const prefix = id ? id.split('-')[0] : '';
+  
+  if (prefix === 'HVAC' || lowerName.includes('ac') || lowerName.includes('chiller') || lowerName.includes('condenser') || lowerName.includes('ton') || prefix === 'GOODMAN' || prefix === 'CARRIER' || prefix === 'TRANE') 
+    return ['Filter Status', 'Voltage Output Test', 'Refrigerant Line Check'];
+  if (prefix === 'VEH' || lowerName.includes('truck') || lowerName.includes('car') || lowerName.includes('tesla')) 
+    return ['Tire Tread Depth', 'Fluid Levels', 'Brake Pad Inspection'];
+  if (prefix === 'CAT' || prefix === 'LIFT' || lowerName.includes('lift') || lowerName.includes('excavator') || lowerName.includes('loader')) 
+    return ['Hydraulic Line Check', 'Grease Points', 'Emergency Stop Test'];
+  if (prefix === 'GEN' || lowerName.includes('generator') || lowerName.includes('tower')) 
+    return ['Filter Status', 'Voltage Output Test', 'Fuel Line Check'];
+  if (prefix === 'TECH' || lowerName.includes('switch') || lowerName.includes('camera') || lowerName.includes('laptop') || lowerName.includes('toughbook')) 
+    return ['Diagnostic Interface Audit', 'Firmware Version Verification', 'Port/Cable Integrity'];
+  if (prefix === 'MILW' || prefix === 'DWLT' || prefix === 'HILT' || lowerName.includes('drill') || lowerName.includes('saw') || lowerName.includes('impact') || lowerName.includes('press')) 
+    return ['Battery/Cord Check', 'Chuck/Collet Alignment', 'Trigger Safety Test'];
+  if (prefix === 'SURV' || lowerName.includes('leica') || lowerName.includes('station')) 
+    return ['Lens/Optics Check', 'Tripod Mount Integrity', 'Calibration Verification'];
+    
+  return ['Visual Inspection', 'Power Cycle', 'Safety Test']; // Fallback
+};
 
 // Generates universal tools with dynamic PM metrics (Time, Usage, Cycles)
 const generateTools = () => {
@@ -66,11 +89,11 @@ const generateTools = () => {
       assignedUser: assignedUser,
       daysOut: daysOut,
       isDispatchable: t.isDispatchable !== false,
-      isSpecialty: t.value >= 20000,
+      isSpecialty: t.value >= 20000, maxCheckoutDays: 14,
       metrics: toolMetrics,
       history: isOut ? [
         { user: assignedUser, action: "Checked Out", date: `${daysOut} days ago`, condition: condition }
-      ] : (Math.random() > 0.5 ? [{ user: "Admin", action: "Returned", date: "2 days ago", condition: condition }] : [])
+      ] : (Math.random() > 0.5 ? [{ user: "Admin", action: "Returned", date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: condition }] : [])
     });
   }
   return generated;
@@ -111,6 +134,16 @@ function Tools({ user }) {
 
   const [inventory] = useState({ 'HVAC': [{ item: '24x24x2 Pleated Air Filter', stock: 45 }, { item: 'R-410A Refrigerant (lbs)', stock: 12 }], 'MILW': [{ item: 'M18 REDLITHIUM 5.0Ah Battery', stock: 22 }, { item: 'Press Tool Jaw Grease', stock: 6 }], 'VEH': [{ item: '5W-30 Synthetic Oil (Qts)', stock: 32 }, { item: 'Wiper Fluid (Gal)', stock: 14 }] });
   const [tools, setTools] = useState(generateTools);
+  const [ledgerSearch, setLedgerSearch] = useState('');
+  const [custodySearch, setCustodySearch] = useState('');
+  const [custodySort, setCustodySort] = useState('daysDesc');
+  const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
+    }));
+  };
   const [activeView, setActiveView] = useState('DISPATCH');
   const [userRole, setUserRole] = useState('ADMIN');
   const [searchTerm, setSearchTerm] = useState("");
@@ -125,6 +158,24 @@ function Tools({ user }) {
   const [auditCleared, setAuditCleared] = useState({});
   
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [personnel, setPersonnel] = useState(['Chris Evans', 'David Kim', 'Elena Rodriguez', 'Ellen Ripley', 'John Wick', 'Marcus Johnson', 'Mario Diaz', 'Priya Patel', 'Sarah Connor', 'Tony Stark']);
+  
+  useEffect(() => {
+    // ENTERPRISE INTEGRATION POINT: 
+    // Replace this block with your AWS Amplify/Cognito fetch call when the backend is ready
+    /*
+    const fetchEnterpriseRoster = async () => {
+       try {
+           const users = await API.graphql(graphqlOperation(listUsers));
+           setPersonnel(users.data.listUsers.items.map(u => u.fullName).sort());
+       } catch (err) {
+           console.error("Failed to fetch user directory", err);
+       }
+    };
+    fetchEnterpriseRoster();
+    */
+  }, []);
+
   const [dispatchUser, setDispatchUser] = useState("");
   const [dispatchCondition, setDispatchCondition] = useState("Excellent");
   const [dispatchNotes, setDispatchNotes] = useState("");
@@ -135,6 +186,9 @@ function Tools({ user }) {
   const sigPad = React.useRef(null);
   
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editTool, setEditTool] = useState(null);
+  const [confirmIngestOpen, setConfirmIngestOpen] = useState(false);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
   const [csvData, setCsvData] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -150,7 +204,7 @@ function Tools({ user }) {
     notifyOverdue: true, 
     notifyNew: false 
   });
-  const [newTool, setNewTool] = useState({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false });
+  const [newTool, setNewTool] = useState({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', maxCheckoutDays: '14', isDispatchable: true, isSpecialty: false });
 
   
   React.useEffect(() => {
@@ -278,14 +332,14 @@ function Tools({ user }) {
       condition: newTool.condition,
       assignedUser: newTool.assignee || null,
       daysOut: 0,
-      metrics: [{ unit: newTool.pmMetric, current: 0, interval: parseInt(newTool.pmInterval) || 90 }],
-      history: newTool.assignee ? [{ user: newTool.assignee, action: "Auto-Dispatched during ingestion" + (isKit ? " | E-Signed" : ""), ...(ingestSigData && { signatureUrl: ingestSigData }), ...(ingestPhotoUrl && { attachmentUrl: ingestPhotoUrl, attachment: '📷 Kit Manifest: ' + ingestPhotoName }), date: "Just now", condition: newTool.condition }, { user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }] : [{ user: "Admin", action: "Tool Ingested to Database", date: "Just now", condition: newTool.condition }]
+      metrics: [{ unit: newTool.pmMetric, current: 0, interval: parseInt(newTool.pmInterval) || 90 }], maxCheckoutDays: (newTool.maxCheckoutDays === '' || newTool.maxCheckoutDays === undefined) ? 14 : parseInt(newTool.maxCheckoutDays),
+      history: newTool.assignee ? [{ user: newTool.assignee, action: "Auto-Dispatched during ingestion" + (isKit ? " | E-Signed" : ""), ...(ingestSigData && { signatureUrl: ingestSigData }), ...(ingestPhotoUrl && { attachmentUrl: ingestPhotoUrl, attachment: '📷 Kit Manifest: ' + ingestPhotoName }), date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: newTool.condition }, { user: "Admin", action: "Tool Ingested to Database", date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: newTool.condition }] : [{ user: "Admin", action: "Tool Ingested to Database", date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: newTool.condition }]
     };
     
     syncDB(newToolObj);
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
-    setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false, assignee: '' });
+    setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', maxCheckoutDays: '14', isDispatchable: true, isSpecialty: false, assignee: '' });
     setIngestTerms(false);
     setIngestPhoto(null);
     if (sigPad.current) sigPad.current.clear();
@@ -335,7 +389,7 @@ const ut = {
     action: `Dispatched to: ${dispatchProject || 'Field'} | E-Signed`, 
     ...(sigData && { signatureUrl: sigData }),
     note: dispatchNotes,
-    date: 'Just now', 
+    date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), 
     condition: dispatchCondition,
     telemetry: telemetryData
   }, ...t.history]
@@ -363,10 +417,10 @@ return t;
       assignedUser: null,
       daysOut: 0,
       condition: newCondition,
-      history: [{ user: "Admin", action: actionText, date: 'Just now', condition: newCondition }, ...tool.history]
+      history: [{ user: "Admin", action: actionText, date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: newCondition }, ...tool.history]
     };
     syncDB(ut); // SILENT BUG FIXED: Return actions now save to cloud
-    setTools(prev => prev.map(t => t.toolId === tool.toolId ? ut : t));
+    setTools(prev => prev.map(t => t.toolId === selectedTool.toolId ? ut : t));
     setReturnModalOpen(false);
     setAuditCleared(prev => { const newState = { ...prev }; delete newState[tool.toolId]; return newState; });
   };
@@ -389,9 +443,11 @@ return t;
     const fileObj = pendingAttachments[toolId];
     const note = serviceNotes[toolId];
     const targetTool = tools.find(t => t.toolId === toolId);
-    if (targetTool?.condition === 'Damaged' && (!note || !note.toLowerCase().includes('repair'))) {
-      alert("🚨 This tool is flagged as DAMAGED. To clear this status, you must explicitly detail the fix by including the word 'repair' in your service notes.");
-      return;
+    if (targetTool?.condition === 'Damaged' && targetTool?.status !== 'CHECKED_OUT') {
+      if (!note || !note.toLowerCase().includes('repair') || !fileObj) {
+        alert("🚨 REPAIR PROTOCOL: To clear this damaged status, you must detail the fix (include the word 'repair') AND attach a photo of the completed work.");
+        return;
+      }
     }
     let uploadedFilename = null;
     let viewableUrl = null;
@@ -413,15 +469,15 @@ return t;
         const ut = {
                   ...t,
                   metrics: resetMetrics,
-                  condition: (t.condition === 'Damaged' && note?.toLowerCase().includes('repair')) ? 'Good' : (t.condition === 'Damaged' ? 'Damaged' : 'Excellent'),
+                  condition: (t.condition === 'Damaged' && t.status !== 'CHECKED_OUT' && note?.toLowerCase().includes('repair') && fileObj) ? 'Good' : (t.condition === 'Damaged' ? 'Damaged' : 'Excellent'),
                   status: t.status === 'CHECKED_OUT' ? 'AVAILABLE' : t.status,
                   assignedUser: t.status === 'CHECKED_OUT' ? null : t.assignedUser,
                   daysOut: t.status === 'CHECKED_OUT' ? 0 : t.daysOut,
                   history: [{ 
                     user: t.status === 'CHECKED_OUT' ? (t.assignedUser || "Admin") : "Admin", 
                     action: t.status === 'CHECKED_OUT' ? "Returned, Audited & Serviced" : "PM Service Completed & Intervals Reset", 
-            date: "Just now", 
-            condition: (t.condition === 'Damaged' && note?.toLowerCase().includes('repair')) ? 'Good' : (t.condition === 'Damaged' ? 'Damaged' : 'Excellent'),
+            date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), 
+            condition: (t.condition === 'Damaged' && t.status !== 'CHECKED_OUT' && note?.toLowerCase().includes('repair') && fileObj) ? 'Good' : (t.condition === 'Damaged' ? 'Damaged' : 'Excellent'),
             attachment: fileObj ? fileObj.name : null,
             attachmentUrl: viewableUrl,
             note: note || null
@@ -449,7 +505,7 @@ return t;
           history: [{ 
             user: "Admin", 
             action: "Bulk PM Service Completed", 
-            date: 'Just now', 
+            date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), 
             condition: "Excellent"
           }, ...t.history]
         };
@@ -464,7 +520,7 @@ return t;
     if (note === null) return;
     setTools(prev => prev.map(t => {
       if (t.toolId === toolId) {
-        const ut = { ...t, condition: "Damaged", history: [{ user: "Admin", action: "Flagged as Damaged 🚩", date: 'Just now', condition: "Damaged", note: note }, ...t.history] };
+        const ut = { ...t, condition: "Damaged", history: [{ user: "Admin", action: "Flagged as Damaged 🚩", date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: "Damaged", note: note }, ...t.history] };
         syncDB(ut);
         return ut;
       }
@@ -541,10 +597,62 @@ return t;
           .kanban-scroll-wrapper { overflow-x: auto; display: flex; gap: 16px; padding-bottom: 16px; }
         }
         @media (max-width: 960px) { .responsive-header-col { justify-content: center !important; min-width: 100% !important; flex: 1 1 100% !important; margin-bottom: 8px; } }
+      @media (max-width: 768px) {
+          /* Matrix Layout & Inspector Bottom Sheet */
+          .desktop-layout { flex-direction: column !important; padding-bottom: 50vh !important; }
+          .matrix-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+          
+          .inspector-container { 
+            position: fixed !important; 
+            bottom: 0 !important; 
+            left: 0 !important; 
+            right: 0 !important; 
+            width: 100% !important; 
+            top: auto !important; 
+            z-index: 1000 !important; 
+            border-radius: 24px 24px 0 0 !important; 
+            border: 1px solid #3a3a3c !important;
+            border-bottom: none !important; 
+            max-height: 50vh !important; 
+            padding: 24px 16px 16px 16px !important; 
+            box-shadow: 0 -15px 40px rgba(0,0,0,0.9) !important; 
+            background-color: rgba(28,28,30,0.95) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+          }
+          /* Add an iOS-style drag handle visual to the inspector */
+          .inspector-container::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 5px;
+            background-color: #636366;
+            border-radius: 10px;
+          }
+          
+          /* Full Screen Modals for Touch Signatures */
+          .modal-container { 
+            width: 100% !important; 
+            height: 100% !important; 
+            max-height: 100vh !important; 
+            max-width: 100% !important; 
+            border-radius: 0 !important; 
+            padding: 24px 16px 100px 16px !important; 
+            border: none !important; 
+          }
+          
+          /* Top Nav Horizontal Scroll */
+          .responsive-header-container { padding: 12px !important; gap: 12px !important; flex-direction: column !important; align-items: stretch !important; }
+          .responsive-header-col { overflow-x: auto !important; white-space: nowrap !important; flex-wrap: nowrap !important; justify-content: flex-start !important; flex: none !important; width: 100%; margin-bottom: 0 !important; padding-bottom: 8px; }
+          .responsive-header-col::-webkit-scrollbar { display: none; }
+        }
       `}</style>
 
       {/* MASTER TOGGLE & INGEST ACTION DECK */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '12px 24px', borderRadius: '16px', width: '100%', boxSizing: 'border-box', flexWrap: 'wrap', gap: '16px', border: '1px solid #3a3a3c', marginTop: '24px', marginBottom: '12px' }}>
+      <div className="responsive-header-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '12px 24px', borderRadius: '16px', width: '100%', boxSizing: 'border-box', flexWrap: 'wrap', gap: '16px', border: '1px solid #3a3a3c', marginTop: '24px', marginBottom: '12px' }}>
         
         {/* LEFT: Role Toggle */}
         <div className="responsive-header-col" style={{ display: 'flex', flex: 1, justifyContent: 'flex-start' }}>
@@ -616,8 +724,8 @@ return t;
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px', alignContent: 'start' }}>
-                {filteredTools.map(tool => {
+            <div className="matrix-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px', alignContent: 'start' }}>
+                {filteredTools.filter(tool_obj => tool_obj.status !== 'DECOMMISSIONED').map(tool => {
                 const isSelected = tool.toolId === selectedToolId;
                 const isOut = tool.status === 'CHECKED_OUT';
                 const isServiceDue = checkIsOverdue(tool.metrics);
@@ -662,7 +770,7 @@ return t;
                                   return <button onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); setFlippedCards(prev => ({...prev, [tool.toolId]: true})); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#007aff', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>RETURN</button>;
                                 }
                                 if (isLocked && !isAdmin) return <button disabled style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#2c2c2e', color: '#636366', border: 'none', fontWeight: '800', fontSize: '11px', cursor: 'not-allowed' }}>LOCKED</button>;
-                                if (isLocked && isAdmin) return <button onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: 'rgba(255,149,0,0.1)', color: '#ff9500', border: '1px solid #ff9500', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>OVERRIDE</button>;
+                                if (isLocked && isAdmin) return <button onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: 'rgba(255,149,0,0.1)', color: '#ff9500', border: '1px solid #ff9500', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>{tool.condition === 'Damaged' ? 'REPAIR' : 'SERVICE'}</button>;
                                 return <button onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#007aff', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>CHECK OUT</button>;
                               })()
                             ) : (
@@ -706,28 +814,43 @@ return t;
                                 </div>
                                 
                                 {/* PROCEDURAL CHECKLIST */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', backgroundColor: '#121212', padding: '8px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
-                                  {['Visual Inspection', 'Calibration', 'Safety Test'].map(step => {
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', backgroundColor: '#121212', padding: '8px', borderRadius: '8px', border: '1px solid #3a3a3c', maxHeight: '160px', overflowY: 'auto' }}>
+                                  {(tool.pmChecklist || generateSmartChecklist(tool.toolId, tool.name)).map(step => {
                                     const isChecked = (serviceChecklists[tool.toolId] || []).includes(step);
                                     return (
                                       <label key={step} onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isChecked ? '#34c759' : '#d2d2d7', cursor: 'pointer', fontWeight: '600', margin: 0 }}>
-                                        <input type="checkbox" checked={isChecked} onChange={() => { setServiceChecklists(prev => { const curr = prev[tool.toolId] || []; return { ...prev, [tool.toolId]: curr.includes(step) ? curr.filter(s => s !== step) : [...curr, step] }; }); }} style={{ width: '12px', height: '12px', accentColor: '#34c759', margin: 0 }} />
-                                        {step}
-                                      </label>
+                                        <input type="checkbox" checked={isChecked} onChange={() => { setServiceChecklists(prev => { const curr = prev[tool.toolId] || []; return { ...prev, [tool.toolId]: curr.includes(step) ? curr.filter(s => s !== step) : [...curr, step] }; }); }} style={{ width: '12px', height: '12px', accentColor: '#34c759', margin: 0 }} />{step} {userRole === 'ADMIN' && <span style={{ color: '#ff3b30', cursor: 'pointer', marginLeft: '8px', fontWeight: '800' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); const currentList = tool.pmChecklist || generateSmartChecklist(tool.toolId, tool.name); setTools(tools.map(t => t.toolId === selectedTool.toolId ? { ...t, pmChecklist: currentList.filter(s => s !== step) } : t));
+                }}>✕</span>}</label>
                                     );
                                   })}
                                 </div>
                                 
                                 {/* TECH NOTES & PHOTO */}
                                 <div style={{ display: 'flex', gap: '6px' }}>
-                                  <input type="text" placeholder="Add Service Notes..." value={serviceNotes[tool.toolId] || ''} onChange={(e) => setServiceNotes(prev => ({...prev, [tool.toolId]: e.target.value}))} onClick={(e) => e.stopPropagation()} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '11px', outline: 'none' }} />
+                                  {userRole === 'ADMIN' && (
+    <input 
+      type="text" 
+      placeholder="+ Add Custom Step (Press Enter)" 
+      style={{ padding: '8px', borderRadius: '4px', border: '1px dashed #3a3a3c', backgroundColor: 'transparent', color: '#34c759', fontSize: '12px', outline: 'none', marginBottom: '8px', width: '100%', boxSizing: 'border-box' }} 
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && e.target.value.trim()) {
+          e.preventDefault();
+          const currentList = tool.pmChecklist || generateSmartChecklist(tool.toolId, tool.name);
+          const newList = [...currentList, e.target.value.trim()];
+          setTools(tools.map(t => t.toolId === selectedTool.toolId ? { ...t, pmChecklist: newList } : t));
+          e.target.value = '';
+        }
+      }} 
+    />
+  )}
+<input type="text" placeholder={tool.condition === "Damaged" || tool.condition === "Requires Maintenance" ? "🚨 MANDATORY: Explain damage/fault here..." : "Add Service Notes..."} value={serviceNotes[tool.toolId] || ''} onChange={(e) => setServiceNotes(prev => ({...prev, [tool.toolId]: e.target.value}))} onClick={(e) => e.stopPropagation()} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '11px', outline: 'none' }} />
                                   <label htmlFor={`file-${tool.toolId}`} onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', borderRadius: '8px', backgroundColor: pendingAttachments[tool.toolId] ? 'rgba(52,199,89,0.15)' : '#2c2c2e', border: pendingAttachments[tool.toolId] ? '1px solid #34c759' : '1px dashed #86868b', color: pendingAttachments[tool.toolId] ? '#34c759' : '#d2d2d7', cursor: 'pointer', transition: 'all 0.2s' }}>
                                     {pendingAttachments[tool.toolId] ? '📎' : '📷'}
                                   </label>
                                   <input type="file" id={`file-${tool.toolId}`} style={{ display: 'none' }} onChange={(e) => { if(e.target.files[0]) { setPendingAttachments(prev => ({...prev, [tool.toolId]: e.target.files[0]})); } }} />
                                 </div>
 
-                                <button disabled={(serviceChecklists[tool.toolId] || []).length !== 3} onClick={(e) => { e.stopPropagation(); logService(tool.toolId); }} style={{ marginTop: 'auto', padding: '10px', borderRadius: '8px', backgroundColor: tool.condition === 'Damaged' ? '#ff9500' : '#34c759', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer', opacity: (serviceChecklists[tool.toolId] || []).length === 3 ? 1 : 0.4 }}>{tool.condition === 'Damaged' ? 'LOG REPAIR & RESET' : (isOut ? 'LOG RETURN & RESET' : 'LOG SERVICE & RESET')}</button>
+                                <button disabled={(serviceChecklists[tool.toolId] || []).length !== (tool.pmChecklist || generateSmartChecklist(tool.toolId, tool.name)).length || ((tool.condition === 'Damaged' || tool.condition === 'Requires Maintenance') && !(serviceNotes[tool.toolId] || '').trim())} onClick={(e) => { e.stopPropagation(); logService(tool.toolId); }} style={{ marginTop: 'auto', padding: '10px', borderRadius: '8px', backgroundColor: (isOut && tool.condition === 'Damaged') ? '#ff3b30' : (tool.condition === 'Damaged' ? '#ff9500' : '#34c759'), color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer', opacity: ((serviceChecklists[tool.toolId] || []).length === (tool.pmChecklist || generateSmartChecklist(tool.toolId, tool.name)).length && (!(['Damaged', 'Requires Maintenance'].includes(tool.condition)) || (serviceNotes[tool.toolId] || '').trim())) ? 1 : 0.4 }}>{(isOut && tool.condition === 'Damaged') ? 'RETURN (DAMAGED)' : (tool.condition === 'Damaged' ? 'LOG REPAIR & RESET' : (isOut ? 'LOG RETURN & RESET' : 'LOG SERVICE & RESET'))}</button>
                               </div>
                             )}
 
@@ -770,7 +893,7 @@ return t;
               const link = await getUrl({ path: `public/${filename}` });
               const updatedTool = { ...tool, manualUrl: link.url.toString() };
               syncDB(updatedTool);
-              setTools(prev => prev.map(t => t.toolId === tool.toolId ? updatedTool : t));
+              setTools(prev => prev.map(t => t.toolId === selectedTool.toolId ? updatedTool : t));
             } catch(err) { console.error("Manual Upload Failed:", err); }
           }
         }} />
@@ -880,9 +1003,14 @@ return t;
                         </button>
                       )}
                       {userRole === 'ADMIN' && (
-                        <button onClick={() => deleteTool(selectedTool.toolId)} style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ff3b30', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
-                          🗑️ PERMANENTLY DELETE TOOL
-                        </button>
+                        <>
+<button onClick={() => { setEditTool({...selectedTool}); setEditModalOpen(true); }} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '800', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', width: '100%', marginTop: '8px' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#007aff'; e.target.style.color = '#ffffff'; }} onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#007aff'; }}>✏️ EDIT ASSET DETAILS</button>
+                        <button onClick={() => {
+            if (window.confirm('🚨 DECOMMISSION PROTOCOL: Are you sure you want to permanently retire this asset?\n\nIt will be hidden from the active matrix, but its history will be preserved in the Global Audit Ledger.')) {
+                setTools(tools.map(t => t.toolId === selectedTool.toolId ? { ...t, status: 'DECOMMISSIONED', condition: 'Decommissioned', history: [{ action: 'Decommissioned', user: 'ADMIN', date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), note: 'Asset permanently written off and retired' }, ...t.history] } : t));
+                }
+          }} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ff3b30', backgroundColor: 'transparent', color: '#ff3b30', fontWeight: '800', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', width: '100%', marginTop: '8px' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#ff3b30'; e.target.style.color = '#ffffff'; }} onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#ff3b30'; }}>🛑 DECOMMISSION ASSET</button>
+</>
                       )}
                     </div>
                     {selectedTool && inventory[selectedTool.prefix] && (
@@ -975,10 +1103,68 @@ return t;
         </div>
       ) : activeView === 'LEDGER' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          
+        
+        {tools.filter(t => t.status === 'CHECKED_OUT' && t.maxCheckoutDays > 0 && t.daysOut > t.maxCheckoutDays).length > 0 && (
+          <div style={{ backgroundColor: 'rgba(255,204,0,0.05)', border: '1px solid rgba(255,204,0,0.3)', borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '18px' }}>⚠️</span>
+                <span style={{ fontSize: '16px', fontWeight: '800', color: '#ffcc00', letterSpacing: '0.05em' }}>LONG-TERM CUSTODY REVIEW</span>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', flex: 1, justifyContent: 'flex-end', minWidth: '300px' }}>
+                <input type="text" placeholder="🔍 Search overdue assets or users..." value={custodySearch} onChange={(e) => setCustodySearch(e.target.value)} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '13px', outline: 'none', flex: 1, maxWidth: '250px' }} />
+                <select value={custodySort} onChange={(e) => setCustodySort(e.target.value)} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '13px', outline: 'none', cursor: 'pointer' }}>
+                  <option value="daysDesc">Arrange by: Most Overdue</option>
+                  <option value="daysAsc">Arrange by: Least Overdue</option>
+                  <option value="user">Arrange by: Employee Name</option>
+                  <option value="name">Arrange by: Asset Name</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="inspector-scroll" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '10px', maxHeight: '320px', overflowY: 'auto', paddingRight: '8px' }}>
+              {tools.filter(t => t.status === 'CHECKED_OUT' && t.maxCheckoutDays > 0 && t.daysOut > t.maxCheckoutDays)
+                .filter(t => !custodySearch || (t.name + ' ' + t.toolId + ' ' + t.assignedUser).toLowerCase().includes(custodySearch.toLowerCase()))
+                .sort((a, b) => {
+                  if (custodySort === 'daysDesc') return b.daysOut - a.daysOut;
+                  if (custodySort === 'daysAsc') return a.daysOut - b.daysOut;
+                  if (custodySort === 'user') return (a.assignedUser || '').localeCompare(b.assignedUser || '');
+                  if (custodySort === 'name') return a.name.localeCompare(b.name);
+                  return 0;
+                })
+                .map(t => (
+                <div key={t.toolId} style={{ backgroundColor: '#121212', border: '1px solid #3a3a3c', padding: '12px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }} title={t.name}>{t.name}</div>
+                      <div style={{ fontSize: '11px', color: '#86868b' }}>[{t.toolId}]</div>
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: '800', color: '#ff9500', whiteSpace: 'nowrap' }}>{t.daysOut} / {t.maxCheckoutDays || 14}d</div>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#d2d2d7' }}>With: <strong style={{ color: '#ffffff' }}>{t.assignedUser}</strong></div>
+                  <div style={{ display: 'flex', gap: '6px', marginTop: 'auto' }}>
+                    <button onClick={(e) => { e.stopPropagation(); alert('Automated email ping sent to ' + t.assignedUser + '.'); }} style={{ flex: 1, padding: '8px', backgroundColor: 'transparent', border: '1px solid #007aff', color: '#007aff', borderRadius: '6px', fontSize: '10px', fontWeight: '800', cursor: 'pointer', transition: 'all 0.2s' }}>✉️ PING</button>
+                    <button onClick={(e) => { e.stopPropagation(); handleReturn(t.toolId); }} style={{ flex: 1, padding: '8px', backgroundColor: '#34c759', border: 'none', color: '#ffffff', borderRadius: '6px', fontSize: '10px', fontWeight: '800', cursor: 'pointer' }}>RETURN</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1c1c1e', padding: '24px', borderRadius: '16px', border: '1px solid #3a3a3c' }}>
             <div>
               <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Global Audit Ledger</h2>
               <p style={{ margin: '0', fontSize: '14px', color: '#86868b' }}>Immutable record of all fleet transactions, checkouts, and maintenance logs.</p>
+              <div style={{ marginTop: '16px', marginBottom: '8px' }}>
+                <input 
+                  type="text" 
+                  placeholder="🔍 Search ledger by asset, user, action, condition, or date..." 
+                  value={ledgerSearch} 
+                  onChange={(e) => setLedgerSearch(e.target.value)} 
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} 
+                />
+              </div>
               {selectedLedgerLogs.length > 0 && (
                 <div style={{ marginTop: '12px', fontSize: '13px', color: '#ffcc00', fontWeight: '600' }}>
                   {selectedLedgerLogs.length} specific entry selected for export. <span style={{ textDecoration: 'underline', cursor: 'pointer', marginLeft: '8px' }} onClick={() => setSelectedLedgerLogs([])}>Clear Selection</span>
@@ -986,7 +1172,23 @@ return t;
               )}
             </div>
             <button onClick={async () => {
-              const allLogs = tools.flatMap(t => t.history.map(h => ({...h, toolId: t.toolId, toolName: t.name}))).sort((a, b) => a.date === 'Just now' ? -1 : 1);
+              const allLogs = tools.flatMap(t => t.history.map(h => ({...h, toolId: t.toolId, toolName: t.name}))).filter(log => !ledgerSearch || Object.values(log).map(v => String(v || '')).join(' ').toLowerCase().includes(ledgerSearch.toLowerCase())).sort((a, b) => {
+    if (a.date === 'Just now') return -1;
+    if (b.date === 'Just now') return 1;
+    
+    let valA = a[sortConfig.key] || '';
+    let valB = b[sortConfig.key] || '';
+    
+    // Parse timestamps securely for accurate chronological sorting
+    if (sortConfig.key === 'date') {
+      valA = new Date(a.date).getTime() || 0;
+      valB = new Date(b.date).getTime() || 0;
+    }
+    
+    if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
               const logsToExport = selectedLedgerLogs.length > 0 ? allLogs.filter((_, i) => selectedLedgerLogs.includes(i)) : allLogs;
 
               const payload = {
@@ -1022,19 +1224,40 @@ return t;
               <span>📤</span> {selectedLedgerLogs.length > 0 ? 'EXPORT SELECTED LOGS' : 'EXPORT ALL LOGS'}
             </button>
           </div>
-          <div style={{ backgroundColor: '#121212', borderRadius: '16px', border: '1px solid #3a3a3c', overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '40px 1.5fr 1fr 2fr 1fr 1.5fr', gap: '16px', padding: '16px 24px', backgroundColor: '#1c1c1e', borderBottom: '1px solid #3a3a3c', fontSize: '11px', fontWeight: '800', color: '#86868b', letterSpacing: '0.05em', alignItems: 'center' }}>
+          <div className="ledger-table-container" style={{ backgroundColor: '#121212', borderRadius: '16px', border: '1px solid #3a3a3c', overflowX: 'auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '40px 1.5fr 1fr 2fr 1fr 1.5fr', minWidth: '900px', gap: '16px', padding: '16px 24px', backgroundColor: '#1c1c1e', borderBottom: '1px solid #3a3a3c', fontSize: '11px', fontWeight: '800', color: '#86868b', letterSpacing: '0.05em', alignItems: 'center' }}>
               <div>
                 <input type="checkbox" checked={selectedLedgerLogs.length === tools.reduce((acc, t) => acc + t.history.length, 0) && selectedLedgerLogs.length > 0} onChange={(e) => {
                   const totalCount = tools.reduce((acc, t) => acc + t.history.length, 0);
                   if (e.target.checked) { setSelectedLedgerLogs(Array.from({length: totalCount}, (_, i) => i)); } else { setSelectedLedgerLogs([]); }
                 }} style={{ width: '16px', height: '16px', accentColor: '#ffcc00', cursor: 'pointer' }} title="Select All" />
               </div>
-              <div>ASSET</div><div>USER</div><div>ACTION</div><div>CONDITION</div><div>TIMESTAMP & TELEMETRY</div>
+              
+              <div onClick={() => handleSort('toolName')} style={{cursor: 'pointer', userSelect: 'none', transition: 'color 0.2s'}} onMouseOver={(e)=>e.target.style.color='#ffffff'} onMouseOut={(e)=>e.target.style.color=''}>ASSET {sortConfig.key === 'toolName' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</div>
+              <div onClick={() => handleSort('user')} style={{cursor: 'pointer', userSelect: 'none', transition: 'color 0.2s'}} onMouseOver={(e)=>e.target.style.color='#ffffff'} onMouseOut={(e)=>e.target.style.color=''}>USER {sortConfig.key === 'user' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</div>
+              <div onClick={() => handleSort('action')} style={{cursor: 'pointer', userSelect: 'none', transition: 'color 0.2s'}} onMouseOver={(e)=>e.target.style.color='#ffffff'} onMouseOut={(e)=>e.target.style.color=''}>ACTION {sortConfig.key === 'action' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</div>
+              <div onClick={() => handleSort('condition')} style={{cursor: 'pointer', userSelect: 'none', transition: 'color 0.2s'}} onMouseOver={(e)=>e.target.style.color='#ffffff'} onMouseOut={(e)=>e.target.style.color=''}>CONDITION {sortConfig.key === 'condition' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</div>
+              <div onClick={() => handleSort('date')} style={{cursor: 'pointer', userSelect: 'none', transition: 'color 0.2s'}} onMouseOver={(e)=>e.target.style.color='#ffffff'} onMouseOut={(e)=>e.target.style.color=''}>TIMESTAMP & TELEMETRY {sortConfig.key === 'date' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '600px', overflowY: 'auto' }}>
-              {tools.flatMap(t => t.history.map(h => ({...h, toolId: t.toolId, toolName: t.name}))).sort((a, b) => a.date === 'Just now' ? -1 : 1).map((log, i) => (
-                <div key={i} onClick={() => setSelectedLedgerLogs(prev => prev.includes(i) ? prev.filter(idx => idx !== i) : [...prev, i])} style={{ display: 'grid', gridTemplateColumns: '40px 1.5fr 1fr 2fr 1fr 1.5fr', gap: '16px', padding: '16px 24px', borderBottom: '1px solid #2c2c2e', alignItems: 'center', transition: 'background-color 0.2s', cursor: 'pointer', backgroundColor: selectedLedgerLogs.includes(i) ? 'rgba(255,204,0,0.05)' : 'transparent' }}>
+              {tools.flatMap(t => t.history.map(h => ({...h, toolId: t.toolId, toolName: t.name}))).filter(log => !ledgerSearch || Object.values(log).map(v => String(v || '')).join(' ').toLowerCase().includes(ledgerSearch.toLowerCase())).sort((a, b) => {
+    if (a.date === 'Just now') return -1;
+    if (b.date === 'Just now') return 1;
+    
+    let valA = a[sortConfig.key] || '';
+    let valB = b[sortConfig.key] || '';
+    
+    // Parse timestamps securely for accurate chronological sorting
+    if (sortConfig.key === 'date') {
+      valA = new Date(a.date).getTime() || 0;
+      valB = new Date(b.date).getTime() || 0;
+    }
+    
+    if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  }).map((log, i) => (
+                <div key={i} onClick={() => setSelectedLedgerLogs(prev => prev.includes(i) ? prev.filter(idx => idx !== i) : [...prev, i])} style={{ display: 'grid', gridTemplateColumns: '40px 1.5fr 1fr 2fr 1fr 1.5fr', minWidth: '900px', gap: '16px', padding: '16px 24px', borderBottom: '1px solid #2c2c2e', alignItems: 'center', transition: 'background-color 0.2s', cursor: 'pointer', backgroundColor: selectedLedgerLogs.includes(i) ? 'rgba(255,204,0,0.05)' : 'transparent' }}>
                   <div onClick={(e) => e.stopPropagation()}>
                     <input type="checkbox" checked={selectedLedgerLogs.includes(i)} onChange={() => setSelectedLedgerLogs(prev => prev.includes(i) ? prev.filter(idx => idx !== i) : [...prev, i])} style={{ width: '16px', height: '16px', accentColor: '#ffcc00', cursor: 'pointer' }} />
                   </div>
@@ -1062,11 +1285,112 @@ return t;
         </div>
       )}
 
+      
+      {/* EDIT ASSET MODAL */}
+      {editModalOpen && editTool && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "16px", border: "1px solid #3a3a3c", width: "800px", maxWidth: "90%", color: "#ffffff", boxSizing: "border-box" }}>
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Edit Asset: {editTool.toolId}</h2>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px', marginTop: '24px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '2 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>ASSET NAME</label>
+                  <input type="text" value={editTool.name || ''} onChange={(e) => setEditTool({...editTool, name: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>VALUE ($)</label>
+                  <input type="number" value={editTool.value || 0} onChange={(e) => setEditTool({...editTool, value: Number(e.target.value)})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>CATEGORY</label>
+                  <input type="text" value={editTool.category || ''} onChange={(e) => setEditTool({...editTool, category: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>LOCATION</label>
+                  <input type="text" value={editTool.location || ''} onChange={(e) => setEditTool({...editTool, location: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>SERIAL / VIN</label>
+                  <input type="text" value={editTool.serial || ''} onChange={(e) => setEditTool({...editTool, serial: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>MAX CUSTODY (0 = NO LIMIT)</label>
+                  <input type="number" value={editTool.maxCheckoutDays === undefined ? '' : editTool.maxCheckoutDays} onChange={(e) => setEditTool({...editTool, maxCheckoutDays: e.target.value === '' ? '' : Number(e.target.value)})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+              </div>
+
+              
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>EXTERNAL LINK / URL</label>
+                  <input type="text" value={editTool.link || ''} onChange={(e) => setEditTool({...editTool, link: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>PM ALERT (DAYS)</label>
+                  <input type="number" value={editTool.pmInterval || (editTool.metrics?.find(m => m.unit === 'Days')?.interval || 90)} onChange={(e) => setEditTool({...editTool, pmInterval: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>CONDITION OVERRIDE</label>
+                  <select value={editTool.condition || 'New'} onChange={(e) => setEditTool({...editTool, condition: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}>
+                    <option value="New">New</option>
+                    <option value="Excellent">Excellent</option>
+                    <option value="Good">Good</option>
+                    <option value="Fair">Fair</option>
+                    <option value="Requires Maintenance">Requires Maintenance</option>
+                    <option value="Damaged">Damaged</option>
+                  </select>
+                </div>
+              </div>
+  
+<div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'stretch' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c', flex: 1 }}>
+                  <input type="checkbox" checked={editTool.isDispatchable !== false} onChange={(e) => setEditTool({...editTool, isDispatchable: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#34c759', cursor: 'pointer' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '14px', color: '#ffffff', fontWeight: '700' }}>Enable Field Checkout</span>
+                    <span style={{ fontSize: '11px', color: '#86868b' }}>If disabled, this tool will be permanently locked to its home location.</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(255,204,0,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,204,0,0.3)', flex: 1 }}>
+                  <input type="checkbox" checked={editTool.isSpecialty || false} onChange={(e) => setEditTool({...editTool, isSpecialty: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#ffcc00', cursor: 'pointer' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '14px', color: '#ffcc00', fontWeight: '700' }}>Specialty / High-Value</span>
+                    <span style={{ fontSize: '11px', color: '#86868b' }}>Enforces physical manifest audit upon return.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+              <button onClick={() => setEditModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => {
+                  
+                  let finalInterval = editTool.pmInterval ? Number(editTool.pmInterval) : null;
+                  const updated = {
+                    ...editTool, 
+                    maxCheckoutDays: editTool.maxCheckoutDays === '' || editTool.maxCheckoutDays === undefined ? 14 : Number(editTool.maxCheckoutDays),
+                    metrics: editTool.metrics.map(m => (m.unit === 'Days' && finalInterval) ? { ...m, interval: finalInterval } : m)
+                  };
+                  setTools(prev => prev.map(t => t.toolId === updated.toolId ? updated : t));
+                  syncDB(updated); // Flushes the exact edit straight back to AWS DynamoDB
+                  setEditModalOpen(false);
+              }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>SAVE CHANGES</button>
+            </div>
+          </div>
+        </div>
+      )}
+  
       {/* INGEST TOOL MODAL */}
       {addModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "16px", border: "1px solid #3a3a3c", width: "800px", maxWidth: "90%", color: "#ffffff", boxSizing: "border-box" }}>
-            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Ingest New Tool</h2>
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>Ingest New ASSET</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>REGISTER ASSETS.</p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
@@ -1190,23 +1514,47 @@ return t;
                 </div>
               </div>
             )}
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>SET PM METRIC</label>
-                  <select value={newTool.pmMetric} onChange={(e) => setNewTool({...newTool, pmMetric: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}>
+                  <select value={newTool.pmMetric} disabled style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#1c1c1e', color: '#86868b', fontSize: '15px', outline: 'none', cursor: 'not-allowed', WebkitAppearance: 'none' }}>
                     <option value="Days">Days</option>
-                    <option value="Miles">Miles</option>
-                    <option value="Hours">Hours</option>
-                    <option value="Crimps">Cycles / Crimps</option>
                   </select>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>SET PM ALERT (DAYS)</label>
                   <input type="number" placeholder="e.g. 90, 5000" value={newTool.pmInterval} onChange={(e) => setNewTool({...newTool, pmInterval: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
                 </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>MAX CUSTODY (0 = NO LIMIT)</label>
+                  <input type="number" placeholder="0 = No Limit" value={newTool.maxCheckoutDays === undefined ? '' : newTool.maxCheckoutDays} onChange={(e) => setNewTool({...newTool, maxCheckoutDays: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'stretch' }}>
+              
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>EXTERNAL LINK / URL</label>
+                  <input type="text" value={editTool.link || ''} onChange={(e) => setEditTool({...editTool, link: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>PM ALERT (DAYS)</label>
+                  <input type="number" value={editTool.pmInterval || (editTool.metrics?.find(m => m.unit === 'Days')?.interval || 90)} onChange={(e) => setEditTool({...editTool, pmInterval: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
+                  <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>CONDITION OVERRIDE</label>
+                  <select value={editTool.condition || 'New'} onChange={(e) => setEditTool({...editTool, condition: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#ffffff', fontSize: '15px', outline: 'none' }}>
+                    <option value="New">New</option>
+                    <option value="Excellent">Excellent</option>
+                    <option value="Good">Good</option>
+                    <option value="Fair">Fair</option>
+                    <option value="Requires Maintenance">Requires Maintenance</option>
+                    <option value="Damaged">Damaged</option>
+                  </select>
+                </div>
+              </div>
+  
+<div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'stretch' }}>
               <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid #3a3a3c', flex: 1 }}>
                 <input type="checkbox" id="dispatchableToggle" checked={(newTool.prefix?.toUpperCase() === 'KIT' && newTool.assignee) ? true : newTool.isDispatchable} onChange={(e) => setNewTool({...newTool, isDispatchable: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#34c759', cursor: 'pointer' }} />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -1228,8 +1576,61 @@ return t;
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-              <button onClick={() => { setAddModalOpen(false); setIngestTerms(false); setIngestPhoto(null); setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', isDispatchable: true, isSpecialty: false, assignee: '' }); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleAddTool} disabled={(!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: ((!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value) ? 0.4 : 1 }}>ADD TO INVENTORY</button>
+              <button onClick={() => { setAddModalOpen(false); setIngestTerms(false); setIngestPhoto(null); setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', maxCheckoutDays: '14', isDispatchable: true, isSpecialty: false, assignee: '' }); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => setConfirmIngestOpen(true)} disabled={(!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: ((!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value) ? 0.4 : 1 }}>ADD TO INVENTORY</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      
+      {/* CONFIRM INGEST MODAL */}
+      {confirmIngestOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-container" style={{ backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #ffcc00', width: '600px', maxWidth: '90%', color: '#ffffff', boxShadow: '0 25px 50px -12px rgba(255, 204, 0, 0.2)' }}>
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#ffcc00' }}>Confirm Asset Details</h2>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Please review the entered information before committing to the database.</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: '#121212', padding: '20px', borderRadius: '12px', border: '1px solid #3a3a3c', marginBottom: '24px', maxHeight: '50vh', overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div><span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700' }}>BRAND / PREFIX</span><div style={{ fontSize: '15px' }}>{newTool.prefix || 'N/A'}</div></div>
+                <div><span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700' }}>VALUE</span><div style={{ fontSize: '15px', color: '#34c759' }}>${newTool.value || '0'}</div></div>
+                <div style={{ gridColumn: 'span 2' }}><span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700' }}>ASSET NAME</span><div style={{ fontSize: '16px', fontWeight: 'bold' }}>{newTool.name || 'Standard Kit'}</div></div>
+                <div><span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700' }}>CONDITION</span><div style={{ fontSize: '15px' }}>{newTool.condition}</div></div>
+                <div><span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700' }}>CATEGORY</span><div style={{ fontSize: '15px' }}>{newTool.category || 'General'}</div></div>
+                <div><span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700' }}>LOCATION</span><div style={{ fontSize: '15px' }}>{newTool.location || 'Unassigned'}</div></div>
+                <div><span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700' }}>SERIAL / VIN</span><div style={{ fontSize: '15px', fontFamily: 'monospace' }}>{newTool.serial || 'N/A'}</div></div>
+                <div style={{ gridColumn: 'span 2' }}><span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700' }}>LINK</span><div style={{ fontSize: '15px', color: '#007aff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{newTool.link || 'None'}</div></div>
+                
+                <div style={{ gridColumn: 'span 2', borderTop: '1px dashed #3a3a3c', margin: '8px 0' }}></div>
+                
+                <div><span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700' }}>PM METRIC</span><div style={{ fontSize: '15px' }}>{newTool.pmMetric}</div></div>
+                <div><span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700' }}>PM INTERVAL</span><div style={{ fontSize: '15px' }}>{newTool.pmInterval || '90'}</div></div>
+                <div><span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700' }}>MAX CUSTODY</span><div style={{ fontSize: '15px' }}>{newTool.maxCheckoutDays == 0 ? 'No Limit' : (newTool.maxCheckoutDays || '14') + ' Days'}</div></div>
+                
+                <div style={{ gridColumn: 'span 2', display: 'flex', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ color: newTool.isDispatchable ? '#34c759' : '#ff3b30' }}>{newTool.isDispatchable ? '✅' : '❌'}</span>
+                    <span style={{ fontSize: '13px' }}>Dispatchable</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ color: newTool.isSpecialty ? '#ffcc00' : '#86868b' }}>{newTool.isSpecialty ? '✅' : '❌'}</span>
+                    <span style={{ fontSize: '13px' }}>Specialty / High-Value</span>
+                  </div>
+                </div>
+                
+                {newTool.assignee && (
+                  <>
+                    <div style={{ gridColumn: 'span 2', borderTop: '1px dashed #3a3a3c', margin: '8px 0' }}></div>
+                    <div style={{ gridColumn: 'span 2' }}><span style={{ fontSize: '11px', color: '#ff9500', fontWeight: '800' }}>RAPID ASSIGNMENT TO:</span><div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ff9500' }}>{newTool.assignee}</div></div>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setConfirmIngestOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s' }}>Edit / Go Back</button>
+              <button onClick={() => { setConfirmIngestOpen(false); handleAddTool(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#ffcc00', color: '#121212', fontWeight: '800', fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s' }}>CONFIRM & SUBMIT</button>
             </div>
           </div>
         </div>
@@ -1325,7 +1726,7 @@ return t;
                           assignedUser: null,
                           daysOut: 0,
                           metrics: [{ unit: 'Days', current: 0, interval: 90 }],
-                          history: [{ user: "Admin", action: "Bulk CSV Ingestion", date: "Just now", condition: "New" }]
+                          history: [{ user: "Admin", action: "Bulk CSV Ingestion", date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: "New" }]
                       };
                       newTools.push(newToolObj);
                       await syncDB(newToolObj);
@@ -1355,7 +1756,15 @@ return t;
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <label style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', letterSpacing: '0.05em' }}>EMPLOYEE / TECH NAME</label>
-        <input type="text" placeholder="e.g. Chris Evans" value={dispatchUser} onChange={(e) => setDispatchUser(e.target.value)} disabled={userRole === 'TECH'} style={{ padding: '14px', borderRadius: '8px', border: userRole === 'TECH' ? '1px solid #34c759' : '1px solid #3a3a3c', backgroundColor: userRole === 'TECH' ? 'rgba(52,199,89,0.05)' : '#121212', color: userRole === 'TECH' ? '#34c759' : '#ffffff', fontSize: '15px', outline: 'none', cursor: userRole === 'TECH' ? 'not-allowed' : 'text' }} autoFocus={userRole !== 'TECH'} />
+        <select value={dispatchUser} onChange={(e) => setDispatchUser(e.target.value)} disabled={userRole === 'TECH'} style={{ padding: '14px', borderRadius: '8px', border: userRole === 'TECH' ? '1px solid #34c759' : '1px solid #3a3a3c', backgroundColor: userRole === 'TECH' ? 'rgba(52,199,89,0.05)' : '#121212', color: userRole === 'TECH' ? '#34c759' : '#ffffff', fontSize: '15px', outline: 'none', cursor: userRole === 'TECH' ? 'not-allowed' : 'pointer', WebkitAppearance: 'none', width: '100%' }}>
+          <option value="" disabled>Select Authorized Personnel...</option>
+          {personnel.map(name => (
+            <option key={name} value={name}>{name}</option>
+          ))}
+          {(userRole === 'TECH' || (dispatchUser && !personnel.includes(dispatchUser))) && (
+            <option value={dispatchUser}>{dispatchUser}</option>
+          )}
+        </select>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '12px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
