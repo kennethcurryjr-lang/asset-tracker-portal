@@ -544,22 +544,22 @@ return t;
         {/* CENTER: Main Operations */}
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center' }}>
           <button onClick={() => setActiveView('DISPATCH')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'DISPATCH' ? '#ffffff' : 'transparent', color: activeView === 'DISPATCH' ? '#121212' : '#86868b' }}>
-            📦 FLEET DISPATCH
+            📦 ASSET HUB
           </button>
           {userRole === 'ADMIN' && (
             <button onClick={() => setActiveView('MAINTENANCE')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'MAINTENANCE' ? '#ffffff' : 'transparent', color: activeView === 'MAINTENANCE' ? '#121212' : '#86868b' }}>
-              🛠️ MAINTENANCE HUB
+              🛠️ PM HUB
             </button>
           )}
           
           {userRole === 'ADMIN' && (
             <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#121212', borderRadius: '8px', padding: '4px', border: '1px solid #3a3a3c', marginLeft: '8px' }}>
-              <button onClick={() => setAddModalOpen(true)} style={{ padding: '6px 14px', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'background-color 0.2s' }}>
-                + SINGLE
+              <button onClick={() => setAddModalOpen(true)} style={{ padding: '6px 14px', borderRadius: '6px', border: 'none', backgroundColor: '#34c759', color: '#ffffff', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'background-color 0.2s' }}>
+                ADD
               </button>
               <div style={{ width: '1px', height: '16px', backgroundColor: '#3a3a3c', margin: '0 4px' }}></div>
               <button onClick={() => setBulkModalOpen(true)} style={{ padding: '6px 14px', borderRadius: '6px', border: 'none', backgroundColor: 'rgba(255,204,0,0.1)', color: '#ffcc00', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'background-color 0.2s' }}>
-                + BULK CSV
+                BULK ADD
               </button>
             </div>
           )}
@@ -730,6 +730,7 @@ return t;
                             <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                 <div style={{ padding: '8px', backgroundColor: '#ffffff', borderRadius: '8px', display: 'inline-block' }}><img src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=TRANSFER_${tool.toolId}&color=000000&bgcolor=ffffff`} alt="QR" style={{ width: '80px', height: '80px', display: 'block' }} /></div>
                                 <div style={{ fontSize: '11px', color: '#86868b', marginTop: '8px', fontWeight: '600' }}>SCAN FOR CUSTODY</div>
+                                <button onClick={(e) => { e.stopPropagation(); const content = e.currentTarget.parentElement.innerHTML; const printWin = window.open('', '', 'width=400,height=400'); const cleanContent = content.replace(new RegExp('<button[\\s\\S]*?<\\/button>', 'g'), ''); printWin.document.write('<html><body style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;font-family:sans-serif;text-align:center;">' + cleanContent + '</body></html>'); printWin.document.close(); setTimeout(() => { printWin.print(); printWin.close(); }, 300); }} style={{ marginTop: '12px', padding: '8px', backgroundColor: '#34c759', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: '800', fontSize: '11px', cursor: 'pointer', width: '100%', textTransform: 'uppercase' }}>Print</button>
                             </div>
                             )}
 
