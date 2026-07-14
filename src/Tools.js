@@ -142,6 +142,7 @@ function Tools({ user }) {
   const [returnChecklist, setReturnChecklist] = useState({ primary: false, battery: false, accessories: false });
   const [alertsModalOpen, setAlertsModalOpen] = useState(false);
   const [financeModalOpen, setFinanceModalOpen] = useState(false);
+  const [guideModalOpen, setGuideModalOpen] = useState(false);
   const [alertPrefs, setAlertPrefs] = useState({ 
     email: 'kennethcurryjr@gmail.com', 
     frequency: 'Daily Digest', 
@@ -574,6 +575,10 @@ return t;
               <div style={{ display: 'flex', gap: '2px' }}>
                 <button onClick={() => setAlertsModalOpen(true)} style={{ flex: 1, padding: '4px 10px', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#ffffff', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'background-color 0.2s', whiteSpace: 'nowrap' }}>
                   🔔 ALERTS
+                </button>
+                <div style={{ width: '1px', backgroundColor: '#3a3a3c', margin: '2px 0' }}></div>
+                <button onClick={() => setGuideModalOpen(true)} style={{ flex: 1, padding: '4px 10px', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#007aff', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'background-color 0.2s', whiteSpace: 'nowrap' }}>
+                  📖 GUIDE
                 </button>
                 <div style={{ width: '1px', backgroundColor: '#3a3a3c', margin: '2px 0' }}></div>
                 <button onClick={() => setFinanceModalOpen(true)} style={{ flex: 1, padding: '4px 10px', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#d2d2d7', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'background-color 0.2s', whiteSpace: 'nowrap' }}>
@@ -1475,6 +1480,46 @@ return t;
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* OPERATIONS GUIDE MODAL */}
+      {guideModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-container" style={{ margin: "0 auto", maxHeight: '90vh', overflowY: 'auto', backgroundColor: '#1c1c1e', padding: '32px', borderRadius: '16px', border: '1px solid #3a3a3c', width: '600px', maxWidth: '90%', color: '#ffffff', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div>
+                <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em', color: '#ffffff' }}>Kinetic Tools Operations Guide</h2>
+              </div>
+              <button onClick={() => setGuideModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '20px' }}>✕</button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontSize: '14px', lineHeight: '1.6', color: '#d2d2d7' }}>
+              
+              <div style={{ backgroundColor: '#121212', padding: '20px', borderRadius: '12px', border: '1px solid #3a3a3c' }}>
+                <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#ffcc00', letterSpacing: '0.05em', textTransform: 'uppercase' }}>👷 FIELD TECHNICIAN PROTOCOLS</h3>
+                <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <li><strong style={{color: '#ffffff'}}>🔍 Locating Equipment:</strong> Use the search bar in the <em>FLEET DISPATCH</em> view to instantly find a specific tool by its ID, Tag, or Category.</li>
+                  <li><strong style={{color: '#ffffff'}}>📦 Checking Tools Out/In:</strong> When taking a tool to the field, click <em>CHECK OUT</em>. When returning it to the crib, click <em>RETURN</em> to clear your liability and mark it IN CRIB.</li>
+                  <li><strong style={{color: '#ffffff'}}>⚠️ Reporting Damage:</strong> If a tool is broken or missing components upon return, click <em>REPORT DAMAGE / FAULT</em> so the Admin team knows to pull it for maintenance.</li>
+                </ul>
+              </div>
+
+              <div style={{ backgroundColor: '#121212', padding: '20px', borderRadius: '12px', border: '1px solid #3a3a3c' }}>
+                <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#007aff', letterSpacing: '0.05em', textTransform: 'uppercase' }}>👨‍💻 ADMINISTRATOR PROTOCOLS</h3>
+                <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <li><strong style={{color: '#ffffff'}}>📥 Ingesting Inventory:</strong> Use <em>+ SINGLE</em> to manually create a profile for a newly purchased tool, or <em>+ BULK CSV</em> to upload an entire pallet.</li>
+                  <li><strong style={{color: '#ffffff'}}>🛠️ Maintenance Hub:</strong> Track preventative maintenance (PM) schedules. See what tools are due for service, log repairs, and reset their service timers.</li>
+                  <li><strong style={{color: '#ffffff'}}>📜 Master Ledger:</strong> View the complete history of every tool checkout, return, and status change across the entire company.</li>
+                  <li><strong style={{color: '#ffffff'}}>🔔 Alerts & 📊 Finance:</strong> Configure your automatic AWS email routing for offline/missing tools, and monitor the real-time financial depreciation of the active fleet.</li>
+                </ul>
+              </div>
+
+            </div>
+            
+            <button onClick={() => setGuideModalOpen(false)} style={{ width: '100%', padding: '14px', marginTop: '24px', borderRadius: '8px', border: 'none', backgroundColor: '#3a3a3c', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Close Guide</button>
           </div>
         </div>
       )}
