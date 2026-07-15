@@ -147,10 +147,15 @@ function Tools({ user }) {
   };
 
   const syncDB = async (item) => {
-    try {
-      await docClient.send(new PutCommand({ TableName: 'KineticToolsData', Item: item }));
-    } catch (err) { console.error("DB Sync Error:", err); }
-  };
+  try {
+    await docClient.send(new PutCommand({ TableName: 'KineticToolsData', Item: item }));
+    return true;
+  } catch (err) {
+    console.error("DB Sync Error:", err);
+    alert("AWS Database Sync Failed: " + (err?.message || err));
+    return false;
+  }
+};
 
   const deleteTool = async (toolId) => {
     if (!window.confirm(`WARNING: Are you sure you want to permanently delete ${toolId} from the database? This cannot be undone.`)) return;
@@ -160,10 +165,21 @@ function Tools({ user }) {
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  React.useEffect(() => { fetchDB(); }, []);
+  React.useEffect(() => { 
+      fetchDB(); 
+      if (window.location.search.includes('code=')) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }, []);
 
   const [inventory] = useState({ 'HVAC': [{ item: '24x24x2 Pleated Air Filter', stock: 45 }, { item: 'R-410A Refrigerant (lbs)', stock: 12 }], 'MILW': [{ item: 'M18 REDLITHIUM 5.0Ah Battery', stock: 22 }, { item: 'Press Tool Jaw Grease', stock: 6 }], 'VEH': [{ item: '5W-30 Synthetic Oil (Qts)', stock: 32 }, { item: 'Wiper Fluid (Gal)', stock: 14 }] });
   const [tools, setTools] = useState([]);
+
+  const [tutorialStep, setTutorialStep] = useState(() => { const saved = localStorage.getItem('kinetic_tour'); return saved ? parseInt(saved) : 0; });
+  const nextTourStep = (step) => { setTutorialStep(step); localStorage.setItem('kinetic_tour', step); };
+  const endTour = () => { setTutorialStep(-1); localStorage.setItem('kinetic_tour', -1); };
+  React.useEffect(() => { if (tools.length === 0 && tutorialStep === 0) nextTourStep(1); }, [tools.length]);
+  
   const [ledgerSearch, setLedgerSearch] = useState('');
   const [custodySearch, setCustodySearch] = useState('');
   const [custodySort, setCustodySort] = useState('daysDesc');
@@ -315,7 +331,7 @@ function Tools({ user }) {
   };
 
   const handleAddTool = async () => {
-    if (!newTool.prefix || (!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value) return;
+    if (!newTool.prefix || (!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value) { alert('Validation Error: Core asset details missing. Please fill out the Brand and Value.'); return; }
     
     const standardPrefixes = ['VEH', 'HVAC', 'MILW', 'DWLT', 'HILT', 'MAKI', 'BSCH', 'CAT', 'LIFT', 'GEN', 'TECH', 'SURV', 'KIT'];
     if (!standardPrefixes.includes(newTool.prefix.toUpperCase())) {
@@ -359,7 +375,7 @@ function Tools({ user }) {
       category: newTool.prefix?.toUpperCase() === 'KIT' ? 'Standard Kit' : (newTool.category || 'General'),
       location: newTool.location || 'Unassigned',
       serial: newTool.serial || 'N/A',
-      link: newTool.link || '',
+      link: newTool.link || 'N/A',
       isDispatchable: newTool.prefix?.toUpperCase() === 'KIT' ? true : newTool.isDispatchable,
       isSpecialty: newTool.isSpecialty,
       status: newTool.assignee ? "CHECKED_OUT" : "AVAILABLE",
@@ -370,7 +386,8 @@ function Tools({ user }) {
       history: newTool.assignee ? [{ user: newTool.assignee, action: "Auto-Dispatched during ingestion" + (isKit ? " | E-Signed" : ""), ...(ingestSigData && { signatureUrl: ingestSigData }), ...(ingestPhotoUrl && { attachmentUrl: ingestPhotoUrl, attachment: ' Kit Manifest: ' + ingestPhotoName }), date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: newTool.condition }, { user: "Admin", action: "Tool Ingested to Database", date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: newTool.condition }] : [{ user: "Admin", action: "Tool Ingested to Database", date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: newTool.condition }]
     };
     
-    syncDB(newToolObj);
+    const isDbSuccess = await syncDB(newToolObj);
+    if (!isDbSuccess) return; // 🛑 Halt the UI update if AWS rejects it!
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
     setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', maxCheckoutDays: '0', isDispatchable: true, isSpecialty: false, assignee: '' });
@@ -623,7 +640,7 @@ return t;
         .card-flipper.flipped .card-back { z-index: 5; }
         .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; flex: 1; box-sizing: border-box; border-radius: 12px; }
         .card-front { transform: rotateY(0deg); z-index: 2; position: relative; background-color: #ffffff; }
-        .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #ffffff; display: flex; flex-direction: column; padding: 16px; overflow: hidden; }
+        .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #ffffff; display: flex; flex-direction: column; padding: 16px; overflow: visible; }
         .tab-btn { flex: 1; padding: 4px; font-size: 10px; font-weight: 700; cursor: pointer; border-radius: 6px; text-align: center; border: none; transition: all 0.2s; white-space: nowrap; }
         .tab-active { background-color: #0052cc; color: #ffffff; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25); }
         .tab-inactive { background-color: #f3f4f6; color: #6b7280; }
@@ -742,6 +759,11 @@ return t;
         }
   
       
+      
+        @keyframes floatY { 0%, 100% { margin-top: 0px; } 50% { margin-top: -6px; } }
+        @keyframes floatX { 0%, 100% { margin-left: 0px; } 50% { margin-left: -6px; } }
+        .tour-float-y { animation: floatY 1.5s infinite ease-in-out; }
+        .tour-float-x { animation: floatX 1.5s infinite ease-in-out; }
       `}</style>
 
       {/* MASTER TOGGLE & INGEST ACTION DECK */}
@@ -761,16 +783,36 @@ return t;
              ASSET HUB
           </button>
           {userRole === 'ADMIN' && (
-            <button onClick={() => setActiveView('MAINTENANCE')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'MAINTENANCE' ? '#0052cc' : 'transparent', color: activeView === 'MAINTENANCE' ? '#ffffff' : '#6b7280', boxShadow: activeView === 'MAINTENANCE' ? '0 4px 12px rgba(0, 0, 0, 0.25)' : 'none' }}>
-               PM HUB
-            </button>
+            
+  <div style={{ position: 'relative', display: 'flex' }}>
+    <button onClick={() => { setActiveView('MAINTENANCE'); if (tutorialStep === 24) nextTourStep(25); }} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'MAINTENANCE' || tutorialStep === 24 ? '#0052cc' : 'transparent', color: activeView === 'MAINTENANCE' || tutorialStep === 24 ? '#ffffff' : '#6b7280', boxShadow: tutorialStep === 24 ? '0 0 0 4px rgba(0, 82, 204, 0.4)' : (activeView === 'MAINTENANCE' ? '0 4px 12px rgba(0, 0, 0, 0.25)' : 'none') }}>
+       PM HUB
+    </button>
+    {tutorialStep === 24 && (
+                <div className="tour-float-y" style={{ position: 'absolute', top: '130%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', top: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '0 6px 6px 6px', borderStyle: 'solid', borderColor: 'transparent transparent #0052cc transparent' }}></div>
+        <div>Step 24: Track maintenance</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+      </div>
+    )}
+  </div>
+
           )}
           
           {userRole === 'ADMIN' && (
             <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#e5e7eb', borderRadius: '8px', padding: '4px', border: '1px solid #d1d5db', marginLeft: '8px' }}>
-              <button onClick={() => setAddModalOpen(true)} style={{ padding: '6px 14px', borderRadius: '6px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'background-color 0.2s' }}>
+              <div style={{ position: 'relative', display: 'flex' }}>
+              <button onClick={() => { setAddModalOpen(true); if (tutorialStep === 1) nextTourStep(2); }} style={{ padding: '6px 14px', borderRadius: '6px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', boxShadow: tutorialStep === 1 ? '0 0 0 4px rgba(0, 82, 204, 0.4)' : '0 4px 14px rgba(0, 0, 0, 0.25)', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>
                 ADD
               </button>
+              {tutorialStep === 1 && (
+                <div className="tour-float-y" style={{ position: 'absolute', top: '130%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+                  <div style={{ position: 'absolute', top: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '0 6px 6px 6px', borderStyle: 'solid', borderColor: 'transparent transparent #0052cc transparent' }}></div>
+                  <div>Step 1: Add an asset!</div>
+                  <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+                </div>
+              )}
+            </div>
               <div style={{ width: '1px', height: '16px', backgroundColor: '#e5e7eb', margin: '0 4px' }}></div>
               <button onClick={() => setBulkModalOpen(true)} style={{ padding: '6px 14px', borderRadius: '6px', border: 'none', backgroundColor: 'rgba(0, 0, 0,0.1)', color: '#1f2937', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'background-color 0.2s' }}>
                 BULK ADD
@@ -783,9 +825,20 @@ return t;
         <div className="responsive-header-col" style={{ display: 'flex', flex: 1, justifyContent: 'flex-end' }}>
           {userRole === 'ADMIN' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', backgroundColor: '#e5e7eb', padding: '2px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
-              <button onClick={() => setActiveView('LEDGER')} style={{ padding: '4px 14px', borderRadius: '6px', border: 'none', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'LEDGER' ? '#0052cc' : 'transparent', color: activeView === 'LEDGER' ? '#ffffff' : '#6b7280', boxShadow: activeView === 'LEDGER' ? '0 4px 12px rgba(0, 0, 0, 0.25)' : 'none', width: '100%', textAlign: 'center' }}>
-                 MASTER LEDGER
-              </button>
+              
+  <div style={{ position: 'relative', display: 'flex', width: '100%' }}>
+    <button onClick={() => { setActiveView('LEDGER'); if (tutorialStep === 25) nextTourStep(26); }} style={{ padding: '4px 14px', borderRadius: '6px', border: 'none', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'LEDGER' || tutorialStep === 25 ? '#0052cc' : 'transparent', color: activeView === 'LEDGER' || tutorialStep === 25 ? '#ffffff' : '#6b7280', boxShadow: tutorialStep === 25 ? '0 0 0 4px rgba(0, 82, 204, 0.4)' : (activeView === 'LEDGER' ? '0 4px 12px rgba(0, 0, 0, 0.25)' : 'none'), width: '100%', textAlign: 'center' }}>
+       MASTER LEDGER
+    </button>
+    {tutorialStep === 25 && (
+                <div className="tour-float-x" style={{ position: 'absolute', right: '105%', top: '50%', transform: 'translateY(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', right: '-6px', top: '50%', transform: 'translateY(-50%)', borderWidth: '6px 0 6px 6px', borderStyle: 'solid', borderColor: 'transparent transparent transparent #0052cc' }}></div>
+        <div>Step 25: View audit logs</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+      </div>
+    )}
+  </div>
+
               <div style={{ display: 'flex', gap: '2px' }}>
                 <button onClick={() => setAlertsModalOpen(true)} style={{ flex: 1, padding: '4px 10px', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#0a1b35', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'background-color 0.2s', whiteSpace: 'nowrap' }}>
                    ALERTS
@@ -795,9 +848,20 @@ return t;
                    GUIDE
                 </button>
                 <div style={{ width: '1px', backgroundColor: '#e5e7eb', margin: '2px 0' }}></div>
-                <button onClick={() => setFinanceModalOpen(true)} style={{ flex: 1, padding: '4px 10px', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#4b5563', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'background-color 0.2s', whiteSpace: 'nowrap' }}>
-                   FINANCE
-                </button>
+                
+  <div style={{ position: 'relative', display: 'flex', flex: 1 }}>
+    <button onClick={() => { setFinanceModalOpen(true); if (tutorialStep === 26) endTour(); }} style={{ flex: 1, padding: '4px 10px', borderRadius: '6px', border: 'none', backgroundColor: tutorialStep === 26 ? '#0052cc' : 'transparent', color: tutorialStep === 26 ? '#ffffff' : '#4b5563', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap', boxShadow: tutorialStep === 26 ? '0 0 0 4px rgba(0, 82, 204, 0.4)' : 'none' }}>
+       FINANCE
+    </button>
+    {tutorialStep === 26 && (
+                <div className="tour-float-y" style={{ position: 'absolute', top: '150%', right: '0', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', top: '-6px', right: '16px', borderWidth: '0 6px 6px 6px', borderStyle: 'solid', borderColor: 'transparent transparent #0052cc transparent' }}></div>
+        <div>Final Step: Fleet Valuation!</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Finish</div>
+      </div>
+    )}
+  </div>
+
               </div>
             </div>
           )}
@@ -870,21 +934,47 @@ return t;
                                 }
                                 if (isLocked && !isAdmin) return <button disabled style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#636366', border: 'none', fontWeight: '800', fontSize: '11px', cursor: 'not-allowed' }}>LOCKED</button>;
                                 if (isLocked && isAdmin) return <button onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: 'rgba(0, 0, 0,0.1)', color: '#6b7280', border: '1px solid #6b7280', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>{tool.condition === 'Damaged' ? 'REPAIR' : 'SERVICE'}</button>;
-                                return <button onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); setCheckoutModalOpen(true); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: 'transparent', color: '#374151', border: '1px solid #3f3f46', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>CHECK OUT</button>;
+                                return <div style={{ position: 'relative', display: 'flex', flex: 1, zIndex: tutorialStep === 14 ? 10 : 1 }}>
+      <button onClick={(e) => { e.stopPropagation(); setSelectedToolId(tool.toolId); setCheckoutModalOpen(true); if(tutorialStep === 14) nextTourStep(15); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: 'transparent', color: '#374151', border: tutorialStep === 14 ? '2px solid #0052cc' : '1px solid #3f3f46', fontWeight: '800', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>CHECK OUT</button>
+      {tutorialStep === 14 && (
+        <div className="tour-float-y" style={{ position: 'absolute', bottom: '130%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 99999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+          <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+          <div>Step 14: Dispatch to the field!</div>
+          <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+        </div>
+      )}
+    </div>;
                               })()
                             ) : (
                               <div style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#ffffff', color: '#6b7280', border: '1px solid #d1d5db', fontWeight: '700', fontSize: '12px', textAlign: 'center', boxSizing: 'border-box' }}>STATIC</div>
                             )}
-                            <button onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => ({...prev, [tool.toolId]: true})); }} style={{ padding: '10px', borderRadius: '8px', backgroundColor: 'transparent', color: '#4b5563', border: '1px solid #d1d5db', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
+                            <div style={{ position: 'relative', display: 'flex', flex: 'none', zIndex: tutorialStep === 14 ? 10 : 1 }}>
+                            <button onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => ({...prev, [tool.toolId]: true})); if (tutorialStep === 20) nextTourStep(21); }} style={{ padding: '10px', borderRadius: '8px', backgroundColor: 'transparent', color: '#4b5563', border: tutorialStep === 14 ? '2px solid #0052cc' : '1px solid #d1d5db', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                               Flip ⤹
                             </button>
+                            {tutorialStep === 20 && (
+    <div className="tour-float-y" style={{ position: 'absolute', top: '130%', right: '0', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+      <div style={{ position: 'absolute', top: '-6px', right: '16px', borderWidth: '0 6px 6px 6px', borderStyle: 'solid', borderColor: 'transparent transparent #0052cc transparent' }}></div>
+      <div>Step 20: Flip card to view metrics!</div>
+      <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+    </div>
+  )}
+                          </div>
                         </div>
                         </div>
 
                         {/* BACK FACE (UNIVERSAL METRICS) */}
                         <div className="card-face card-back" style={{ border: cardBorder, boxShadow: cardShadow }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'flex-start' }}>
-                            <div style={{ display: 'flex', gap: '4px', flex: 1, marginRight: '8px', flexWrap: 'wrap' }}>
+                            <div style={{ position: 'relative', display: 'flex', gap: '4px', flex: 1, marginRight: '8px', flexWrap: 'wrap', boxShadow: tutorialStep === 21 ? '0 0 0 4px rgba(0, 82, 204, 0.4)' : 'none', borderRadius: '4px' }}>
+      {tutorialStep === 21 && (
+        <div className="tour-float-y" style={{ position: 'absolute', top: 'calc(100% + 12px)', left: '0', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', zIndex: 99999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+          <div style={{ position: 'absolute', top: '-6px', left: '20px', borderWidth: '0 6px 6px 6px', borderStyle: 'solid', borderColor: 'transparent transparent #0052cc transparent' }}></div>
+          <div style={{ whiteSpace: 'nowrap' }}>Step 21: Access PM logs & manifests here!</div>
+          <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextTourStep(22); }} style={{ cursor: 'pointer', backgroundColor: '#ffffff', color: '#0052cc', padding: '4px 8px', borderRadius: '4px', marginLeft: '12px', fontWeight: '800' }}>Next</div>
+          <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+        </div>
+      )}
                             <button className={`tab-btn ${activeTab === 'service' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'service'})); }}> PM</button>
                             {tool.isDispatchable !== false && !tool.toolId.startsWith('KIT') && (<button className={`tab-btn ${activeTab === 'manifest' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'manifest'})); }}> MANIFEST</button>)}
                             {tool.isDispatchable !== false && !tool.toolId.startsWith('KIT') && (<button className={`tab-btn ${activeTab === 'qr' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'qr'})); }}> QR</button>)}
@@ -1023,7 +1113,19 @@ return t;
                     <div style={{ fontSize: '18px', fontWeight: '700', color: '#374151' }}>${selectedTool.value.toLocaleString()}</div>
                     {selectedTool?.toolId && !selectedTool.toolId.startsWith('KIT') && ( <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${selectedTool.toolId}`} alt="Asset QR" style={{ width: '64px', height: '64px', borderRadius: '8px', border: '1px solid #d1d5db', padding: '4px', backgroundColor: '#ffffff' }} /> )}
                   </div>
-                    <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px' }}>INSPECTOR DASHBOARD</div>
+                    <div style={{ position: 'relative' }}>
+      <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px', display: 'inline-block', boxShadow: tutorialStep === 22 ? '0 0 0 4px rgba(0, 82, 204, 0.4)' : 'none', borderRadius: '4px', background: tutorialStep === 22 ? 'rgba(0, 82, 204, 0.1)' : 'transparent', padding: tutorialStep === 22 ? '2px 4px' : '0' }}>INSPECTOR DASHBOARD</div>
+      {tutorialStep === 22 && (
+    <div className="tour-float-y" style={{ position: 'absolute', top: 'calc(100% + 12px)', left: '0', backgroundColor: '#0052cc', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', zIndex: 99999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: '12px', maxWidth: '280px', whiteSpace: 'normal' }}>
+      <div style={{ position: 'absolute', top: '-6px', left: '20px', borderWidth: '0 6px 6px 6px', borderStyle: 'solid', borderColor: 'transparent transparent #0052cc transparent' }}></div>
+      <div style={{ flex: 1, lineHeight: '1.4' }}>Step 22: The Inspector tracks detailed global history!</div>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline' }}>Skip</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextTourStep(23); }} style={{ cursor: 'pointer', backgroundColor: '#ffffff', color: '#0052cc', padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>Next</div>
+      </div>
+    </div>
+  )}
+    </div>
                     <div style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', color: '#0a1b35' }}>{selectedTool.toolId}</div>
                     <div style={{ color: checkIsOverdue(selectedTool.metrics) ? '#9ca3af' : '#1f2937', fontSize: '16px', fontWeight: '600', marginTop: '4px', lineHeight: '1.3' }}>{selectedTool.name}</div>
                     </div>
@@ -1132,7 +1234,17 @@ return t;
             </div>
         </div>
     )}
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto', boxShadow: tutorialStep === 23 ? '0 0 0 4px rgba(0, 82, 204, 0.4)' : 'none', borderRadius: '8px', padding: tutorialStep === 23 ? '4px' : '0' }}>
+      {tutorialStep === 23 && (
+    <div className="tour-float-y" style={{ position: 'absolute', bottom: 'calc(100% + 12px)', left: '0', backgroundColor: '#0052cc', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', zIndex: 99999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: '12px', maxWidth: '280px', whiteSpace: 'normal' }}>
+      <div style={{ position: 'absolute', bottom: '-6px', left: '20px', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+      <div style={{ flex: 1, lineHeight: '1.4' }}>Step 23: Deploy, return, or service assets directly from here!</div>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline' }}>Skip</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextTourStep(24); }} style={{ cursor: 'pointer', backgroundColor: '#ffffff', color: '#0052cc', padding: '4px 8px', borderRadius: '4px', fontWeight: '800' }}>Next</div>
+      </div>
+    </div>
+  )}
                     {selectedTool.status === 'AVAILABLE' ? (
                         selectedTool.isDispatchable !== false ? (
                             (() => {
@@ -1501,13 +1613,22 @@ return t;
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>BRAND (Single OR EMP KIT)</label>
-                  <input 
-                    list="prefix-options"
-                    placeholder="e.g. MILW, CAT, JD"
-                    value={newTool.prefix} 
-                    onChange={(e) => setNewTool({...newTool, prefix: e.target.value.toUpperCase()})} 
-                    style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }}
-                  />
+                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
+    <input 
+      list="prefix-options"
+      placeholder="e.g. MILW, CAT, JD"
+      value={newTool.prefix} 
+      onChange={(e) => setNewTool({...newTool, prefix: e.target.value.toUpperCase()})} onFocus={() => { if(tutorialStep === 2) nextTourStep(3); }} 
+      style={{ padding: '14px', borderRadius: '8px', border: tutorialStep === 2 ? '2px solid #0052cc' : '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none', transition: 'border 0.2s' }}
+    />
+    {tutorialStep === 2 && (
+      <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+        <div>Step 2: Start with the Brand!</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+      </div>
+    )}
+  </div>
                   <datalist id="prefix-options">
                     <option value="KIT">Standard Employee Kit</option>
                     <option value="VEH">Vehicle</option>
@@ -1521,20 +1642,38 @@ return t;
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>REPLACEMENT VALUE ($)</label>
-                  <input 
-                    type="number" 
-                    placeholder="e.g. 45000" 
-                    value={newTool.value}
-                    onChange={(e) => setNewTool({...newTool, value: e.target.value})}
-                    style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }}
-                  />
+                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
+    <input 
+      type="number" 
+      placeholder="e.g. 45000" 
+      value={newTool.value}
+      onChange={(e) => setNewTool({...newTool, value: e.target.value})} onFocus={() => { if(tutorialStep === 3) nextTourStep(4); }}
+      style={{ padding: '14px', borderRadius: '8px', border: tutorialStep === 3 ? '2px solid #0052cc' : '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none', transition: 'border 0.2s' }}
+    />
+    {tutorialStep === 3 && (
+      <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+        <div>Step 3: Enter replacement value!</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+      </div>
+    )}
+  </div>
                 </div>
               </div>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                 <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', flexDirection: 'column', gap: '8px', flex: '2 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>{newTool.prefix?.toUpperCase() === "KIT" ? "NAME: KIT DESCRIPTION" : "ASSET NAME / MODEL"}</label>
-                  <input type="text" placeholder="e.g. Ford F-150 Fleet Truck" value={newTool.name} onChange={(e) => setNewTool({...newTool, name: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }} />
+                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
+    <input type="text" placeholder="e.g. Ford F-150 Fleet Truck" value={newTool.name} onChange={(e) => setNewTool({...newTool, name: e.target.value})} onFocus={() => { if(tutorialStep === 4) nextTourStep(5); }} style={{ padding: '14px', borderRadius: '8px', border: tutorialStep === 4 ? '2px solid #0052cc' : '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none', transition: 'border 0.2s' }} />
+    {tutorialStep === 4 && (
+      <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+        <div>Step 4: Name it! (Other fields optional)</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+      </div>
+    )}
+  </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>CONDITION</label>
@@ -1549,7 +1688,16 @@ return t;
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>ASSET / TOOL CLASS / CATEGORY</label>
-                  <input list="category-options" placeholder={newTool.prefix?.toUpperCase() === "KIT" ? "Auto-assigned" : "e.g. HVAC, Power Tool"} value={newTool.prefix?.toUpperCase() === "KIT" ? "Standard Kit" : newTool.category} disabled={newTool.prefix?.toUpperCase() === "KIT"} onChange={(e) => setNewTool({...newTool, category: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none', opacity: newTool.prefix?.toUpperCase() === "KIT" ? 0.5 : 1 }} />
+                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
+    <input list="category-options" placeholder={newTool.prefix?.toUpperCase() === "KIT" ? "Auto-assigned" : "e.g. HVAC, Power Tool"} value={newTool.prefix?.toUpperCase() === "KIT" ? "Standard Kit" : newTool.category} disabled={newTool.prefix?.toUpperCase() === "KIT"} onChange={(e) => setNewTool({...newTool, category: e.target.value})} onFocus={() => { if(tutorialStep === 5) nextTourStep(6); }} style={{ padding: '14px', borderRadius: '8px', border: tutorialStep === 5 ? '2px solid #0052cc' : '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none', opacity: newTool.prefix?.toUpperCase() === "KIT" ? 0.5 : 1, transition: 'border 0.2s' }} />
+    {tutorialStep === 5 && (
+      <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+        <div>Step 5: Define the Category!</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+      </div>
+    )}
+  </div>
                   <datalist id="category-options">
                     <option value="Power Tool">Power Tool</option>
                     <option value="Heavy Machinery">Heavy Machinery</option>
@@ -1561,7 +1709,16 @@ return t;
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>HOME LOCATION / ZONE / EMP TITLE</label>
-                  <input list="location-options" placeholder="e.g. Roof, Lot B" value={newTool.location} onChange={(e) => setNewTool({...newTool, location: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }} />
+                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
+    <input list="location-options" placeholder="e.g. Roof, Lot B" value={newTool.location} onChange={(e) => setNewTool({...newTool, location: e.target.value})} onFocus={() => { if(tutorialStep === 6) nextTourStep(7); }} style={{ padding: '14px', borderRadius: '8px', border: tutorialStep === 6 ? '2px solid #0052cc' : '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none', transition: 'border 0.2s' }} />
+    {tutorialStep === 6 && (
+      <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+        <div>Step 6: Where does this live?</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+      </div>
+    )}
+  </div>
                   <datalist id="location-options">
                     <option value="Main Tool Crib">Main Tool Crib</option>
                     <option value="Fleet Lot A">Fleet Lot A</option>
@@ -1574,11 +1731,29 @@ return t;
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>{newTool.prefix?.toUpperCase() === "KIT" ? "TRACKED ITEM SERIALS (IGNORE STANDARD GEAR)" : "SERIAL NUMBER / VIN"}</label>
-                  <input type="text" placeholder={newTool.prefix?.toUpperCase() === 'KIT' ? "e.g. Drill: SN123, Radio: SN456" : "e.g. 1FTEW1E49K..."} value={newTool.serial} onChange={(e) => setNewTool({...newTool, serial: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }} />
+                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
+    <input type="text" placeholder={newTool.prefix?.toUpperCase() === 'KIT' ? "e.g. Drill: SN123, Radio: SN456" : "e.g. 1FTEW1E49K..."} value={newTool.serial} onChange={(e) => setNewTool({...newTool, serial: e.target.value})} onFocus={() => { if(tutorialStep === 7) nextTourStep(8); }} style={{ padding: '14px', borderRadius: '8px', border: tutorialStep === 7 ? '2px solid #0052cc' : '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none', transition: 'border 0.2s' }} />
+    {tutorialStep === 7 && (
+      <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+        <div>Step 7: Add Serial/VIN</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+      </div>
+    )}
+  </div>
                 </div>
                 <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>EXTERNAL LINK / URL</label>
-                  <input type="text" placeholder="e.g. https://..." value={newTool.link} onChange={(e) => setNewTool({...newTool, link: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }} />
+                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
+    <input type="text" placeholder="e.g. https://..." value={newTool.link} onChange={(e) => setNewTool({...newTool, link: e.target.value})} onFocus={() => { if(tutorialStep === 8) nextTourStep(9); }} style={{ padding: '14px', borderRadius: '8px', border: tutorialStep === 8 ? '2px solid #0052cc' : '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none', transition: 'border 0.2s' }} />
+    {tutorialStep === 8 && (
+      <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+        <div>Step 8: Add a link (Optional)</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+      </div>
+    )}
+  </div>
                 </div>
               </div>
 
@@ -1632,18 +1807,43 @@ return t;
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>SET PM ALERT (DAYS)</label>
-                  <input type="number" placeholder="e.g. 90, 5000" value={newTool.pmInterval} onChange={(e) => setNewTool({...newTool, pmInterval: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }} />
+                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
+    <input type="number" placeholder="e.g. 90, 5000" value={newTool.pmInterval} onChange={(e) => setNewTool({...newTool, pmInterval: e.target.value})} onFocus={() => { if(tutorialStep === 9) nextTourStep(10); }} style={{ padding: '14px', borderRadius: '8px', border: tutorialStep === 9 ? '2px solid #0052cc' : '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none', transition: 'border 0.2s' }} />
+    {tutorialStep === 9 && (
+      <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+        <div>Step 9: Set PM interval</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+      </div>
+    )}
+  </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>MAX CUSTODY (0 = NO LIMIT)</label>
-                  <input type="number" placeholder="0 = No Limit" value={newTool.maxCheckoutDays === undefined ? '' : newTool.maxCheckoutDays} onChange={(e) => setNewTool({...newTool, maxCheckoutDays: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }} />
+                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
+    <input type="number" placeholder="0 = No Limit" value={newTool.maxCheckoutDays === undefined ? '' : newTool.maxCheckoutDays} onChange={(e) => setNewTool({...newTool, maxCheckoutDays: e.target.value})} onFocus={() => { if(tutorialStep === 10) nextTourStep(11); }} style={{ padding: '14px', borderRadius: '8px', border: tutorialStep === 10 ? '2px solid #0052cc' : '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none', transition: 'border 0.2s' }} />
+    {tutorialStep === 10 && (
+      <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+        <div>Step 10: Set custody limit</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+      </div>
+    )}
+  </div>
                 </div>
               </div>
 
               
               
   
-<div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'stretch' }}>
+<div onClick={() => { if(tutorialStep === 11) nextTourStep(12); }} style={{ position: 'relative', display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'stretch', borderRadius: '8px', boxShadow: tutorialStep === 11 ? '0 0 0 2px #0052cc' : 'none' }}>
+              {tutorialStep === 11 && (
+                <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+                  <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+                  <div>Step 11: Set permissions</div>
+                  <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+                </div>
+              )}
               <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(0, 0, 0,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid #d1d5db', flex: 1 }}>
                 <input type="checkbox" id="dispatchableToggle" checked={(newTool.prefix?.toUpperCase() === 'KIT' && newTool.assignee) ? true : newTool.isDispatchable} onChange={(e) => setNewTool({...newTool, isDispatchable: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#374151', cursor: 'pointer' }} />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -1666,7 +1866,16 @@ return t;
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               <button onClick={() => { setAddModalOpen(false); setIngestTerms(false); setIngestPhoto(null); setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', maxCheckoutDays: '0', isDispatchable: true, isSpecialty: false, assignee: '' }); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => setConfirmIngestOpen(true)} disabled={(!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: ((!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value) ? 0.4 : 1 }}>ADD TO INVENTORY</button>
+              <div style={{ flex: 1, position: 'relative', display: 'flex' }}>
+              <button onClick={() => { setConfirmIngestOpen(true); if(tutorialStep === 12) nextTourStep(13); }} disabled={!newTool.prefix || (!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', boxShadow: tutorialStep === 12 ? '0 0 0 4px rgba(0, 82, 204, 0.4)' : '0 4px 14px rgba(0, 0, 0, 0.25)', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: ((!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value) ? 0.4 : 1, transition: 'all 0.2s' }}>ADD TO INVENTORY</button>
+              {tutorialStep === 12 && (
+                <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+                  <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+                  <div>Step 12: Save to database!</div>
+                  <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+                </div>
+              )}
+            </div>
             </div>
           </div>
         </div>
@@ -1719,7 +1928,16 @@ return t;
             
             <div style={{ display: 'flex', gap: '12px' }}>
               <button onClick={() => setConfirmIngestOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontWeight: '700', fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s' }}>Edit / Go Back</button>
-              <button onClick={() => { setConfirmIngestOpen(false); handleAddTool(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)', fontWeight: '800', fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s' }}>CONFIRM & SUBMIT</button>
+              <div style={{ position: 'relative', display: 'flex', flex: 1 }}>
+              <button onClick={() => { setConfirmIngestOpen(false); handleAddTool(); if(tutorialStep === 13) nextTourStep(14); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)', fontWeight: '800', fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s' }}>CONFIRM & SUBMIT</button>
+              {tutorialStep === 13 && (
+                <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 99999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+                  <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+                  <div>Step 13: Confirm and save!</div>
+                  <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
+                </div>
+              )}
+            </div>
             </div>
           </div>
         </div>
@@ -1845,7 +2063,8 @@ return t;
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>EMPLOYEE / TECH NAME</label>
-        <select value={dispatchUser} onChange={(e) => setDispatchUser(e.target.value)} disabled={userRole === 'TECH'} style={{ padding: '14px', borderRadius: '8px', border: userRole === 'TECH' ? '1px solid #374151' : '1px solid #d1d5db', backgroundColor: userRole === 'TECH' ? 'rgba(0, 0, 0,0.05)' : '#f8f9fa', color: userRole === 'TECH' ? '#374151' : '#0a1b35', fontSize: '15px', outline: 'none', cursor: userRole === 'TECH' ? 'not-allowed' : 'pointer', WebkitAppearance: 'none', width: '100%' }}>
+        <div style={{ position: 'relative' }}>
+    <select value={dispatchUser} onChange={(e) => { setDispatchUser(e.target.value); if(tutorialStep === 15) nextTourStep(16); }} disabled={userRole === 'TECH'} style={{ padding: '14px', borderRadius: '8px', border: userRole === 'TECH' ? '1px solid #374151' : '1px solid #d1d5db', backgroundColor: userRole === 'TECH' ? 'rgba(0, 0, 0,0.05)' : '#f8f9fa', color: userRole === 'TECH' ? '#374151' : '#0a1b35', fontSize: '15px', outline: 'none', cursor: userRole === 'TECH' ? 'not-allowed' : 'pointer', WebkitAppearance: 'none', width: '100%' }}>
           <option value="" disabled>Select Authorized Personnel...</option>
           {personnel.map(name => (
             <option key={name} value={name}>{name}</option>
@@ -1854,8 +2073,23 @@ return t;
             <option value={dispatchUser}>{dispatchUser}</option>
           )}
         </select>
+    {tutorialStep === 15 && (
+      <div className="tour-float-y" style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center', marginTop: '8px' }}>
+        <div style={{ position: 'absolute', top: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '0 6px 6px 6px', borderStyle: 'solid', borderColor: 'transparent transparent #0052cc transparent' }}></div>
+        <div>Step 15: Select the technician taking custody</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextTourStep(16); }} style={{ cursor: 'pointer', backgroundColor: '#ffffff', color: '#0052cc', padding: '4px 8px', borderRadius: '4px', marginLeft: '12px', fontWeight: '800' }}>Next</div>
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '12px' }}>
+    )}
+  </div>
+      </div>
+      <div onClick={() => { if(tutorialStep === 16) nextTourStep(17); }} style={{ position: 'relative', display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '12px', boxShadow: tutorialStep === 16 ? '0 0 0 2px #0052cc' : 'none', borderRadius: '8px' }}>
+    {tutorialStep === 16 && (
+      <div className="tour-float-y" style={{ position: 'absolute', bottom: '105%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+        <div>Step 16: Log outbound condition & notes</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextTourStep(17); }} style={{ cursor: 'pointer', backgroundColor: '#ffffff', color: '#0052cc', padding: '4px 8px', borderRadius: '4px', marginLeft: '12px', fontWeight: '800' }}>Next</div>
+      </div>
+    )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
           <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>CONDITION</label>
           <select value={dispatchCondition} onChange={(e) => setDispatchCondition(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }}>
@@ -1877,13 +2111,29 @@ return t;
                    <label style={{ fontSize: '11px', color: '#0a1b35', fontWeight: '800', letterSpacing: '0.05em' }}>OUTBOUND CONDITION PHOTO</label>
                    <span style={{ fontSize: '11px', color: '#6b7280' }}>Attach a photo of the asset prior to handoff. (Optional)</span>
                 </div>
-                <label htmlFor="dispatch-photo" style={{ padding: '8px 16px', borderRadius: '6px', border: dispatchPhoto ? '1px solid #374151' : '1px solid #d1d5db', color: dispatchPhoto ? '#ffffff' : '#6b7280', cursor: 'pointer', fontSize: '11px', fontWeight: '800', backgroundColor: dispatchPhoto ? '#0a1b35' : '#ffffff', transition: 'all 0.2s', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
+                <div style={{ position: 'relative' }}>
+    <label htmlFor="dispatch-photo" style={{ padding: '8px 16px', borderRadius: '6px', border: dispatchPhoto ? '1px solid #374151' : '1px solid #d1d5db', color: dispatchPhoto ? '#ffffff' : '#6b7280', cursor: 'pointer', fontSize: '11px', fontWeight: '800', backgroundColor: dispatchPhoto ? '#0a1b35' : '#ffffff', transition: 'all 0.2s', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
                   {dispatchPhoto ? '✅ ' + dispatchPhoto.name : '📷 UPLOAD PHOTO'}
                 </label>
+    {tutorialStep === 17 && (
+      <div className="tour-float-y" style={{ position: 'absolute', top: '120%', right: '0', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', top: '-6px', right: '16px', borderWidth: '0 6px 6px 6px', borderStyle: 'solid', borderColor: 'transparent transparent #0052cc transparent' }}></div>
+        <div>Step 17: Attach a photo of the tool</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextTourStep(18); }} style={{ cursor: 'pointer', backgroundColor: '#ffffff', color: '#0052cc', padding: '4px 8px', borderRadius: '4px', marginLeft: '12px', fontWeight: '800' }}>Next</div>
+      </div>
+    )}
+  </div>
                 <input type="file" id="dispatch-photo" style={{ display: 'none' }} accept="image/*" onChange={async (e) => { if(e.target.files[0]) { const compressed = await compressImage(e.target.files[0]); setDispatchPhoto(compressed); } }} />
               </div>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#e5e7eb', padding: '16px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
+              <div onClick={() => { if(tutorialStep === 18) nextTourStep(19); }} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#e5e7eb', padding: '16px', borderRadius: '8px', border: tutorialStep === 18 ? '2px solid #0052cc' : '1px solid #d1d5db' }}>
+    {tutorialStep === 18 && (
+      <div className="tour-float-y" style={{ position: 'absolute', bottom: '105%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+        <div>Step 18: Accept terms & sign</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextTourStep(19); }} style={{ cursor: 'pointer', backgroundColor: '#ffffff', color: '#0052cc', padding: '4px 8px', borderRadius: '4px', marginLeft: '12px', fontWeight: '800' }}>Next</div>
+      </div>
+    )}
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '13px', color: '#4b5563', cursor: 'pointer', lineHeight: '1.4' }}>
                   <input type="checkbox" checked={dispatchTerms} onChange={(e) => setDispatchTerms(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#374151', marginTop: '2px' }} />
                   I acknowledge receipt of this asset and accept full responsibility for its condition and return.
@@ -1903,7 +2153,15 @@ return t;
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               <button onClick={() => { setCheckoutModalOpen(false); setDispatchUser(""); setDispatchCondition("Excellent"); setDispatchNotes(""); setDispatchTerms(false); setDispatchPhoto(null); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleCheckout} disabled={!dispatchUser.trim() || !dispatchTerms} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (dispatchUser.trim() && dispatchTerms) ? 1 : 0.4 }}>AUTHORIZE</button>
+              <div style={{ position: 'relative', display: 'flex', flex: 1 }}>
+    <button onClick={() => { handleCheckout(); if(tutorialStep === 19) nextTourStep(20); }} disabled={!dispatchUser.trim() || !dispatchTerms} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (dispatchUser.trim() && dispatchTerms) ? 1 : 0.4 }}>AUTHORIZE</button>
+    {tutorialStep === 19 && (
+      <div className="tour-float-y" style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '6px 6px 0 6px', borderStyle: 'solid', borderColor: '#0052cc transparent transparent transparent' }}></div>
+        <div>Step 19: Complete dispatch!</div>
+      </div>
+    )}
+  </div>
             </div>
           </div>
         </div>
