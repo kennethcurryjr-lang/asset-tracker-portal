@@ -163,7 +163,7 @@ function Tools({ user }) {
   React.useEffect(() => { fetchDB(); }, []);
 
   const [inventory] = useState({ 'HVAC': [{ item: '24x24x2 Pleated Air Filter', stock: 45 }, { item: 'R-410A Refrigerant (lbs)', stock: 12 }], 'MILW': [{ item: 'M18 REDLITHIUM 5.0Ah Battery', stock: 22 }, { item: 'Press Tool Jaw Grease', stock: 6 }], 'VEH': [{ item: '5W-30 Synthetic Oil (Qts)', stock: 32 }, { item: 'Wiper Fluid (Gal)', stock: 14 }] });
-  const [tools, setTools] = useState(generateTools);
+  const [tools, setTools] = useState([]);
   const [ledgerSearch, setLedgerSearch] = useState('');
   const [custodySearch, setCustodySearch] = useState('');
   const [custodySort, setCustodySort] = useState('daysDesc');
@@ -813,12 +813,18 @@ return t;
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ flex: 1, position: 'relative' }}>
-                    <input type="text" placeholder="Search by Tool ID, Name, or Assigned Tech..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="custom-input" />
+                    <input type="text" placeholder="Search by Asset ID, Name, or Assigned Tech..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="custom-input" />
                 </div>
             </div>
 
-            <div className="matrix-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px', alignContent: 'start' }}>
-                {filteredTools.filter(tool_obj => tool_obj.status !== 'DECOMMISSIONED').map(tool => {
+            <div className="matrix-grid" style={{ display: 'grid', gridTemplateColumns: filteredTools.length === 0 ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px', alignContent: 'start' }}>
+                {filteredTools.length === 0 ? (
+                  <div style={{ padding: '60px 20px', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '16px', border: '2px dashed #d1d5db', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gridColumn: '1 / -1' }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
+                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#0a1b35', marginBottom: '8px' }}>INVENTORY EMPTY</div>
+                    <div style={{ fontSize: '14px', color: '#6b7280' }}>Your asset matrix is currently clear. Click "ADD" or "BULK ADD" above to ingest new tools.</div>
+                  </div>
+                ) : filteredTools.filter(tool_obj => tool_obj.status !== 'DECOMMISSIONED').map(tool => {
                 const isSelected = tool.toolId === selectedToolId;
                 const isOut = tool.status === 'CHECKED_OUT';
                 const isServiceDue = checkIsOverdue(tool.metrics);
@@ -1149,7 +1155,7 @@ return t;
                     </div>
                 </>
             ) : (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontStyle: 'italic', fontSize: '14px' }}>No tools match your search.</div>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontStyle: 'italic', fontSize: '14px' }}>No assets match your search.</div>
             )}
           </div>
         </div>
