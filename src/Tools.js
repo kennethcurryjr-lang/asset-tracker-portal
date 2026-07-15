@@ -4,6 +4,36 @@ import SignatureCanvas from 'react-signature-canvas';
 import React, { useEffect,  useState, useMemo } from 'react';
 import { uploadData, getUrl } from "aws-amplify/storage";
 
+// Lightweight Image Compression (HTML5 Canvas)
+const compressImage = (file, maxWidth = 1024, quality = 0.6) => {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith('image/')) { resolve(file); return; }
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          let cleanName = file.name.replace(/\.[^/.]+$/, "");
+          // Truncate massively long file names to keep the UI clean
+          if (cleanName.length > 15) {
+            cleanName = cleanName.substring(0, 12) + '...';
+          }
+          resolve(new File([blob], cleanName + ".jpg", { type: 'image/jpeg', lastModified: Date.now() }));
+        }, 'image/jpeg', quality);
+      };
+    };
+  });
+};
+
 // NLP Ingest Engine for Smart Checklists
 const generateSmartChecklist = (id, name) => {
   const lowerName = (name || '').toLowerCase();
@@ -181,6 +211,7 @@ function Tools({ user }) {
   const [dispatchNotes, setDispatchNotes] = useState("");
   const [dispatchProject, setDispatchProject] = useState("");
   const [dispatchTerms, setDispatchTerms] = useState(false);
+  const [dispatchPhoto, setDispatchPhoto] = useState(null);
   const [ingestTerms, setIngestTerms] = useState(false);
   const [ingestPhoto, setIngestPhoto] = useState(null);
   const sigPad = React.useRef(null);
@@ -202,9 +233,12 @@ function Tools({ user }) {
     frequency: 'Daily Digest', 
     notifyDamaged: true, 
     notifyOverdue: true, 
-    notifyNew: false 
+    notifyNew: false,
+    notifyCustody: true,
+    notifyHighValue: false,
+    notifyLowStock: true
   });
-  const [newTool, setNewTool] = useState({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', maxCheckoutDays: '14', isDispatchable: true, isSpecialty: false });
+  const [newTool, setNewTool] = useState({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', maxCheckoutDays: '0', isDispatchable: true, isSpecialty: false });
 
   
   React.useEffect(() => {
@@ -332,14 +366,14 @@ function Tools({ user }) {
       condition: newTool.condition,
       assignedUser: newTool.assignee || null,
       daysOut: 0,
-      metrics: [{ unit: newTool.pmMetric, current: 0, interval: parseInt(newTool.pmInterval) || 90 }], maxCheckoutDays: (newTool.maxCheckoutDays === '' || newTool.maxCheckoutDays === undefined) ? 14 : parseInt(newTool.maxCheckoutDays),
+      metrics: [{ unit: newTool.pmMetric, current: 0, interval: parseInt(newTool.pmInterval) || 90 }], maxCheckoutDays: (newTool.maxCheckoutDays === '' || newTool.maxCheckoutDays === undefined) ? 0 : parseInt(newTool.maxCheckoutDays),
       history: newTool.assignee ? [{ user: newTool.assignee, action: "Auto-Dispatched during ingestion" + (isKit ? " | E-Signed" : ""), ...(ingestSigData && { signatureUrl: ingestSigData }), ...(ingestPhotoUrl && { attachmentUrl: ingestPhotoUrl, attachment: ' Kit Manifest: ' + ingestPhotoName }), date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: newTool.condition }, { user: "Admin", action: "Tool Ingested to Database", date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: newTool.condition }] : [{ user: "Admin", action: "Tool Ingested to Database", date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), condition: newTool.condition }]
     };
     
     syncDB(newToolObj);
     setTools(prev => [newToolObj, ...prev]);
     setAddModalOpen(false);
-    setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', maxCheckoutDays: '14', isDispatchable: true, isSpecialty: false, assignee: '' });
+    setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', maxCheckoutDays: '0', isDispatchable: true, isSpecialty: false, assignee: '' });
     setIngestTerms(false);
     setIngestPhoto(null);
     if (sigPad.current) sigPad.current.clear();
@@ -375,6 +409,21 @@ function Tools({ user }) {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
     const telemetryData = `IP: ${ipAddress} | ID: ${deviceId} | ${isMobile}`;
     // -------------------------
+    let dispatchPhotoUrl = null;
+    let dispatchPhotoName = null;
+    if (dispatchPhoto) {
+      try {
+        const uploadedFilename = `DISPATCH-${selectedToolId}-${Date.now()}-${dispatchPhoto.name.replace(/\s+/g, '_')}`;
+        await uploadData({
+          path: `public/service-logs/${uploadedFilename}`,
+          data: dispatchPhoto,
+          options: { contentType: dispatchPhoto.type }
+        }).result;
+        const link = await getUrl({ path: `public/service-logs/${uploadedFilename}` });
+        dispatchPhotoUrl = link.url.toString();
+        dispatchPhotoName = dispatchPhoto.name;
+      } catch (err) { console.error("Dispatch Photo Upload Failed:", err); }
+    }
     
     setTools(prev => prev.map(t => {
 if (t.toolId === selectedToolId) {
@@ -391,7 +440,8 @@ const ut = {
     note: dispatchNotes,
     date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), 
     condition: dispatchCondition,
-    telemetry: telemetryData
+    telemetry: telemetryData,
+    ...(dispatchPhotoUrl && { attachmentUrl: dispatchPhotoUrl, attachment: 'Outbound Photo: ' + dispatchPhotoName })
   }, ...t.history]
 };
 syncDB(ut); // Save the updated condition to the database
@@ -406,7 +456,7 @@ return t;
     setDispatchProject("");
     setDispatchCondition("Excellent");
     setDispatchNotes("");
-    setDispatchTerms(false);
+    setDispatchTerms(false); setDispatchPhoto(null);
     if (sigPad.current) sigPad.current.clear();
   };
 
@@ -569,6 +619,8 @@ return t;
         .card-perspective-wrapper { perspective: 1200px; height: 100%; display: flex; min-height: 340px; }
         .card-flipper { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; display: flex; flex-direction: column; flex: 1; }
         .card-flipper.flipped { transform: rotateY(180deg); }
+        .card-flipper.flipped .card-front { pointer-events: none; }
+        .card-flipper.flipped .card-back { z-index: 5; }
         .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; flex: 1; box-sizing: border-box; border-radius: 12px; }
         .card-front { transform: rotateY(0deg); z-index: 2; position: relative; background-color: #ffffff; }
         .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #ffffff; display: flex; flex-direction: column; padding: 16px; overflow: hidden; }
@@ -828,8 +880,8 @@ return t;
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'flex-start' }}>
                             <div style={{ display: 'flex', gap: '4px', flex: 1, marginRight: '8px', flexWrap: 'wrap' }}>
                             <button className={`tab-btn ${activeTab === 'service' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'service'})); }}> PM</button>
-                            {tool.isDispatchable !== false && (<button className={`tab-btn ${activeTab === 'manifest' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'manifest'})); }}> KITS</button>)}
-                            {tool.isDispatchable !== false && (<button className={`tab-btn ${activeTab === 'qr' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'qr'})); }}> QR</button>)}
+                            {tool.isDispatchable !== false && !tool.toolId.startsWith('KIT') && (<button className={`tab-btn ${activeTab === 'manifest' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'manifest'})); }}> MANIFEST</button>)}
+                            {tool.isDispatchable !== false && !tool.toolId.startsWith('KIT') && (<button className={`tab-btn ${activeTab === 'qr' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'qr'})); }}> QR</button>)}
                             <button className={`tab-btn ${activeTab === 'specs' ? 'tab-active' : 'tab-inactive'}`} onClick={(e) => { e.stopPropagation(); setCardTabs(prev => ({...prev, [tool.toolId]: 'specs'})); }}> INFO</button>
                             </div>
                             <button onClick={(e) => { e.stopPropagation(); setFlippedCards(prev => ({...prev, [tool.toolId]: false})); }} style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px', padding: 0, marginTop: '2px' }}>✕</button>
@@ -889,7 +941,7 @@ return t;
                                   <label htmlFor={`file-${tool.toolId}`} onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', borderRadius: '8px', backgroundColor: 'transparent', border: 'none', color: pendingAttachments[tool.toolId] ? '#374151' : '#4b5563', cursor: 'pointer', transition: 'all 0.2s' }}>
                                     {pendingAttachments[tool.toolId] ? '✅' : '📷'}
                                   </label>
-                                  <input type="file" id={`file-${tool.toolId}`} style={{ display: 'none' }} onChange={(e) => { if(e.target.files[0]) { setPendingAttachments(prev => ({...prev, [tool.toolId]: e.target.files[0]})); } }} />
+                                  <input type="file" id={`file-${tool.toolId}`} style={{ display: 'none' }} onChange={async (e) => { if(e.target.files[0]) { const compressed = await compressImage(e.target.files[0]); setPendingAttachments(prev => ({...prev, [tool.toolId]: compressed})); } }} />
                                 </div>
                                 </div>
 
@@ -916,8 +968,8 @@ return t;
                             {activeTab === 'specs' && (
                             <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 <div><span style={{ color: '#4b5563', fontWeight: '600' }}>Value:</span> ${tool.value}</div>
-                                <div><span style={{ color: '#4b5563', fontWeight: '600' }}>Purchased:</span> Jan 14, 2024</div>
-                                <div><span style={{ color: '#4b5563', fontWeight: '600' }}>Warranty:</span> Expires Jan 2029</div>
+                                <div><span style={{ color: '#4b5563', fontWeight: '600' }}>Category:</span> {tool.category}</div>
+                                <div><span style={{ color: '#4b5563', fontWeight: '600' }}>{tool.toolId.startsWith('KIT') ? 'Tracked Items:' : 'Serial / VIN:'}</span> {tool.serial || 'N/A'}</div>
                                 {tool.manualUrl ? (
       <div onClick={(e) => { e.stopPropagation(); window.open(tool.manualUrl, "_blank"); }} style={{ color: '#374151', fontWeight: '800', cursor: 'pointer', marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', backgroundColor: 'rgba(0, 0, 0,0.1)', borderRadius: '6px', border: '1px solid rgba(0, 0, 0,0.3)' }}>
         <span></span> VIEW PDF MANUAL
@@ -963,7 +1015,7 @@ return t;
                     <div style={{ paddingBottom: '16px', borderBottom: '1px solid #d1d5db', position: 'relative' }}>
                     <div style={{ position: 'absolute', right: 0, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
                     <div style={{ fontSize: '18px', fontWeight: '700', color: '#374151' }}>${selectedTool.value.toLocaleString()}</div>
-                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${selectedTool.toolId}`} alt="Asset QR" style={{ width: '64px', height: '64px', borderRadius: '8px', border: '1px solid #d1d5db', padding: '4px', backgroundColor: '#ffffff' }} />
+                    {selectedTool?.toolId && !selectedTool.toolId.startsWith('KIT') && ( <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${selectedTool.toolId}`} alt="Asset QR" style={{ width: '64px', height: '64px', borderRadius: '8px', border: '1px solid #d1d5db', padding: '4px', backgroundColor: '#ffffff' }} /> )}
                   </div>
                     <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px' }}>INSPECTOR DASHBOARD</div>
                     <div style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', color: '#0a1b35' }}>{selectedTool.toolId}</div>
@@ -1007,7 +1059,7 @@ return t;
                             )}
                             
                             {log.signatureUrl && (
-                              <div style={{ marginTop: '8px', padding: '4px', backgroundColor: '#0a1b35', borderRadius: '4px', display: 'inline-block', border: '1px solid #d1d5db' }}>
+                              <div style={{ marginTop: '8px', padding: '4px', backgroundColor: '#ffffff', borderRadius: '4px', display: 'inline-block', border: '1px solid #d1d5db' }}>
                                 <img src={log.signatureUrl} alt="Signature" style={{ height: '40px', display: 'block' }} />
                               </div>
                             )}
@@ -1399,7 +1451,7 @@ return t;
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(0, 0, 0,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid #d1d5db', flex: 1 }}>
                   <input type="checkbox" checked={editTool.isDispatchable !== false} onChange={(e) => setEditTool({...editTool, isDispatchable: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#374151', cursor: 'pointer' }} />
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '14px', color: '#ffffff', fontWeight: '700' }}>Enable Field Checkout</span>
+                    <span style={{ fontSize: '14px', color: '#1f2937', fontWeight: '700' }}>Enable Field Checkout</span>
                     <span style={{ fontSize: '11px', color: '#6b7280' }}>If disabled, this tool will be permanently locked to its home location.</span>
                   </div>
                 </div>
@@ -1436,10 +1488,9 @@ return t;
       {addModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto", backgroundColor: "#ffffff", padding: "32px", borderRadius: "16px", border: "1px solid #d1d5db", width: "800px", maxWidth: "90%", color: "#0a1b35", boxSizing: "border-box" }}>
-            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#0a1b35', letterSpacing: '-0.02em' }}>Ingest New ASSET</h2>
-            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#6b7280' }}>REGISTER ASSETS.</p>
+            <h2 style={{ margin: '0 0 16px 0', fontSize: '24px', fontWeight: '800', color: '#0a1b35', letterSpacing: '-0.02em' }}>INGEST NEW ASSET</h2>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
               
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
@@ -1516,8 +1567,8 @@ return t;
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
-                  <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>{newTool.prefix?.toUpperCase() === "KIT" ? "SERIAL NUMBERS (COMMA SEPARATED)" : "SERIAL NUMBER / VIN"}</label>
-                  <input type="text" placeholder="e.g. 1FTEW1E49K..." value={newTool.serial} onChange={(e) => setNewTool({...newTool, serial: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }} />
+                  <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>{newTool.prefix?.toUpperCase() === "KIT" ? "TRACKED ITEM SERIALS (IGNORE STANDARD GEAR)" : "SERIAL NUMBER / VIN"}</label>
+                  <input type="text" placeholder={newTool.prefix?.toUpperCase() === 'KIT' ? "e.g. Drill: SN123, Radio: SN456" : "e.g. 1FTEW1E49K..."} value={newTool.serial} onChange={(e) => setNewTool({...newTool, serial: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }} />
                 </div>
                 <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
                   <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>EXTERNAL LINK / URL</label>
@@ -1541,19 +1592,25 @@ return t;
                           <label style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '800', letterSpacing: '0.05em' }}>DRAW SIGNATURE</label>
                           <button onClick={(e) => { e.preventDefault(); sigPad.current?.clear(); sigPad.current?.on();; }} type="button" style={{ background: 'transparent', border: 'none', color: '#1f2937', fontSize: '11px', cursor: 'pointer', fontWeight: '700' }}>CLEAR PAD</button><button onClick={(e) => { e.preventDefault(); sigPad.current?.off(); }} type="button" style={{ background: 'transparent', border: 'none', color: '#374151', fontSize: '11px', cursor: 'pointer', fontWeight: '700', marginLeft: '16px' }}>LOCK PAD</button>
                         </div>
-                        <div style={{ border: '1px solid #d1d5db', borderRadius: '8px', backgroundColor: '#0a1b35', overflow: 'hidden' }}>
-                          <SignatureCanvas ref={sigPad} penColor="black" canvasProps={{className: 'sigCanvas', style: { width: '100%', height: '150px', touchAction: 'none' }}} />
+                        <div style={{ border: '1px solid #d1d5db', borderRadius: '8px', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+                          <SignatureCanvas ref={sigPad} penColor="black" canvasProps={{className: 'sigCanvas', style: { width: '100%', height: '80px', touchAction: 'none' }}} />
                         </div>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0,0.05)', padding: '12px', borderRadius: '8px', border: '1px dashed rgba(0, 0, 0,0.3)', marginTop: '8px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                            <label style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '800', letterSpacing: '0.05em' }}>KIT MANIFEST PHOTO</label>
-                           <span style={{ fontSize: '11px', color: '#6b7280' }}>Attach a photo of the complete kit contents.</span>
+                           <span style={{ fontSize: '11px', color: '#6b7280', marginBottom: '6px' }}>Attach a photo of the complete kit contents. Must include standard issue:</span>
+                       <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '10.5px', color: '#4b5563', display: 'flex', flexDirection: 'column', gap: '4px', fontWeight: '600', listStyleType: 'square' }}>
+                         <li>Hard Hat & Safety Glasses</li>
+                         <li>25ft Tape Measure</li>
+                         <li>Multi-tool / Leatherman</li>
+                         <li>High-Vis Safety Vest</li>
+                       </ul>
                         </div>
                         <label htmlFor="ingest-photo" style={{ padding: '8px 16px', borderRadius: '6px', border: ingestPhoto ? '1px solid #374151' : '1px solid #6b7280', color: ingestPhoto ? '#374151' : '#6b7280', cursor: 'pointer', fontSize: '11px', fontWeight: '800', backgroundColor: ingestPhoto ? 'rgba(0, 0, 0,0.1)' : 'transparent', transition: 'all 0.2s', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
                           {ingestPhoto ? '✅ ' + ingestPhoto.name : ' UPLOAD PHOTO'}
                         </label>
-                        <input type="file" id="ingest-photo" style={{ display: 'none' }} accept="image/*" onChange={(e) => { if(e.target.files[0]) setIngestPhoto(e.target.files[0]); }} />
+                        <input type="file" id="ingest-photo" style={{ display: 'none' }} accept="image/*" onChange={async (e) => { if(e.target.files[0]) { const compressed = await compressImage(e.target.files[0]); setIngestPhoto(compressed); } }} />
                       </div>
                     </div>
                   )}
@@ -1584,7 +1641,7 @@ return t;
               <div style={{ display: newTool.prefix?.toUpperCase() === 'KIT' ? 'none' : 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(0, 0, 0,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid #d1d5db', flex: 1 }}>
                 <input type="checkbox" id="dispatchableToggle" checked={(newTool.prefix?.toUpperCase() === 'KIT' && newTool.assignee) ? true : newTool.isDispatchable} onChange={(e) => setNewTool({...newTool, isDispatchable: e.target.checked})} style={{ width: '18px', height: '18px', accentColor: '#374151', cursor: 'pointer' }} />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <label htmlFor="dispatchableToggle" style={{ fontSize: '14px', color: '#ffffff', fontWeight: '700', cursor: 'pointer' }}>Enable Field Checkout</label>
+                  <label htmlFor="dispatchableToggle" style={{ fontSize: '14px', color: '#1f2937', fontWeight: '700', cursor: 'pointer' }}>Enable Field Checkout</label>
                   <span style={{ fontSize: '11px', color: '#6b7280' }}>If disabled, this tool will be permanently locked to its home location.</span>
                 </div>
               </div>
@@ -1602,7 +1659,7 @@ return t;
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-              <button onClick={() => { setAddModalOpen(false); setIngestTerms(false); setIngestPhoto(null); setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', maxCheckoutDays: '14', isDispatchable: true, isSpecialty: false, assignee: '' }); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setAddModalOpen(false); setIngestTerms(false); setIngestPhoto(null); setNewTool({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', maxCheckoutDays: '0', isDispatchable: true, isSpecialty: false, assignee: '' }); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
               <button onClick={() => setConfirmIngestOpen(true)} disabled={(!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: ((!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value) ? 0.4 : 1 }}>ADD TO INVENTORY</button>
             </div>
           </div>
@@ -1776,10 +1833,10 @@ return t;
       {checkoutModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-container" style={{ margin: "0 auto", maxHeight: '90vh', overflowY: 'auto',  width: '500px', maxWidth: '90%', backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', color: '#0a1b35' }}>
-            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}>Dispatch Tool</h2>
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}>Dispatch Asset</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#6b7280' }}>Transferring custody of <strong style={{color: '#1f2937'}}>[{selectedTool?.toolId}]</strong></p>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>EMPLOYEE / TECH NAME</label>
         <select value={dispatchUser} onChange={(e) => setDispatchUser(e.target.value)} disabled={userRole === 'TECH'} style={{ padding: '14px', borderRadius: '8px', border: userRole === 'TECH' ? '1px solid #374151' : '1px solid #d1d5db', backgroundColor: userRole === 'TECH' ? 'rgba(0, 0, 0,0.05)' : '#f8f9fa', color: userRole === 'TECH' ? '#374151' : '#0a1b35', fontSize: '15px', outline: 'none', cursor: userRole === 'TECH' ? 'not-allowed' : 'pointer', WebkitAppearance: 'none', width: '100%' }}>
@@ -1794,7 +1851,7 @@ return t;
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '12px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px', minWidth: '250px' }}>
-          <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>TOOL CONDITION</label>
+          <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>CONDITION</label>
           <select value={dispatchCondition} onChange={(e) => setDispatchCondition(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }}>
             <option value="New">New</option>
             <option value="Excellent">Excellent</option>
@@ -1808,6 +1865,17 @@ return t;
           <input type="text" placeholder="e.g. Scratched case, missing battery..." value={dispatchNotes} onChange={(e) => setDispatchNotes(e.target.value)} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }} />
         </div>
       </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8f9fa', padding: '12px', borderRadius: '8px', border: '1px dashed #d1d5db', marginBottom: '4px', marginTop: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                   <label style={{ fontSize: '11px', color: '#0a1b35', fontWeight: '800', letterSpacing: '0.05em' }}>OUTBOUND CONDITION PHOTO</label>
+                   <span style={{ fontSize: '11px', color: '#6b7280' }}>Attach a photo of the asset prior to handoff. (Optional)</span>
+                </div>
+                <label htmlFor="dispatch-photo" style={{ padding: '8px 16px', borderRadius: '6px', border: dispatchPhoto ? '1px solid #374151' : '1px solid #d1d5db', color: dispatchPhoto ? '#ffffff' : '#6b7280', cursor: 'pointer', fontSize: '11px', fontWeight: '800', backgroundColor: dispatchPhoto ? '#0a1b35' : '#ffffff', transition: 'all 0.2s', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
+                  {dispatchPhoto ? '✅ ' + dispatchPhoto.name : '📷 UPLOAD PHOTO'}
+                </label>
+                <input type="file" id="dispatch-photo" style={{ display: 'none' }} accept="image/*" onChange={async (e) => { if(e.target.files[0]) { const compressed = await compressImage(e.target.files[0]); setDispatchPhoto(compressed); } }} />
+              </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#e5e7eb', padding: '16px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '13px', color: '#4b5563', cursor: 'pointer', lineHeight: '1.4' }}>
@@ -1820,15 +1888,15 @@ return t;
                     <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>DRAW SIGNATURE</label>
                     <button onClick={() => { sigPad.current?.clear(); sigPad.current?.on(); }} style={{ background: 'transparent', border: 'none', color: '#1f2937', fontSize: '11px', cursor: 'pointer', fontWeight: '700' }}>CLEAR PAD</button><button onClick={(e) => { e.preventDefault(); sigPad.current?.off(); }} type="button" style={{ background: 'transparent', border: 'none', color: '#374151', fontSize: '11px', cursor: 'pointer', fontWeight: '700', marginLeft: '16px' }}>LOCK PAD</button>
                   </div>
-                  <div style={{ border: '1px solid #d1d5db', borderRadius: '8px', backgroundColor: '#0a1b35', overflow: 'hidden' }}>
-                    <SignatureCanvas ref={sigPad} penColor="black" canvasProps={{className: 'sigCanvas', style: { width: '100%', height: '150px', touchAction: 'none' }}} />
+                  <div style={{ border: '1px solid #d1d5db', borderRadius: '8px', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+                    <SignatureCanvas ref={sigPad} penColor="black" canvasProps={{className: 'sigCanvas', style: { width: '100%', height: '80px', touchAction: 'none' }}} />
                   </div>
                 </div>
               </div>
               </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-              <button onClick={() => { setCheckoutModalOpen(false); setDispatchUser(""); setDispatchCondition("Excellent"); setDispatchNotes(""); setDispatchTerms(false); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setCheckoutModalOpen(false); setDispatchUser(""); setDispatchCondition("Excellent"); setDispatchNotes(""); setDispatchTerms(false); setDispatchPhoto(null); if(sigPad.current) sigPad.current.clear(); }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
               <button onClick={handleCheckout} disabled={!dispatchUser.trim() || !dispatchTerms} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)', fontWeight: '700', fontSize: '14px', cursor: 'pointer', opacity: (dispatchUser.trim() && dispatchTerms) ? 1 : 0.4 }}>AUTHORIZE</button>
             </div>
           </div>
@@ -1842,7 +1910,7 @@ return t;
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}>Notification Preferences</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#6b7280' }}>Configure how and when the system alerts you.</p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>TARGET EMAIL</label>
                 <input type="email" value={alertPrefs.email} onChange={(e) => setAlertPrefs({...alertPrefs, email: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }} />
@@ -1852,8 +1920,12 @@ return t;
                 <label style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>DIGEST FREQUENCY</label>
                 <select value={alertPrefs.frequency} onChange={(e) => setAlertPrefs({...alertPrefs, frequency: e.target.value})} style={{ padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '15px', outline: 'none' }}>
                   <option value="Instant">Instant (On Event)</option>
-                  <option value="Daily Digest">Daily Digest (7:00 AM)</option>
+                  <option value="Hourly">Hourly Batch (Top of Hour)</option>
+                  <option value="Daily Digest">Daily Morning Digest (7:00 AM)</option>
+                  <option value="Daily EOD">Daily End-of-Day (5:00 PM)</option>
                   <option value="Weekly Digest">Weekly Summary (Friday 5PM)</option>
+                  <option value="Monthly 1st">1st of the Month (8:00 AM)</option>
+                  <option value="Monthly EOM">End of the Month (5:00 PM)</option>
                   <option value="Muted">Muted (No Emails)</option>
                 </select>
               </div>
@@ -1871,6 +1943,18 @@ return t;
                 <label style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
                   <input type="checkbox" checked={alertPrefs.notifyNew} onChange={(e) => setAlertPrefs({...alertPrefs, notifyNew: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: '#374151' }} />
                   New Tool Ingested 
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={alertPrefs.notifyCustody} onChange={(e) => setAlertPrefs({...alertPrefs, notifyCustody: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: '#0a1b35' }} />
+                  Asset Overdue for Return (Custody Violation) 
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={alertPrefs.notifyHighValue} onChange={(e) => setAlertPrefs({...alertPrefs, notifyHighValue: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: '#4b5563' }} />
+                  Specialty/High-Value Asset Movement 
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={alertPrefs.notifyLowStock} onChange={(e) => setAlertPrefs({...alertPrefs, notifyLowStock: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: '#6b7280' }} />
+                  Consumables Low-Stock Warning 
                 </label>
               </div>
             </div>
