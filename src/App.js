@@ -779,14 +779,24 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
   };
 
-  const handleSignOut = () => {
-    localStorage.clear();
+  const handleSignOut = async () => {
+    // 1. Lock the gatekeeper so it doesn't instantly pull us back in
+    localStorage.setItem('isSigningOut', 'true');
+    
+    // 2. Remove the user profile locally
+    await auth.removeUser();
+    
+    // 3. Clean up leftover data (except our lock)
     sessionStorage.clear();
-    auth.removeUser();
+    Object.keys(localStorage).forEach(key => {
+      if (key !== 'isSigningOut') localStorage.removeItem(key);
+    });
+    
+    // 4. Send them to Cognito to kill the session cookie
     const cognitoDomain = "auth.titanassets.dev";
     const clientId = "51fu0mfnpb0r0e319ftppvcbaf";
     const logoutUri = window.location.hostname === 'localhost' ? 'http://localhost:3000/' : 'https://titanassets.dev/';
-    window.location.href = `https://` + cognitoDomain + `/logout?client_id=` + clientId + `&logout_uri=` + encodeURIComponent(logoutUri);
+    window.location.href = `https://${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
   };
 
   const getTimelineMarkerColor = (text = "") => {
@@ -896,7 +906,25 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
   }
 
   if (!auth.isAuthenticated) {
-    return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', paddingLeft: '40px'}}>Redirecting to secure gateway...</div>;
+    const isSigningOut = localStorage.getItem('isSigningOut') === 'true';
+    return (
+      <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f'}}>
+        {isSigningOut ? (
+          <div className="animate-in" style={{ textAlign: 'center', backgroundColor: '#ffffff', padding: '40px', borderRadius: '16px', border: '1px solid #d2d2d7', boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }}>
+            <h2 style={{ margin: '0 0 16px 0', fontSize: '24px', fontWeight: '700' }}>Signed Out Safely</h2>
+            <p style={{ color: '#86868b', marginBottom: '24px' }}>Your session has been securely terminated.</p>
+            <button 
+              onClick={() => { localStorage.removeItem('isSigningOut'); auth.signinRedirect(); }} 
+              style={{ padding: '12px 24px', borderRadius: '24px', border: 'none', backgroundColor: '#1d1d1f', color: '#ffffff', fontSize: '15px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
+            >
+              Sign In Again
+            </button>
+          </div>
+        ) : (
+          <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', paddingLeft: '40px'}}>Redirecting to secure gateway...</div>
+        )}
+      </div>
+    );
   }
 
   return (

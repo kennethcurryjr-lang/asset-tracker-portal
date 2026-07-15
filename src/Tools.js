@@ -175,6 +175,18 @@ function Tools({ user }) {
   const [inventory] = useState({ 'HVAC': [{ item: '24x24x2 Pleated Air Filter', stock: 45 }, { item: 'R-410A Refrigerant (lbs)', stock: 12 }], 'MILW': [{ item: 'M18 REDLITHIUM 5.0Ah Battery', stock: 22 }, { item: 'Press Tool Jaw Grease', stock: 6 }], 'VEH': [{ item: '5W-30 Synthetic Oil (Qts)', stock: 32 }, { item: 'Wiper Fluid (Gal)', stock: 14 }] });
   const [tools, setTools] = useState([]);
 
+  const [dismissedTips, setDismissedTips] = useState(() => JSON.parse(localStorage.getItem('kinetic_tips') || '{}'));
+  const dismissTip = (tip) => { const next = {...dismissedTips, [tip]: true}; setDismissedTips(next); localStorage.setItem('kinetic_tips', JSON.stringify(next)); };
+
+  const resetTour = () => { 
+    if(window.confirm("Restart the Kinetic Operations Assistant? This will reset all tooltips and guides.")) { 
+      setTutorialStep(1); 
+      localStorage.setItem('kinetic_tour', 1); 
+      setDismissedTips({}); 
+      localStorage.removeItem('kinetic_tips'); 
+    } 
+  };
+
   const [tutorialStep, setTutorialStep] = useState(() => { const saved = localStorage.getItem('kinetic_tour'); return saved ? parseInt(saved) : 0; });
   const nextTourStep = (step) => { setTutorialStep(step); localStorage.setItem('kinetic_tour', step); };
   const endTour = () => { setTutorialStep(-1); localStorage.setItem('kinetic_tour', -1); };
@@ -847,6 +859,7 @@ return t;
                 <button onClick={() => setGuideModalOpen(true)} style={{ flex: 1, padding: '4px 10px', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#374151', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'background-color 0.2s', whiteSpace: 'nowrap' }}>
                    GUIDE
                 </button>
+                
                 <div style={{ width: '1px', backgroundColor: '#e5e7eb', margin: '2px 0' }}></div>
                 
   <div style={{ position: 'relative', display: 'flex', flex: 1 }}>
@@ -1274,6 +1287,18 @@ return t;
       ) : activeView === 'MAINTENANCE' ? (
         /* MAINTENANCE HUB VIEW */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {!dismissedTips['PM_HUB'] && (
+      <div className="animate-in" style={{ backgroundColor: '#0052cc', color: '#fff', padding: '16px 20px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 8px 24px rgba(0,82,204,0.3)', marginTop: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '24px' }}>👋</span>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: '800', marginBottom: '4px' }}>Welcome to the PM Hub!</div>
+            <div style={{ fontSize: '13px', opacity: 0.9 }}>This intelligent Kanban board organizes your fleet based on service intervals. Tools in the Triage Center need immediate attention!</div>
+          </div>
+        </div>
+        <button onClick={() => dismissTip('PM_HUB')} style={{ backgroundColor: '#ffffff', color: '#0052cc', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: '800', cursor: 'pointer', flexShrink: 0 }}>Got it!</button>
+      </div>
+    )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><div style={{ flex: 1, position: 'relative' }}><input type="text" placeholder="Search Triage & Kanban by Tool ID or Name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="custom-input" /></div></div>
           
           <div style={{ backgroundColor: 'rgba(0, 0, 0,0.05)', border: '1px solid #9ca3af', borderRadius: '16px', padding: '24px' }}>
@@ -1319,6 +1344,18 @@ return t;
         </div>
       ) : activeView === 'LEDGER' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {!dismissedTips['LEDGER'] && (
+      <div className="animate-in" style={{ backgroundColor: '#0052cc', color: '#fff', padding: '16px 20px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 8px 24px rgba(0,82,204,0.3)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '24px' }}>🛡️</span>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: '800', marginBottom: '4px' }}>Welcome to the Master Ledger!</div>
+            <div style={{ fontSize: '13px', opacity: 0.9 }}>This is the immutable, global record of every transaction across the entire company. Export logs directly to AWS SES from here.</div>
+          </div>
+        </div>
+        <button onClick={() => dismissTip('LEDGER')} style={{ backgroundColor: '#ffffff', color: '#0052cc', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: '800', cursor: 'pointer', flexShrink: 0 }}>Got it!</button>
+      </div>
+    )}
           
         
         {tools.filter(t => t.status === 'CHECKED_OUT' && t.maxCheckoutDays > 0 && t.daysOut > t.maxCheckoutDays).length > 0 && (
@@ -2173,6 +2210,18 @@ return t;
           <div className="modal-container" style={{ margin: "0 auto", maxHeight: '90vh', overflowY: 'auto',  backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', width: '500px', maxWidth: '90%', color: '#0a1b35' }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}>Notification Preferences</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#6b7280' }}>Configure how and when the system alerts you.</p>
+            {!dismissedTips['ALERTS'] && (
+          <div className="animate-in" style={{ backgroundColor: '#0052cc', color: '#fff', padding: '16px 20px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 8px 24px rgba(0,82,204,0.3)', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '24px' }}>🔔</span>
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: '800', marginBottom: '4px' }}>Configure AWS SNS Alerts!</div>
+                <div style={{ fontSize: '13px', opacity: 0.9 }}>Set up your automated digest frequency. The system will alert you to custody violations, damage flags, and low stock.</div>
+              </div>
+            </div>
+            <button onClick={() => dismissTip('ALERTS')} style={{ backgroundColor: '#ffffff', color: '#0052cc', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: '800', cursor: 'pointer', flexShrink: 0 }}>Got it!</button>
+          </div>
+        )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -2335,7 +2384,24 @@ return t;
 
             </div>
             
-            <button onClick={() => setGuideModalOpen(false)} style={{ width: '100%', padding: '14px', marginTop: '24px', borderRadius: '8px', border: 'none', backgroundColor: '#e5e7eb', color: '#ffffff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Close Guide</button>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button onClick={() => { 
+                  if(window.confirm("This will reset all onboarding tutorials and contextual tips. Continue?")) {
+                      setGuideModalOpen(false); 
+                      setTutorialStep(1); 
+                      localStorage.setItem('kinetic_tour', 1); 
+                      if (typeof setDismissedTips === 'function') {
+                          setDismissedTips({}); 
+                          localStorage.removeItem('kinetic_tips'); 
+                      }
+                  }
+              }} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: '800', fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                ↺ RESTART TUTORIALS
+              </button>
+              <button onClick={() => setGuideModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', fontWeight: '800', fontSize: '14px', cursor: 'pointer' }}>
+                CLOSE GUIDE
+              </button>
+            </div>
           </div>
         </div>
       )}
