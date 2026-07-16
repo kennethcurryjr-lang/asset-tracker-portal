@@ -1677,8 +1677,8 @@ return t;
       
       {/* EDIT ASSET MODAL */}
       {editModalOpen && editTool && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto", backgroundColor: '#ffffff', padding: "32px", borderRadius: "16px", border: "1px solid #d1d5db", width: "800px", maxWidth: "90%", color: "#0a1b35", boxSizing: "border-box" }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, overflowY: 'auto', padding: '5vh 0', display: 'block' }}>
+          <div className="modal-container" style={{ margin: "0 auto", backgroundColor: '#ffffff', padding: "32px", borderRadius: "16px", border: "1px solid #d1d5db", width: "800px", maxWidth: "90%", color: "#0a1b35", boxSizing: "border-box" }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#0a1b35', letterSpacing: '-0.02em' }}>Edit Asset: {editTool.toolId}</h2>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px', marginTop: '24px' }}>
@@ -1777,8 +1777,8 @@ return t;
   
       {/* INGEST TOOL MODAL */}
       {addModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto", backgroundColor: '#ffffff', padding: "32px", borderRadius: "16px", border: "1px solid #d1d5db", width: "800px", maxWidth: "90%", color: "#0a1b35", boxSizing: "border-box" }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, overflowY: 'auto', padding: '5vh 0', display: 'block' }}>
+          <div className="modal-container" style={{ margin: "0 auto", backgroundColor: '#ffffff', padding: "32px", borderRadius: "16px", border: "1px solid #d1d5db", width: "800px", maxWidth: "90%", color: "#0a1b35", boxSizing: "border-box" }}>
             <h2 style={{ margin: '0 0 16px 0', fontSize: '24px', fontWeight: '800', color: '#0a1b35', letterSpacing: '-0.02em' }}>INGEST NEW ASSET</h2>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
@@ -2057,7 +2057,7 @@ return t;
       
       {/* CONFIRM INGEST MODAL */}
       {confirmIngestOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 10000, overflowY: 'auto', padding: '5vh 0', display: 'block' }}>
           <div className="modal-container" style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #1f2937', width: '600px', maxWidth: '90%', color: '#0a1b35', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.2)' }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#1f2937' }}>Confirm Asset Details</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#6b7280' }}>Please review the entered information before committing to the database.</p>
@@ -2118,8 +2118,8 @@ return t;
 
       {/* BULK INGEST MODAL */}
       {bulkModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto", backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', width: '800px', maxWidth: '90%', color: '#0a1b35', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, overflowY: 'auto', padding: '5vh 0', display: 'block' }}>
+          <div className="modal-container" style={{ margin: "0 auto", backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', width: '800px', maxWidth: '90%', color: '#0a1b35', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}>Bulk Ingest Assets (CSV)</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#6b7280' }}>Upload a standard CSV file to rapidly deploy multiple tools into the matrix.</p>
             
@@ -2228,8 +2228,8 @@ return t;
   
       {/* RAPID DISPATCH MODAL */}
       {checkoutModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ margin: "0 auto", maxHeight: '90vh', overflowY: 'auto',  width: '500px', maxWidth: '90%', backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', color: '#0a1b35' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, overflowY: 'auto', padding: '5vh 0', display: 'block' }}>
+          <div className="modal-container" style={{ margin: "0 auto", width: '500px', maxWidth: '90%', backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', color: '#0a1b35' }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}>Dispatch Asset</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#6b7280' }}>Transferring custody of <strong style={{color: '#1f2937'}}>[{selectedTool?.toolId}]</strong></p>
             
@@ -2342,8 +2342,8 @@ return t;
 
       {/* ALERTS MODAL */}
       {alertsModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ margin: "0 auto", maxHeight: '90vh', overflowY: 'auto',  backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', width: '500px', maxWidth: '90%', color: '#0a1b35' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, overflowY: 'auto', padding: '5vh 0', display: 'block' }}>
+          <div className="modal-container" style={{ margin: "0 auto", backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', width: '500px', maxWidth: '90%', color: '#0a1b35' }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em' }}>Notification Preferences</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#6b7280' }}>Configure how and when the system alerts you.</p>
             {!dismissedTips['ALERTS'] && (
@@ -2418,8 +2418,8 @@ return t;
     
       {/* RETURN AUDIT MODAL */}
       {returnModalOpen && selectedTool && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ margin: "0 auto", maxHeight: '90vh', overflowY: 'auto',  backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', width: '500px', maxWidth: '90%', color: '#0a1b35' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, overflowY: 'auto', padding: '5vh 0', display: 'block' }}>
+          <div className="modal-container" style={{ margin: "0 auto", backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', width: '500px', maxWidth: '90%', color: '#0a1b35' }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#1f2937', letterSpacing: '-0.02em' }}>Audit Required</h2>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#6b7280' }}>Confirm the manifest for high-value tool <strong style={{color: '#0a1b35'}}>[{selectedTool.toolId}]</strong></p>
 
@@ -2449,8 +2449,8 @@ return t;
     
       {/* FINANCIAL MODAL */}
       {financeModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ margin: "0 auto", maxHeight: '90vh', overflowY: 'auto',  backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', width: '800px', maxWidth: '90%', color: '#0a1b35' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, overflowY: 'auto', padding: '5vh 0', display: 'block' }}>
+          <div className="modal-container" style={{ margin: "0 auto", backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', width: '800px', maxWidth: '90%', color: '#0a1b35' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <div>
                 <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.02em', color: '#0a1b35' }}>Fleet Financial Summary</h2>
@@ -2488,7 +2488,7 @@ return t;
 
       {/* OPERATIONS GUIDE MODAL */}
       {guideModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, overflowY: 'auto', padding: '5vh 0', display: 'block' }}>
           <div className="modal-container" style={{ margin: "0 auto", maxHeight: '90vh', overflowY: 'auto', backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #d1d5db', width: '600px', maxWidth: '90%', color: '#0a1b35', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <div>
