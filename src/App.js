@@ -52,6 +52,16 @@ function MapUpdater({ center }) {
 
 const customIcon = new L.Icon({ iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png", shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize: [25, 41], iconAnchor: [12, 41] });
 
+
+const forceSignOut = () => {
+  localStorage.clear();
+  sessionStorage.clear();
+  const cognitoDomain = "auth.titanassets.dev";
+  const clientId = "51fu0mfnpb0r0e319ftppvcbaf";
+  const logoutUri = window.location.hostname === 'localhost' ? 'http://localhost:3000/' : 'https://titanassets.dev/';
+  window.location.assign(`https://${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`);
+};
+
 function App() {
   const auth = useAuth();
   const [assets, setAssets] = useState([]);
@@ -60,6 +70,7 @@ function App() {
   const [maintenanceInputs, setMaintenanceInputs] = useState({});
 
   const [showGuide, setShowGuide] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -128,7 +139,7 @@ function App() {
   const [comingSoonModule, setComingSoonModule] = useState(null);
 
   // Design Tokens: High-Contrast Monochromatic System
-  const appContainerStyle = { backgroundColor: activePortal === 'tools' ? '#121212' : '#f5f5f7', color: '#1d1d1f', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: selectedDevices.length > 0 ? '140px' : '60px', fontSize: '15px', transition: 'padding-bottom 0.3s ease', overflowX: 'clip' };
+  const appContainerStyle = { backgroundColor: '#121212', color: '#ffffff', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: selectedDevices.length > 0 ? '140px' : '60px', fontSize: '15px', transition: 'padding-bottom 0.3s ease, background-color 0.5s ease-in-out', overflowX: 'clip' };
   
   const headerStyle = { 
     width: '100%',
@@ -138,22 +149,19 @@ function App() {
     borderBottom: '1px solid #2d2d2f', 
     boxShadow: 'inset 0 -1px 0 rgba(255, 255, 255, 0.02), 0 4px 30px rgba(0, 0, 0, 0.15)',
     display: 'flex', 
-    flexDirection: 'column',
-    justifyContent: 'center', 
-    alignItems: 'center', 
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', 
     gap: '12px',
-    position: 'relative',
-    overflow: 'hidden'
+    position: 'relative', overflow: 'visible'
   };
   
-  const cardStyle = { backgroundColor: '#ffffff', borderRadius: '14px', padding: '28px', border: '1px solid #d2d2d7', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)' };
-  const deviceCardStyle = { backgroundColor: '#e5e5ea', borderRadius: '14px', padding: '16px', border: '1px solid #d2d2d7', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', boxSizing: 'border-box', alignItems: 'stretch' };
-  const inputStyle = { padding: '8px 12px', borderRadius: '8px', border: '1px solid #d2d2d7', fontSize: '14px', backgroundColor: '#ffffff', color: '#1d1d1f', outline: 'none', transition: 'all 0.2s' };
-  const labelStyle = { fontSize: '11px', color: '#1d1d1f', fontWeight: '700', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' };
+  const cardStyle = { backgroundColor: '#1c1c1e', borderRadius: '14px', padding: '28px', border: '1px solid #3a3a3c', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)' };
+  const deviceCardStyle = { backgroundColor: '#2c2c2e', borderRadius: '14px', padding: '16px', border: '1px solid #3a3a3c', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', boxSizing: 'border-box', alignItems: 'stretch' };
+  const inputStyle = { padding: '8px 12px', borderRadius: '8px', border: '1px solid #3a3a3c', fontSize: '14px', backgroundColor: '#1c1c1e', color: '#ffffff', outline: 'none', transition: 'all 0.2s' };
+  const labelStyle = { fontSize: '11px', color: '#ffffff', fontWeight: '700', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' };
   
   const buttonStyle = { padding: '10px 20px', borderRadius: '20px', border: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' };
-  const primaryButtonStyle = { ...buttonStyle, backgroundColor: '#1d1d1f', color: '#ffffff' };
-  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: 'transparent', color: '#1d1d1f', border: '1px solid #1d1d1f' };
+  const primaryButtonStyle = { ...buttonStyle, backgroundcolor: '#ffffff', color: '#ffffff' };
+  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: 'transparent', color: '#ffffff', border: '1px solid #ffffff' };
 
   const stickySearchCardStyle = {
     ...cardStyle,
@@ -779,24 +787,16 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
   };
 
-  const handleSignOut = async () => {
-    // 1. Lock the gatekeeper so it doesn't instantly pull us back in
-    localStorage.setItem('isSigningOut', 'true');
-    
-    // 2. Remove the user profile locally
-    await auth.removeUser();
-    
-    // 3. Clean up leftover data (except our lock)
+  const handleSignOut = () => {
+    // 1. Clear local session data synchronously (NO awaits!)
+    localStorage.clear();
     sessionStorage.clear();
-    Object.keys(localStorage).forEach(key => {
-      if (key !== 'isSigningOut') localStorage.removeItem(key);
-    });
     
-    // 4. Send them to Cognito to kill the session cookie
+    // 2. Immediately force the browser to the Cognito logout URL before React can re-render
     const cognitoDomain = "auth.titanassets.dev";
     const clientId = "51fu0mfnpb0r0e319ftppvcbaf";
-    const logoutUri = window.location.hostname === 'localhost' ? 'http://localhost:3000/' : 'https://titanassets.dev/';
-    window.location.href = `https://${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    const logoutUri = window.location.origin;
+    window.location.assign(`https://${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`);
   };
 
   const getTimelineMarkerColor = (text = "") => {
@@ -825,7 +825,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     fontSize: '12px',
     fontWeight: '600',
     cursor: 'pointer',
-    border: '1px solid #1d1d1f',
+    border: '1px solid #ffffff',
     backgroundColor: isActive ? '#1d1d1f' : 'transparent',
     color: isActive ? '#ffffff' : '#1d1d1f',
     transition: 'all 0.1s ease',
@@ -833,12 +833,12 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
   });
 
   if (isSharePage) {
-    if (isShareLoading) return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f'}}>Establishing secure map tracking vector...</div>;
+    if (isShareLoading) return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#121212', color: '#ffffff'}}>Establishing secure map tracking vector...</div>;
     if (shareError) {
       return (
-        <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', gap: '16px', padding: '0 24px', textAlign: 'center'}}>
+        <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#121212', color: '#ffffff', gap: '16px', padding: '0 24px', textAlign: 'center'}}>
           <div style={{fontSize: '24px', fontWeight: '600', letterSpacing: '-0.02em', color: '#ff3b30'}}>Authorization Link Revoked</div>
-          <div style={{fontSize: '15px', color: '#86868b', maxWidth: '480px', lineHeight: '1.6', backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #d2d2d7'}}>{shareError}</div>
+          <div style={{fontSize: '15px', color: '#86868b', maxWidth: '480px', lineHeight: '1.6', backgroundColor: '#1c1c1e', padding: '20px', borderRadius: '12px', border: '1px solid #3a3a3c'}}>{shareError}</div>
         </div>
       );
     }
@@ -854,9 +854,9 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             <h2 style={{ margin: '0 0 4px 0', fontSize: '26px', fontWeight: '600', letterSpacing: '-0.02em' }}>
               {sharedAsset.tag ? `${sharedAsset.tag} — ${sharedAsset.deviceId}` : sharedAsset.deviceId}
             </h2>
-            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Last telemetry lock recorded: <span style={{ color: '#1d1d1f', fontWeight: '500' }}>{new Date(sharedAsset.timestamp).toLocaleString()}</span></p>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Last telemetry lock recorded: <span style={{ color: '#ffffff', fontWeight: '500' }}>{new Date(sharedAsset.timestamp).toLocaleString()}</span></p>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', backgroundColor: '#f5f5f7', padding: '20px', borderRadius: '10px', border: '1px solid #d2d2d7', marginBottom: '28px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', backgroundColor: '#121212', padding: '20px', borderRadius: '10px', border: '1px solid #3a3a3c', marginBottom: '28px' }}>
               <div>
                 <div style={labelStyle}>Coordinates Vector</div>
                 <div style={{ fontSize: '16px', fontWeight: '600' }}>{sharedAsset?.latitude?.toFixed(5)}, {sharedAsset?.longitude?.toFixed(5)}</div>
@@ -893,35 +893,35 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
   if (auth.error && !window.location.search.includes('code=')) {
     return (
-      <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', gap: '24px', padding: '0 24px', textAlign: 'center'}}>
+      <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#121212', color: '#ffffff', gap: '24px', padding: '0 24px', textAlign: 'center'}}>
         <div style={{fontSize: '24px', fontWeight: '600', letterSpacing: '-0.02em'}}>System Connection Mismatch</div>
-        <div style={{fontSize: '15px', color: '#86868b', maxWidth: '540px', lineHeight: '1.6', backgroundColor: '#ffffff', padding: '24px', borderRadius: '18px', border: '1px solid #d2d2d7'}}>{auth.error.message}</div>
+        <div style={{fontSize: '15px', color: '#86868b', maxWidth: '540px', lineHeight: '1.6', backgroundColor: '#1c1c1e', padding: '24px', borderRadius: '18px', border: '1px solid #3a3a3c'}}>{auth.error.message}</div>
         <button onClick={() => { localStorage.clear(); sessionStorage.clear(); window.location.href = window.location.origin; }} style={primaryButtonStyle}>Reset Environment</button>
       </div>
     );
   }
 
   if (auth.isLoading || auth.activeNavigator) {
-    return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', paddingLeft: '40px'}}>Loading dashboard systems...</div>;
+    return <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#121212', color: '#ffffff', paddingLeft: '40px'}}>Loading dashboard systems...</div>;
   }
 
   if (!auth.isAuthenticated) {
     const isSigningOut = localStorage.getItem('isSigningOut') === 'true';
     return (
-      <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f'}}>
+      <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#121212', color: '#ffffff'}}>
         {isSigningOut ? (
-          <div className="animate-in" style={{ textAlign: 'center', backgroundColor: '#ffffff', padding: '40px', borderRadius: '16px', border: '1px solid #d2d2d7', boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }}>
+          <div className="animate-in" style={{ textAlign: 'center', backgroundColor: '#1c1c1e', padding: '40px', borderRadius: '16px', border: '1px solid #3a3a3c', boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }}>
             <h2 style={{ margin: '0 0 16px 0', fontSize: '24px', fontWeight: '700' }}>Signed Out Safely</h2>
             <p style={{ color: '#86868b', marginBottom: '24px' }}>Your session has been securely terminated.</p>
             <button 
               onClick={() => { localStorage.removeItem('isSigningOut'); auth.signinRedirect(); }} 
-              style={{ padding: '12px 24px', borderRadius: '24px', border: 'none', backgroundColor: '#1d1d1f', color: '#ffffff', fontSize: '15px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
+              style={{ padding: '12px 24px', borderRadius: '24px', border: 'none', backgroundcolor: '#ffffff', color: '#ffffff', fontSize: '15px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
             >
               Sign In Again
             </button>
           </div>
         ) : (
-          <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#f5f5f7', color: '#1d1d1f', paddingLeft: '40px'}}>Redirecting to secure gateway...</div>
+          <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', fontFamily: '"SF Pro Text", sans-serif', backgroundColor: '#121212', color: '#ffffff', paddingLeft: '40px'}}>Redirecting to secure gateway...</div>
         )}
       </div>
     );
@@ -929,13 +929,14 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
   return (
     <div style={appContainerStyle}>
+      <style>{`:root { overflow-y: scroll !important; scrollbar-gutter: stable; }`}</style>
       <style>{`
         .custom-scrollbar-viewport::-webkit-scrollbar {
           width: 6px !important;
           height: 6px !important;
         }
         .custom-scrollbar-viewport::-webkit-scrollbar-track {
-          background: #e5e5ea !important;
+          background: #2c2c2e !important;
           border-radius: 4px !important;
         }
         .custom-scrollbar-viewport::-webkit-scrollbar-thumb {
@@ -951,14 +952,15 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           left: -100vw;
           right: -100vw;
           height: 12px;
-          background-color: #f5f5f7;
+          background-color: #121212;
           z-index: -1;
           pointer-events: none;
         }
         .custom-scrollbar-viewport {
           scrollbar-width: thin !important;
-          scrollbar-color: #86868b #e5e5ea !important;
+          scrollbar-color: #86868b #2c2c2e !important;
         }
+        @keyframes portalFade { 0% { opacity: 0; transform: translateY(12px) scale(0.995); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes radar-pulse-glow {
           0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); }
           70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); }
@@ -1099,40 +1101,81 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         margin: '0 auto',
         padding: '12px 12px 0 12px',
         boxSizing: 'border-box',
-        backgroundColor: activePortal === "inventory" ? '#1c1c1e' : 'transparent',
+        backgroundColor: 'transparent',
         display: 'flex', 
         flexDirection: 'column'
       }}>
         <header style={{ 
           ...headerStyle, 
-          borderBottomLeftRadius: activePortal === "inventory" ? '0px' : '14px',
-          borderBottomRightRadius: activePortal === "inventory" ? '0px' : '14px',
-          borderBottom: activePortal === "inventory" ? 'none' : '1px solid #2d2d2f',
-          boxShadow: activePortal === "inventory" ? 'none' : headerStyle.boxShadow,
+          borderBottomLeftRadius: '14px',
+          borderBottomRightRadius: '14px',
+          borderBottom: '1px solid #2d2d2f',
+          boxShadow: headerStyle.boxShadow,
           marginBottom: 0
         }}>
-          {activePortal !== "tools" && <img src="/CSGroup_Logo_Main_White.webp" alt="Client Logo" style={{ height: '70px', objectFit: 'contain', maxWidth: '100%' }} />}
+          <div style={{ position: 'relative', height: '60px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flex: 1 }}>
+          <img src="/CSGroup_Logo_Main_White.webp" alt="CS Group" style={{ position: 'absolute', height: '70px', objectFit: 'contain', transition: 'opacity 0.4s ease', opacity: activePortal === 'tools' ? 0 : 1, pointerEvents: activePortal === 'tools' ? 'none' : 'auto' }} />
           
-          <div style={{ color: '#ffffff', fontSize: '15px', fontWeight: '500', letterSpacing: '-0.02em', textAlign: 'center' }}>
-              {auth.user?.profile.email} 
-              {isAdmin && <span style={{ color: '#86868b', fontSize: '12px', fontWeight: '400', marginLeft: '6px' }}>/ ADMIN</span>}
+          <div style={{ position: 'absolute', transition: 'all 0.4s ease', opacity: activePortal === 'tools' ? 1 : 0, transform: activePortal === 'tools' ? 'scale(1)' : 'scale(0.95)', pointerEvents: activePortal === 'tools' ? 'auto' : 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', userSelect: 'none' }}>
+            
+            {/* Native SVG Negative Space Cards */}
+            <svg width="86" height="72" viewBox="0 0 100 85" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.5))' }}>
+              {/* Back Card (Dark Navy) */}
+              <path d="M50 5 L95 25 L50 45 L5 25 Z" fill="#0052cc" />
+              {/* Front Card (Electric Blue) */}
+              <path d="M50 25 L95 45 L50 65 L5 45 Z" fill="#007aff" />
+              {/* Negative Space Arrow (Bright White) */}
+              <path d="M35 25 L60 25 L60 15 L85 35 L60 55 L60 45 L35 45 Z" fill="#ffffff" />
+            </svg>
+            
+            {/* Native Typography */}
+            <div style={{ display: 'flex', gap: '6px', marginTop: '4px', fontFamily: '"SF Pro Display", -apple-system, sans-serif', fontWeight: '900', fontSize: '24px', letterSpacing: '0.5px', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.5))' }}>
+              <style>{`@keyframes kineticShimmer { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }`}</style><span style={{ background: 'linear-gradient(90deg, #ffffff 0%, #ffffff 40%, #4da3ff 50%, #ffffff 60%, #ffffff 100%)', backgroundSize: '200% auto', color: 'transparent', WebkitBackgroundClip: 'text', backgroundClip: 'text', animation: 'kineticShimmer 8s linear infinite', display: 'inline-block' }}>KINETIC</span>
+              <span style={{ color: '#ffcc00' }}>CARDS<span style={{ fontSize: '13px', verticalAlign: 'super', marginLeft: '2px' }}>™</span></span>
+            </div>
+            
           </div>
+        </div>
           
-          <button onClick={handleSignOut} style={{ backgroundColor: '#ffffff', color: '#000000', border: 'none', padding: '6px 18px', fontSize: '12px', borderRadius: '14px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', marginTop: '4px' }}>
-            Sign Out
+          <div style={{ position: 'relative' }}>
+          <button 
+            onClick={() => setShowUserMenu(!showUserMenu)} 
+            style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'transparent', border: '1px solid transparent', cursor: 'pointer', padding: '6px 12px', borderRadius: '12px', transition: 'all 0.2s' }} 
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#1c1c1e'; e.currentTarget.style.borderColor = '#3a3a3c'; }} 
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
+          >
+            <div style={{ color: '#ffffff', fontSize: '14px', fontWeight: '500', letterSpacing: '-0.01em', textAlign: 'right' }}>
+              {auth.user?.profile.email}
+              {isAdmin && <span style={{ color: '#86868b', fontSize: '10px', fontWeight: '700', marginLeft: '8px', border: '1px solid #3a3a3c', padding: '2px 6px', borderRadius: '6px', backgroundColor: '#121212', verticalAlign: 'middle' }}>ADMIN</span>}
+            </div>
+            <span style={{ color: '#86868b', fontSize: '10px', transform: showUserMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}>▼</span>
           </button>
+          
+          {showUserMenu && (
+            <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '8px', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', borderRadius: '12px', padding: '6px', boxShadow: '0 14px 40px rgba(0,0,0,0.6)', zIndex: 100, minWidth: '180px' }}>
+              <button 
+                onClick={forceSignOut} 
+                style={{ backgroundColor: 'transparent', color: '#ff3b30', border: 'none', padding: '10px 12px', fontSize: '13px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px', transition: 'background-color 0.2s' }} 
+                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 59, 48, 0.1)'} 
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+              >
+                <span style={{ fontSize: '16px' }}>⎋</span> Sign Out
+              </button>
+            </div>
+          )}
+        </div>
         </header>
 
         {isSuperAdmin && (
           <div style={{ 
             display: "flex", 
             justifyContent: "center", 
-            padding: activePortal === "inventory" ? "0px 12px 24px 12px" : "16px 12px 0 12px",
-            borderBottom: activePortal === "inventory" ? "1px solid #3a3a3c" : "none"
+            padding: "16px 12px 0 12px",
+            borderBottom: "none"
           }}>
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px", backgroundColor: "#2c2c2e", borderRadius: "12px", padding: "4px", boxShadow: "0 4px 14px rgba(0,0,0,0.4)", maxWidth: "100%" }}>
-              <button onClick={() => setActivePortal("tools")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "tools" ? "#ffcc00" : "transparent", color: activePortal === "tools" ? "#1d1d1f" : "#8e8e93", transition: "all 0.2s", whiteSpace: "nowrap" }}>Kinetic Assets</button>
-              <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#007aff" : "transparent", color: activePortal === "gps" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", whiteSpace: "nowrap" }}>Kinetic Tracking</button>
+              <button onClick={() => setActivePortal("tools")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "tools" ? "#007aff" : "transparent", color: activePortal === "tools" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", whiteSpace: "nowrap" }}>Kinetic Assets</button>
+              <button onClick={() => setActivePortal("gps")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "gps" ? "#ffcc00" : "transparent", color: activePortal === "gps" ? "#121212" : "#8e8e93", transition: "all 0.2s", whiteSpace: "nowrap" }}>Kinetic Tracking</button>
               <button onClick={() => setActivePortal("inventory")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: activePortal === "inventory" ? "#34c759" : "transparent", color: activePortal === "inventory" ? "#ffffff" : "#8e8e93", transition: "all 0.2s", whiteSpace: "nowrap" }}>Kinetic Inventory</button>
               <button onClick={() => setComingSoonModule("Kinetic Deployments")} style={{ padding: "8px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: "600", backgroundColor: "transparent", color: "#636366", transition: "all 0.2s", whiteSpace: "nowrap" }}>Kinetic Deployments</button>
             </div>
@@ -1142,6 +1185,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       {/* --------------------------------------------------------- */}
 
 {/* 🔀 THE ROUTING INTERSECTION */}
+      <div key={activePortal} style={{ animation: 'portalFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards', width: '100%' }}>
       {activePortal === "inventory" ? (
         <Inventory user={auth.user} />
       ) : activePortal === "tools" ? (
@@ -1198,7 +1242,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             flexDirection: 'column',
             gap: '12px',
             marginTop: '12px',
-            borderTop: '1px solid #e5e5ea',
+            borderTop: '1px solid #2c2c2e',
             paddingTop: '12px'
           }}>
             {/* Row A: Hardware Core Alerts */}
@@ -1235,11 +1279,11 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             </div>
           </div>
           
-          <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '16px', borderTop: '1px solid #e5e5ea', paddingTop: '10px' }}>
+          <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '16px', borderTop: '1px solid #2c2c2e', paddingTop: '10px' }}>
              <div style={{ marginRight: 'auto', display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px', fontWeight: '500', color: '#86868b', alignItems: 'center' }}>
                 
                 {/* Master Selective Toggle Checkbox Interface Vector */}
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1d1d1f', cursor: 'pointer', fontWeight: '600', userSelect: 'none' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff', cursor: 'pointer', fontWeight: '600', userSelect: 'none' }}>
                   <input 
                     type="checkbox" 
                     checked={filteredAssets.length > 0 && filteredAssets.every(a => selectedDevices.includes(a.deviceId))} 
@@ -1252,13 +1296,13 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         setSelectedDevices(prev => Array.from(new Set([...prev, ...visibleIds])));
                       }
                     }}
-                    style={{ width: '15px', height: '15px', accentColor: '#1d1d1f', cursor: 'pointer' }} 
+                    style={{ width: '15px', height: '15px', accentcolor: '#ffffff', cursor: 'pointer' }} 
                   />
                   Select All Visible ({filteredAssets.length})
                 </label>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: alertCount > 0 ? '#ff3b30' : '#d2d2d7' }}></div> 
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: alertCount > 0 ? '#ff3b30' : '#3a3a3c' }}></div> 
                   {alertCount} Alert
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1283,7 +1327,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
               return (
                 <div key={item.deviceId.slice(-5)} className="card-perspective-wrapper">
                   <div className={`card-flipper ${isFlipped ? 'flipped' : ''}`}>
-                    <div className="card-face card-front" style={{ ...deviceCardStyle, backgroundColor: '#ffffff' }}>
+                    <div className="card-face card-front" style={{ ...deviceCardStyle, backgroundColor: '#1c1c1e' }}>
                   
                   {/* Split Responsive Core Row */}
                   <div className="card-split-columns-view">
@@ -1291,8 +1335,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                     {/* Left Hand Data Block */}
                     <div className="card-column-left-telemetry">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <input type="checkbox" checked={selectedDevices.includes(item.deviceId.slice(-5))} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId.slice(-5)) ? prev.filter(i => i !== item.deviceId.slice(-5)) : [...prev, item.deviceId.slice(-5)])} style={{ width: '16px', height: '16px', accentColor: '#1d1d1f', cursor: 'pointer' }} />
-                        <div style={{ fontSize: '15px', fontWeight: '600', color: '#1d1d1f', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>
+                        <input type="checkbox" checked={selectedDevices.includes(item.deviceId.slice(-5))} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId.slice(-5)) ? prev.filter(i => i !== item.deviceId.slice(-5)) : [...prev, item.deviceId.slice(-5)])} style={{ width: '16px', height: '16px', accentcolor: '#ffffff', cursor: 'pointer' }} />
+                        <div style={{ fontSize: '15px', fontWeight: '600', color: '#ffffff', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>
                             {item.tag ? item.tag : 'UNNAMED'}
                         </div>
                       </div>
@@ -1306,7 +1350,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                       </div>
 
                       <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.4' }}>
-                        <div style={{ fontWeight: '500', color: '#1d1d1f' }}>{item.city || "Locating"}</div>
+                        <div style={{ fontWeight: '500', color: '#ffffff' }}>{item.city || "Locating"}</div>
                         <div style={{ fontSize: '10px', color: '#86868b', marginTop: '2px' }}>Last seen: {item.lastSeen}</div>
                         <div style={{ fontSize: '11px' }}>ID: {item.deviceId.slice(-5)}</div>
                         {item.group && <div style={{ fontSize: '11px', fontStyle: 'italic' }}>{item.group}</div>}
@@ -1319,12 +1363,12 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                       </div>
 
                       {/* Micro Battery Spark Gauge */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', backgroundColor: '#f5f5f7', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e5e5ea' }}>
-                        <div style={{ width: '40px', height: '4px', backgroundColor: '#e5e5ea', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', backgroundColor: '#121212', padding: '4px 8px', borderRadius: '6px', border: '1px solid #2c2c2e' }}>
+                        <div style={{ width: '40px', height: '4px', backgroundColor: '#2c2c2e', borderRadius: '2px', overflow: 'hidden' }}>
                           <div style={{ width: `${batteryLevel}%`, height: '100%', backgroundColor: sparkColor }} />
                         </div>
                         <span style={{ fontSize: '11px', fontWeight: '700', color: sparkColor }}>{batteryLevel}%</span>
-                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#86868b', borderLeft: '1px solid #d2d2d7', paddingLeft: '8px', marginLeft: '2px' }}>{item.estTimeRemaining}</span>
+                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#86868b', borderLeft: '1px solid #3a3a3c', paddingLeft: '8px', marginLeft: '2px' }}>{item.estTimeRemaining}</span>
                       </div>
                     </div>
                     
@@ -1337,9 +1381,9 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         height: '100px', 
                         borderRadius: '8px', 
                         overflow: 'hidden', 
-                        border: '1px solid #d2d2d7', 
+                        border: '1px solid #3a3a3c', 
                         cursor: 'pointer',
-                        backgroundColor: '#f5f5f7'
+                        backgroundColor: '#121212'
                       }}
                     >
                       <iframe loading="lazy" title="map-thumb" frameBorder="0" scrolling="no" src={item.latitude && !isNaN(Number(item.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(item.longitude)-0.02}%2C${Number(item.latitude)-0.02}%2C${Number(item.longitude)+0.02}%2C${Number(item.latitude)+0.02}&layer=mapnik&marker=${Number(item.latitude)}%2C${Number(item.longitude)}` : "about:blank"} style={{ pointerEvents: "none", border: "none", position: "absolute", top: "-60px", left: "-60px", width: "calc(100% + 120px)", height: "calc(100% + 120px)" }}></iframe>
@@ -1351,16 +1395,16 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
                   {/* Crunched Operations Rows */}
                   <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                      <input placeholder="Rename Asset..." value={tagInputs[item.deviceId] || ""} onChange={(e) => setTagInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#f5f5f7' }} />
+                      <input placeholder="Rename Asset..." value={tagInputs[item.deviceId] || ""} onChange={(e) => setTagInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#121212' }} />
                       <button onClick={() => updateAttribute(item.deviceId, 'LATEST', 'tag', tagInputs[item.deviceId], '#t')} style={{ ...primaryButtonStyle, padding: '6px 12px', fontSize: '12px', borderRadius: '6px' }}>Save</button>
-                      <button className="diagnostic-flip-btn" onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ background: "#f5f5f7", border: "1px solid #d2d2d7", cursor: "pointer", fontSize: "11px", color: "#1d1d1f", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>Flip ⤹</button>
+                      <button className="diagnostic-flip-btn" onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ background: "#121212", border: "1px solid #3a3a3c", cursor: "pointer", fontSize: "11px", color: '#ffffff', padding: "6px 10px", borderRadius: "6px", fontWeight: "600", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>Flip ⤹</button>
                   </div>
 
                   <div style={{ display: 'flex', gap: '4px', width: '100%', flexWrap: 'wrap' }}>
                       {isAdmin && (item.shareToken ? <button onClick={() => revokeLiveShare(item.deviceId, item.timestamp)} style={{ ...secondaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1, borderColor: "#ff3b30", color: "#ff3b30" }}>Revoke</button> : <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1 }}>Share</button>)}
                       
                       {/* Watchdog Status Button with Conditional Radar Light */}
-        <button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode === false ? '#1d1d1f' : 'transparent', color: item.isServiceMode === false ? '#ffffff' : '#1d1d1f', border: '1px solid #1d1d1f' }}>
+        <button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode === false ? '#1d1d1f' : 'transparent', color: item.isServiceMode === false ? '#ffffff' : '#1d1d1f', border: '1px solid #ffffff' }}>
           {item.isServiceMode === false && <span className="live-pulse-indicator-dot"></span>}
           {item.isServiceMode === false ? 'Watchdog active' : 'Watchdog off'}
                       </button>
@@ -1382,10 +1426,10 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                       </button>
                   </div>
                   
-                      <div style={{ display: "flex", gap: "6px", width: "100%", marginTop: "12px", marginBottom: "8px", alignItems: "center", backgroundColor: "#f5f5f7", padding: "8px", borderRadius: "8px", border: "1px solid #e5e5ea", boxSizing: "border-box", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", gap: "6px", width: "100%", marginTop: "12px", marginBottom: "8px", alignItems: "center", backgroundColor: "#121212", padding: "8px", borderRadius: "8px", border: "1px solid #2c2c2e", boxSizing: "border-box", flexWrap: "wrap" }}>
                         {!item.maintenanceInterval ? (
                           <>
-                            <select value={maintenanceInputs[item.deviceId.slice(-5)] || "0"} onChange={(e) => setMaintenanceInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #d2d2d7", fontSize: "11px", backgroundColor: "#ffffff", color: "#1d1d1f", flex: 1, outline: "none" }}>
+                            <select value={maintenanceInputs[item.deviceId.slice(-5)] || "0"} onChange={(e) => setMaintenanceInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #3a3a3c", fontSize: "11px", backgroundColor: '#1c1c1e', color: '#ffffff', flex: 1, outline: "none" }}>
                               <option value="0">Off (Opt-Out)</option>
                               <option value="1">1 Month</option>
                               <option value="3">3 Months</option>
@@ -1393,7 +1437,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                               <option value="9">9 Months</option>
                               <option value="12">12 Months</option>
                             </select>
-                            <button onClick={() => setMaintenanceInterval(item.deviceId, 'LATEST', maintenanceInputs[item.deviceId.slice(-5)] || "0")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #1d1d1f", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#1d1d1f", color: "#ffffff" }}>Schedule Service</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId, 'LATEST', maintenanceInputs[item.deviceId.slice(-5)] || "0")} style={{ padding: "4px 10px", borderRadius: "6px", border: '1px solid #ffffff', fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundcolor: '#ffffff', color: "#ffffff" }}>Schedule Service</button>
                           </>
                         ) : (
                           <>
@@ -1408,15 +1452,15 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                       </div>
 
                   {/* Interactive Timeline Stepper for Logs */}
-                  <div className="timeline-wrapper-panel" style={{ marginTop: '10px', padding: '12px', backgroundColor: '#f5f5f7', borderRadius: '8px', border: '1px solid #d2d2d7' }}>
+                  <div className="timeline-wrapper-panel" style={{ marginTop: '10px', padding: '12px', backgroundColor: '#121212', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
                     <div className="custom-scrollbar-viewport timeline-scroll-track-box" style={{ display: 'block', height: '110px', overflowY: 'scroll', overflowX: 'clip', marginBottom: '8px', paddingRight: '2px', boxSizing: 'border-box' }}>
                       {historicalNotes.length > 0 ? (
-                        <div style={{ position: 'relative', paddingLeft: '12px', borderLeft: '2px solid #d2d2d7', marginLeft: '4px' }}>
+                        <div style={{ position: 'relative', paddingLeft: '12px', borderLeft: '2px solid #3a3a3c', marginLeft: '4px' }}>
                           {historicalNotes.map((logEntry, index) => {
                             const nodeColor = getTimelineMarkerColor(logEntry.text);
                             return (
-                              <div key={index} style={{ position: 'relative', paddingBottom: index !== historicalNotes.length - 1 ? '12px' : '2px', color: '#1d1d1f', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '4px' }}>
-                                <div style={{ position: 'absolute', left: '-19px', top: '4px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: nodeColor, border: '2px solid #f5f5f7', boxShadow: '0 0 0 1px ' + nodeColor, zIndex: 2 }}></div>
+                              <div key={index} style={{ position: 'relative', paddingBottom: index !== historicalNotes.length - 1 ? '12px' : '2px', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '4px' }}>
+                                <div style={{ position: 'absolute', left: '-19px', top: '4px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: nodeColor, border: '2px solid #121212', boxShadow: '0 0 0 1px ' + nodeColor, zIndex: 2 }}></div>
                                 <div style={{ flex: 1, minWidth: '0' }}>
                                   <div style={{ fontSize: '12px', fontWeight: '500', lineHeight: '1.3', wordBreak: 'break-word' }}>{logEntry.text}</div>
                                   <div style={{ color: '#86868b', fontSize: '10px', marginTop: '1px' }}>
@@ -1440,8 +1484,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                       )}
                     </div>
                     
-                    <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid #e5e5ea', paddingTop: '8px' }}>
-                        <input placeholder="Add note..." value={noteInputs[item.deviceId.slice(-5)] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ ...inputStyle, flex: 1, backgroundColor: '#ffffff', padding: '4px 8px', fontSize: '12px', borderRadius: '6px' }} />
+                    <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid #2c2c2e', paddingTop: '8px' }}>
+                        <input placeholder="Add note..." value={noteInputs[item.deviceId.slice(-5)] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ ...inputStyle, flex: 1, backgroundColor: '#1c1c1e', padding: '4px 8px', fontSize: '12px', borderRadius: '6px' }} />
                         <button onClick={() => addNote(item.deviceId, item.timestamp, noteInputs[item.deviceId.slice(-5)])} style={{ ...primaryButtonStyle, padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }}>Post</button>
                     </div>
                   </div>
@@ -1461,7 +1505,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         ⚠️ Factory Reset Profile
                       </button>
                     )}
-                    <div style={{ fontSize: '14px', fontWeight: '500', color: '#d2d2d7' }}>Expansion Slot Ready</div>
+                    <div style={{ fontSize: '14px', fontWeight: '500', color: '#3a3a3c' }}>Expansion Slot Ready</div>
                     <div style={{ fontSize: '12px', lineHeight: '1.5', maxWidth: '200px' }}>Reserved for real-time BSSID anchors, signal strength, and manual TCP overrides.</div>
                   </div>
                 </div>
@@ -1475,17 +1519,17 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       {/* Full-Screen High-Contrast Interactive Map Overlay Modal Window */}
       {activeMapModalAsset && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 6000, padding: '24px' }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '18px', width: '100%', maxWidth: '800px', height: '80vh', border: '1px solid #d2d2d7', boxShadow: '0 30px 70px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ padding: '20px 28px', borderBottom: '1px solid #e5e5ea', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div style={{ backgroundColor: '#1c1c1e', borderRadius: '18px', width: '100%', maxWidth: '800px', height: '80vh', border: '1px solid #3a3a3c', boxShadow: '0 30px 70px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ padding: '20px 28px', borderBottom: '1px solid #2c2c2e', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
               <div>
                 <h3 style={{ margin: '0 0 2px 0', fontSize: '18px', fontWeight: '600', letterSpacing: '-0.01em' }}>
                   {activeMapModalAsset.tag ? `${activeMapModalAsset.tag} — ${activeMapModalAsset.deviceId}` : activeMapModalAsset.deviceId}
                 </h3>
-                <p style={{ margin: 0, fontSize: '13px', color: '#86868b' }}>Live Coordinates Matrix: <span style={{ color: '#1d1d1f', fontWeight: '500' }}>{activeMapModalAsset.latitude?.toFixed(5)}, {activeMapModalAsset.longitude?.toFixed(5)}</span></p>
+                <p style={{ margin: 0, fontSize: '13px', color: '#86868b' }}>Live Coordinates Matrix: <span style={{ color: '#ffffff', fontWeight: '500' }}>{activeMapModalAsset.latitude?.toFixed(5)}, {activeMapModalAsset.longitude?.toFixed(5)}</span></p>
               </div>
               <button onClick={() => setActiveMapModalAsset(null)} style={{ ...secondaryButtonStyle, padding: '8px 18px', fontSize: '13px', borderRadius: '14px', cursor: 'pointer' }}>Close Map</button>
             </div>
-            <div style={{ flex: 1, width: '100%', backgroundColor: '#f5f5f7', position: 'relative' }}>
+            <div style={{ flex: 1, width: '100%', backgroundColor: '#121212', position: 'relative' }}>
               <iframe loading="lazy" title="map-modal" width="100%" height="100%" frameBorder="0" scrolling="no" src={activeMapModalAsset?.latitude && !isNaN(Number(activeMapModalAsset.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(activeMapModalAsset.longitude)-0.02}%2C${Number(activeMapModalAsset.latitude)-0.02}%2C${Number(activeMapModalAsset.longitude)+0.02}%2C${Number(activeMapModalAsset.latitude)+0.02}&layer=mapnik&marker=${Number(activeMapModalAsset.latitude)}%2C${Number(activeMapModalAsset.longitude)}` : "about:blank"}></iframe>
             </div>
           </div>
@@ -1495,9 +1539,9 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       {/* Monochromatic High-Contrast Apple-style Modal Overlay for Token Management */}
       {sharingAsset && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 5000 }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '32px', width: '90%', maxWidth: '440px', border: '1px solid #d2d2d7', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}>
-            <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: '600', letterSpacing: '-0.02em' }}>Escalate Live Tracking</h3>
-            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Generate a secure external reference view for Device ID: <span style={{ fontWeight: '600', color: '#1d1d1f' }}>{sharingAsset.deviceId}</span></p>
+          <div style={{ backgroundColor: '#1c1c1e', borderRadius: '16px', padding: '32px', width: '90%', maxWidth: '440px', border: '1px solid #3a3a3c', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}>
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '24px', fontWeight: '600', letterSpacing: '-0.02em' }}>Escalate Live Tracking</h3>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Generate a secure external reference view for Device ID: <span style={{ fontWeight: '600', color: '#ffffff' }}>{sharingAsset.deviceId}</span></p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -1526,23 +1570,23 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       {showGuide && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.4)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 7000, padding: "24px" }}>
-          <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", border: "1px solid #d2d2d7", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}>
+          <div style={{ backgroundColor: '#1c1c1e', borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", border: "1px solid #3a3a3c", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", letterSpacing: "-0.02em" }}>⚡ Quick Setup Guide</h3>
               <button onClick={() => setShowGuide(false)} style={{ background: "transparent", border: "none", fontSize: "20px", cursor: "pointer", color: "#86868b" }}>✕</button>
             </div>
-            <div style={{ fontSize: "14px", color: "#1d1d1f", lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "14px" }}>
+            <div style={{ fontSize: "14px", color: '#ffffff', lineHeight: "1.8", display: "flex", flexDirection: "column", gap: "14px" }}>
               <div><strong>📱 Section 1: Setting Up a Single Card</strong><br/>
             <span style={{ color: "#86868b" }}>• <strong>Step 1: Give it a Name</strong> Type a clear name into the <em>Rename Asset...</em> box on the device's card and click <strong>Save</strong>.<br/>
             • <strong>Step 2: Lock the Home Location</strong> When the Gps Device is magnetically locked into position , click <strong>Set Home</strong> to lock its home base position.<br/>
             • <strong>Step 3: Turn on the Watchdog Guard</strong> Flip the status switch to <strong>Watchdog Active</strong>. You will see a green light start pulsing to show the device is tracking and guarding that spot in real time.</span></div>
             
-            <div style={{ borderTop: "1px dashed #d2d2d7", paddingTop: "10px" }}><strong>🛡️ Section 2: Scheduling Service and Opt-Out</strong><br/>
+            <div style={{ borderTop: "1px dashed #3a3a3c", paddingTop: "10px" }}><strong>🛡️ Section 2: Scheduling Service and Opt-Out</strong><br/>
             <span style={{ color: "#86868b" }}>• <strong>Turn Off Tracking (Service/Transport Mode)</strong> If you need to move a card for a battery swap, maintenance, or shipping, click the switch to turn the <strong>Watchdog Off</strong>. This stops false alarms while it's in transit.<br/>
             • <strong>Set Up a Service Schedule</strong> Choose how often a card needs regular check-ups from the drop-down menu on the card and click <strong>Schedule Service</strong> to keep track of its upkeep timeline.<br/>
             • <strong>Choose Opt-Out to Cancel.</strong></span></div>
             
-            <div style={{ borderTop: "1px dashed #d2d2d7", paddingTop: "10px" }}><strong>Section 3: Doing Actions in Bulk (Bottom Drawer)</strong><br/>
+            <div style={{ borderTop: "1px dashed #3a3a3c", paddingTop: "10px" }}><strong>Section 3: Doing Actions in Bulk (Bottom Drawer)</strong><br/>
             <span style={{ color: "#86868b", fontStyle: "italic" }}>Note: To use these options, you must first check the selection boxes on more than one card. This will slide open the menu drawer at the bottom of your screen.</span><br/>
             <span style={{ color: "#86868b" }}>• <strong>Move Cards into Group Folders:</strong> Type a folder name into <em>Assign to Group...</em> and click <strong>Move</strong> to group your selected cards together.<br/>
             • <strong>Auto-Number a Batch of Cards:</strong> If you want to name a bunch of cards sequentially, type any name into the box (like Cosmo) and click <strong>Sequence Name</strong>. The system will automatically add a number to them (Cosmo-1, Cosmo-2, Cosmo-3, etc.).<br/>
@@ -1559,8 +1603,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: '#ffffff',
-        borderTop: '1px solid #d2d2d7',
+        backgroundColor: '#1c1c1e',
+        borderTop: '1px solid #3a3a3c',
         boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
         zIndex: 4000,
         transform: selectedDevices.length > 0 ? 'translateY(0)' : 'translateY(100%)',
@@ -1628,6 +1672,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       )}
 
       
+      </div>
+
       {/* V2.0 COMING SOON MODAL */}
       {comingSoonModule && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
@@ -1650,7 +1696,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             Kinetic Cards v2.1
         </div>
         <div>{/* Empty block forces grid to keep the center column perfectly aligned */}</div>
-        <style>{`html, body { overflow-x: clip !important; width: 100%; margin: 0; padding: 0; } #root, .App { background-color: #121212 !important; min-height: 100vh; overflow-x: clip !important; }`}</style>
+        <style>{`html, body { overflow-x: clip !important; overflow-y: scroll !important; width: 100%; margin: 0; padding: 0; } #root, .App { background-color: #121212 !important; min-height: 100vh; overflow-x: clip !important; }`}</style>
       </div>
     </div>
   );

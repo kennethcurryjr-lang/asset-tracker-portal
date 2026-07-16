@@ -129,9 +129,37 @@ const generateTools = () => {
   return generated;
 };
 
+
+// NLP Ingest Engine for Smart Manifests
+const generateSmartManifest = (id, name, category) => {
+  const lowerName = (name || '').toLowerCase();
+  const lowerCat = (category || '').toLowerCase();
+  const prefix = id ? id.split('-')[0] : '';
+
+  if (prefix === 'VEH' || prefix === 'BMW' || prefix === 'FORD' || lowerCat.includes('vehicle') || lowerName.includes('truck') || lowerName.includes('car') || lowerName.includes('m5'))
+    return ['Ignition Keys / Fob', 'Registration & Insurance', 'Clean Interior / Exterior'];
+  if (prefix === 'TECH' || lowerCat.includes('it equipment') || lowerName.includes('laptop') || lowerName.includes('camera') || lowerName.includes('switch'))
+    return ['Primary Device', 'Power / Comm Cables', 'Protective Case'];
+  if (prefix === 'SURV' || lowerName.includes('leica') || lowerName.includes('station'))
+    return ['Primary Optic Unit', 'Tripod / Mount', 'Calibration Certificate'];
+  if (prefix === 'MILW' || prefix === 'DWLT' || prefix === 'HILT' || prefix === 'MAKI' || lowerCat.includes('power tool'))
+    return ['Primary Tool Body', 'Battery / Power Unit', 'Accessories / Bits'];
+  if (id && id.startsWith('KIT'))
+    return ['Hard Hat & Safety Glasses', '25ft Tape Measure', 'Multi-tool', 'Safety Vest'];
+
+  return ['Primary Body', 'Key Component / Battery', 'Accessories']; // Fallback
+};
+
 function Tools({ user }) {
+  const getDisplayStatus = (item) => (item?.isStatic && item?.status === 'IN-STOCK') ? 'OPERATIONAL' : (item?.status || 'IN-STOCK');
+
 
   const fetchDB = async () => {
+    // 🚧 LOCALHOST BYPASS: Stop AWS from crashing the initial page load
+    if (window.location.hostname === 'localhost') {
+      console.log('🛠️ LOCAL DEV MODE: Bypassed AWS DynamoDB fetch. Starting with empty local inventory.');
+      return;
+    }
     try {
       const tenantId = user?.profile?.["custom:tenant_id"];
       let params = { TableName: "KineticToolsData" };
@@ -147,6 +175,11 @@ function Tools({ user }) {
   };
 
   const syncDB = async (item) => {
+  // 🚧 ABSOLUTE LOCALHOST OVERRIDE: Stop AWS dead in its tracks
+  if (window.location.hostname === 'localhost') {
+    console.log('🛠️ LOCAL DEV: Bypassed AWS PutCommand successfully.');
+    return true;
+  }
   try {
     await docClient.send(new PutCommand({ TableName: 'KineticToolsData', Item: item }));
     return true;
@@ -219,19 +252,22 @@ function Tools({ user }) {
   const [personnel, setPersonnel] = useState(['Chris Evans', 'David Kim', 'Elena Rodriguez', 'Ellen Ripley', 'John Wick', 'Marcus Johnson', 'Mario Diaz', 'Priya Patel', 'Sarah Connor', 'Tony Stark']);
   
   useEffect(() => {
-    // ENTERPRISE INTEGRATION POINT: 
-    // Replace this block with your AWS Amplify/Cognito fetch call when the backend is ready
-    /*
     const fetchEnterpriseRoster = async () => {
+       if (window.location.hostname === 'localhost') {
+           console.log("🛠️ LOCAL DEV MODE: Using mocked enterprise directory (Sarah Connor, Tony Stark, etc).");
+           return; // Keeps the default fictional roster in state
+       }
        try {
-           const users = await API.graphql(graphqlOperation(listUsers));
-           setPersonnel(users.data.listUsers.items.map(u => u.fullName).sort());
+           // TO DO: Import 'API' and 'graphqlOperation' from 'aws-amplify' when enabling this!
+           // const users = await API.graphql(graphqlOperation(listUsers));
+           // const fetchedNames = users.data.listUsers.items.map(u => u.fullName).sort();
+           // if (fetchedNames.length > 0) setPersonnel(fetchedNames);
+           console.log("🚀 PRODUCTION: Ready to fetch enterprise roster!");
        } catch (err) {
            console.error("Failed to fetch user directory", err);
        }
     };
     fetchEnterpriseRoster();
-    */
   }, []);
 
   const [dispatchUser, setDispatchUser] = useState("");
@@ -267,7 +303,7 @@ function Tools({ user }) {
     notifyLowStock: true
   });
   const [newTool, setNewTool] = useState({ prefix: '', name: '', value: '', category: '', location: '', serial: '', link: '', condition: 'New', pmMetric: 'Days', pmInterval: '90', maxCheckoutDays: '0', isDispatchable: true, isSpecialty: false });
-
+  
   
   React.useEffect(() => {
     if (checkoutModalOpen && userRole === 'TECH') {
@@ -342,6 +378,7 @@ function Tools({ user }) {
     alert("100 Tools successfully seeded to DynamoDB!");
   };
 
+  
   const handleAddTool = async () => {
     if (!newTool.prefix || (!newTool.name && newTool.prefix?.toUpperCase() !== 'KIT') || !newTool.value) { alert('Validation Error: Core asset details missing. Please fill out the Brand and Value.'); return; }
     
@@ -408,6 +445,37 @@ function Tools({ user }) {
     if (sigPad.current) sigPad.current.clear();
     setSelectedToolId(generatedId);
     setActiveView('DISPATCH');
+      
+    // 🤖 ASYNCHRONOUS AI WORKER (LIVE AWS BEDROCK)
+    setTimeout(async () => {
+      try {
+        console.log("🚀 Firing AI request to AWS Bedrock for " + generatedId + "...");
+        const res = await fetch("https://fbniarej2hy3gazti3l7mnnlsi0hpukv.lambda-url.us-east-2.on.aws/", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brand: newTool.prefix, model: newTool.name || 'Standard Unit' })
+        });
+        
+        const aiData = await res.json();
+        
+        setTools(currentTools => {
+          const toolToUpdate = currentTools.find(t => t.toolId === generatedId);
+          if (!toolToUpdate) return currentTools;
+          
+          const aiUpdate = {
+            ...toolToUpdate,
+            pmChecklist: aiData.pmChecklist || ['Inspect primary housing', 'Verify safety mechanisms', 'Test baseline functionality'],
+            customManifest: aiData.manifest || ['Primary Unit', 'Standard Accessories']
+          };
+          
+          syncDB(aiUpdate);
+          console.log("✅ AWS Bedrock Processing Complete for " + generatedId);
+          return currentTools.map(t => t.toolId === generatedId ? aiUpdate : t);
+        });
+      } catch(err) {
+        console.error("❌ AI Bedrock Fetch Failed:", err);
+      }
+    }, 100);
   };
 
   const handleCheckout = async () => {
@@ -791,17 +859,18 @@ return t;
 
         {/* CENTER: Main Operations */}
         <div className="responsive-header-col" style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button onClick={() => setActiveView('DISPATCH')} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'DISPATCH' ? '#0052cc' : 'transparent', color: activeView === 'DISPATCH' ? '#ffffff' : '#6b7280', boxShadow: activeView === 'DISPATCH' ? '0 4px 12px rgba(0, 0, 0, 0.25)' : 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#e5e7eb', borderRadius: '8px', padding: '4px', border: '1px solid #d1d5db' }}>
+            <button onClick={() => setActiveView('DISPATCH')} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'DISPATCH' ? '#0a1b35' : 'transparent', color: activeView === 'DISPATCH' ? '#ffffff' : '#6b7280', boxShadow: activeView === 'DISPATCH' ? '0 4px 12px rgba(0, 0, 0, 0.25)' : 'none' }}>
              ASSET HUB
           </button>
           {userRole === 'ADMIN' && (
             
   <div style={{ position: 'relative', display: 'flex' }}>
-    <button onClick={() => { setActiveView('MAINTENANCE'); if (tutorialStep === 24) nextTourStep(25); }} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'MAINTENANCE' || tutorialStep === 24 ? '#0052cc' : 'transparent', color: activeView === 'MAINTENANCE' || tutorialStep === 24 ? '#ffffff' : '#6b7280', boxShadow: tutorialStep === 24 ? '0 0 0 4px rgba(0, 82, 204, 0.4)' : (activeView === 'MAINTENANCE' ? '0 4px 12px rgba(0, 0, 0, 0.25)' : 'none') }}>
+    <button onClick={() => { setActiveView('MAINTENANCE'); if (tutorialStep === 24) nextTourStep(25); }} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'MAINTENANCE' || tutorialStep === 24 ? '#0a1b35' : 'transparent', color: activeView === 'MAINTENANCE' || tutorialStep === 24 ? '#ffffff' : '#6b7280', boxShadow: tutorialStep === 24 ? '0 0 0 4px rgba(0, 82, 204, 0.4)' : (activeView === 'MAINTENANCE' ? '0 4px 12px rgba(0, 0, 0, 0.25)' : 'none') }}>
        PM HUB
     </button>
     {tutorialStep === 24 && (
-                <div className="tour-float-y" style={{ position: 'absolute', top: '130%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center' }}>
+                <div className="tour-float-y" style={{ position: 'absolute', top: '130%', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#0052cc', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center' }}>
         <div style={{ position: 'absolute', top: '-6px', left: '50%', transform: 'translateX(-50%)', borderWidth: '0 6px 6px 6px', borderStyle: 'solid', borderColor: 'transparent transparent #0052cc transparent' }}></div>
         <div>Step 24: Track maintenance</div>
         <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); endTour(); }} style={{ cursor: 'pointer', opacity: 0.8, fontSize: '10px', textDecoration: 'underline', marginLeft: '12px' }}>Skip</div>
@@ -810,6 +879,7 @@ return t;
   </div>
 
           )}
+          </div>
           
           {userRole === 'ADMIN' && (
             <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#e5e7eb', borderRadius: '8px', padding: '4px', border: '1px solid #d1d5db', marginLeft: '8px' }}>
@@ -839,7 +909,7 @@ return t;
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', backgroundColor: '#e5e7eb', padding: '2px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
               
   <div style={{ position: 'relative', display: 'flex', width: '100%' }}>
-    <button onClick={() => { setActiveView('LEDGER'); if (tutorialStep === 25) nextTourStep(26); }} style={{ padding: '4px 14px', borderRadius: '6px', border: 'none', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'LEDGER' || tutorialStep === 25 ? '#0052cc' : 'transparent', color: activeView === 'LEDGER' || tutorialStep === 25 ? '#ffffff' : '#6b7280', boxShadow: tutorialStep === 25 ? '0 0 0 4px rgba(0, 82, 204, 0.4)' : (activeView === 'LEDGER' ? '0 4px 12px rgba(0, 0, 0, 0.25)' : 'none'), width: '100%', textAlign: 'center' }}>
+    <button onClick={() => { setActiveView('LEDGER'); if (tutorialStep === 25) nextTourStep(26); }} style={{ padding: '4px 14px', borderRadius: '6px', border: 'none', fontWeight: '800', fontSize: '10px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeView === 'LEDGER' || tutorialStep === 25 ? '#0a1b35' : 'transparent', color: activeView === 'LEDGER' || tutorialStep === 25 ? '#ffffff' : '#6b7280', boxShadow: tutorialStep === 25 ? '0 0 0 4px rgba(0, 82, 204, 0.4)' : (activeView === 'LEDGER' ? '0 4px 12px rgba(0, 0, 0, 0.25)' : 'none'), width: '100%', textAlign: 'center' }}>
        MASTER LEDGER
     </button>
     {tutorialStep === 25 && (
@@ -888,6 +958,19 @@ return t;
           {/* LEFT COLUMN: THE MATRIX */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
             
+            
+            {userRole === 'TECH' && !dismissedTips['TECH_HUB'] && (
+              <div className="animate-in" style={{ backgroundColor: '#0052cc', color: '#fff', padding: '16px 20px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 8px 24px rgba(0,82,204,0.3)', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '24px' }}>🛠️</span>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: '800', marginBottom: '4px' }}>Welcome to the Field Tech Portal!</div>
+                    <div style={{ fontSize: '13px', opacity: 0.9 }}>Use the search bar below to locate your assigned assets. Click <strong>CHECK OUT</strong> to take custody, or <strong>RETURN</strong> to clear a tool from your liability.</div>
+                  </div>
+                </div>
+                <button onClick={() => dismissTip('TECH_HUB')} style={{ backgroundColor: '#ffffff', color: '#0052cc', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: '800', cursor: 'pointer', flexShrink: 0 }}>Got it!</button>
+              </div>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ flex: 1, position: 'relative' }}>
                     <input type="text" placeholder="Search by Asset ID, Name, or Assigned Tech..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="custom-input" />
@@ -926,7 +1009,7 @@ return t;
                         <div className="card-face card-front" style={{ padding: '16px', border: cardBorder, boxShadow: cardShadow, display: 'flex', flexDirection: 'column', gap: '12px', cursor: 'pointer', backgroundColor: cardBg }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '4px', backgroundColor: isServiceDue ? 'rgba(0, 0, 0,0.15)' : (isOut ? 'rgba(0, 0, 0,0.15)' : 'rgba(0, 0, 0,0.15)'), color: isServiceDue ? '#9ca3af' : (isOut ? '#6b7280' : '#374151'), letterSpacing: '0.05em' }}>
-                            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', marginRight: '8px', backgroundColor: isServiceDue ? '#ef4444' : (isOut ? '#f59e0b' : '#10b981'), boxShadow: isServiceDue ? '0 0 8px rgba(239,68,68,0.5)' : (isOut ? '0 0 8px rgba(245,158,11,0.5)' : '0 0 8px rgba(16,185,129,0.5)'), animation: isServiceDue ? 'pulseAlert 2s infinite' : 'none' }}></span> {isServiceDue ? 'SERVICE DUE' : (isOut ? 'DEPLOYED' : 'IN-STOCK')}
+                            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', marginRight: '8px', backgroundColor: isServiceDue ? '#ef4444' : (isOut ? '#f59e0b' : '#10b981'), boxShadow: isServiceDue ? '0 0 8px rgba(239,68,68,0.5)' : (isOut ? '0 0 8px rgba(245,158,11,0.5)' : '0 0 8px rgba(16,185,129,0.5)'), animation: isServiceDue ? 'pulseAlert 2s infinite' : 'none' }}></span> {isServiceDue ? 'SERVICE DUE' : (isOut ? 'DEPLOYED' : (tool.isDispatchable === false ? 'OPERATIONAL' : 'IN-STOCK'))}
                             </span>
                             <span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600' }}>[ {tool.toolId} ]</span>
                         </div>
@@ -1021,7 +1104,9 @@ return t;
                                     const isChecked = (serviceChecklists[tool.toolId] || []).includes(step);
                                     return (
                                       <label key={step} onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isChecked ? '#374151' : '#4b5563', cursor: 'pointer', fontWeight: '600', margin: 0 }}>
-                                        <input type="checkbox" checked={isChecked} onChange={() => { setServiceChecklists(prev => { const curr = prev[tool.toolId] || []; return { ...prev, [tool.toolId]: curr.includes(step) ? curr.filter(s => s !== step) : [...curr, step] }; }); }} style={{ width: '12px', height: '12px', accentColor: '#374151', margin: 0 }} />{step} {userRole === 'ADMIN' && <span style={{ color: '#9ca3af', cursor: 'pointer', marginLeft: '8px', fontWeight: '800' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); const currentList = tool.pmChecklist || generateSmartChecklist(tool.toolId, tool.name); setTools(tools.map(t => t.toolId === selectedTool.toolId ? { ...t, pmChecklist: currentList.filter(s => s !== step) } : t));
+                                        <input type="checkbox" checked={isChecked} onChange={() => { setServiceChecklists(prev => { const curr = prev[tool.toolId] || []; return { ...prev, [tool.toolId]: curr.includes(step) ? curr.filter(s => s !== step) : [...curr, step] }; }); }} style={{ width: '12px', height: '12px', accentColor: '#374151', margin: 0 }} />{step} {userRole === 'ADMIN' && <span style={{ color: '#9ca3af', cursor: 'pointer', marginLeft: '8px', fontWeight: '800' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); const currentList = tool.pmChecklist || generateSmartChecklist(tool.toolId, tool.name); const ut = { ...tool, pmChecklist: currentList.filter(s => s !== step) };
+          setTools(tools.map(t => t.toolId === tool.toolId ? ut : t));
+          syncDB(ut);
                 }}>✕</span>}</label>
                                     );
                                   })}
@@ -1039,7 +1124,9 @@ return t;
           e.preventDefault();
           const currentList = tool.pmChecklist || generateSmartChecklist(tool.toolId, tool.name);
           const newList = [...currentList, e.target.value.trim()];
-          setTools(tools.map(t => t.toolId === selectedTool.toolId ? { ...t, pmChecklist: newList } : t));
+          const ut = { ...tool, pmChecklist: newList };
+          setTools(tools.map(t => t.toolId === tool.toolId ? ut : t));
+          syncDB(ut);
           e.target.value = '';
         }
       }} 
@@ -1060,8 +1147,41 @@ return t;
 
                             {activeTab === 'manifest' && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                {['Primary Body', 'Key Component / Battery', 'Accessories'].map((item, i) => (
-                                <label key={i} onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#4b5563', cursor: 'pointer' }}><input type="checkbox" defaultChecked style={{ width: '14px', height: '14px', accentColor: '#1f2937' }} /> {item}</label>
+                                {userRole === 'ADMIN' && (
+                                  <input 
+                                    type="text" 
+                                    placeholder="+ Add Custom Manifest Item (Press Enter)" 
+                                    style={{ padding: '8px', borderRadius: '4px', border: '1px dashed #e5e7eb', backgroundColor: 'transparent', color: '#374151', fontSize: '12px', outline: 'none', marginBottom: '8px', width: '100%', boxSizing: 'border-box' }} 
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && e.target.value.trim()) {
+                                        e.preventDefault();
+                                        const defaultMan = generateSmartManifest(tool.toolId, tool.name, tool.category);
+                                        const currentList = tool.customManifest || defaultMan;
+                                        const newList = [...currentList, e.target.value.trim()];
+                                        const ut = { ...tool, customManifest: newList };
+                                        setTools(tools.map(t => t.toolId === tool.toolId ? ut : t));
+                                        syncDB(ut);
+                                        e.target.value = '';
+                                      }
+                                    }} 
+                                  />
+                                )}
+                                {(tool.customManifest || ((tool.category === 'Fleet Vehicle' || tool.toolId.startsWith('VEH') || tool.toolId.startsWith('BMW')) ? ['Ignition Keys / Fob', 'Registration & Insurance Card', 'Clean Interior / Exterior'] : ['Primary Body', 'Key Component / Battery', 'Accessories'])).map((item, i) => (
+                                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
+                                    <label onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#4b5563', cursor: 'pointer', flex: 1, margin: 0 }}>
+                                      <input type="checkbox" defaultChecked style={{ width: '14px', height: '14px', accentColor: '#1f2937' }} /> {item}
+                                    </label>
+                                    {userRole === 'ADMIN' && (
+                                      <span style={{ color: '#9ca3af', cursor: 'pointer', marginLeft: '8px', fontWeight: '800' }} onClick={(e) => { 
+                                        e.preventDefault(); e.stopPropagation(); 
+                                        const defaultMan = generateSmartManifest(tool.toolId, tool.name, tool.category);
+                                        const currentList = tool.customManifest || defaultMan;
+                                        const ut = { ...tool, customManifest: currentList.filter(s => s !== item) };
+                                        setTools(tools.map(t => t.toolId === tool.toolId ? ut : t));
+                                        syncDB(ut);
+                                      }}>✕</span>
+                                    )}
+                                  </div>
                                 ))}
                             </div>
                             )}
@@ -1185,10 +1305,16 @@ return t;
                               </div>
                             )}
                             {log.attachment && (
-                              <div onClick={() => log.attachmentUrl && window.open(log.attachmentUrl, "_blank")} style={{ fontSize: "12px", color: log.attachmentUrl ? "#374151" : "#6b7280", marginTop: "6px", display: "flex", alignItems: "center", gap: "6px", cursor: log.attachmentUrl ? "pointer" : "default", fontWeight: "600", textDecoration: log.attachmentUrl ? "underline" : "none" }}>
-                                <span></span> {log.attachment}
-                              </div>
-                            )}
+                                  <div style={{ marginTop: '12px', marginBottom: '4px' }}>
+                                    <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em', marginBottom: '6px', textTransform: 'uppercase' }}>ATTACHED MEDIA</div>
+                                    <div onClick={() => log.attachmentUrl && window.open(log.attachmentUrl, "_blank")} style={{ display: 'inline-block', position: 'relative', cursor: log.attachmentUrl ? 'pointer' : 'default', border: '1px solid #d1d5db', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#f3f4f6', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                                      <img src={log.attachmentUrl} alt={log.attachment} style={{ display: 'block', maxHeight: '140px', maxWidth: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display='none'; }} />
+                                      <div style={{ padding: '8px 12px', fontSize: '11px', color: '#374151', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#ffffff', borderTop: '1px solid #e5e7eb' }}>
+                                        <span>📎</span> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{log.attachment}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
 
                             <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
                               <span>{log.date}</span>
@@ -1208,7 +1334,7 @@ return t;
                     <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '12px' }}>CURRENT STATUS</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: '#e5e7eb', borderRadius: '8px', border: '1px solid #d1d5db' }}>
                         <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: selectedTool.status === 'CHECKED_OUT' ? '#6b7280' : '#374151', boxShadow: `0 0 10px ${selectedTool.status === 'CHECKED_OUT' ? '#6b7280' : '#374151'}` }}></span>
-                        <span style={{ fontSize: '20px', fontWeight: '800', color: '#0a1b35', letterSpacing: '1px' }}>{selectedTool.status === 'CHECKED_OUT' ? 'DEPLOYED' : 'IN-STOCK'}</span>
+                        <span style={{ fontSize: '20px', fontWeight: '800', color: '#0a1b35', letterSpacing: '1px' }}>{selectedTool.status === 'CHECKED_OUT' ? 'DEPLOYED' : (selectedTool.isDispatchable === false ? 'OPERATIONAL' : 'IN-STOCK')}</span>
                     </div>
                     {selectedTool.status === 'CHECKED_OUT' && (
                         <div style={{ marginTop: '12px', color: '#6b7280', fontSize: '14px', lineHeight: '1.5' }}>
@@ -1293,7 +1419,7 @@ return t;
           <span style={{ fontSize: '24px' }}>👋</span>
           <div>
             <div style={{ fontSize: '14px', fontWeight: '800', marginBottom: '4px' }}>Welcome to the PM Hub!</div>
-            <div style={{ fontSize: '13px', opacity: 0.9 }}>This intelligent Kanban board organizes your fleet based on service intervals. Tools in the Triage Center need immediate attention!</div>
+            <div style={{ fontSize: '13px', opacity: 0.9 }}>This dashboard automatically tracks your fleet's upcoming service dates. Assets that appear in the grey Triage Alert Center directly below need immediate attention!</div>
           </div>
         </div>
         <button onClick={() => dismissTip('PM_HUB')} style={{ backgroundColor: '#ffffff', color: '#0052cc', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: '800', cursor: 'pointer', flexShrink: 0 }}>Got it!</button>
@@ -1462,6 +1588,13 @@ return t;
                   // We will drop your AWS API Gateway URL right here shortly
                   const API_URL = process.env.REACT_APP_API_URL;
                   
+                  // 🚧 LOCALHOST BYPASS: Prevent fetch crash if API URL is missing locally
+                  if (!API_URL || window.location.hostname === 'localhost') {
+                      console.log("🛠️ LOCAL DEV MODE: Bypassing AWS SES Export. Payload ready:", payload);
+                      alert('✅ [LOCAL BYPASS] Audit log payload generated successfully! (Check console to view data)');
+                      return;
+                  }
+
                   await fetch(API_URL, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
@@ -1542,7 +1675,7 @@ return t;
       {/* EDIT ASSET MODAL */}
       {editModalOpen && editTool && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto", backgroundColor: "#ffffff", padding: "32px", borderRadius: "16px", border: "1px solid #d1d5db", width: "800px", maxWidth: "90%", color: "#0a1b35", boxSizing: "border-box" }}>
+          <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto", backgroundColor: '#ffffff', padding: "32px", borderRadius: "16px", border: "1px solid #d1d5db", width: "800px", maxWidth: "90%", color: "#0a1b35", boxSizing: "border-box" }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '700', color: '#0a1b35', letterSpacing: '-0.02em' }}>Edit Asset: {editTool.toolId}</h2>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px', marginTop: '24px' }}>
@@ -1642,7 +1775,7 @@ return t;
       {/* INGEST TOOL MODAL */}
       {addModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto", backgroundColor: "#ffffff", padding: "32px", borderRadius: "16px", border: "1px solid #d1d5db", width: "800px", maxWidth: "90%", color: "#0a1b35", boxSizing: "border-box" }}>
+          <div className="modal-container" style={{ margin: "0 auto", maxHeight: "85vh", overflowY: "auto", backgroundColor: '#ffffff', padding: "32px", borderRadius: "16px", border: "1px solid #d1d5db", width: "800px", maxWidth: "90%", color: "#0a1b35", boxSizing: "border-box" }}>
             <h2 style={{ margin: '0 0 16px 0', fontSize: '24px', fontWeight: '800', color: '#0a1b35', letterSpacing: '-0.02em' }}>INGEST NEW ASSET</h2>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
