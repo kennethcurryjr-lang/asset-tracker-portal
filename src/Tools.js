@@ -448,35 +448,51 @@ function Tools({ user }) {
       
     // 🤖 ASYNCHRONOUS AI WORKER (LIVE AWS BEDROCK)
     setTimeout(async () => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000);
-      try {
-        console.log("🚀 Firing AI request to AWS Bedrock for " + generatedId + "...");
-        const res = await fetch("https://fbniarej2hy3gazti3l7mnnlsi0hpukv.lambda-url.us-east-2.on.aws/", {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ brand: newTool.prefix, model: newTool.name || 'Standard Unit' }),
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-        const aiData = await res.json();
-        setTools(currentTools => {
-          const toolToUpdate = currentTools.find(t => t.toolId === generatedId);
-          if (!toolToUpdate) return currentTools;
-          const aiUpdate = {
-            ...toolToUpdate,
-            pmChecklist: aiData.pmChecklist || generateSmartChecklist(generatedId, newTool.name),
-            customManifest: aiData.manifest || generateSmartManifest(generatedId, newTool.name, newTool.category)
-          };
-          syncDB(aiUpdate);
-          console.log("✅ AWS Processing Complete for " + generatedId);
-          return currentTools.map(t => t.toolId === generatedId ? aiUpdate : t);
-        });
-      } catch(err) {
-        clearTimeout(timeoutId);
-        console.error("❌ AI Fetch Failed:", err);
-        alert(`AI Generation Failed for ${generatedId}: ${err.name === 'AbortError' ? 'Request timed out after 45 seconds.' : err.message}`);
+      let success = false;
+      let attempts = 0;
+      const maxAttempts = 3;
+      while (!success && attempts < maxAttempts) {
+        attempts++;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
+        try {
+          console.log(`🚀 Firing AI request to AWS Bedrock for ${generatedId}... (Attempt ${attempts}/${maxAttempts})`);
+          const res = await fetch("https://fbniarej2hy3gazti3l7mnnlsi0hpukv.lambda-url.us-east-2.on.aws/", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ brand: newTool.prefix, model: newTool.name || 'Standard Unit' }),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+          const aiData = await res.json();
+          if (aiData.pmChecklist && aiData.pmChecklist[0] && aiData.pmChecklist[0].includes("🚨")) {
+            throw new Error("Backend API Rate Limit / Crash");
+          }
+          setTools(currentTools => {
+            const toolToUpdate = currentTools.find(t => t.toolId === generatedId);
+            if (!toolToUpdate) return currentTools;
+            const aiUpdate = {
+              ...toolToUpdate,
+              pmChecklist: aiData.pmChecklist || generateSmartChecklist(generatedId, newTool.name),
+              customManifest: aiData.manifest || generateSmartManifest(generatedId, newTool.name, newTool.category)
+            };
+            syncDB(aiUpdate);
+            console.log("✅ AWS Processing Complete for " + generatedId);
+            return currentTools.map(t => t.toolId === generatedId ? aiUpdate : t);
+          });
+          success = true;
+        } catch(err) {
+          clearTimeout(timeoutId);
+          console.error(`❌ AI Fetch Failed (Attempt ${attempts}):`, err);
+          if (attempts < maxAttempts) {
+            setTools(currentTools => currentTools.map(t => t.toolId === generatedId ? { ...t, pmChecklist: [`⏳ Rate Limit Hit. Retrying (${attempts}/${maxAttempts})...`], customManifest: ["⏳ Waiting for AI Architect..."] } : t));
+            await new Promise(resolve => setTimeout(resolve, 5000));
+          } else {
+            setTools(currentTools => currentTools.map(t => t.toolId === generatedId ? { ...t, pmChecklist: generateSmartChecklist(generatedId, newTool.name), customManifest: generateSmartManifest(generatedId, newTool.name, newTool.category) } : t));
+            alert(`AI Generation Failed for ${generatedId} after ${maxAttempts} attempts. Loaded standard fallbacks.`);
+          }
+        }
       }
     }, 100);
   };
