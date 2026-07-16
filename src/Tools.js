@@ -448,32 +448,35 @@ function Tools({ user }) {
       
     // 🤖 ASYNCHRONOUS AI WORKER (LIVE AWS BEDROCK)
     setTimeout(async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000);
       try {
         console.log("🚀 Firing AI request to AWS Bedrock for " + generatedId + "...");
         const res = await fetch("https://fbniarej2hy3gazti3l7mnnlsi0hpukv.lambda-url.us-east-2.on.aws/", {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ brand: newTool.prefix, model: newTool.name || 'Standard Unit' })
+          body: JSON.stringify({ brand: newTool.prefix, model: newTool.name || 'Standard Unit' }),
+          signal: controller.signal
         });
-        
+        clearTimeout(timeoutId);
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
         const aiData = await res.json();
-        
         setTools(currentTools => {
           const toolToUpdate = currentTools.find(t => t.toolId === generatedId);
           if (!toolToUpdate) return currentTools;
-          
           const aiUpdate = {
             ...toolToUpdate,
-            pmChecklist: aiData.pmChecklist || ['Inspect primary housing', 'Verify safety mechanisms', 'Test baseline functionality'],
-            customManifest: aiData.manifest || ['Primary Unit', 'Standard Accessories']
+            pmChecklist: aiData.pmChecklist || generateSmartChecklist(generatedId, newTool.name),
+            customManifest: aiData.manifest || generateSmartManifest(generatedId, newTool.name, newTool.category)
           };
-          
           syncDB(aiUpdate);
-          console.log("✅ AWS Bedrock Processing Complete for " + generatedId);
+          console.log("✅ AWS Processing Complete for " + generatedId);
           return currentTools.map(t => t.toolId === generatedId ? aiUpdate : t);
         });
       } catch(err) {
-        console.error("❌ AI Bedrock Fetch Failed:", err);
+        clearTimeout(timeoutId);
+        console.error("❌ AI Fetch Failed:", err);
+        alert(`AI Generation Failed for ${generatedId}: ${err.name === 'AbortError' ? 'Request timed out after 45 seconds.' : err.message}`);
       }
     }, 100);
   };
