@@ -451,6 +451,7 @@ function Tools({ user }) {
       let success = false;
       let attempts = 0;
       const maxAttempts = 3;
+      const getJitter = () => Math.floor(Math.random() * 5000);
       while (!success && attempts < maxAttempts) {
         attempts++;
         const controller = new AbortController();
@@ -487,7 +488,7 @@ function Tools({ user }) {
           console.error(`❌ AI Fetch Failed (Attempt ${attempts}):`, err);
           if (attempts < maxAttempts) {
             setTools(currentTools => currentTools.map(t => t.toolId === generatedId ? { ...t, pmChecklist: [`⏳ Rate Limit Hit. Retrying (${attempts}/${maxAttempts})...`], customManifest: ["⏳ Waiting for AI Architect..."] } : t));
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            await new Promise(resolve => setTimeout(resolve, 10000 + getJitter()));
           } else {
             setTools(currentTools => currentTools.map(t => t.toolId === generatedId ? { ...t, pmChecklist: generateSmartChecklist(generatedId, newTool.name), customManifest: generateSmartManifest(generatedId, newTool.name, newTool.category) } : t));
             alert(`AI Generation Failed for ${generatedId} after ${maxAttempts} attempts. Loaded standard fallbacks.`);
