@@ -161,7 +161,7 @@ function App() {
   
   const buttonStyle = { padding: '10px 20px', borderRadius: '20px', border: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' };
   const primaryButtonStyle = { ...buttonStyle, backgroundcolor: '#ffffff', color: '#ffffff' };
-  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: "transparent", color: "#0a1b35", fontWeight: "800", border: "1px solid #0a1b35" };
+  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #0a1b35" };
 
   const stickySearchCardStyle = {
     ...cardStyle,
