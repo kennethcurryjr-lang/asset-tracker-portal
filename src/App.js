@@ -139,7 +139,7 @@ function App() {
   const [comingSoonModule, setComingSoonModule] = useState(null);
 
   // Design Tokens: High-Contrast Monochromatic System
-  const appContainerStyle = { backgroundColor: '#121212', color: '#ffffff', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: selectedDevices.length > 0 ? '140px' : '60px', fontSize: '15px', transition: 'padding-bottom 0.3s ease, background-color 0.5s ease-in-out', overflowX: 'clip' };
+  const appContainerStyle = { backgroundColor: '#121212', color: '#ffffff', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: "80px", fontSize: '15px', transition: 'padding-bottom 0.3s ease, background-color 0.5s ease-in-out', overflowX: 'clip' };
   
   const headerStyle = { 
     width: '100%',
@@ -1401,7 +1401,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                   </div>
 
                   <div style={{ display: 'flex', gap: '4px', width: '100%', flexWrap: 'wrap' }}>
-                      {isAdmin && (item.shareToken ? <button onClick={() => revokeLiveShare(item.deviceId, item.timestamp)} style={{ ...secondaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1, borderColor: "#ff3b30", color: "#ff3b30" }}>Revoke</button> : <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1 }}>Share</button>)}
+                      {isAdmin && (item.shareToken ? <button onClick={() => revokeLiveShare(item.deviceId, item.timestamp)} style={{ ...secondaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1, borderColor: "#ff3b30", color: "#ff3b30" }}>Revoke</button> : <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1, color: "#1c1c1e", backgroundColor: "#ffffff" }}>Share</button>)}
                       
                       {/* Watchdog Status Button with Conditional Radar Light */}
         <button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode === false ? '#1d1d1f' : 'transparent', color: item.isServiceMode === false ? '#ffffff' : '#1d1d1f', border: '1px solid #ffffff' }}>
@@ -1437,7 +1437,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                               <option value="9">9 Months</option>
                               <option value="12">12 Months</option>
                             </select>
-                            <button onClick={() => setMaintenanceInterval(item.deviceId, 'LATEST', maintenanceInputs[item.deviceId.slice(-5)] || "0")} style={{ padding: "4px 10px", borderRadius: "6px", border: '1px solid #ffffff', fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundcolor: '#ffffff', color: "#ffffff" }}>Schedule Service</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId, 'LATEST', maintenanceInputs[item.deviceId.slice(-5)] || "0")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #ffffff", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#ffffff", color: "#1c1c1e" }}>Schedule Service</button>
                           </>
                         ) : (
                           <>
