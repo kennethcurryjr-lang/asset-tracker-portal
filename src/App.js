@@ -161,7 +161,7 @@ function App() {
   
   const buttonStyle = { padding: '10px 20px', borderRadius: '20px', border: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' };
   const primaryButtonStyle = { ...buttonStyle, backgroundcolor: '#ffffff', color: '#ffffff' };
-  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: "transparent", color: "#ffffff", border: "1px solid #0a1b35" };
+  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: "transparent",  border: "1px solid #0a1b35" };
 
   const stickySearchCardStyle = {
     ...cardStyle,
@@ -1345,7 +1345,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                           {item.isOffline && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#ff3b30', borderRadius: '4px' }}>Offline</span>}
                           {item.isGeofenceViolation && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#ff9500', borderRadius: '4px' }}>Geofence</span>}
                           {item.isLowBattery && <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#b7094c', borderRadius: '4px' }}>Low Batt</span>}
-                          {item.isMarineMode && <span style={{ color: "#ffffff", fontSize: "9px", fontWeight: "700", textTransform: "uppercase", padding: "2px 6px", backgroundColor: "#007aff", borderRadius: "4px" }}>⚓ Marine</span>}
+                          {item.isMarineMode && <span style={{  fontSize: "9px", fontWeight: "700", textTransform: "uppercase", padding: "2px 6px", backgroundColor: "#007aff", borderRadius: "4px" }}>⚓ Marine</span>}
 
                       </div>
 
@@ -1445,7 +1445,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                               <span style={{ width: "8px", height: "8px", backgroundColor: "#34c759", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 4px rgba(52, 199, 89, 0.6)" }}></span>
                               <span style={{ fontSize: "11px", fontWeight: "700", color: "#34c759", textTransform: "uppercase" }}>Service Scheduled</span>
                             </div>
-                            <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, "LOG_RESET")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #34c759", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#34c759", color: "#ffffff" }}>Log & Reset</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, "LOG_RESET")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #34c759", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#34c759" }}>Log & Reset</button>
                             <button onClick={() => setMaintenanceInterval(item.deviceId, item.timestamp, "OPT_OUT")} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #ff3b30", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "transparent", color: "#ff3b30" }}>Opt Out</button>
                           </>
                         )}
@@ -1679,9 +1679,9 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
             <div style={{ fontSize: "48px", lineHeight: "1", marginBottom: "-8px" }}>🚧</div>
-            <h3 style={{ margin: 0, color: "#ffffff", fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>Module Locked</h3>
+            <h3 style={{ margin: 0,  fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>Module Locked</h3>
             <p style={{ margin: 0, color: "#86868b", fontSize: "15px", lineHeight: "1.6" }}>The <strong style={{ color: "#ffffff" }}>{comingSoonModule}</strong> architecture is currently in active development. It will be released in the Version 2.0 enterprise update.</p>
-            <button onClick={() => setComingSoonModule(null)} style={{ backgroundColor: "#007aff", color: "#ffffff", border: "none", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", marginTop: "12px", width: "100%", fontSize: "15px", transition: "all 0.2s" }}>Acknowledge</button>
+            <button onClick={() => setComingSoonModule(null)} style={{ backgroundColor: "#007aff",  border: "none", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", marginTop: "12px", width: "100%", fontSize: "15px", transition: "all 0.2s" }}>Acknowledge</button>
           </div>
         </div>
       )}
