@@ -161,7 +161,7 @@ function App() {
   
   const buttonStyle = { padding: '10px 20px', borderRadius: '20px', border: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' };
   const primaryButtonStyle = { ...buttonStyle, backgroundcolor: '#ffffff', color: '#ffffff' };
-  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: 'transparent', color: '#ffffff', border: '1px solid #ffffff' };
+  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: "transparent", color: "#0a1b35", fontWeight: "800", border: "1px solid #0a1b35" };
 
   const stickySearchCardStyle = {
     ...cardStyle,
@@ -1606,7 +1606,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         backgroundColor: '#1c1c1e',
         borderTop: '1px solid #3a3a3c',
         boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
-        zIndex: 4000,
+        zIndex: 9000, minHeight: "100px",
         transform: selectedDevices.length > 0 ? 'translateY(0)' : 'translateY(100%)',
         transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         padding: '20px 40px',
