@@ -312,15 +312,23 @@ function App() {
   const fetchDevices = useCallback(async () => {
     if (!auth.isAuthenticated) return;
     setDbError(null);
+
+    // 🔑 STEP 1: Extract Client ID from user profile
+    const clientID = auth.user?.profile?.['custom:clientId'] || "CLIENT_A"; 
+
     try {
-      // 💸 THE LIFESAVER: Query ONLY the LATEST rows via the new Index, completely ignoring historical data
+      // 🚀 STEP 2: Targeted Query using the new clientId-index
       const queryResponse = await docClient.send(new QueryCommand({
         TableName: "AssetTrackerData",
-        IndexName: "timestamp-index",
-        KeyConditionExpression: "#ts = :val",
+        IndexName: "clientId-index",
+        KeyConditionExpression: "clientId = :cid AND #ts = :ts",
         ExpressionAttributeNames: { "#ts": "timestamp" },
-        ExpressionAttributeValues: { ":val": "LATEST" }
+        ExpressionAttributeValues: { 
+          ":cid": clientID,
+          ":ts": "LATEST" 
+        }
       }));
+      
       const items = queryResponse.Items || [];
 
       if (items.length === 0) {
@@ -331,7 +339,6 @@ function App() {
       const processed = await Promise.all(items.map(async (latestRow) => {
         const id = latestRow.deviceId;
         const latest = { ...latestRow };
-        
         const stateKeys = ["latitude", "longitude", "batteryLevel", "deployedAt", "homeLat", "homeLon", "isServiceMode", "isMarineMode", "maintenanceInterval", "maintenanceDueDate", "shareToken", "shareExpires", "shareEmail", "isStolenFlag", "group", "tag"];
         
         for (const k of stateKeys) {
@@ -342,12 +349,8 @@ function App() {
         
         latest.notesList = (latestRow.notesList || []).map(n => ({...n, rowTimestamp: 'LATEST'}));
         const loc = await getLocationInfo(latest.latitude, latest.longitude);
-        
-        // Breadcrumbs removed to save 99% on AWS read costs
         latest.path = []; 
-        
         const currentBattery = latest.batteryLevel !== undefined ? Number(latest.batteryLevel) : 100;
-        
         let estTimeRemaining = "18 mos";
         if (latest.deployedAt) {
             const deployDate = new Date(latest.deployedAt);
@@ -356,25 +359,24 @@ function App() {
             const monthsRemaining = Math.max(0, 18 - monthsPassed);
             estTimeRemaining = monthsRemaining === 0 ? "Replace unit" : `${monthsRemaining} mos`;
         }
-
         const lastSeen = latestRow.lastSeen 
           ? new Date(latestRow.lastSeen).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).replace(',', '') 
           : "Live";
-          
         let isGeofenceViolation = false;
         if (latest.isServiceMode === false && !latest.isMarineMode && latest.homeLat && latest.homeLon && latest.latitude && latest.longitude) {
             const distKm = getDistanceInKm(Number(latest.homeLat), Number(latest.homeLon), Number(latest.latitude), Number(latest.longitude));
             if (distKm > 0.1) isGeofenceViolation = true;
         }
-        
         const isLowBattery = currentBattery <= 20;
         const isOffline = latestRow.lastSeen ? (new Date().getTime() - new Date(latestRow.lastSeen).getTime()) > (12.5 * 60 * 60 * 1000) : false;
-          
         return { ...latest, deviceId: id, tag: latest.tag || "", city: loc.city, estTimeRemaining, lastSeen, isGeofenceViolation, isLowBattery, isOffline };
       }));
       setAssets(processed);
-    } catch (err) { setDbError(err.message); }
-  }, [auth.isAuthenticated]);
+    } catch (err) { 
+        console.error("Query Error:", err);
+        setDbError(err.message); 
+    }
+  }, [auth.isAuthenticated, auth.user]);
 
   useEffect(() => {
     if (auth.isAuthenticated) {
