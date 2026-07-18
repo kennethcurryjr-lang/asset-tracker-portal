@@ -80,7 +80,8 @@ function App() {
   const [bulkGroupInput, setBulkGroupInput] = useState("");
   const [bulkNoteInput, setBulkNoteInput] = useState("");
   const [bulkNameInput, setBulkNameInput] = useState("");
-  const [dbError, setDbError] = useState(null); 
+  const [dbError, setDbError] = useState(null);
+  const [newDeviceInput, setNewDeviceInput] = useState(""); 
   
   // Category Multi-Select Active Token States
   const [statusFilter, setStatusFilter] = useState("all"); 
@@ -385,6 +386,32 @@ function App() {
       return () => clearInterval(interval);
     }
   }, [auth.isAuthenticated, fetchDevices]);
+
+  const claimNewDevice = async () => {
+    if (!newDeviceInput.trim()) return;
+    const clientID = auth.user?.profile?.['custom:clientId'] || "CLIENT_A"; 
+    const targetDevice = newDeviceInput.trim();
+    try {
+      await docClient.send(new UpdateCommand({
+        TableName: "AssetTrackerData",
+        Key: { deviceId: targetDevice, timestamp: "LATEST" },
+        UpdateExpression: "SET clientId = :cid, tag = :tag, #grp = :grp",
+        ExpressionAttributeNames: { "#grp": "group" },
+        ExpressionAttributeValues: { 
+          ":cid": clientID,
+          ":tag": "New Unnamed Asset",
+          ":grp": "Unassigned"
+        }
+      }));
+      await addNote(targetDevice, "LATEST", `✅ Asset activated and claimed by ${auth.user?.profile?.email.split('@')[0]}`);
+      alert(`Successfully claimed device ${targetDevice}!`);
+      setNewDeviceInput("");
+      fetchDevices();
+    } catch (err) { 
+      console.error("Claim Error:", err);
+      alert("Failed to claim device. Check your connection."); 
+    }
+  };
 
   const updateAttribute = async (deviceId, timestamp, field, value, attributeAlias, skipRefresh = false) => {
     console.log("DEBUG: Updating deviceId:", deviceId);
@@ -1303,7 +1330,11 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                   {healthyCount} Stable
                 </div>
              </div>
-             {isAdmin && (<><button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>✉️ Feedback</button> <button onClick={() => alert("Español localization is currently in development.")} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>🌐 Español</button> <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button></>)}
+             {isAdmin && (<><button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>✉️ Feedback</button>  <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button></>)}
+             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+             <input placeholder="Serial No..." value={newDeviceInput} onChange={(e) => setNewDeviceInput(e.target.value)} style={{ ...inputStyle, padding: '4px 8px', fontSize: '12px', width: '110px', borderRadius: '12px', backgroundColor: '#1c1c1e' }} />
+             <button onClick={claimNewDevice} disabled={!newDeviceInput.trim()} style={{ ...primaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", opacity: newDeviceInput.trim() ? 1 : 0.4 }}>➕ Claim</button>
+           </div>
              <button onClick={() => { fetchDevices(); alert("Data successfully synced with live database."); }} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#34c759", color: "#34c759" }}>🔄 Sync Data</button>
              <button onClick={() => setShowGuide(true)} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>📖 Operations Guide</button> <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>Reset</button>
           </div>
