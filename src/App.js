@@ -929,7 +929,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
   return (
     <div style={appContainerStyle}>
-      <style>{`:root { overflow-y: scroll !important; scrollbar-gutter: stable; }`}</style>
+      <style>{`:root { overflow-y: scroll !important; scrollbar-gutter: stable; }`}button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button { color: #ffffff !important; border: 1px solid #ffffff !important; background-color: #121212 !important; }</style>
       <style>{`
         .custom-scrollbar-viewport::-webkit-scrollbar {
           width: 6px !important;
@@ -1092,7 +1092,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           .marine-home-group button { width: 100%; }
         }
 
-      `}</style>
+      `}button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button { color: #ffffff !important; border: 1px solid #ffffff !important; background-color: #121212 !important; }</style>
       
       {/* ---------------- DECOUPLED MASTER HEADER ---------------- */}
       <div style={{ 
@@ -1130,7 +1130,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             
             {/* Native Typography */}
             <div style={{ display: 'flex', gap: '6px', marginTop: '4px', fontFamily: '"SF Pro Display", -apple-system, sans-serif', fontWeight: '900', fontSize: '24px', letterSpacing: '0.5px', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.5))' }}>
-              <style>{`@keyframes kineticShimmer { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }`}</style><span style={{ background: 'linear-gradient(90deg, #ffffff 0%, #ffffff 40%, #4da3ff 50%, #ffffff 60%, #ffffff 100%)', backgroundSize: '200% auto', color: 'transparent', WebkitBackgroundClip: 'text', backgroundClip: 'text', animation: 'kineticShimmer 8s linear infinite', display: 'inline-block' }}>KINETIC</span>
+              <style>{`@keyframes kineticShimmer { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }`}button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button { color: #ffffff !important; border: 1px solid #ffffff !important; background-color: #121212 !important; }</style><span style={{ background: 'linear-gradient(90deg, #ffffff 0%, #ffffff 40%, #4da3ff 50%, #ffffff 60%, #ffffff 100%)', backgroundSize: '200% auto', color: 'transparent', WebkitBackgroundClip: 'text', backgroundClip: 'text', animation: 'kineticShimmer 8s linear infinite', display: 'inline-block' }}>KINETIC</span>
               <span style={{ color: '#ffcc00' }}>CARDS<span style={{ fontSize: '13px', verticalAlign: 'super', marginLeft: '2px' }}>™</span></span>
             </div>
             
@@ -1696,7 +1696,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             Kinetic Cards v2.1
         </div>
         <div>{/* Empty block forces grid to keep the center column perfectly aligned */}</div>
-        <style>{`html, body { overflow-x: clip !important; overflow-y: scroll !important; width: 100%; margin: 0; padding: 0; } #root, .App { background-color: #121212 !important; min-height: 100vh; overflow-x: clip !important; }`}</style>
+        <style>{`html, body { overflow-x: clip !important; overflow-y: scroll !important; width: 100%; margin: 0; padding: 0; } #root, .App { background-color: #121212 !important; min-height: 100vh; overflow-x: clip !important; }`}button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button { color: #ffffff !important; border: 1px solid #ffffff !important; background-color: #121212 !important; }</style>
       </div>
     </div>
   );
