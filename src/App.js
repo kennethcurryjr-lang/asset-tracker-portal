@@ -159,8 +159,8 @@ function App() {
   const inputStyle = { padding: '8px 12px', borderRadius: '8px', border: '1px solid #3a3a3c', fontSize: '14px', backgroundColor: '#1c1c1e', color: '#ffffff', outline: 'none', transition: 'all 0.2s' };
   const labelStyle = { fontSize: '11px', color: '#ffffff', fontWeight: '700', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' };
   
-  const buttonStyle = { padding: '10px 20px', borderRadius: '20px', border: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' };
-  const primaryButtonStyle = { ...buttonStyle, backgroundcolor: '#ffffff', color: '#ffffff' };
+  const buttonStyle = { padding: '10px 20px', borderRadius: '20px', border: '1px solid #ffffff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', backgroundColor: '#121212', color: '#ffffff' };
+  const primaryButtonStyle = { ...buttonStyle, backgroundColor: '#ffffff', color: '#121212' };
   const secondaryButtonStyle = { ...buttonStyle, backgroundColor: "transparent",  border: "1px solid #ffffff" , color: "#ffffff", border: "1px solid #ffffff" };
 
   const stickySearchCardStyle = {
