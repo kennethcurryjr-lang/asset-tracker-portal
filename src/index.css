@@ -1,57 +1,74 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+:root { overflow-y: scroll !important; scrollbar-gutter: stable; } 
+
+button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button { 
+    color: #ffffff !important; 
+    border: 1px solid #ffffff !important; 
+    background-color: #121212 !important; 
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.custom-scrollbar-viewport::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+.custom-scrollbar-viewport::-webkit-scrollbar-track {
+  background: #2c2c2e !important;
+  border-radius: 4px !important;
+}
+.custom-scrollbar-viewport::-webkit-scrollbar-thumb {
+  background: #86868b !important;
+  border-radius: 4px !important;
 }
 
-/* FIFO Badge Pulse Animation */
-@keyframes pulse-badge {
-  0% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.8); transform: scale(1); }
-  70% { box-shadow: 0 0 0 8px rgba(48, 209, 88, 0); transform: scale(1.05); }
-  100% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0); transform: scale(1); }
-}
-.fifo-flash {
-  animation: pulse-badge 1.5s infinite;
+.sticky-search-panel-container::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: -100vw;
+  right: -100vw;
+  height: 12px;
+  background-color: #121212;
+  z-index: -1;
+  pointer-events: none;
 }
 
-/* WAREHOUSE HAZARD STROBE */
-@keyframes hyper-strobe {
-  0%, 100% { 
-    background-color: #39FF14 !important; 
-    color: #000 !important; 
-    box-shadow: 0 0 15px #39FF14, 0 0 30px #39FF14 !important; 
-    transform: scale(1.15); 
-  }
-  50% { 
-    background-color: #002200 !important; 
-    color: #39FF14 !important; 
-    box-shadow: 0 0 0 transparent !important; 
-    transform: scale(0.95); 
-  }
+.custom-scrollbar-viewport {
+  scrollbar-width: thin !important;
+  scrollbar-color: #86868b #2c2c2e !important;
 }
-.fifo-flash {
-  animation: hyper-strobe 0.75s infinite cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid #39FF14;
+
+@keyframes portalFade { 0% { opacity: 0; transform: translateY(12px) scale(0.995); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes radar-pulse-glow {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
+}
+
+.live-pulse-indicator-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #34c759;
+  border-radius: 50%;
   display: inline-block;
+  animation: radar-pulse-glow 2s infinite ease-in-out;
 }
 
-/* BULLETPROOF OPACITY BLINK */
-@keyframes hard-blink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
+@keyframes emergency-battery-flash {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
 }
-.hard-flash {
-  animation: hard-blink 0.8s infinite;
-  background-color: rgba(48, 209, 88, 0.2);
-  border: 1px solid #30d158;
-  display: inline-flex;
-  align-items: center;
+
+@keyframes flip-attention-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.8); border-color: rgba(0, 122, 255, 0.8); }
+  70% { box-shadow: 0 0 0 12px rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 1); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 0.8); }
+}
+
+.diagnostic-flip-btn {
+  animation: flip-attention-pulse 2s infinite ease-in-out !important;
+  color: #007aff !important;
+}
+
+.critical-battery-pulse-animation {
+  animation: emergency-battery-flash 1.5s infinite ease-in-out;
 }

@@ -929,7 +929,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
   return (
     <div style={appContainerStyle}>
-<style>{`:root { overflow-y: scroll !important; scrollbar-gutter: stable; } button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button { color: #ffffff !important; border: 1px solid #ffffff !important; background-color: #121212 !important; }`}</style>
+      <style>{`:root { overflow-y: scroll !important; scrollbar-gutter: stable; }`}</style>
       <style>{`
         .custom-scrollbar-viewport::-webkit-scrollbar {
           width: 6px !important;
@@ -1092,7 +1092,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           .marine-home-group button { width: 100%; }
         }
 
-<style>{`:root { overflow-y: scroll !important; scrollbar-gutter: stable; } button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button { color: #ffffff !important; border: 1px solid #ffffff !important; background-color: #121212 !important; }`}</style>
+      `}</style>
       
       {/* ---------------- DECOUPLED MASTER HEADER ---------------- */}
       <div style={{ 
@@ -1130,7 +1130,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             
             {/* Native Typography */}
             <div style={{ display: 'flex', gap: '6px', marginTop: '4px', fontFamily: '"SF Pro Display", -apple-system, sans-serif', fontWeight: '900', fontSize: '24px', letterSpacing: '0.5px', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.5))' }}>
-              <style>{`@keyframes kineticShimmer { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }`}button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button { color: #ffffff !important; border: 1px solid #ffffff !important; background-color: #121212 !important; }</style><span style={{ background: 'linear-gradient(90deg, #ffffff 0%, #ffffff 40%, #4da3ff 50%, #ffffff 60%, #ffffff 100%)', backgroundSize: '200% auto', color: 'transparent', WebkitBackgroundClip: 'text', backgroundClip: 'text', animation: 'kineticShimmer 8s linear infinite', display: 'inline-block' }}>KINETIC</span>
+              <style>{`@keyframes kineticShimmer { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }`}</style><span style={{ background: 'linear-gradient(90deg, #ffffff 0%, #ffffff 40%, #4da3ff 50%, #ffffff 60%, #ffffff 100%)', backgroundSize: '200% auto', color: 'transparent', WebkitBackgroundClip: 'text', backgroundClip: 'text', animation: 'kineticShimmer 8s linear infinite', display: 'inline-block' }}>KINETIC</span>
               <span style={{ color: '#ffcc00' }}>CARDS<span style={{ fontSize: '13px', verticalAlign: 'super', marginLeft: '2px' }}>™</span></span>
             </div>
             
@@ -1229,7 +1229,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                 fontSize: '13px',
                 fontWeight: '600',
                 backgroundColor: showFilters ? '#1d1d1f' : 'transparent',
-                color: showFilters ? '#ffffff' : '#ffffff'
+                color: showFilters ? '#ffffff' : '#1d1d1f'
               }}
             >
               {showFilters ? '✕ Close Filter' : '🎛️ Select Groups'}
@@ -1387,6 +1387,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                       }}
                     >
                       <iframe loading="lazy" title="map-thumb" frameBorder="0" scrolling="no" src={item.latitude && !isNaN(Number(item.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(item.longitude)-0.02}%2C${Number(item.latitude)-0.02}%2C${Number(item.longitude)+0.02}%2C${Number(item.latitude)+0.02}&layer=mapnik&marker=${Number(item.latitude)}%2C${Number(item.longitude)}` : "about:blank"} style={{ pointerEvents: "none", border: "none", position: "absolute", top: "-60px", left: "-60px", width: "calc(100% + 120px)", height: "calc(100% + 120px)" }}></iframe>
+                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, background: 'transparent' }}></div>
                       
                     </div>
                     
@@ -1517,6 +1518,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       {/* Full-Screen High-Contrast Interactive Map Overlay Modal Window */}
       {activeMapModalAsset && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 6000, padding: '24px' }}>
           <div style={{ backgroundColor: '#1c1c1e', borderRadius: '18px', width: '100%', maxWidth: '800px', height: '80vh', border: '1px solid #3a3a3c', boxShadow: '0 30px 70px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ padding: '20px 28px', borderBottom: '1px solid #2c2c2e', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
               <div>
@@ -1536,6 +1538,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       {/* Monochromatic High-Contrast Apple-style Modal Overlay for Token Management */}
       {sharingAsset && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 5000 }}>
           <div style={{ backgroundColor: '#1c1c1e', borderRadius: '16px', padding: '32px', width: '90%', maxWidth: '440px', border: '1px solid #3a3a3c', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}>
             <h3 style={{ margin: '0 0 6px 0', fontSize: '24px', fontWeight: '600', letterSpacing: '-0.02em' }}>Escalate Live Tracking</h3>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#86868b' }}>Generate a secure external reference view for Device ID: <span style={{ fontWeight: '600', color: '#ffffff' }}>{sharingAsset.deviceId}</span></p>
@@ -1566,6 +1569,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       )}
 
       {showGuide && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.4)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 7000, padding: "24px" }}>
           <div style={{ backgroundColor: '#1c1c1e', borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", border: "1px solid #3a3a3c", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", letterSpacing: "-0.02em" }}>⚡ Quick Setup Guide</h3>
@@ -1595,6 +1599,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       {/* Sticky Sliding Bulk Actions Drawer Overlay Tray */}
       <div style={{
+        position: 'fixed',
+        bottom: 0,
         left: 0,
         right: 0,
         backgroundColor: '#1c1c1e',
@@ -1669,6 +1675,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       {/* V2.0 COMING SOON MODAL */}
       {comingSoonModule && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(15px)", WebkitBackdropFilter: "blur(15px)", zIndex: 10000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
             <div style={{ fontSize: "48px", lineHeight: "1", marginBottom: "-8px" }}>🚧</div>
             <h3 style={{ margin: 0,  fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>Module Locked</h3>
@@ -1688,7 +1695,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             Kinetic Cards v2.1
         </div>
         <div>{/* Empty block forces grid to keep the center column perfectly aligned */}</div>
-        <style>{`html, body { overflow-x: clip !important; overflow-y: scroll !important; width: 100%; margin: 0; padding: 0; } #root, .App { background-color: #121212 !important; min-height: 100vh; overflow-x: clip !important; }`}button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button { color: #ffffff !important; border: 1px solid #ffffff !important; background-color: #121212 !important; }</style>
+        <style>{`html, body { overflow-x: clip !important; overflow-y: scroll !important; width: 100%; margin: 0; padding: 0; } #root, .App { background-color: #121212 !important; min-height: 100vh; overflow-x: clip !important; }`}</style>
       </div>
     </div>
   );
