@@ -1404,7 +1404,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                       {isAdmin && (item.shareToken ? <button onClick={() => revokeLiveShare(item.deviceId, item.timestamp)} style={{ ...secondaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1, borderColor: "#ff3b30", color: "#ff3b30" }}>Revoke</button> : <button onClick={() => setSharingAsset(item)} style={{ ...primaryButtonStyle, padding: "6px 10px", fontSize: "11px", borderRadius: "8px", flex: 1, color: "#1c1c1e", backgroundColor: "#ffffff" }}>Share</button>)}
                       
                       {/* Watchdog Status Button with Conditional Radar Light */}
-        <button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode === false ? '#1d1d1f' : 'transparent', color: item.isServiceMode === false ? '#ffffff' : '#1d1d1f', border: '1px solid #ffffff' }}>
+        <button onClick={() => toggleServiceMode(item.deviceId, item.timestamp, item.isServiceMode)} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: item.isServiceMode === false ? '#1d1d1f' : 'transparent', color: '#ffffff', border: '1px solid #ffffff' }}>
           {item.isServiceMode === false && <span className="live-pulse-indicator-dot"></span>}
           {item.isServiceMode === false ? 'Watchdog active' : 'Watchdog off'}
                       </button>
@@ -1420,7 +1420,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                             setHomeLocation(item.deviceId, item.timestamp, item.latitude, item.longitude);
                           }
                         }} 
-                        style={{ ...buttonStyle, fontSize: "11px", borderRadius: "8px", flex: 1.2, padding: "6px 10px", backgroundColor: item.homeLat ? "transparent" : "#1d1d1f", color: item.homeLat ? "#1d1d1f" : "#ffffff", border: item.homeLat ? "1px solid #1d1d1f" : "none" }}
+                        style={{ ...buttonStyle, fontSize: "11px", borderRadius: "8px", flex: 1.2, padding: "6px 10px", backgroundColor: item.homeLat ? "transparent" : "#1d1d1f", color: "#ffffff", border: "1px solid #ffffff" }}
                       >
                         {item.homeLat ? "Clear Home" : "Set Home"}
                       </button>
@@ -1607,8 +1607,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         borderTop: '1px solid #3a3a3c',
         boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
         zIndex: 9000, minHeight: "100px",
-        transform: selectedDevices.length > 0 ? 'translateY(0)' : 'translateY(100%)',
-        transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        display: selectedDevices.length > 0 ? 'flex' : 'none',
         padding: '20px 40px',
         boxSizing: 'border-box'
       }}>

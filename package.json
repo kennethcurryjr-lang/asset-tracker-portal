@@ -56,6 +56,8 @@
     "@aws-amplify/backend": "^1.23.0",
     "@aws-amplify/backend-cli": "^1.8.3",
     "@aws-amplify/cli": "^14.5.0",
+    "ajv": "^6.12.6",
+    "ajv-keywords": "^3.5.2",
     "aws-cdk-lib": "^2.244.0",
     "constructs": "^10.6.0",
     "esbuild": "^0.28.1",
