@@ -1248,12 +1248,15 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                 </datalist>
             </div>
             
-            <button 
+            <div style={{ display: 'flex', gap: '8px', height: 'fit-content', alignItems: 'flex-start' }}>
+              <button 
               onClick={() => setShowFilters(!showFilters)}
               className="filter-toggle-btn"
             >
               {showFilters ? '✕ Close Filter' : '🎛️ Select Groups'}
             </button>
+              <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>Reset</button>
+            </div>
           </div>
           
           {/* Reactive Inline App Slider Tray Component */}
@@ -1330,13 +1333,14 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                   {healthyCount} Stable
                 </div>
              </div>
-             {isAdmin && (<><button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>✉️ Feedback</button>  <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button></>)}
+             
              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
              <input placeholder="Serial No..." value={newDeviceInput} onChange={(e) => setNewDeviceInput(e.target.value)} style={{ ...inputStyle, padding: '4px 8px', fontSize: '12px', width: '110px', borderRadius: '12px', backgroundColor: '#1c1c1e' }} />
              <button onClick={claimNewDevice} disabled={!newDeviceInput.trim()} style={{ ...primaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", opacity: newDeviceInput.trim() ? 1 : 0.4 }}>➕ Claim</button>
            </div>
              <button onClick={() => { fetchDevices(); alert("Data successfully synced with live database."); }} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#34c759", color: "#34c759" }}>🔄 Sync Data</button>
-             <button onClick={() => setShowGuide(true)} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>📖 Operations Guide</button> <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>Reset</button>
+             {isAdmin && (<><button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>✉️ Feedback</button>  <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button></>)}
+             <button onClick={() => setShowGuide(true)} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>📖 Operations Guide</button>
           </div>
         </div>
 
