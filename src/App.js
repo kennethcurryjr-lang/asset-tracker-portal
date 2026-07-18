@@ -827,7 +827,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     cursor: 'pointer',
     border: '1px solid #ffffff',
     backgroundColor: isActive ? '#1d1d1f' : 'transparent',
-    color: isActive ? '#ffffff' : '#1d1d1f',
+    color: '#ffffff',
     transition: 'all 0.1s ease',
     whiteSpace: 'nowrap'
   });
