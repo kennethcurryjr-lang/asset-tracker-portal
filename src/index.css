@@ -72,3 +72,13 @@ button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button {
 .critical-battery-pulse-animation {
   animation: emergency-battery-flash 1.5s infinite ease-in-out;
 }
+.filter-toggle-btn {
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  background-color: #2c2c2e !important;
+  color: #ffffff !important;
+  border: 1px solid #ffffff !important;
+}

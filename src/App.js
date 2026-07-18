@@ -1221,16 +1221,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
             
             <button 
               onClick={() => setShowFilters(!showFilters)}
-              style={{
-                ...secondaryButtonStyle,
-                alignSelf: 'flex-end',
-                padding: '8px 14px',
-                borderRadius: '8px',
-                fontSize: '13px',
-                fontWeight: '600',
-                backgroundColor: showFilters ? '#1d1d1f' : 'transparent',
-                color: showFilters ? '#ffffff' : '#1d1d1f'
-              }}
+              className="filter-toggle-btn"
             >
               {showFilters ? '✕ Close Filter' : '🎛️ Select Groups'}
             </button>
