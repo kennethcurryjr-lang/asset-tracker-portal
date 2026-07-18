@@ -929,7 +929,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
   return (
     <div style={appContainerStyle}>
-      <style>{`:root { overflow-y: scroll !important; scrollbar-gutter: stable; }`}button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button { color: #ffffff !important; border: 1px solid #ffffff !important; background-color: #121212 !important; }</style>
+<style>{`:root { overflow-y: scroll !important; scrollbar-gutter: stable; } button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button { color: #ffffff !important; border: 1px solid #ffffff !important; background-color: #121212 !important; }`}</style>
       <style>{`
         .custom-scrollbar-viewport::-webkit-scrollbar {
           width: 6px !important;
