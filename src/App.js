@@ -1234,18 +1234,13 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           <div className="search-row-input-wrapper">
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                 <div style={labelStyle}>Search Inventory</div>
-                <input 
-                  list="inventory-suggestions-list"
+                <input
                   placeholder="Filter by ID, region, folder..." 
                   value={searchTerm} 
                   onChange={(e) => setSearchTerm(e.target.value)} 
                   style={{ ...inputStyle, width: '100%', boxSizing: 'border-box' }} 
                 />
-                <datalist id="inventory-suggestions-list">
-                  {inventorySuggestions.map(suggestion => (
-                    <option key={suggestion} value={suggestion} />
-                  ))}
-                </datalist>
+                
             </div>
             
             <div style={{ display: 'flex', gap: '8px', height: 'fit-content', alignItems: 'flex-start' }}>
