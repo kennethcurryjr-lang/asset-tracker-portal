@@ -161,7 +161,7 @@ function App() {
   
   const buttonStyle = { padding: '10px 20px', borderRadius: '20px', border: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' };
   const primaryButtonStyle = { ...buttonStyle, backgroundcolor: '#ffffff', color: '#ffffff' };
-  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: "transparent",  border: "1px solid #ffffff" , color: "#ffffff" };
+  const secondaryButtonStyle = { ...buttonStyle, backgroundColor: "transparent",  border: "1px solid #ffffff" , color: "#ffffff", border: "1px solid #ffffff" };
 
   const stickySearchCardStyle = {
     ...cardStyle,
@@ -1310,9 +1310,9 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                   {healthyCount} Stable
                 </div>
              </div>
-             {isAdmin && (<><button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", borderColor: "#ffffff" }}>✉️ Feedback</button> <button onClick={() => alert("Español localization is currently in development.")} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", borderColor: "#ffffff" }}>🌐 Español</button> <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button></>)}
+             {isAdmin && (<><button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>✉️ Feedback</button> <button onClick={() => alert("Español localization is currently in development.")} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>🌐 Español</button> <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button></>)}
              <button onClick={() => { fetchDevices(); alert("Data successfully synced with live database."); }} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#34c759", color: "#34c759" }}>🔄 Sync Data</button>
-             <button onClick={() => setShowGuide(true)} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", borderColor: "#ffffff" }}>📖 Operations Guide</button> <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", borderColor: "#ffffff" }}>Reset</button>
+             <button onClick={() => setShowGuide(true)} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>📖 Operations Guide</button> <button onClick={resetAllInputs} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>Reset</button>
           </div>
         </div>
 
@@ -1396,7 +1396,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                   {/* Crunched Operations Rows */}
                   <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
                       <input placeholder="Rename Asset..." value={tagInputs[item.deviceId] || ""} onChange={(e) => setTagInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#121212' }} />
-                      <button onClick={() => updateAttribute(item.deviceId, 'LATEST', 'tag', tagInputs[item.deviceId], '#t')} style={{ ...primaryButtonStyle, padding: "6px 12px", fontSize: "12px", borderRadius: "6px", color: "#ffffff", backgroundColor: "#007aff" }}>Save</button>
+                      <button onClick={() => updateAttribute(item.deviceId, 'LATEST', 'tag', tagInputs[item.deviceId], '#t')} style={{ ...primaryButtonStyle, padding: "6px 12px", fontSize: "12px", borderRadius: "6px", color: "#ffffff", border: "1px solid #ffffff", backgroundColor: "#007aff" }}>Save</button>
                       <button className="diagnostic-flip-btn" onClick={() => setFlippedCards(prev => ({...prev, [item.deviceId]: !prev[item.deviceId]}))} style={{ background: "#121212", border: "1px solid #3a3a3c", cursor: "pointer", fontSize: "11px", color: '#ffffff', padding: "6px 10px", borderRadius: "6px", fontWeight: "600", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>Flip ⤹</button>
                   </div>
 
@@ -1680,7 +1680,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           <div style={{ width: "100%", maxWidth: "420px", backgroundColor: "#1c1c1e", padding: "32px", borderRadius: "18px", border: "1px solid #3a3a3c", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
             <div style={{ fontSize: "48px", lineHeight: "1", marginBottom: "-8px" }}>🚧</div>
             <h3 style={{ margin: 0,  fontSize: "24px", fontWeight: "600", letterSpacing: "-0.01em" }}>Module Locked</h3>
-            <p style={{ margin: 0, color: "#86868b", fontSize: "15px", lineHeight: "1.6" }}>The <strong style={{ color: "#ffffff" }}>{comingSoonModule}</strong> architecture is currently in active development. It will be released in the Version 2.0 enterprise update.</p>
+            <p style={{ margin: 0, color: "#86868b", fontSize: "15px", lineHeight: "1.6" }}>The <strong style={{ color: "#ffffff", border: "1px solid #ffffff" }}>{comingSoonModule}</strong> architecture is currently in active development. It will be released in the Version 2.0 enterprise update.</p>
             <button onClick={() => setComingSoonModule(null)} style={{ backgroundColor: "#007aff",  border: "none", padding: "14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer", marginTop: "12px", width: "100%", fontSize: "15px", transition: "all 0.2s" }}>Acknowledge</button>
           </div>
         </div>
