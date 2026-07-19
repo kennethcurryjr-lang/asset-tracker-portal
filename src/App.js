@@ -1552,25 +1552,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         </div>
       </div>
 
-      {/* Full-Screen High-Contrast Interactive Map Overlay Modal Window */}
-      {activeMapModalAsset && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 6000, padding: '24px' }}>
-          <div style={{ backgroundColor: '#1c1c1e', borderRadius: '18px', width: '100%', maxWidth: '800px', height: '80vh', border: '1px solid #3a3a3c', boxShadow: '0 30px 70px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ padding: '20px 28px', borderBottom: '1px solid #2c2c2e', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-              <div>
-                <h3 style={{ margin: '0 0 2px 0', fontSize: '18px', fontWeight: '600', letterSpacing: '-0.01em' }}>
-                  {activeMapModalAsset.tag ? `${activeMapModalAsset.tag} — ${activeMapModalAsset.deviceId}` : activeMapModalAsset.deviceId}
-                </h3>
-                <p style={{ margin: 0, fontSize: '13px', color: '#86868b' }}>Live Coordinates Matrix: <span style={{ color: '#ffffff', fontWeight: '500' }}>{activeMapModalAsset.latitude?.toFixed(5)}, {activeMapModalAsset.longitude?.toFixed(5)}</span></p>
-              </div>
-              <button onClick={() => setActiveMapModalAsset(null)} style={{ ...secondaryButtonStyle, padding: '8px 18px', fontSize: '13px', borderRadius: '14px', cursor: 'pointer' }}>Close Map</button>
-            </div>
-            <div style={{ flex: 1, width: '100%', backgroundColor: '#121212', position: 'relative' }}>
-              <iframe loading="lazy" title="map-modal" width="100%" height="100%" frameBorder="0" scrolling="no" src={activeMapModalAsset?.latitude && !isNaN(Number(activeMapModalAsset.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(activeMapModalAsset.longitude)-0.02}%2C${Number(activeMapModalAsset.latitude)-0.02}%2C${Number(activeMapModalAsset.longitude)+0.02}%2C${Number(activeMapModalAsset.latitude)+0.02}&layer=mapnik&marker=${Number(activeMapModalAsset.latitude)}%2C${Number(activeMapModalAsset.longitude)}` : "about:blank"}></iframe>
-            </div>
-          </div>
-        </div>
-      )}
+      
 
       {/* Monochromatic High-Contrast Apple-style Modal Overlay for Token Management */}
       {sharingAsset && (
@@ -1638,6 +1620,26 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
       
       </div>
+
+      {/* Full-Screen High-Contrast Interactive Map Overlay Modal Window */}
+      {activeMapModalAsset && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 6000, padding: '24px' }}>
+          <div style={{ backgroundColor: '#1c1c1e', borderRadius: '18px', width: '100%', maxWidth: '800px', height: '80vh', border: '1px solid #3a3a3c', boxShadow: '0 30px 70px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ padding: '20px 28px', borderBottom: '1px solid #2c2c2e', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+              <div>
+                <h3 style={{ margin: '0 0 2px 0', fontSize: '18px', fontWeight: '600', letterSpacing: '-0.01em' }}>
+                  {activeMapModalAsset.tag ? `${activeMapModalAsset.tag} — ${activeMapModalAsset.deviceId}` : activeMapModalAsset.deviceId}
+                </h3>
+                <p style={{ margin: 0, fontSize: '13px', color: '#86868b' }}>Live Coordinates Matrix: <span style={{ color: '#ffffff', fontWeight: '500' }}>{activeMapModalAsset.latitude?.toFixed(5)}, {activeMapModalAsset.longitude?.toFixed(5)}</span></p>
+              </div>
+              <button onClick={() => setActiveMapModalAsset(null)} style={{ ...secondaryButtonStyle, padding: '8px 18px', fontSize: '13px', borderRadius: '14px', cursor: 'pointer' }}>Close Map</button>
+            </div>
+            <div style={{ flex: 1, width: '100%', backgroundColor: '#121212', position: 'relative' }}>
+              <iframe loading="lazy" title="map-modal" width="100%" height="100%" frameBorder="0" scrolling="no" src={activeMapModalAsset?.latitude && !isNaN(Number(activeMapModalAsset.latitude)) ? `https://www.openstreetmap.org/export/embed.html?bbox=${Number(activeMapModalAsset.longitude)-0.02}%2C${Number(activeMapModalAsset.latitude)-0.02}%2C${Number(activeMapModalAsset.longitude)+0.02}%2C${Number(activeMapModalAsset.latitude)+0.02}&layer=mapnik&marker=${Number(activeMapModalAsset.latitude)}%2C${Number(activeMapModalAsset.longitude)}` : "about:blank"}></iframe>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* V2.0 COMING SOON MODAL */}
       {comingSoonModule && (
