@@ -389,7 +389,7 @@ function App() {
     }
   }, [auth.isAuthenticated, fetchDevices]);
 
-      const claimNewDevice = async () => {
+  const claimNewDevice = async () => {
     if (!newDeviceInput.trim()) return;
     const targetDevice = newDeviceInput.trim();
     const clientID = auth.user?.profile?.['custom:clientId'] || "CLIENT_A"; 
@@ -424,7 +424,6 @@ function App() {
       console.error("Claim Error:", err);
       alert("Failed to claim device. Check your connection."); 
     }
-  };
   };
 
   const updateAttribute = async (deviceId, timestamp, field, value, attributeAlias, skipRefresh = false) => {
