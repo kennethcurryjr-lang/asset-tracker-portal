@@ -84,6 +84,42 @@ function App() {
   const [bulkNameInput, setBulkNameInput] = useState("");
   const [dbError, setDbError] = useState(null);
   const [newDeviceInput, setNewDeviceInput] = useState(""); 
+  const [isScanning, setIsScanning] = useState(false);
+  const [scannerInstance, setScannerInstance] = useState(null);
+
+  const toggleMobileScanner = async () => {
+    if (isScanning) {
+      if (scannerInstance) {
+        await scannerInstance.stop();
+        scannerInstance.clear();
+      }
+      setIsScanning(false);
+      setScannerInstance(null);
+    } else {
+      setIsScanning(true);
+      setTimeout(() => {
+        const Html5Qrcode = require("html5-qrcode").Html5Qrcode;
+        const qrScanner = new Html5Qrcode("mobile-claim-scanner-viewport");
+        qrScanner.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+            setNewDeviceInput(decodedText.trim());
+            qrScanner.stop().then(() => {
+              setIsScanning(false);
+              setScannerInstance(null);
+            });
+          },
+          () => {}
+        ).then(() => {
+          setScannerInstance(qrScanner);
+        }).catch(err => {
+          console.error("Camera access failed:", err);
+          setIsScanning(false);
+        });
+      }, 100);
+    }
+  }; 
   
   // Category Multi-Select Active Token States
   const [statusFilter, setStatusFilter] = useState("all"); 
@@ -1342,7 +1378,17 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                 </div>
              </div>
              
-             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
+             {isScanning && (
+               <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '90%', maxWidth: '360px', height: '360px', backgroundColor: '#1c1c1e', border: '2px solid #007aff', borderRadius: '16px', zIndex: 9999, padding: '16px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                   <span style={{ fontSize: '12px', fontWeight: '700', color: '#007aff' }}>📷 ALIGN SERIAL BARCODE</span>
+                   <button onClick={toggleMobileScanner} style={{ background: 'transparent', border: 'none', color: '#ff3b30', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
+                 </div>
+                 <div id="mobile-claim-scanner-viewport" style={{ width: '100%', height: '280px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#121212' }}></div>
+               </div>
+             )}
+             <button onClick={toggleMobileScanner} style={{ ...secondaryButtonStyle, padding: '4px 8px', fontSize: '12px', borderRadius: '12px', borderColor: isScanning ? '#ff3b30' : '#86868b', color: isScanning ? '#ff3b30' : '#ffffff' }}>{isScanning ? '✕ Stop' : '📷 Scan'}</button>
              <input placeholder="Serial No..." value={newDeviceInput} onChange={(e) => setNewDeviceInput(e.target.value)} style={{ ...inputStyle, padding: '4px 8px', fontSize: '12px', width: '110px', borderRadius: '12px', backgroundColor: '#1c1c1e' }} />
              <button onClick={claimNewDevice} disabled={!newDeviceInput.trim()} style={{ ...primaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", opacity: newDeviceInput.trim() ? 1 : 0.4 }}>➕ Claim</button>
            </div>
