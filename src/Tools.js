@@ -162,8 +162,9 @@ function Tools({ user }) {
       return;
     }
     try {
-      const uClientId = user?.attributes?.["custom:clientId"] || user?.profile?.["custom:clientId"];
-      console.log("DEBUG: User object keys:", JSON.stringify(Object.keys(user))); console.log("DEBUG: User attributes keys:", Object.keys(user.attributes || {})); console.log("DEBUG: Current session clientId:", uClientId);
+      const uClientId = user?.attributes?.["custom:clientId"] || 
+                        user?.profile?.["custom:clientId"] || 
+                        user?.id_token?.payload?.["custom:clientId"];
       let params = { TableName: "KineticToolsData" };
       if (uClientId) {
         params.FilterExpression = "clientId = :cid";
