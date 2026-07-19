@@ -1645,8 +1645,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       )}
 
       {showGuide && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.4)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 7000, padding: "24px" }}>
-          <div style={{ backgroundColor: '#1c1c1e', borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", border: "1px solid #3a3a3c", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.4)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 7000, padding: "24px" }}; const guideModalContentStyle = { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",>
+          <div style={{ ...guideModalContentStyle, backgroundColor: '#1c1c1e', borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", border: "1px solid #3a3a3c", boxShadow: "0 20px 50px rgba(0,0,0,0.15)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "600", letterSpacing: "-0.02em" }}>⚡ Quick Setup Guide</h3>
               <button onClick={() => setShowGuide(false)} style={{ background: "transparent", border: "none", fontSize: "20px", cursor: "pointer", color: "#86868b" }}>✕</button>
