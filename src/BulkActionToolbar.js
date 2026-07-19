@@ -10,57 +10,115 @@ const BulkActionToolbar = ({
   if (selectedDevices.length === 0) return null;
 
   return (
-    <div style={{
-      backgroundColor: '#1c1c1e',
-      border: '1px solid #3a3a3c',
-      borderRadius: '14px',
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
-      padding: '20px 40px',
-      marginTop: '16px',
-      boxSizing: 'border-box',
-      width: '100%'
-    }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
-        
+    <>
+      <style>{`
+        .bulk-toolbar-container {
+          background-color: #1c1c1e;
+          border: 1px solid #3a3a3c;
+          border-radius: 14px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+          padding: 20px 40px;
+          margin: 16px 12px;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+          gap: 24px;
+          box-sizing: border-box;
+          width: calc(100% - 24px);
+        }
+        .bulk-actions-flex-wrapper {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 20px;
+          flex: 1;
+          justify-content: flex-end;
+          align-items: center;
+        }
+        .bulk-action-inline-group {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        @media (max-width: 768px) {
+          .bulk-toolbar-container {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 16px;
+            gap: 16px;
+            margin: 12px 0;
+            width: 100%;
+          }
+          .bulk-actions-flex-wrapper {
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 12px;
+          }
+          .bulk-action-inline-group {
+            width: 100%;
+          }
+          .bulk-action-inline-group input {
+            flex: 1;
+            width: 100% !important;
+          }
+          .bulk-action-inline-group button,
+          .bulk-actions-flex-wrapper button {
+            width: 100% !important;
+            box-sizing: border-box;
+          }
+          .marine-home-group {
+            flex-direction: column !important;
+            width: 100%;
+            gap: 12px !important;
+          }
+        }
+      `}</style>
+
+      <div className="bulk-toolbar-container">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <div style={{ fontSize: '22px', fontWeight: '700', letterSpacing: '-0.01em' }}>{selectedDevices.length} Kinetic Card{selectedDevices.length === 1 ? '' : 's'} Selected</div>
-          <div style={{ fontSize: '14px', color: '#86868b', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setSelectedDevices([])}>Deselect all records</div>
+          <div style={{ fontSize: '22px', fontWeight: '700', letterSpacing: '-0.01em' }}>
+            {selectedDevices.length} Kinetic Card{selectedDevices.length === 1 ? '' : 's'} Selected
+          </div>
+          <div style={{ fontSize: '14px', color: '#86868b', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setSelectedDevices([])}>
+            Deselect all records
+          </div>
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', flex: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
+        <div className="bulk-actions-flex-wrapper">
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="bulk-action-inline-group">
             <input 
               list="group-suggestions-list"
               placeholder="Assign to Group..." 
               value={bulkGroupInput}
               onChange={(e) => setBulkGroupInput(e.target.value)}
-              style={inputStyle}
+              style={{ ...inputStyle, width: '150px' }}
             />
             <button onClick={applyBulkGroup} disabled={!bulkGroupInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkGroupInput.trim() ? 1 : 0.4 }}>Move</button>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="bulk-action-inline-group">
             <input
               placeholder="e.g. Cosmo-1"
               value={bulkNameInput}
               onChange={(e) => setBulkNameInput(e.target.value)}
-              style={inputStyle}
+              style={{ ...inputStyle, width: '140px' }}
             />
             <button onClick={() => applyBulkSequentialNaming(bulkNameInput)} disabled={!bulkNameInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkNameInput.trim() ? 1 : 0.4 }}>Sequence Name</button>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="bulk-action-inline-group">
             <input 
               placeholder="Post log to Group..." 
               value={bulkNoteInput}
               onChange={(e) => setBulkNoteInput(e.target.value)}
-              style={inputStyle}
+              style={{ ...inputStyle, width: '240px' }}
             />
             <button onClick={applyBulkNote} disabled={!bulkNoteInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkNoteInput.trim() ? 1 : 0.4 }}>Post log to Group</button>
           </div>
 
-          <div className="marine-home-group">
+          <div className="marine-home-group" style={{ display: 'flex', gap: '20px', flexLines: 'row' }}>
             <button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#34c759", color: "#34c759" }}>Set Home Anchors</button>
             <button onClick={async () => { 
               if (!window.confirm("Are you sure you want to toggle Marine Mode for " + selectedDevices.length + " selected device(s)?")) return; 
@@ -84,7 +142,7 @@ const BulkActionToolbar = ({
 
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
