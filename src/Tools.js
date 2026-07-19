@@ -163,7 +163,7 @@ function Tools({ user }) {
     }
     try {
       const uClientId = user?.attributes?.["custom:clientId"] || user?.profile?.["custom:clientId"];
-      console.log("DEBUG: Current session clientId:", uClientId);
+      console.log("DEBUG: Full user object:", user); console.log("DEBUG: Current session clientId:", uClientId);
       let params = { TableName: "KineticToolsData" };
       if (uClientId) {
         params.FilterExpression = "clientId = :cid";
