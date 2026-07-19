@@ -26,7 +26,7 @@ function getDistanceInKm(lat1, lon1, lat2, lon2) {
 const locationCache = new Map();
 async function getLocationInfo(lat, lon) {
   if (!lat || !lon) return { zip: "N/A", city: "Unknown" };
-  const cacheKey = `${Number(lat).toFixed(3)},${Number(lon).toFixed(3)}`;
+  const cacheKey = `${Number(lat).toFixed(5)},${Number(lon).toFixed(5)}`;
   if (locationCache.has(cacheKey)) return locationCache.get(cacheKey);
   try {
     const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
