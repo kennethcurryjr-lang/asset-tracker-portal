@@ -156,25 +156,32 @@ function Tools({ user }) {
 
 
   const fetchDB = async () => {
-    // 🚧 LOCALHOST BYPASS: Stop AWS from crashing the initial page load
+    // 🚧 LOCALHOST BYPASS
     if (window.location.hostname === 'localhost') {
-      console.log('🛠️ LOCAL DEV MODE: Bypassed AWS DynamoDB fetch. Starting with empty local inventory.');
+      console.log('🛠️ LOCAL DEV MODE: Bypassed AWS DynamoDB fetch.');
       return;
     }
+
     try {
-      const uClientId = user?.attributes?.["custom:clientId"] || 
-                        user?.profile?.["custom:clientId"] || 
-                        user?.id_token?.payload?.["custom:clientId"];
-      let params = { TableName: "KineticToolsData" };
+      const userSession = user || {};
+      const uClientId = 
+        userSession.profile?.["custom:clientId"] || 
+        userSession.attributes?.["custom:clientId"] || 
+        userSession.idToken?.payload?.["custom:clientId"] || "";
+      
+      const params = { TableName: "KineticToolsData" };
       if (uClientId) {
-        params.FilterExpression = "clientId = :cid";
-        params.ExpressionAttributeValues = { ":cid": uClientId };
+        params.FilterExpression = "clientId = :c";
+        params.ExpressionAttributeValues = { ":c": uClientId };
       }
+
       const data = await docClient.send(new ScanCommand(params));
       if (data.Items) {
         setTools(data.Items);
       }
-    } catch (err) { console.error("DB Fetch Error:", err); }
+    } catch (err) {
+      console.error("DB Fetch Error:", err);
+    }
   };
 
   const syncDB = async (item) => {
