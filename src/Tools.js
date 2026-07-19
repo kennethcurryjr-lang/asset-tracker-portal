@@ -162,11 +162,11 @@ function Tools({ user }) {
       return;
     }
     try {
-      const tenantId = user?.profile?.["custom:tenant_id"];
+      const uClientId = user?.attributes?.["custom:clientId"] || user?.profile?.["custom:clientId"];
       let params = { TableName: "KineticToolsData" };
-      if (tenantId) {
-        params.FilterExpression = "tenant_id = :tid";
-        params.ExpressionAttributeValues = { ":tid": tenantId };
+      if (uClientId) {
+        params.FilterExpression = "clientId = :cid";
+        params.ExpressionAttributeValues = { ":cid": uClientId };
       }
       const data = await docClient.send(new ScanCommand(params));
       if (data.Items) {
@@ -424,8 +424,10 @@ function Tools({ user }) {
     const idNum = String(Math.floor(Math.random() * 900) + 100);
     const generatedId = `${newTool.prefix}-${idNum}`;
     
+    const currentClientId = user?.attributes?.["custom:clientId"] || user?.profile?.["custom:clientId"] || "GLOBAL_CRIB";
     const newToolObj = {
       toolId: generatedId,
+      clientId: currentClientId,
       name: newTool.prefix?.toUpperCase() === 'KIT' ? 'Standard Deployment Kit' : newTool.name,
       value: parseInt(newTool.value) || 0,
       category: newTool.prefix?.toUpperCase() === 'KIT' ? 'Standard Kit' : (newTool.category || 'General'),
@@ -2232,8 +2234,10 @@ return t;
                       const prefix = (row.prefix || 'GEN').toUpperCase().substring(0, 4);
                       const generatedId = prefix + '-' + idNum;
                       
+                      const currentClientId = user?.attributes?.["custom:clientId"] || user?.profile?.["custom:clientId"] || "GLOBAL_CRIB";
                       const newToolObj = {
                           toolId: generatedId,
+                          clientId: currentClientId,
                           name: row.name || 'Imported Tool',
                           value: parseInt(row.value) || 0,
                           category: row.category || 'General',

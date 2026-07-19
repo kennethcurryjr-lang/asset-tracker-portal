@@ -289,8 +289,15 @@ export default function Inventory({ user }) {
   const activeFlavorsCount = new Set(stock.map(item => item.flavor)).size;
   const lowStockItems = stock.filter(item => item.quantity < 50);
 
+
+  const userClientId = user?.attributes?.["custom:clientId"] || auth?.user?.profile?.["custom:clientId"];
+  const isAdmin = user?.signInUserSession?.idToken?.payload?.["cognito:groups"]?.includes("Admin");
+
   const filteredStock = stock.filter(item => {
-    if (!searchTerm) return true;
+    // Admin override or explicit clientId ownership match
+    if (isAdmin) return true;
+    return item.clientId === userClientId;
+  }).filter(item => {
     const term = searchTerm.toLowerCase().trim();
     
     // 1. Deep Text Sweep (Checks literally every string field on the card)
@@ -348,11 +355,11 @@ export default function Inventory({ user }) {
 
   const fetchInventory = async () => {
     try {
-      const tenantId = user?.profile?.["custom:tenant_id"] || auth?.user?.profile?.["custom:tenant_id"];
+      const uClientId = user?.attributes?.["custom:clientId"] || auth?.user?.profile?.["custom:clientId"];
       let invParams = { TableName: "BeverageInventoryData" };
-      if (tenantId) {
-        invParams.FilterExpression = "tenant_id = :tid";
-        invParams.ExpressionAttributeValues = { ":tid": tenantId };
+      if (uClientId) {
+        invParams.FilterExpression = "clientId = :cid";
+        invParams.ExpressionAttributeValues = { ":cid": uClientId };
       }
       const response = await docClient.send(new ScanCommand(invParams));
       if (response.Items && response.Items.length >= initialMockData.length) {
@@ -638,7 +645,8 @@ Please enter a note and try again.`);
       if (dest) dest.qty += adjQty; else locs.push({ name: targetZone, qty: adjQty });
       updatedItem = { ...isExisting, ...newItemForm, quantity: parseInt(isExisting.quantity) + adjQty, locations: locs };
     } else {
-      updatedItem = { ...newItemForm, quantity: adjQty, locations: [{ name: targetZone, qty: adjQty }] };
+      const currentClientId = user?.attributes?.["custom:clientId"] || auth?.user?.profile?.["custom:clientId"] || "GLOBAL_CRIB";
+      updatedItem = { ...newItemForm, clientId: currentClientId, quantity: adjQty, locations: [{ name: targetZone, qty: adjQty }] };
     }
 
     // eslint-disable-next-line no-unused-vars, react-hooks/exhaustive-deps
