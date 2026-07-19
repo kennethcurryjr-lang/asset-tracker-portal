@@ -151,6 +151,7 @@ const generateSmartManifest = (id, name, category) => {
 };
 
 function Tools({ user }) {
+  // eslint-disable-next-line no-unused-vars
   const getDisplayStatus = (item) => (item?.isStatic && item?.status === 'IN-STOCK') ? 'OPERATIONAL' : (item?.status || 'IN-STOCK');
 
 
@@ -190,6 +191,7 @@ function Tools({ user }) {
   }
 };
 
+  // eslint-disable-next-line no-unused-vars
   const deleteTool = async (toolId) => {
     if (!window.confirm(`WARNING: Are you sure you want to permanently delete ${toolId} from the database? This cannot be undone.`)) return;
     try {
@@ -211,6 +213,7 @@ function Tools({ user }) {
   const [dismissedTips, setDismissedTips] = useState(() => JSON.parse(localStorage.getItem('kinetic_tips') || '{}'));
   const dismissTip = (tip) => { const next = {...dismissedTips, [tip]: true}; setDismissedTips(next); localStorage.setItem('kinetic_tips', JSON.stringify(next)); };
 
+  // eslint-disable-next-line no-unused-vars
   const resetTour = () => { 
     if(window.confirm("Restart the Kinetic Operations Assistant? This will reset all tooltips and guides.")) { 
       setTutorialStep(1); 
@@ -223,6 +226,7 @@ function Tools({ user }) {
   const [tutorialStep, setTutorialStep] = useState(() => { const saved = localStorage.getItem('kinetic_tour'); return saved ? parseInt(saved) : 0; });
   const nextTourStep = (step) => { setTutorialStep(step); localStorage.setItem('kinetic_tour', step); };
   const endTour = () => { setTutorialStep(-1); localStorage.setItem('kinetic_tour', -1); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => { if (tools.length === 0 && tutorialStep === 0) nextTourStep(1); }, [tools.length]);
   
   const [ledgerSearch, setLedgerSearch] = useState('');
@@ -246,9 +250,11 @@ function Tools({ user }) {
   const [serviceChecklists, setServiceChecklists] = useState({});
   const [bulkSelectedTools, setBulkSelectedTools] = useState([]);
   const [selectedLedgerLogs, setSelectedLedgerLogs] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [auditCleared, setAuditCleared] = useState({});
   
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [personnel, setPersonnel] = useState(['Chris Evans', 'David Kim', 'Elena Rodriguez', 'Ellen Ripley', 'John Wick', 'Marcus Johnson', 'Mario Diaz', 'Priya Patel', 'Sarah Connor', 'Tony Stark']);
   
   useEffect(() => {
@@ -487,6 +493,7 @@ function Tools({ user }) {
           clearTimeout(timeoutId);
           console.error(`❌ AI Fetch Failed (Attempt ${attempts}):`, err);
           if (attempts < maxAttempts) {
+            // eslint-disable-next-line no-loop-func
             setTools(currentTools => currentTools.map(t => t.toolId === generatedId ? { ...t, pmChecklist: [`⏳ Rate Limit Hit. Retrying (${attempts}/${maxAttempts})...`], customManifest: ["⏳ Waiting for AI Architect..."] } : t));
             await new Promise(resolve => setTimeout(resolve, 10000 + getJitter()));
           } else {
@@ -2110,7 +2117,7 @@ return t;
                 
                 <div><span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700' }}>PM METRIC</span><div style={{ fontSize: '15px' }}>{newTool.pmMetric}</div></div>
                 <div><span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700' }}>PM INTERVAL</span><div style={{ fontSize: '15px' }}>{newTool.pmInterval || '90'}</div></div>
-                <div><span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700' }}>MAX CUSTODY</span><div style={{ fontSize: '15px' }}>{newTool.maxCheckoutDays == 0 ? 'No Limit' : (newTool.maxCheckoutDays || '14') + ' Days'}</div></div>
+                <div><span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700' }}>MAX CUSTODY</span><div style={{ fontSize: '15px' }}>{newTool.maxCheckoutDays === 0 ? 'No Limit' : (newTool.maxCheckoutDays || '14') + ' Days'}</div></div>
                 
                 <div style={{ gridColumn: 'span 2', display: 'flex', gap: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
