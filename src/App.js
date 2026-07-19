@@ -11,6 +11,7 @@ import { docClient } from './dynamoClient';
 import { useAuth } from "react-oidc-context";
 import Inventory from "./Inventory";
 import Tools from "./Tools";
+import BulkActionToolbar from "./BulkActionToolbar";
 
 // Helper: Distance calculation (Earth Radius 6371km)
 function getDistanceInKm(lat1, lon1, lat2, lon2) {
@@ -1339,6 +1340,18 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
           </div>
         </div>
 
+        <BulkActionToolbar 
+          selectedDevices={selectedDevices} setSelectedDevices={setSelectedDevices}
+          bulkGroupInput={bulkGroupInput} setBulkGroupInput={setBulkGroupInput}
+          applyBulkGroup={applyBulkGroup} bulkNameInput={bulkNameInput}
+          setBulkNameInput={setBulkNameInput} applyBulkSequentialNaming={applyBulkSequentialNaming}
+          bulkNoteInput={bulkNoteInput} setBulkNoteInput={setBulkNoteInput}
+          applyBulkNote={applyBulkNote} applyBulkSetHome={applyBulkSetHome}
+          applyBulkClearHome={applyBulkClearHome} applyBulkFactoryReset={applyBulkFactoryReset}
+          assets={assets} updateAttribute={updateAttribute} setMarineModes={setMarineModes}
+          inputStyle={inputStyle} primaryButtonStyle={primaryButtonStyle} secondaryButtonStyle={secondaryButtonStyle}
+        />
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
           {filteredAssets.map(item => {
               const historicalNotes = item.notesList || [];
@@ -1620,77 +1633,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         </div>
       )}
 
-      {/* Sticky Sliding Bulk Actions Drawer Overlay Tray */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#1c1c1e',
-        borderTop: '1px solid #3a3a3c',
-        boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
-        zIndex: 9000, minHeight: "100px",
-        display: selectedDevices.length > 0 ? 'flex' : 'none',
-        padding: '20px 40px',
-        boxSizing: 'border-box'
-      }}>
-        <div style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <div style={{ fontSize: '22px', fontWeight: '700', letterSpacing: '-0.01em' }}>{selectedDevices.length} Kinetic Card{selectedDevices.length === 1 ? '' : 's'} Selected</div>
-            <div style={{ fontSize: '14px', color: '#86868b', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setSelectedDevices([])}>Deselect all records</div>
-          </div>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', flex: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
-            
-            {/* Action 1: Bulk Group Assignment Refactored Label */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input 
-                list="group-suggestions-list"
-                placeholder="Assign to Group..." 
-                value={bulkGroupInput}
-                onChange={(e) => setBulkGroupInput(e.target.value)}
-                style={{ ...inputStyle, padding: '8px 12px', fontSize: '13px', width: '150px' }}
-              />
-              <button onClick={applyBulkGroup} disabled={!bulkGroupInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkGroupInput.trim() ? 1 : 0.4 }}>Move</button>
-            </div>
-
-            {/* Action 1.5: Sequential Auto-Naming Engine Vector */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input
-                placeholder="e.g. Cosmo-1"
-                value={bulkNameInput}
-                onChange={(e) => setBulkNameInput(e.target.value)}
-                style={{ ...inputStyle, padding: '8px 12px', fontSize: '13px', width: '140px' }}
-              />
-              <button onClick={() => applyBulkSequentialNaming(bulkNameInput)} disabled={!bulkNameInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkNameInput.trim() ? 1 : 0.4 }}>Sequence Name</button>
-            </div>
-
-            {/* Action 2: Bulk Timeline Log Broadcast with Phrasing and Safe Confirmation */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input 
-                placeholder="Post log to Group..." 
-                value={bulkNoteInput}
-                onChange={(e) => setBulkNoteInput(e.target.value)}
-                style={{ ...inputStyle, padding: '8px 12px', fontSize: '13px', width: '240px' }}
-              />
-              <button onClick={applyBulkNote} disabled={!bulkNoteInput.trim()} style={{ ...primaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', opacity: bulkNoteInput.trim() ? 1 : 0.4 }}>Post log to Group</button>
-            </div>
-
-            {/* Action 3: Dual Set Home Anchors with Confirmation Prompt */}
-            <div className="marine-home-group"><button onClick={applyBulkSetHome} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#34c759", color: "#34c759" }}>Set Home Anchors</button><button onClick={async () => { if (!window.confirm("Are you sure you want to toggle Marine Mode for " + selectedDevices.length + " selected device(s)?")) return; await Promise.all(selectedDevices.map(id => { const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id); const currentVal = !!dev.isMarineMode; return updateAttribute(dev.deviceId, 'LATEST', 'isMarineMode', !currentVal, '#mm', true); })); setMarineModes(prev => { const res = {...prev}; selectedDevices.forEach(id => res[id] = !res[id]); return res; }); alert("Marine Mode permanently updated in database for " + selectedDevices.length + " device(s)."); fetchDevices(); setSelectedDevices([]); }} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#007aff", color: "#007aff" }}>⚓ Toggle Marine Mode</button></div>
-
-            {/* Action 4: Dual Clear Home Anchors with Confirmation Prompt */}
-            <button onClick={applyBulkClearHome} style={{ ...secondaryButtonStyle, padding: '8px 16px', fontSize: '13px', borderRadius: '8px', borderColor: '#ff9500', color: '#ff9500' }}>Clear Home Anchors</button>
-            
-            {/* NEW ACTION: Factory Reset Devices */}
-            <button onClick={applyBulkFactoryReset} style={{ ...secondaryButtonStyle, padding: "8px 16px", fontSize: "13px", borderRadius: "8px", borderColor: "#ff3b30", color: "#ff3b30" }}>Factory Reset</button>
-
-          </div>
-        </div>
-      </div>
-
-        </>
+              </>
       )}
 
       
