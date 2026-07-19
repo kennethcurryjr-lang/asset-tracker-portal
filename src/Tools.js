@@ -164,13 +164,15 @@ function Tools({ user }) {
 
     try {
       const userSession = user || {};
-      const uClientId = 
-        userSession.profile?.["custom:clientId"] || 
-        userSession.attributes?.["custom:clientId"] || 
-        userSession.idToken?.payload?.["custom:clientId"] || "";
+            const uClientId = 
+        userSession.profile?.["custom:tenant_id"] || 
+        userSession.attributes?.["custom:tenant_id"] || 
+        userSession.idToken?.payload?.["custom:tenant_id"] || "";
       
       let data;
-      if (uClientId) {
+      if (uClientId === "GLOBAL_ADMIN") {
+        data = await docClient.send(new ScanCommand({ TableName: "KineticToolsData" }));
+      } else if (uClientId) {
         data = await docClient.send(new QueryCommand({
           TableName: "KineticToolsData",
           IndexName: "clientId-index",
@@ -178,7 +180,8 @@ function Tools({ user }) {
           ExpressionAttributeValues: { ":c": uClientId }
         }));
       } else {
-        data = await docClient.send(new ScanCommand({ TableName: "KineticToolsData" }));
+        setTools([]);
+        return;
       }
       if (data.Items) {
         setTools(data.Items);
