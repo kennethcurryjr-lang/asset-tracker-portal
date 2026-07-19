@@ -196,7 +196,7 @@ function App() {
       if (namingFilter === "unnamed_local") {
         if (!!a.tag) return false;
         const todayStr = new Date().toLocaleString("en-US", { month: "short", day: "numeric" });
-        const isAddedToday = a.lastSeen && a.lastSeen.includes(todayStr);
+        const isAddedToday = (a.lastSeen && a.lastSeen.includes(todayStr)) || a.lastSeen === "Live";
         const isLocalArea = a.city && a.city.toLowerCase() === "las vegas";
         if (!isAddedToday || !isLocalArea) return false;
       }
