@@ -1,5 +1,6 @@
 import "leaflet/dist/leaflet.css";
 /* eslint-disable no-unused-vars */
+import { getClientId } from './authUtils';
 import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import { useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -388,11 +389,22 @@ function App() {
     }
   }, [auth.isAuthenticated, fetchDevices]);
 
-  const claimNewDevice = async () => {
+      const claimNewDevice = async () => {
     if (!newDeviceInput.trim()) return;
-    const clientID = auth.user?.profile?.['custom:clientId'] || "CLIENT_A"; 
     const targetDevice = newDeviceInput.trim();
+    const clientID = auth.user?.profile?.['custom:clientId'] || "CLIENT_A"; 
+    
     try {
+      const exists = await docClient.send(new GetCommand({ 
+        TableName: "AssetTrackerData", 
+        Key: { deviceId: targetDevice, timestamp: "LATEST" } 
+      }));
+
+      if (!exists.Item) {
+        alert("❌ Device ID " + targetDevice + " not found in database.");
+        return;
+      }
+
       await docClient.send(new UpdateCommand({
         TableName: "AssetTrackerData",
         Key: { deviceId: targetDevice, timestamp: "LATEST" },
@@ -412,6 +424,7 @@ function App() {
       console.error("Claim Error:", err);
       alert("Failed to claim device. Check your connection."); 
     }
+  };
   };
 
   const updateAttribute = async (deviceId, timestamp, field, value, attributeAlias, skipRefresh = false) => {
