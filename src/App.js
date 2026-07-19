@@ -1305,10 +1305,10 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff', cursor: 'pointer', fontWeight: '600', userSelect: 'none' }}>
                   <input 
                     type="checkbox" 
-                    checked={filteredAssets.length > 0 && filteredAssets.every(a => selectedDevices.includes(a.deviceId))} 
+                    checked={filteredAssets.length > 0 && filteredAssets.every(a => selectedDevices.includes(a.deviceId.slice(-5)))} 
                     onChange={() => {
-                      const visibleIds = filteredAssets.map(a => a.deviceId);
-                      const isAllSelected = filteredAssets.every(a => selectedDevices.includes(a.deviceId));
+                      const visibleIds = filteredAssets.map(a => a.deviceId.slice(-5));
+                      const isAllSelected = filteredAssets.every(a => selectedDevices.includes(a.deviceId.slice(-5)));
                       if (isAllSelected) {
                         setSelectedDevices(prev => prev.filter(id => !visibleIds.includes(id)));
                       } else {
