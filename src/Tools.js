@@ -205,6 +205,7 @@ function Tools({ user }) {
       if (window.location.search.includes('code=')) {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
   const [inventory] = useState({ 'HVAC': [{ item: '24x24x2 Pleated Air Filter', stock: 45 }, { item: 'R-410A Refrigerant (lbs)', stock: 12 }], 'MILW': [{ item: 'M18 REDLITHIUM 5.0Ah Battery', stock: 22 }, { item: 'Press Tool Jaw Grease', stock: 6 }], 'VEH': [{ item: '5W-30 Synthetic Oil (Qts)', stock: 32 }, { item: 'Wiper Fluid (Gal)', stock: 14 }] });
