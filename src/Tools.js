@@ -1,5 +1,5 @@
 import { docClient } from './dynamoClient';
-import { ScanCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { ScanCommand, PutCommand, DeleteCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import SignatureCanvas from 'react-signature-canvas';
 import React, { useEffect,  useState, useMemo } from 'react';
 import { uploadData, getUrl } from "aws-amplify/storage";
@@ -169,13 +169,17 @@ function Tools({ user }) {
         userSession.attributes?.["custom:clientId"] || 
         userSession.idToken?.payload?.["custom:clientId"] || "";
       
-      const params = { TableName: "KineticToolsData" };
+      let data;
       if (uClientId) {
-        params.FilterExpression = "clientId = :c";
-        params.ExpressionAttributeValues = { ":c": uClientId };
+        data = await docClient.send(new QueryCommand({
+          TableName: "KineticToolsData",
+          IndexName: "clientId-index",
+          KeyConditionExpression: "clientId = :c",
+          ExpressionAttributeValues: { ":c": uClientId }
+        }));
+      } else {
+        data = await docClient.send(new ScanCommand({ TableName: "KineticToolsData" }));
       }
-
-      const data = await docClient.send(new ScanCommand(params));
       if (data.Items) {
         setTools(data.Items);
       }
