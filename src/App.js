@@ -176,6 +176,8 @@ function App() {
     }
   }, [auth.isAuthenticated, isClient, isToolsAdmin, isToolsTech]);
   const [comingSoonModule, setComingSoonModule] = useState(null);
+  const [showAllCompanyFleets, setShowAllCompanyFleets] = useState(false); // 🔍 Admin toggle hatch
+  
 
   // Design Tokens: High-Contrast Monochromatic System
   const appContainerStyle = { backgroundColor: '#121212', color: '#ffffff', minHeight: '100vh', fontFamily: '"SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif', paddingBottom: "80px", fontSize: '15px', transition: 'padding-bottom 0.3s ease, background-color 0.5s ease-in-out', overflowX: 'clip' };
@@ -358,21 +360,18 @@ function App() {
     try {
       let items = [];
 
-      if (isGlobalAdmin) {
-        const scanResponse = await docClient.send(new ScanCommand({
-          TableName: "AssetTrackerData"
-        }));
+      if (isGlobalAdmin && showAllCompanyFleets) {
+        // 🔓 EMERGENCY BACKDOOR: Run full database sweep only when toggle is explicitly flipped active
+        const scanResponse = await docClient.send(new ScanCommand({ TableName: "AssetTrackerData" }));
         items = (scanResponse.Items || []).filter(i => i.timestamp === "LATEST");
       } else {
+        // 🔒 DEFAULT DEV & CLIENT WORKSPACE: Targeted index queries keep data completely isolated
         const queryResponse = await docClient.send(new QueryCommand({
           TableName: "AssetTrackerData",
           IndexName: "clientId-index",
           KeyConditionExpression: "clientId = :cid AND #ts = :ts",
           ExpressionAttributeNames: { "#ts": "timestamp" },
-          ExpressionAttributeValues: { 
-            ":cid": userTenant,
-            ":ts": "LATEST" 
-          }
+          ExpressionAttributeValues: { ":cid": userTenant, ":ts": "LATEST" }
         }));
         items = queryResponse.Items || [];
       }
@@ -1400,6 +1399,19 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
              <button onClick={claimNewDevice} disabled={!newDeviceInput.trim()} style={{ ...primaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", opacity: newDeviceInput.trim() ? 1 : 0.4 }}>➕ Claim</button>
            </div>
              <button onClick={() => { fetchDevices(); alert("Data successfully synced with live database."); }} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#34c759", color: "#34c759" }}>🔄 Sync Data</button>
+             {isSuperAdmin && (
+               <button 
+                 onClick={() => {
+                   const targetMode = !showAllCompanyFleets;
+                   setShowAllCompanyFleets(targetMode);
+                   alert(targetMode ? "🔓 Global Fleet Visibility Enabled (Heavy Scan Mode)" : "🔒 Dev Workspace Engaged (Targeted Filter Mode)");
+                 }} 
+                 style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: showAllCompanyFleets ? "#ff3b30" : "#007aff", color: showAllCompanyFleets ? "#ff3b30" : "#007aff", marginLeft: "8px" }}
+               >
+                 {showAllCompanyFleets ? "👁️ Hide Company Fleets" : "👁️ Show All Fleets"}
+               </button>
+             )}
+             
              {isAdmin && (<><button onClick={() => window.location.href="mailto:kennethcurryjr@gmail.com?subject=Kinetic%20Cards%20Portal%20Feedback"} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>✉️ Feedback</button>  <button onClick={emailReport} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", borderColor: "#007aff", color: "#007aff" }}>✉️ Email Report</button></>)}
              <button onClick={() => setShowGuide(true)} style={{ ...secondaryButtonStyle, padding: "4px 12px", fontSize: "12px", borderRadius: "12px", color: "#ffffff", border: "1px solid #ffffff", borderColor: "#ffffff" }}>📖 Operations Guide</button>
           </div>
