@@ -348,27 +348,34 @@ function App() {
     }
   }, [auth.isLoading, auth.isAuthenticated, auth.activeNavigator, auth, isSharePage]);
 
-  const fetchDevices = useCallback(async () => {
+    const fetchDevices = useCallback(async () => {
     if (!auth.isAuthenticated) return;
     setDbError(null);
 
-    // 🔑 STEP 1: Extract Client ID from user profile
-    const clientID = auth.user?.profile?.['custom:clientId'] || "CLIENT_A"; 
+    const userTenant = auth.user?.profile?.['custom:tenant_id'] || "GLOBAL_ADMIN";
+    const isGlobalAdmin = userTenant === "GLOBAL_ADMIN";
 
     try {
-      // 🚀 STEP 2: Targeted Query using the new clientId-index
-      const queryResponse = await docClient.send(new QueryCommand({
-        TableName: "AssetTrackerData",
-        IndexName: "clientId-index",
-        KeyConditionExpression: "clientId = :cid AND #ts = :ts",
-        ExpressionAttributeNames: { "#ts": "timestamp" },
-        ExpressionAttributeValues: { 
-          ":cid": clientID,
-          ":ts": "LATEST" 
-        }
-      }));
-      
-      const items = queryResponse.Items || [];
+      let items = [];
+
+      if (isGlobalAdmin) {
+        const scanResponse = await docClient.send(new ScanCommand({
+          TableName: "AssetTrackerData"
+        }));
+        items = (scanResponse.Items || []).filter(i => i.timestamp === "LATEST");
+      } else {
+        const queryResponse = await docClient.send(new QueryCommand({
+          TableName: "AssetTrackerData",
+          IndexName: "clientId-index",
+          KeyConditionExpression: "clientId = :cid AND #ts = :ts",
+          ExpressionAttributeNames: { "#ts": "timestamp" },
+          ExpressionAttributeValues: { 
+            ":cid": userTenant,
+            ":ts": "LATEST" 
+          }
+        }));
+        items = queryResponse.Items || [];
+      }
 
       if (items.length === 0) {
         setAssets([]);
@@ -428,7 +435,7 @@ function App() {
   const claimNewDevice = async () => {
     if (!newDeviceInput.trim()) return;
     const targetDevice = newDeviceInput.trim();
-    const clientID = auth.user?.profile?.['custom:clientId'] || "CLIENT_A"; 
+    const clientID = auth.user?.profile?.['custom:tenant_id'] || "GLOBAL_ADMIN"; 
     
     try {
       const exists = await docClient.send(new GetCommand({ 
