@@ -9,6 +9,7 @@ import { QueryCommand, UpdateCommand, ScanCommand, GetCommand } from "@aws-sdk/l
 import { docClient } from './dynamoClient';
 import { getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import Login from './Login';
+import LandingPage from './LandingPage';
 import Inventory from "./Inventory";
 import Tools from "./Tools";
 import BulkActionToolbar from "./BulkActionToolbar";
@@ -65,6 +66,7 @@ const forceSignOut = () => {
 
 function App() {
   const [user, setUser] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const checkAuth = async () => {
@@ -1021,7 +1023,15 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
   }
 
   if (!auth.isAuthenticated) {
-    return <Login onLoginSuccess={checkAuth} />;
+    if (showLogin) {
+      return <Login onLoginSuccess={checkAuth} />;
+    }
+    return (
+      <LandingPage 
+        onLoginClick={() => setShowLogin(true)} 
+        onDemoClick={() => setShowLogin(true)} 
+      />
+    );
   }
 
   return (
