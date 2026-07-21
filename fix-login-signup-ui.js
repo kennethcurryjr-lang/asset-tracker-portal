@@ -1,4 +1,9 @@
-import React, { useState } from 'react';
+const fs = require('fs');
+const path = require('path');
+
+const targetPath = path.join(__dirname, 'src', 'Login.jsx');
+
+const fullLoginCode = `import React, { useState } from 'react';
 import { signIn, signUp, confirmSignUp, resetPassword, confirmResetPassword } from 'aws-amplify/auth';
 
 export default function Login({ onLoginSuccess }) {
@@ -46,7 +51,7 @@ export default function Login({ onLoginSuccess }) {
         setConfirmStep(true);
         setInfoMsg('Please enter the verification code sent to your email.');
       } else {
-        setError(`Additional step required: ${nextStep.signInStep}`);
+        setError(\`Additional step required: \${nextStep.signInStep}\`);
       }
     } catch (err) {
       if (err.name === 'UserNotConfirmedException') {
@@ -86,7 +91,7 @@ export default function Login({ onLoginSuccess }) {
 
       if (nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
         setConfirmStep(true);
-        setInfoMsg(`Verification code sent to ${email}`);
+        setInfoMsg(\`Verification code sent to \${email}\`);
       } else {
         setInfoMsg('Account created successfully! You can now sign in.');
         setIsSignUp(false);
@@ -140,7 +145,7 @@ export default function Login({ onLoginSuccess }) {
       const output = await resetPassword({ username: email });
       if (output.nextStep.resetPasswordStep === 'CONFIRM_RESET_PASSWORD_WITH_CODE') {
         setForgotStep(true);
-        setInfoMsg(`Verification code sent to ${email}`);
+        setInfoMsg(\`Verification code sent to \${email}\`);
       }
     } catch (err) {
       setError(err.message || 'Failed to send reset code');
@@ -427,3 +432,7 @@ export default function Login({ onLoginSuccess }) {
     </div>
   );
 }
+`;
+
+fs.writeFileSync(targetPath, fullLoginCode, 'utf8');
+console.log("✅ Successfully replaced Login.jsx with full Sign In / Sign Up UI!");
