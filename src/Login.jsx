@@ -179,7 +179,7 @@ export default function Login({ onLoginSuccess }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '13px', fontWeight: 600, color: '#94a3b8', letterSpacing: '0.3px' }}>EMAIL ADDRESS</label>
             <input 
-              type="email" 
+              type="email" name="username" autoComplete="username" 
               className="glass-input"
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
@@ -191,7 +191,7 @@ export default function Login({ onLoginSuccess }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '13px', fontWeight: 600, color: '#94a3b8', letterSpacing: '0.3px' }}>PASSWORD</label>
             <input 
-              type="password" 
+              type="password" name="password" autoComplete="current-password" 
               className="glass-input"
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
