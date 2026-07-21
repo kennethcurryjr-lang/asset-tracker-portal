@@ -691,7 +691,7 @@ function App() {
     if (!window.confirm(`WARNING: Are you sure you want to clear the Name, Group, Home Anchor, and Service Schedule for all ${selectedDevices.length} selected devices?`)) return;
     try {
         await Promise.all(selectedDevices.map(async (id) => {
-            const dev = assets.find(a => a.deviceId === id || a.deviceId === id);
+            const dev = assets.find(a => a.deviceId === id);
             if (!dev) return;
             await docClient.send(new UpdateCommand({
               TableName: "AssetTrackerData",
@@ -777,7 +777,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     if (!bulkGroupInput || !bulkGroupInput.trim()) return;
     const results = await Promise.all(selectedDevices.map(async (id) => {
       try {
-        const dev = assets.find(a => a.deviceId === id || a.deviceId === id);
+        const dev = assets.find(a => a.deviceId === id);
         if (!dev) throw new Error("Device " + id + " not found");
         await updateAttribute(dev.deviceId, 'LATEST', 'group', bulkGroupInput.trim(), '#g', true);
         return { id, success: true };
@@ -785,7 +785,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
         console.error("Failed to update " + id + ":", err);
         return { id, success: false, error: err.message };
       }
-    })); fetchDevices();
+    }));
     const failures = results.filter(r => !r.success);
     if (failures.length > 0) {
       alert(`Bulk group update partial failure: ${failures.map(f => f.id).join(", ")}`);
@@ -800,7 +800,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     if (!bulkNoteInput || !bulkNoteInput.trim()) return;
     if (!window.confirm(`Are you sure you want to broadcast this timeline log entry to all ${selectedDevices.length} selected devices?`)) return;
     await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId === id || a.deviceId === id);
+      const dev = assets.find(a => a.deviceId === id);
       return addNote(dev.deviceId, dev.timestamp, bulkNoteInput.trim());
     }));
     alert(`Broadcast log note to ${selectedDevices.length} Kinetic Card timelines.`);
@@ -813,7 +813,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
   const applyBulkSetHome = async () => {
     if (!window.confirm(`Are you sure you want to set the current lock position as the home location anchor for all ${selectedDevices.length} selected devices?`)) return;
     await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId === id || a.deviceId === id);
+      const dev = assets.find(a => a.deviceId === id);
       return setHomeLocation(dev.deviceId, dev.timestamp, dev.latitude, dev.longitude);
     }));
     alert(`Saved home target geofence anchors for ${selectedDevices.length} devices.`);
@@ -824,7 +824,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
   const applyBulkClearHome = async () => {
     if (!window.confirm(`Are you sure you want to completely wipe out and clear the home location anchors for all ${selectedDevices.length} selected Kinetic Cards?`)) return;
     await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId === id || a.deviceId === id);
+      const dev = assets.find(a => a.deviceId === id);
       return clearHomeLocation(dev.deviceId, dev.timestamp);
     }));
     alert(`Cleared home target anchors for ${selectedDevices.length} Kinetic Cards.`);
@@ -843,11 +843,11 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     }
     try {
       await Promise.all(selectedDevices.map(async (id, index) => {
-        const dev = assets.find(a => a.deviceId === id || a.deviceId === id);
+        const dev = assets.find(a => a.deviceId === id);
         if (!dev) return;
         const sequentialName = `${baseName}-${startIndex + index}`;
         await updateAttribute(dev.deviceId, 'LATEST', 'tag', sequentialName, '#t', true);
-      })); fetchDevices();
+      }));
       alert(`Successfully generated sequential tags for ${selectedDevices.length} assets!`);
       resetAllInputs();
       fetchDevices();
