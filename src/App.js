@@ -7,7 +7,7 @@ import L from "leaflet";
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { QueryCommand, UpdateCommand, ScanCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient } from './dynamoClient';
-import { getCurrentUser, signOut, fetchUserAttributes } from 'aws-amplify/auth';
+import { getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import Login from './Login';
 import Inventory from "./Inventory";
 import Tools from "./Tools";
