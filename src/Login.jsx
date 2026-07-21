@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { signIn } from 'aws-amplify/auth';
 
 export default function Login({ onLoginSuccess }) {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [confirmStep, setConfirmSignUpStep] = useState(false);
+  const [code, setCode] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
