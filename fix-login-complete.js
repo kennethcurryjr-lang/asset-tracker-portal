@@ -1,4 +1,9 @@
-import React, { useState } from 'react';
+const fs = require('fs');
+const path = require('path');
+
+const targetPath = path.join(__dirname, 'src', 'Login.jsx');
+
+const pristineLoginCode = `import React, { useState } from 'react';
 import { signIn, signUp, confirmSignUp, resetPassword, confirmResetPassword } from 'aws-amplify/auth';
 
 export default function Login({ onLoginSuccess }) {
@@ -46,7 +51,7 @@ export default function Login({ onLoginSuccess }) {
         setConfirmStep(true);
         setInfoMsg('Please enter the verification code sent to your email.');
       } else {
-        setError(`Additional step required: ${nextStep.signInStep}`);
+        setError(\`Additional step required: \${nextStep.signInStep}\`);
       }
     } catch (err) {
       if (err.name === 'UserNotConfirmedException') {
@@ -86,7 +91,7 @@ export default function Login({ onLoginSuccess }) {
 
       if (nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
         setConfirmStep(true);
-        setInfoMsg(`Verification code sent to ${email}`);
+        setInfoMsg(\`Verification code sent to \${email}\`);
       } else {
         setInfoMsg('Account created successfully! You can now sign in.');
         setIsSignUp(false);
@@ -139,7 +144,7 @@ export default function Login({ onLoginSuccess }) {
       const output = await resetPassword({ username: email });
       if (output.nextStep.resetPasswordStep === 'CONFIRM_RESET_PASSWORD_WITH_CODE') {
         setForgotStep(true);
-        setInfoMsg(`Verification code sent to ${email}`);
+        setInfoMsg(\`Verification code sent to \${email}\`);
       }
     } catch (err) {
       setError(err.message || 'Failed to send reset code');
@@ -202,7 +207,7 @@ export default function Login({ onLoginSuccess }) {
             <path d="M35 25 L60 25 L60 15 L85 35 L60 55 L60 45 L35 45 Z" fill="#ffffff" />
           </svg>
           <div style={{ display: 'flex', gap: '6px', marginTop: '8px', fontFamily: '"SF Pro Display", -apple-system, sans-serif', fontWeight: '900', fontSize: '24px', letterSpacing: '0.5px', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.5))' }}>
-            <style>{`@keyframes kineticShimmer { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }`}</style>
+            <style>{\`@keyframes kineticShimmer { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }\`}</style>
             <span style={{ background: 'linear-gradient(90deg, #ffffff 0%, #ffffff 40%, #4da3ff 50%, #ffffff 60%, #ffffff 100%)', backgroundSize: '200% auto', color: 'transparent', WebkitBackgroundClip: 'text', backgroundClip: 'text', animation: 'kineticShimmer 8s linear infinite', display: 'inline-block' }}>KINETIC</span>
             <span style={{ color: '#ffcc00' }}>CARDS<span style={{ fontSize: '13px', verticalAlign: 'super', marginLeft: '2px' }}>™</span></span>
           </div>
@@ -427,3 +432,7 @@ export default function Login({ onLoginSuccess }) {
     </div>
   );
 }
+`;
+
+fs.writeFileSync(targetPath, pristineLoginCode, 'utf8');
+console.log("✅ Successfully generated pristine src/Login.jsx!");
