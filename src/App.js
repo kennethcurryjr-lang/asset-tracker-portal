@@ -7,7 +7,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { QueryCommand, UpdateCommand, ScanCommand, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { QueryCommand, UpdateCommand, ScanCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient } from './dynamoClient';
 import { getCurrentUser, signOut, fetchUserAttributes } from 'aws-amplify/auth';
 import Login from './Login';
@@ -93,12 +93,12 @@ function App() {
     checkAuth();
   }, []);
 
-  const auth = {
+  const auth = useMemo(() => ({
     isAuthenticated: !!user,
     isLoading: loading,
     user: user,
     signinRedirect: () => {}
-  };
+  }), [user, loading]);
   const [assets, setAssets] = useState([]);
   const [marineModes, setMarineModes] = useState({});
   const [flippedCards, setFlippedCards] = useState({});
@@ -123,7 +123,7 @@ function App() {
   const toggleMobileScanner = async () => {
     if (isScanning) {
       if (scannerInstance) {
-        await scannerInstance.stop();
+        await scannerInstance.stop().catch(() => {});
         scannerInstance.clear();
       }
       setIsScanning(false);
@@ -454,7 +454,7 @@ function App() {
         console.error("Query Error:", err);
         setDbError(err.message); 
     }
-  }, [auth.isAuthenticated, auth.user]);
+  }, [auth.isAuthenticated, auth.user, showAllCompanyFleets]);
 
   useEffect(() => {
     if (auth.isAuthenticated) {
@@ -578,7 +578,7 @@ function App() {
       }
     }
     
-    const shortId = deviceId.slice(-5);
+    const shortId = deviceId;
     setMaintenanceInputs(prev => ({ ...prev, [shortId]: "0" }));
     fetchDevices();
   };
@@ -608,7 +608,7 @@ function App() {
           ":empty_list": []
         }
       }));
-      setNoteInputs(prev => ({...prev, [deviceId.slice(-5)]: ""}));
+      setNoteInputs(prev => ({...prev, [deviceId]: ""}));
       fetchDevices();
     } catch (err) { console.error("Database note array error:", err); }
   };
@@ -677,7 +677,7 @@ function App() {
           }
         }));
         await addNote(deviceId, "LATEST", "🔄 Device profile soft-reset (Watchdog OFF).");
-        alert(`Successfully reset profile for ${deviceId.slice(-5)}.`);
+        alert(`Successfully reset profile for ${deviceId}.`);
         fetchDevices();
     } catch (err) { 
         console.error("Soft Reset Error:", err);
@@ -691,7 +691,7 @@ function App() {
     if (!window.confirm(`WARNING: Are you sure you want to clear the Name, Group, Home Anchor, and Service Schedule for all ${selectedDevices.length} selected devices?`)) return;
     try {
         await Promise.all(selectedDevices.map(async (id) => {
-            const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
+            const dev = assets.find(a => a.deviceId === id || a.deviceId === id);
             if (!dev) return;
             await docClient.send(new UpdateCommand({
               TableName: "AssetTrackerData",
@@ -777,7 +777,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     if (!bulkGroupInput || !bulkGroupInput.trim()) return;
     const results = await Promise.all(selectedDevices.map(async (id) => {
       try {
-        const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
+        const dev = assets.find(a => a.deviceId === id || a.deviceId === id);
         if (!dev) throw new Error("Device " + id + " not found");
         await updateAttribute(dev.deviceId, 'LATEST', 'group', bulkGroupInput.trim(), '#g', true);
         return { id, success: true };
@@ -800,7 +800,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     if (!bulkNoteInput || !bulkNoteInput.trim()) return;
     if (!window.confirm(`Are you sure you want to broadcast this timeline log entry to all ${selectedDevices.length} selected devices?`)) return;
     await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
+      const dev = assets.find(a => a.deviceId === id || a.deviceId === id);
       return addNote(dev.deviceId, dev.timestamp, bulkNoteInput.trim());
     }));
     alert(`Broadcast log note to ${selectedDevices.length} Kinetic Card timelines.`);
@@ -813,7 +813,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
   const applyBulkSetHome = async () => {
     if (!window.confirm(`Are you sure you want to set the current lock position as the home location anchor for all ${selectedDevices.length} selected devices?`)) return;
     await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
+      const dev = assets.find(a => a.deviceId === id || a.deviceId === id);
       return setHomeLocation(dev.deviceId, dev.timestamp, dev.latitude, dev.longitude);
     }));
     alert(`Saved home target geofence anchors for ${selectedDevices.length} devices.`);
@@ -824,7 +824,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
   const applyBulkClearHome = async () => {
     if (!window.confirm(`Are you sure you want to completely wipe out and clear the home location anchors for all ${selectedDevices.length} selected Kinetic Cards?`)) return;
     await Promise.all(selectedDevices.map(id => {
-      const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
+      const dev = assets.find(a => a.deviceId === id || a.deviceId === id);
       return clearHomeLocation(dev.deviceId, dev.timestamp);
     }));
     alert(`Cleared home target anchors for ${selectedDevices.length} Kinetic Cards.`);
@@ -843,7 +843,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
     }
     try {
       await Promise.all(selectedDevices.map(async (id, index) => {
-        const dev = assets.find(a => a.deviceId.slice(-5) === id || a.deviceId === id);
+        const dev = assets.find(a => a.deviceId === id || a.deviceId === id);
         if (!dev) return;
         const sequentialName = `${baseName}-${startIndex + index}`;
         await updateAttribute(dev.deviceId, 'LATEST', 'tag', sequentialName, '#t', true);
@@ -1255,8 +1255,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
               <button 
                 onClick={forceSignOut} 
                 style={{ backgroundColor: 'transparent', color: '#ff3b30', border: 'none', padding: '10px 12px', fontSize: '13px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px', transition: 'background-color 0.2s' }} 
-                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 59, 48, 0.1)'} 
-                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 59, 48, 0.1)'} 
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 <span style={{ fontSize: '16px' }}>⎋</span> Sign Out
               </button>
@@ -1374,10 +1374,10 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff', cursor: 'pointer', fontWeight: '600', userSelect: 'none' }}>
                   <input 
                     type="checkbox" 
-                    checked={filteredAssets.length > 0 && filteredAssets.every(a => selectedDevices.includes(a.deviceId.slice(-5)))} 
+                    checked={filteredAssets.length > 0 && filteredAssets.every(a => selectedDevices.includes(a.deviceId))} 
                     onChange={() => {
-                      const visibleIds = filteredAssets.map(a => a.deviceId.slice(-5));
-                      const isAllSelected = filteredAssets.every(a => selectedDevices.includes(a.deviceId.slice(-5)));
+                      const visibleIds = filteredAssets.map(a => a.deviceId);
+                      const isAllSelected = filteredAssets.every(a => selectedDevices.includes(a.deviceId));
                       if (isAllSelected) {
                         setSelectedDevices(prev => prev.filter(id => !visibleIds.includes(id)));
                       } else {
@@ -1453,7 +1453,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
 
               const isFlipped = !!flippedCards[item.deviceId];
               return (
-                <div key={item.deviceId.slice(-5)} className="card-perspective-wrapper">
+                <div key={item.deviceId} className="card-perspective-wrapper">
                   <div className={`card-flipper ${isFlipped ? 'flipped' : ''}`}>
                     <div className="card-face card-front" style={{ ...deviceCardStyle, backgroundColor: '#1c1c1e' }}>
                   
@@ -1463,7 +1463,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                     {/* Left Hand Data Block */}
                     <div className="card-column-left-telemetry">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <input type="checkbox" checked={selectedDevices.includes(item.deviceId.slice(-5))} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId.slice(-5)) ? prev.filter(i => i !== item.deviceId.slice(-5)) : [...prev, item.deviceId.slice(-5)])} style={{ width: '16px', height: '16px', accentcolor: '#ffffff', cursor: 'pointer' }} />
+                        <input type="checkbox" checked={selectedDevices.includes(item.deviceId)} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId) ? prev.filter(i => i !== item.deviceId) : [...prev, item.deviceId])} style={{ width: '16px', height: '16px', accentcolor: '#ffffff', cursor: 'pointer' }} />
                         <div style={{ fontSize: '15px', fontWeight: '600', color: '#ffffff', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>
                             {item.tag ? item.tag : 'UNNAMED'}
                         </div>
@@ -1480,7 +1480,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                       <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.4' }}>
                         <div style={{ fontWeight: '500', color: '#ffffff' }}>{item.city || "Locating"}</div>
                         <div style={{ fontSize: '10px', color: '#86868b', marginTop: '2px' }}>Last seen: {item.lastSeen}</div>
-                        <div style={{ fontSize: '11px' }}>ID: {item.deviceId.slice(-5)}</div>
+                        <div style={{ fontSize: '11px' }}>ID: {item.deviceId}</div>
                         {item.group && <div style={{ fontSize: '11px', fontStyle: 'italic' }}>{item.group}</div>}
                         {item.homeLat && (
                           <div style={{ fontSize: '10px', color: '#007aff', marginTop: '4px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -1541,7 +1541,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                       <button 
                         onClick={() => {
                           if (item.homeLat) {
-                            if (window.confirm(`Are you sure you want to permanently clear the home location geofence anchor for ${item.tag || item.deviceId.slice(-5)}?`)) {
+                            if (window.confirm(`Are you sure you want to permanently clear the home location geofence anchor for ${item.tag || item.deviceId}?`)) {
                               clearHomeLocation(item.deviceId, item.timestamp).then(fetchDevices);
                             }
                           } else {
@@ -1557,7 +1557,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                       <div style={{ display: "flex", gap: "6px", width: "100%", marginTop: "12px", marginBottom: "8px", alignItems: "center", backgroundColor: "#121212", padding: "8px", borderRadius: "8px", border: "1px solid #2c2c2e", boxSizing: "border-box", flexWrap: "wrap" }}>
                         {!item.maintenanceInterval ? (
                           <>
-                            <select value={maintenanceInputs[item.deviceId.slice(-5)] || "0"} onChange={(e) => setMaintenanceInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #3a3a3c", fontSize: "11px", backgroundColor: '#1c1c1e', color: '#ffffff', flex: 1, outline: "none" }}>
+                            <select value={maintenanceInputs[item.deviceId] || "0"} onChange={(e) => setMaintenanceInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #3a3a3c", fontSize: "11px", backgroundColor: '#1c1c1e', color: '#ffffff', flex: 1, outline: "none" }}>
                               <option value="0">Off (Opt-Out)</option>
                               <option value="1">1 Month</option>
                               <option value="3">3 Months</option>
@@ -1565,7 +1565,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                               <option value="9">9 Months</option>
                               <option value="12">12 Months</option>
                             </select>
-                            <button onClick={() => setMaintenanceInterval(item.deviceId, 'LATEST', maintenanceInputs[item.deviceId.slice(-5)] || "0")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #ffffff", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#ffffff", color: "#1c1c1e" }}>Schedule Service</button>
+                            <button onClick={() => setMaintenanceInterval(item.deviceId, 'LATEST', maintenanceInputs[item.deviceId] || "0")} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #ffffff", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#ffffff", color: "#1c1c1e" }}>Schedule Service</button>
                           </>
                         ) : (
                           <>
@@ -1613,8 +1613,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                     </div>
                     
                     <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid #2c2c2e', paddingTop: '8px' }}>
-                        <input placeholder="Add note..." value={noteInputs[item.deviceId.slice(-5)] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId.slice(-5)]: e.target.value}))} style={{ ...inputStyle, flex: 1, backgroundColor: '#1c1c1e', padding: '4px 8px', fontSize: '12px', borderRadius: '6px' }} />
-                        <button onClick={() => addNote(item.deviceId, item.timestamp, noteInputs[item.deviceId.slice(-5)])} style={{ ...primaryButtonStyle, padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }}>Post</button>
+                        <input placeholder="Add note..." value={noteInputs[item.deviceId] || ""} onChange={(e) => setNoteInputs(prev => ({...prev, [item.deviceId]: e.target.value}))} style={{ ...inputStyle, flex: 1, backgroundColor: '#1c1c1e', padding: '4px 8px', fontSize: '12px', borderRadius: '6px' }} />
+                        <button onClick={() => addNote(item.deviceId, item.timestamp, noteInputs[item.deviceId])} style={{ ...primaryButtonStyle, padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }}>Post</button>
                     </div>
                   </div>
                 </div>
@@ -1749,8 +1749,8 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
       {/* STANDARD LEGAL FOOTER */}
       <div className="no-print" style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", padding: "20px 32px", backgroundColor: "#121212", color: "#86868b", fontSize: "12px", width: "100%", boxSizing: "border-box" }}>
         <div style={{ display: "flex", gap: "24px", justifyContent: "flex-start", fontWeight: "500" }}>
-            <span onClick={() => alert("Privacy Policy: Kinetic Tracking collects real-time geolocation data, network anchors, and operational telemetry to ensure asset security. All tracking logs are stored securely and never shared or sold.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color = "#fff"} onMouseLeave={(e) => e.target.style.color = "#86868b"}>Privacy Policy</span>
-            <span onClick={() => alert("Terms of Service: By accessing the Kinetic Tracking system, you agree to use it solely for tracking authorized company hardware. Unauthorized location spoofing, watchdog manipulation, or tampering with device telemetry is strictly prohibited.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.target.style.color = "#fff"} onMouseLeave={(e) => e.target.style.color = "#86868b"}>Terms of Service</span>
+            <span onClick={() => alert("Privacy Policy: Kinetic Tracking collects real-time geolocation data, network anchors, and operational telemetry to ensure asset security. All tracking logs are stored securely and never shared or sold.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#fff"} onMouseLeave={(e) => e.currentTarget.style.color = "#86868b"}>Privacy Policy</span>
+            <span onClick={() => alert("Terms of Service: By accessing the Kinetic Tracking system, you agree to use it solely for tracking authorized company hardware. Unauthorized location spoofing, watchdog manipulation, or tampering with device telemetry is strictly prohibited.")} style={{ cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#fff"} onMouseLeave={(e) => e.currentTarget.style.color = "#86868b"}>Terms of Service</span>
         </div>
         <div style={{ textAlign: "center" }}>
             Kinetic Cards v2.1
