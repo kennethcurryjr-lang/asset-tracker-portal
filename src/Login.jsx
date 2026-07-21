@@ -20,6 +20,19 @@ export default function Login({ onLoginSuccess }) {
       });
 
       if (isSignedIn) {
+        // Explicitly trigger browser password manager store if supported
+        if (window.PasswordCredential && navigator.credentials) {
+          try {
+            const cred = new window.PasswordCredential({
+              id: email,
+              password: password,
+              name: email
+            });
+            await navigator.credentials.store(cred);
+          } catch (cErr) {
+            console.log('Credential save skipped:', cErr);
+          }
+        }
         if (onLoginSuccess) {
           onLoginSuccess();
         } else {
