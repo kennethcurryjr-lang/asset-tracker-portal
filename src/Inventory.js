@@ -294,8 +294,7 @@ export default function Inventory({ user }) {
   const userGroups = user?.profile?.['cognito:groups'] || [];
   const isAdmin = uTenant === 'GLOBAL_ADMIN' || userGroups.includes('Admins') || userGroups.includes('Admin');
   const userClientId = uTenant;
-
-  const filteredStock = stock.filter(item => {
+const filteredStock = stock.filter(item => {
     // Admin override or explicit clientId ownership match
     if (isAdmin) return true;
     return item.clientId === userClientId;
