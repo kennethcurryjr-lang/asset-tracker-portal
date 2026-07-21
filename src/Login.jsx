@@ -197,15 +197,11 @@ export default function Login({ onLoginSuccess }) {
       }}>
         {/* LOGO HEADER */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '32px' }}>
-          <svg width="60" height="50" viewBox="0 0 100 85" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.5))' }}>
-            <path d="M50 5 L95 25 L50 45 L5 25 Z" fill="#0052cc" />
-            <path d="M50 25 L95 45 L50 65 L5 45 Z" fill="#007aff" />
-            <path d="M35 25 L60 25 L60 15 L85 35 L60 55 L60 45 L35 45 Z" fill="#ffffff" />
-          </svg>
-          <div style={{ display: 'flex', gap: '6px', marginTop: '12px', fontSize: '20px', fontWeight: '900', letterSpacing: '0.5px' }}>
-            <span style={{ color: '#ffffff' }}>KINETIC</span>
-            <span style={{ color: '#ffcc00' }}>CARDS<span style={{ fontSize: '11px', verticalAlign: 'super', marginLeft: '2px' }}>™</span></span>
-          </div>
+          <img 
+  src="/CSGroup_Logo_Main_White.webp" 
+  alt="Kinetic Assets" 
+  style={{ height: '75px', objectFit: 'contain', filter: 'drop-shadow(0px 4px 12px rgba(0,0,0,0.5))' }} 
+/>
         </div>
 
         {/* FEEDBACK MESSAGES */}
