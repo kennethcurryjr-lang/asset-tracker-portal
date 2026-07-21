@@ -290,8 +290,10 @@ export default function Inventory({ user }) {
   const lowStockItems = stock.filter(item => item.quantity < 50);
 
 
-  const userClientId = user?.attributes?.["custom:clientId"] || auth?.user?.profile?.["custom:clientId"];
-  const isAdmin = user?.signInUserSession?.idToken?.payload?.["cognito:groups"]?.includes("Admin");
+  const uTenant = user?.profile?.['custom:tenant_id'] || user?.profile?.['custom:clientId'] || 'GLOBAL_ADMIN';
+  const userGroups = user?.profile?.['cognito:groups'] || [];
+  const isAdmin = uTenant === 'GLOBAL_ADMIN' || userGroups.includes('Admins') || userGroups.includes('Admin');
+  const userClientId = uTenant;
 
   const filteredStock = stock.filter(item => {
     // Admin override or explicit clientId ownership match
