@@ -1,9 +1,7 @@
 import "leaflet/dist/leaflet.css";
 /* eslint-disable no-unused-vars */
 import { getClientId } from './authUtils';
-import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
-import { useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
@@ -1384,7 +1382,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                         setSelectedDevices(prev => Array.from(new Set([...prev, ...visibleIds])));
                       }
                     }}
-                    style={{ width: '15px', height: '15px', accentcolor: '#ffffff', cursor: 'pointer' }} 
+                    style={{ width: '15px', height: '15px', accentColor: '#ffffff', cursor: 'pointer' }} 
                   />
                   Select All Visible ({filteredAssets.length})
                 </label>
@@ -1463,7 +1461,7 @@ const setHomeLocation = async (deviceId, timestamp, lat, lon) => {
                     {/* Left Hand Data Block */}
                     <div className="card-column-left-telemetry">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <input type="checkbox" checked={selectedDevices.includes(item.deviceId)} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId) ? prev.filter(i => i !== item.deviceId) : [...prev, item.deviceId])} style={{ width: '16px', height: '16px', accentcolor: '#ffffff', cursor: 'pointer' }} />
+                        <input type="checkbox" checked={selectedDevices.includes(item.deviceId)} onChange={() => setSelectedDevices(prev => prev.includes(item.deviceId) ? prev.filter(i => i !== item.deviceId) : [...prev, item.deviceId])} style={{ width: '16px', height: '16px', accentColor: '#ffffff', cursor: 'pointer' }} />
                         <div style={{ fontSize: '15px', fontWeight: '600', color: '#ffffff', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>
                             {item.tag ? item.tag : 'UNNAMED'}
                         </div>
