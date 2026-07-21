@@ -1,4 +1,20 @@
-import React, { useState, useEffect } from 'react';
+const fs = require('fs');
+const path = require('path');
+
+const targetPath = path.join(__dirname, 'src', 'App.js');
+const backupPath = path.join(__dirname, 'src', 'App.js.bak');
+
+if (!fs.existsSync(targetPath)) {
+  console.error(`❌ Error: Could not find ${targetPath}`);
+  process.exit(1);
+}
+
+// 1. Create a backup of App.js
+fs.copyFileSync(targetPath, backupPath);
+console.log(`📦 Created backup at src/App.js.bak`);
+
+// 2. Prepare new App.js content
+const newAppContent = `import React, { useState, useEffect } from 'react';
 import { getCurrentUser, signOut } from 'aws-amplify/auth';
 import Login from './Login';
 
@@ -56,3 +72,8 @@ export default function App() {
     </div>
   );
 }
+`;
+
+// 3. Write updated content to src/App.js
+fs.writeFileSync(targetPath, newAppContent, 'utf8');
+console.log(`✅ Successfully patched src/App.js!`);
