@@ -1,4 +1,20 @@
-import React, { useState } from 'react';
+const fs = require('fs');
+const path = require('path');
+
+const targetPath = path.join(__dirname, 'src', 'Login.jsx');
+const backupPath = path.join(__dirname, 'src', 'Login.jsx.bak');
+
+if (!fs.existsSync(targetPath)) {
+  console.error(`❌ Error: Could not find ${targetPath}`);
+  process.exit(1);
+}
+
+// 1. Create a backup of Login.jsx
+fs.copyFileSync(targetPath, backupPath);
+console.log(`📦 Created backup at src/Login.jsx.bak`);
+
+// 2. Upgraded Glassmorphism & Animated Cyberpunk Login UI
+const upgradedLoginContent = `import React, { useState } from 'react';
 import { signIn } from 'aws-amplify/auth';
 
 export default function Login({ onLoginSuccess }) {
@@ -73,7 +89,7 @@ export default function Login({ onLoginSuccess }) {
       }} />
 
       {/* Global CSS for Animations and Custom Focus States */}
-      <style>{`
+      <style>{\`
         @keyframes kineticShimmer {
           0% { background-position: 200% center; }
           100% { background-position: -200% center; }
@@ -126,7 +142,7 @@ export default function Login({ onLoginSuccess }) {
           opacity: 0.6;
           cursor: not-allowed;
         }
-      `}</style>
+      \`}</style>
 
       {/* Main Glass Card Wrapper */}
       <div style={{
@@ -189,7 +205,7 @@ export default function Login({ onLoginSuccess }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 600, color: '#94a3b8', letterSpacing: '0.3px' }}>PASSWORD</label>
+            <label style={{ fontSize: '13px', fontWeight 600, color: '#94a3b8', letterSpacing: '0.3px' }}>PASSWORD</label>
             <input 
               type="password" 
               className="glass-input"
@@ -228,3 +244,8 @@ export default function Login({ onLoginSuccess }) {
     </div>
   );
 }
+`;
+
+// 3. Write updated content to src/Login.jsx
+fs.writeFileSync(targetPath, upgradedLoginContent, 'utf8');
+console.log(`✅ Successfully upgraded src/Login.jsx with Glassmorphism UI!`);
