@@ -459,7 +459,7 @@ export default function LandingPage({ onLoginClick }) {
   const [selectedZone, setSelectedZone] = useState("Cooler Bay-01");
 
   const handleDemoClick = () => {
-    window.location.href = "mailto:admin@titanassets.dev?subject=Kinetic%20Cards%20Demo%20Request&body=Hi%20Kinetic%20Team,%20I'd%20like%20to%20schedule%20a%20demo%20of%20Kinetic%20Cards.";
+    window.location.href = "mailto:sale@titanassets.dev?subject=Kinetic%20Cards%20Demo%20Request&body=Hi%20Kinetic%20Team,%20I'd%20like%20to%20schedule%20a%20demo%20of%20Kinetic%20Cards.";
   };
 
   return (
