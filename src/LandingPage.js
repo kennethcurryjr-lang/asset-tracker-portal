@@ -231,6 +231,9 @@ function DemoKineticCard() {
 
 
 
+
+
+
 function DemoAssetCard() {
   const [isFlipped, setIsFlipped] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('service');
@@ -255,9 +258,19 @@ function DemoAssetCard() {
 
   return (
     <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', height: '340px', margin: '0 auto' }}>
+      <style>{`
+        @keyframes yellowPulse {
+          0% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.8); }
+          70% { box-shadow: 0 0 0 10px rgba(255, 204, 0, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); }
+        }
+        .checkout-pulse-btn {
+          animation: yellowPulse 2s infinite ease-in-out;
+        }
+      `}</style>
       <div className={isFlipped ? "card-flipper flipped" : "card-flipper"} style={{ height: '100%' }}>
         
-        {/* FRONT FACE (1:1 Tools.js Asset Card) */}
+        {/* FRONT FACE */}
         <div className="card-face card-front" style={{ 
           height: '100%',
           padding: '20px', 
@@ -277,12 +290,12 @@ function DemoAssetCard() {
               fontWeight: '700', 
               padding: '4px 8px', 
               borderRadius: '4px', 
-              backgroundColor: 'rgba(239,68,68,0.15)', 
-              color: '#ef4444', 
+              backgroundColor: 'rgba(16,185,129,0.15)', 
+              color: '#10b981', 
               letterSpacing: '0.05em' 
             }}>
-              <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', marginRight: '6px', backgroundColor: '#ef4444' }}></span>
-              SERVICE DUE
+              <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', marginRight: '6px', backgroundColor: '#10b981' }}></span>
+              IN-STOCK
             </span>
             <span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600' }}>[ CAT-00482 ]</span>
           </div>
@@ -296,8 +309,23 @@ function DemoAssetCard() {
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#9ca3af', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'not-allowed' }}>
-              LOCKED
+            <button 
+              className="checkout-pulse-btn"
+              onClick={() => setIsFlipped(true)}
+              style={{ 
+                flex: 1, 
+                padding: '10px', 
+                borderRadius: '8px', 
+                backgroundColor: '#ffcc00', 
+                color: '#0a1b35', 
+                border: 'none', 
+                fontWeight: '800', 
+                fontSize: '12px', 
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              CHECK OUT
             </button>
             <button onClick={() => setIsFlipped(true)} style={{ padding: '10px 16px', borderRadius: '8px', backgroundColor: 'transparent', color: '#0052cc', border: '1px solid #0052cc', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
               Flip ⤹
@@ -305,7 +333,7 @@ function DemoAssetCard() {
           </div>
         </div>
 
-        {/* BACK FACE (1:1 Tools.js Back Face) */}
+        {/* BACK FACE */}
         <div className="card-face card-back" style={{ 
           height: '100%',
           padding: '16px', 
