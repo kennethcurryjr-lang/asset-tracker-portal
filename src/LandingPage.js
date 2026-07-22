@@ -592,61 +592,132 @@ export default function LandingPage({ onLoginClick }) {
               </ul>
             </div>
 
+            
+            {/* FULL 1:1 KINETIC INVENTORY DEMO CARD */}
             <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>
               <div className={inventoryFlipped ? "card-flipper flipped" : "card-flipper"}>
-                <div className="card-face card-front" style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', fontWeight: '800' }}>Citrus Springs</span>
-                    <span style={{ backgroundColor: 'rgba(16,185,129,0.15)', color: '#10b981', padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '800' }}>🟢 PICK FIRST</span>
-                  </div>
-
-                  <div>
-                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#0a1b35' }}>100% Orange Juice Concentrate</div>
-                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>Lot: LOT-2026-01 • Exp: Oct 15, 2026</div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {["Cooler Bay-01", "Dry Aisle-03"].map(zone => (
-                      <button key={zone} onClick={() => setSelectedZone(zone)} style={{ padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', border: selectedZone === zone ? '1px solid #0052cc' : '1px solid #d1d5db', backgroundColor: selectedZone === zone ? 'rgba(0,82,204,0.1)' : '#f3f4f6', color: selectedZone === zone ? '#0052cc' : '#6b7280', cursor: 'pointer' }}>
-                        📍 {zone}
+                
+                {/* 🟢 FRONT SIDE (FULL DATA MODEL) */}
+                <div className="card-face card-front" style={{ 
+                  backgroundColor: '#ffffff', 
+                  border: '1px solid #d1d5db', 
+                  borderRadius: '16px', 
+                  padding: '20px', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '14px', 
+                  boxShadow: '0 12px 30px rgba(0,0,0,0.3)',
+                  color: '#0a1b35',
+                  boxSizing: 'border-box'
+                }}>
+                  {/* TOP HEADER ROW */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em', textTransform: 'uppercase' }}>COOL ATTITUDES</div>
+                      <div style={{ fontSize: '18px', fontWeight: '800', color: '#0a1b35', marginTop: '2px', lineHeight: '1.2' }}>Strawberry Daiquiri</div>
+                      <div style={{ fontSize: '13px', fontWeight: '800', color: '#10b981', marginTop: '6px' }}>114 BOXES IN STOCK</div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                      <button 
+                        className="flip-pulse-btn"
+                        onClick={() => setInventoryFlipped(true)} 
+                        style={{ 
+                          backgroundColor: 'transparent', 
+                          color: '#007aff', 
+                          border: '1px solid #007aff', 
+                          borderRadius: '8px', 
+                          padding: '6px 14px', 
+                          fontWeight: '800', 
+                          fontSize: '12px', 
+                          cursor: 'pointer', 
+                          marginBottom: '2px' 
+                        }}
+                      >
+                        Flip ⤹
                       </button>
-                    ))}
-                  </div>
-
-                  <div style={{ fontSize: '32px', fontWeight: '800', color: '#0a1b35', margin: '10px 0' }}>
-                    {stockQty} <span style={{ fontSize: '14px', color: '#6b7280' }}>Boxes</span>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-                    <button onClick={() => setStockQty(stockQty + 10)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>+ Receive</button>
-                    <button onClick={() => setStockQty(Math.max(0, stockQty - 10))} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#fff', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>- Ship</button>
-                    <button onClick={() => setInventoryFlipped(true)} style={{ padding: '12px 14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: 'transparent', color: '#4b5563', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>Flip ⤹</button>
-                  </div>
-                </div>
-
-                <div className="card-face card-back" style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', borderRadius: '16px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#0052cc' }}>📊 Velocity & Labels</span>
-                    <button onClick={() => setInventoryFlipped(false)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px' }}>✕</button>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '24px' }}>
-                    <div style={{ backgroundColor: '#f3f4f6', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
-                      <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '700' }}>30-DAY BURN</div>
-                      <div style={{ fontSize: '18px', fontWeight: '800', color: '#0a1b35' }}>75 bx</div>
-                    </div>
-                    <div style={{ backgroundColor: '#f3f4f6', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
-                      <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '700' }}>90-DAY BURN</div>
-                      <div style={{ fontSize: '18px', fontWeight: '800', color: '#0a1b35' }}>225 bx</div>
+                      <div style={{ fontSize: '10px', color: '#6b7280', backgroundColor: '#f3f4f6', padding: '3px 6px', borderRadius: '6px', border: '1px solid #d1d5db', fontWeight: '600' }}>Lot: LOT-2026-17</div>
+                      <div style={{ fontSize: '10px', color: '#d97706', fontWeight: '700' }}>Exp: 2027-08-01</div>
                     </div>
                   </div>
 
-                  <div style={{ backgroundColor: '#fff', color: '#000', padding: '16px', borderRadius: '8px', textAlign: 'center', border: '2px dashed #d1d5db', marginTop: 'auto' }}>
-                    <div style={{ fontSize: '12px', fontWeight: '800', marginBottom: '4px' }}>CITRUS SPRINGS — ORANGE JUICE</div>
-                    <div style={{ fontSize: '10px', fontFamily: 'monospace', color: '#4b5563' }}>UPC: 082123456781 • ZONE: {selectedZone}</div>
-                    <button style={{ marginTop: '12px', padding: '8px', width: '100%', backgroundColor: '#0a1b35', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>Print 4x6 Label</button>
+                  {/* PACKAGING BADGE */}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', backgroundColor: '#f3f4f6', color: '#4b5563', borderRadius: '8px', border: '1px solid #d1d5db' }}>
+                      📦 1G Jug Case
+                    </span>
+                  </div>
+
+                  {/* PIPELINE HEALTH METER */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '10px 0', borderTop: '1px solid #e5e7eb' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pipeline Health</span>
+                      <span style={{ fontSize: '11px', color: '#10b981', fontWeight: '800' }}>38 Days Supply</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', backgroundColor: '#f3f4f6', borderRadius: '4px', overflow: 'hidden', border: '1px solid #d1d5db' }}>
+                      <div style={{ width: '42%', height: '100%', backgroundColor: '#10b981', borderRadius: '4px' }}></div>
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#9ca3af', textAlign: 'right', marginTop: '4px', fontWeight: '600' }}>Target: 273 bx</div>
+                  </div>
+
+                  {/* FOOTER: LOCATIONS & IN STOCK */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '10px', borderTop: '1px solid #e5e7eb' }}>
+                    <div>
+                      <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Active Locations</div>
+                      <div style={{ fontSize: '12px', color: '#0052cc', fontWeight: '700' }}>
+                        📍 Dry Aisle A <span style={{ color: '#6b7280', fontSize: '11px' }}>(114bx)</span>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>In Stock</div>
+                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#10b981', lineHeight: '1' }}>
+                        114 <span style={{ fontSize: '12px', fontWeight: '700', color: '#6b7280' }}>box</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+                {/* 🔵 BACK SIDE (VELOCITY & PRINT ENGINE) */}
+                <div className="card-face card-back" style={{ 
+                  backgroundColor: '#ffffff', 
+                  border: '1px solid #d1d5db', 
+                  borderRadius: '16px', 
+                  padding: '20px', 
+                  boxShadow: '0 12px 30px rgba(0,0,0,0.3)',
+                  color: '#0a1b35',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justify: 'space-between',
+                  boxSizing: 'border-box'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: '800', color: '#0052cc' }}>📊 Historical Velocity</span>
+                    <button onClick={() => setInventoryFlipped(false)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>✕</button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', margin: '10px 0' }}>
+                    <div style={{ backgroundColor: '#f3f4f6', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
+                      <div style={{ fontSize: '9px', color: '#6b7280', fontWeight: '800' }}>30-DAY BURN</div>
+                      <div style={{ fontSize: '16px', fontWeight: '800', color: '#0a1b35' }}>91 bx</div>
+                    </div>
+                    <div style={{ backgroundColor: '#f3f4f6', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
+                      <div style={{ fontSize: '9px', color: '#6b7280', fontWeight: '800' }}>90-DAY BURN</div>
+                      <div style={{ fontSize: '16px', fontWeight: '800', color: '#0a1b35' }}>273 bx</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                    <button onClick={() => setStockQty(stockQty + 10)} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #10b981', backgroundColor: 'rgba(16,185,129,0.1)', color: '#10b981', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>RCV</button>
+                    <button onClick={() => setStockQty(Math.max(0, stockQty - 10))} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #ef4444', backgroundColor: 'rgba(239,68,68,0.1)', color: '#ef4444', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>SHP</button>
+                    <button style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #0052cc', backgroundColor: 'rgba(0,82,204,0.1)', color: '#0052cc', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>TFR</button>
+                  </div>
+
+                  <div style={{ backgroundColor: '#fff', color: '#000', padding: '12px', borderRadius: '8px', textAlign: 'center', border: '2px dashed #d1d5db' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '800', marginBottom: '2px' }}>COOL ATTITUDES — STRAWBERRY DAIQUIRI</div>
+                    <div style={{ fontSize: '9px', fontFamily: 'monospace', color: '#4b5563' }}>UPC: 082123456788 • ZNE: Dry Aisle A</div>
+                    <button style={{ marginTop: '8px', padding: '6px', width: '100%', backgroundColor: '#0a1b35', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '10px', fontWeight: '800', cursor: 'pointer' }}>🖨️ Send to Zebra Printer</button>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
