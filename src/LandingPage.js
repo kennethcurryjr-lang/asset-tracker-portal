@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { 
-  Navigation, Cpu, WifiOff, ShieldCheck, 
-  Wrench, Boxes, ArrowRight, CheckCircle2, 
-  Zap, Mail, Printer, AlertTriangle, RotateCw, FileText, Plus, Camera, Lock
+  Navigation, Cpu, 
+  Wrench, Boxes,  
+  Zap, Mail
 } from "lucide-react";
 
 export default function LandingPage({ onLoginClick }) {
@@ -20,12 +20,12 @@ export default function LandingPage({ onLoginClick }) {
   const [toolHours, setToolHours] = useState(254);
   const [toolChecklist, setToolChecklist] = useState({ step1: false, step2: false, step3: false });
   const [toolStatus, setToolStatus] = useState("SERVICE_REQUIRED");
-  const [custodySignature, setCustodySignature] = useState("");
+  
 
   // --- 3. KINETIC INVENTORY CARD STATE ---
   const [stockQty, setStockQty] = useState(420);
   const [selectedZone, setSelectedZone] = useState("Cooler Bay-01");
-  const [showZebraPreview, setShowZebraPreview] = useState(false);
+  
 
   const handleDemoClick = () => {
     window.location.href = "mailto:admin@titanassets.dev?subject=Kinetic%20Cards%20Demo%20Request&body=Hi%20Kinetic%20Team,%20I'd%20like%20to%20schedule%20a%20demo%20of%20Kinetic%20Cards.";

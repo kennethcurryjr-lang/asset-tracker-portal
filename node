@@ -1,0 +1,46 @@
+const fs = require('fs');
+const path = require('path');
+
+const appJsPath = path.join(__dirname, 'src', 'App.js');
+let content = fs.readFileSync(appJsPath, 'utf8');
+
+// 1. Remove the admin toggle state variable
+content = content.replace(/\n\s*const \[showAllCompanyFleets, setShowAllCompanyFleets\] = useState\(false\); \/\/ 🔍 Admin toggle hatch/g, '');
+
+// 2. Revert fetchDevices to a clean state
+// This removes the "backdoor" scan and restores a standard fetch behavior
+const sandboxedFetchBlock = `      if (isGlobalAdmin && showAllCompanyFleets) {
+        // 🔓 EMERGENCY BACKDOOR: Run full database sweep only when toggle is explicitly flipped active
+        const scanResponse = await docClient.send(new ScanCommand({ TableName: "AssetTrackerData" }));
+        items = (scanResponse.Items || []).filter(i => i.timestamp === "LATEST");
+      } else {
+        // 🔒 DEFAULT DEV & CLIENT WORKSPACE: Targeted index queries keep data completely isolated
+        const queryResponse = await docClient.send(new QueryCommand({
+          TableName: "AssetTrackerData",
+          IndexName: "clientId-index",
+          KeyConditionExpression: "clientId = :cid AND #ts = :ts",
+          ExpressionAttributeNames: { "#ts": "timestamp" },
+          ExpressionAttributeValues: { ":cid": userTenant, ":ts": "LATEST" }
+        }));
+        items = queryResponse.Items || [];
+      }`;
+
+const restoredFetchBlock = `      const queryResponse = await docClient.send(new QueryCommand({
+        TableName: "AssetTrackerData",
+        IndexName: "clientId-index",
+        KeyConditionExpression: "clientId = :cid AND #ts = :ts",
+        ExpressionAttributeNames: { "#ts": "timestamp" },
+        ExpressionAttributeValues: { 
+          ":cid": userTenant,
+          ":ts": "LATEST" 
+        }
+      }));
+      items = queryResponse.Items || [];`;
+
+content = content.replace(sandboxedFetchBlock, restoredFetchBlock);
+
+// 3. Remove the button from the UI tray
+content = content.replace(/\n\s*\{isSuperAdmin && \(\s*<button[\s\S]*?<\/button>\s*\)\}/g, '');
+
+fs.writeFileSync(appJsPath, content, 'utf8');
+console.log('✅ UI clutter removed and fetch logic restored to clean state.');
