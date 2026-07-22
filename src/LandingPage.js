@@ -532,9 +532,16 @@ export default function LandingPage({ onLoginClick }) {
             <div>
               <div style={{ color: "#007aff", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 02</div>
               <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>Kinetic Assets & Chain-of-Custody</h2>
-              <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "24px", fontSize: "15px" }}>
-                Complete asset records with tag numbers, serial tracking, preventative maintenance hour limits, and e-signature custody handoff workflows.
+              <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "16px", fontSize: "15px" }}>
+                Complete high-value equipment management and field liability tracking. Kinetic Assets combines AI-generated servicing protocols with immutable digital handoffs.
               </p>
+              <ul style={{ color: "#86868b", lineHeight: "1.8", marginBottom: "24px", fontSize: "14px", paddingLeft: "20px", margin: "0 0 24px 0" }}>
+                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Chain-of-Custody E-Signatures:</strong> Require field technicians to draw e-signatures, verify custom manifests, and upload condition photos prior to tool dispatch.</li>
+                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>AI-Generated PM Checklists:</strong> AWS Bedrock automatically builds custom preventative maintenance checklists based on asset make, model, and category.</li>
+                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Preventative Maintenance Locks:</strong> Automatically lock overdue tools from field checkout until certified maintenance is logged and timers are reset.</li>
+                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Instant QR Code Scanning:</strong> Print and scan unique asset QR codes for rapid touchless custody transfers and inventory audits.</li>
+                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Immutable Master Ledger:</strong> Maintain a complete, audit-ready history of all checkouts, returns, repairs, and financial valuations across the entire fleet.</li>
+              </ul>
             </div>
 
             <div style={{ flex: "1 1 350px", maxWidth: "380px", width: "100%", margin: "0 auto" }}>
