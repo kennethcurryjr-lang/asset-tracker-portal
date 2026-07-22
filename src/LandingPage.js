@@ -198,71 +198,77 @@ export default function LandingPage({ onLoginClick }) {
           </div>
         )}
 
-        {/* TAB 2: TRUE KINETIC TOOLS CARD (FULL DISPLAY - NO COLLAPSING) */}
+        {/* TAB 2: TRUE KINETIC TOOLS CARD (FULL APP CARD LAYOUT) */}
         {activeTab === "tools" && (
           <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "24px", padding: "48px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "48px", alignItems: "start" }}>
             <div>
               <div style={{ color: "#007aff", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 02</div>
-              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>Kinetic Tools & AI PM Checklists</h2>
+              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>Kinetic Assets & Chain-of-Custody</h2>
               <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "24px", fontSize: "15px" }}>
-                Complete asset record with tag number, serial tracking, preventative maintenance hour limits, and AWS Bedrock AI checklists fully accessible.
+                Complete asset matrix with multi-metric preventative maintenance tracking, smart checklists, manifests, and secure deployment logs.
               </p>
             </div>
 
-            <div className="full-feature-card">
+            <div className="full-feature-card" style={{ backgroundColor: '#ffffff', color: '#0a1b35', border: '1px solid #d1d5db', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+              
+              {/* Card Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '11px', fontWeight: '800', color: toolStatus === "SERVICE_REQUIRED" ? '#ff3b30' : '#34c759', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? 'rgba(255,59,48,0.15)' : 'rgba(52,199,89,0.15)', padding: '4px 10px', borderRadius: '6px' }}>
-                  {toolStatus === "SERVICE_REQUIRED" ? '⚠️ SERVICE OVERDUE' : '🟢 OPERATIONAL'}
+                <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '4px', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)', color: toolStatus === "SERVICE_REQUIRED" ? '#ef4444' : '#10b981' }}>
+                  <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', marginRight: '6px', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? '#ef4444' : '#10b981' }}></span>
+                  {toolStatus === "SERVICE_REQUIRED" ? 'SERVICE DUE' : 'OPERATIONAL'}
                 </span>
-                <span style={{ fontSize: '12px', color: '#86868b', fontWeight: '700' }}>Tag # 00482</span>
+                <span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600' }}>[ CAT-259D3 ]</span>
               </div>
-
+              
+              {/* Asset Title & Subtitle */}
               <div>
-                <div style={{ fontSize: '20px', fontWeight: '800', color: '#fff' }}>Kinetic Heavy Asset & Tool Node</div>
-                <div style={{ fontSize: '12px', color: '#007aff', marginTop: '2px' }}>Type: Heavy Equipment • Custody: Field Tech Assigned</div>
+                <div style={{ fontSize: '18px', fontWeight: '700', color: '#0a1b35' }}>Caterpillar Track Loader</div>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', fontWeight: '600' }}>Assigned: Field Operations</div>
               </div>
 
-              <div style={{ backgroundColor: '#161618', padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                  <div style={{ fontSize: '9px', color: '#86868b', fontWeight: '700' }}>HOURS METER</div>
-                  <div style={{ fontSize: '18px', fontWeight: '800', color: toolHours >= 250 ? '#ff3b30' : '#34c759' }}>
-                    {toolHours} <span style={{ fontSize: '11px', color: '#86868b' }}>/ 250 hrs</span>
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '9px', color: '#86868b', fontWeight: '700' }}>REPLACEMENT VAL</div>
-                  <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff' }}>$65,000</div>
-                </div>
+              {/* Interactive Tabs inside the Card (PM, MANIFEST, QR, INFO) */}
+              <div style={{ display: 'flex', gap: '4px', backgroundColor: '#e5e7eb', padding: '4px', borderRadius: '8px' }}>
+                <button style={{ flex: 1, padding: '6px', fontSize: '11px', fontWeight: '700', borderRadius: '6px', border: 'none', backgroundColor: '#0052cc', color: '#ffffff', cursor: 'pointer' }}>PM</button>
+                <button style={{ flex: 1, padding: '6px', fontSize: '11px', fontWeight: '700', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#6b7280', cursor: 'pointer' }}>MANIFEST</button>
+                <button style={{ flex: 1, padding: '6px', fontSize: '11px', fontWeight: '700', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#6b7280', cursor: 'pointer' }}>QR</button>
+                <button style={{ flex: 1, padding: '6px', fontSize: '11px', fontWeight: '700', borderRadius: '6px', border: 'none', backgroundColor: 'transparent', color: '#6b7280', cursor: 'pointer' }}>INFO</button>
               </div>
 
-              {/* ALWAYS-OPEN AI CHECKLIST */}
-              <div style={{ backgroundColor: '#161618', padding: '14px', borderRadius: '8px', border: '1px solid #2d2d2f' }}>
-                <div style={{ fontSize: '12px', fontWeight: '800', color: '#007aff', marginBottom: '8px' }}>🤖 AWS Bedrock AI PM Checklist</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={toolChecklist.step1} onChange={e => setToolChecklist({...toolChecklist, step1: e.target.checked})} />
-                    Verify hydraulic line pressure
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={toolChecklist.step2} onChange={e => setToolChecklist({...toolChecklist, step2: e.target.checked})} />
-                    Inspect and repack grease points
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={toolChecklist.step3} onChange={e => setToolChecklist({...toolChecklist, step3: e.target.checked})} />
-                    Test emergency stop switch
-                  </label>
+              {/* Hours Meter & Interval */}
+              <div style={{ backgroundColor: '#f3f4f6', padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
+                <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>HOURS INTERVAL</div>
+                <div style={{ fontSize: '22px', fontWeight: '800', color: toolHours >= 250 ? '#ef4444' : '#0a1b35', marginTop: '2px' }}>
+                  {toolHours} / 250 <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: '600' }}>HOURS</span>
                 </div>
               </div>
 
+              {/* Interactive PM Checklist */}
+              <div style={{ backgroundColor: '#f3f4f6', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '800', color: '#0052cc' }}>🤖 AWS Bedrock AI Checklist</div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#374151', cursor: 'pointer', fontWeight: '600', margin: 0 }}>
+                  <input type="checkbox" checked={toolChecklist.step1} onChange={e => setToolChecklist({...toolChecklist, step1: e.target.checked})} style={{ width: '14px', height: '14px', accentColor: '#374151' }} />
+                  Hydraulic line pressure check
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#374151', cursor: 'pointer', fontWeight: '600', margin: 0 }}>
+                  <input type="checkbox" checked={toolChecklist.step2} onChange={e => setToolChecklist({...toolChecklist, step2: e.target.checked})} style={{ width: '14px', height: '14px', accentColor: '#374151' }} />
+                  Inspect and repack grease points
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#374151', cursor: 'pointer', fontWeight: '600', margin: 0 }}>
+                  <input type="checkbox" checked={toolChecklist.step3} onChange={e => setToolChecklist({...toolChecklist, step3: e.target.checked})} style={{ width: '14px', height: '14px', accentColor: '#374151' }} />
+                  Test emergency stop switch
+                </label>
+              </div>
+
+              {/* Action Button */}
               <button 
                 disabled={!toolChecklist.step1 || !toolChecklist.step2 || !toolChecklist.step3}
                 onClick={() => {
                   setToolHours(120);
                   setToolStatus("OPERATIONAL");
                 }}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: (toolChecklist.step1 && toolChecklist.step2 && toolChecklist.step3) ? '#34c759' : '#3a3a3c', color: '#fff', fontSize: '12px', fontWeight: '800', cursor: 'pointer' }}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: (toolChecklist.step1 && toolChecklist.step2 && toolChecklist.step3) ? '#10b981' : '#9ca3af', color: '#fff', fontSize: '13px', fontWeight: '800', cursor: 'pointer', transition: 'all 0.2s' }}
               >
-                {(toolChecklist.step1 && toolChecklist.step2 && toolChecklist.step3) ? 'Complete Service & Unlock Tool' : 'Complete Checklist to Unlock'}
+                {(toolChecklist.step1 && toolChecklist.step2 && toolChecklist.step3) ? 'Log PM Service & Reset Hours' : 'Complete Checklist to Unlock Service'}
               </button>
             </div>
           </div>
