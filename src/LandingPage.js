@@ -218,8 +218,8 @@ export default function LandingPage({ onLoginClick }) {
               </div>
 
               <div>
-                <div style={{ fontSize: '20px', fontWeight: '800', color: '#fff' }}>Caterpillar Track Loader</div>
-                <div style={{ fontSize: '12px', color: '#007aff', marginTop: '2px' }}>Model: CAT-259D3 • Serial: C2L99201</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: '#fff' }}>Kinetic Heavy Asset & Tool Node</div>
+                <div style={{ fontSize: '12px', color: '#007aff', marginTop: '2px' }}>Type: Heavy Equipment • Custody: Field Tech Assigned</div>
               </div>
 
               <div style={{ backgroundColor: '#161618', padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
