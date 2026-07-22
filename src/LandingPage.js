@@ -8,19 +8,19 @@ import {
 export default function LandingPage({ onLoginClick }) {
   const [activeTab, setActiveTab] = useState("tracking");
 
-  // --- CARD 1: TRACKING INTERACTIVE STATE ---
+  // --- STANDALONE CARD 1: TRACKING INTERACTIVE STATE ---
   const [trackingFlipped, setTrackingFlipped] = useState(false);
   const [watchdogActive, setWatchdogActive] = useState(true);
   const [hasAnchor, setHasAnchor] = useState(true);
-  const [shareSimulated, setShareFlipped] = useState(false);
+  const [shareSimulated, setShareSimulated] = useState(false);
 
-  // --- CARD 2: TOOLS INTERACTIVE STATE ---
+  // --- STANDALONE CARD 2: TOOLS INTERACTIVE STATE ---
   const [toolsFlipped, setToolsFlipped] = useState(false);
   const [toolHours, setToolHours] = useState(254);
   const [toolChecklist, setToolChecklist] = useState({ step1: false, step2: false, step3: false });
   const [toolStatus, setToolStatus] = useState("SERVICE_REQUIRED");
 
-  // --- CARD 3: INVENTORY INTERACTIVE STATE ---
+  // --- STANDALONE CARD 3: INVENTORY INTERACTIVE STATE ---
   const [inventoryFlipped, setInventoryFlipped] = useState(false);
   const [stockQty, setStockQty] = useState(420);
   const [showZebraPreview, setShowZebraPreview] = useState(false);
@@ -53,7 +53,7 @@ export default function LandingPage({ onLoginClick }) {
           100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
         }
         .live-pulse-dot {
-          width: 8px; height: 8px; background-color: #34c759; borderRadius: 50%; display: inline-block; animation: radar-pulse-glow 2s infinite ease-in-out;
+          width: 8px; height: 8px; background-color: #34c759; border-radius: 50%; display: inline-block; animation: radar-pulse-glow 2s infinite ease-in-out;
         }
       `}</style>
 
@@ -132,7 +132,7 @@ export default function LandingPage({ onLoginClick }) {
           fontSize: "18px", color: "#86868b", lineHeight: "1.6",
           marginBottom: "40px", maxWidth: "780px", margin: "0 auto 40px auto"
         }}>
-          Test drive our live micro-cards below! Deploy all three integrated suites or select strictly the module your enterprise needs.
+          Test drive our standalone demo micro-cards below! Deploy all three integrated suites or select strictly the module your enterprise needs.
         </p>
 
         <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
@@ -227,7 +227,7 @@ export default function LandingPage({ onLoginClick }) {
               </ul>
             </div>
 
-            {/* SIZED-TO-SCALE INTERACTIVE TRACKING CARD */}
+            {/* STANDALONE INTERACTIVE TRACKING CARD */}
             <div className="card-perspective-wrapper">
               <div className={`card-flipper ${trackingFlipped ? 'flipped' : ''}`}>
                 
@@ -307,7 +307,7 @@ export default function LandingPage({ onLoginClick }) {
                     </div>
                   )}
 
-                  <button onClick={() => setShareFlipped(!shareSimulated)} style={{ marginTop: 'auto', padding: '8px', borderRadius: '6px', border: 'none', backgroundColor: '#007aff', color: '#fff', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
+                  <button onClick={() => setShareSimulated(!shareSimulated)} style={{ marginTop: 'auto', padding: '8px', borderRadius: '6px', border: 'none', backgroundColor: '#007aff', color: '#fff', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
                     {shareSimulated ? 'Revoke Link' : 'Generate Dispatch Link'}
                   </button>
                 </div>
@@ -342,7 +342,7 @@ export default function LandingPage({ onLoginClick }) {
               </ul>
             </div>
 
-            {/* SIZED-TO-SCALE INTERACTIVE TOOLS CARD */}
+            {/* STANDALONE INTERACTIVE TOOLS CARD */}
             <div className="card-perspective-wrapper">
               <div className={`card-flipper ${toolsFlipped ? 'flipped' : ''}`}>
                 
@@ -448,7 +448,7 @@ export default function LandingPage({ onLoginClick }) {
               </ul>
             </div>
 
-            {/* SIZED-TO-SCALE INTERACTIVE INVENTORY CARD */}
+            {/* STANDALONE INTERACTIVE INVENTORY CARD */}
             <div className="card-perspective-wrapper">
               <div className={`card-flipper ${inventoryFlipped ? 'flipped' : ''}`}>
                 
