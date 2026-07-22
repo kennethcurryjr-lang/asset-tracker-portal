@@ -234,6 +234,9 @@ function DemoKineticCard() {
 
 
 
+
+
+
 function DemoAssetCard() {
   const [isFlipped, setIsFlipped] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('service');
@@ -264,8 +267,16 @@ function DemoAssetCard() {
           70% { box-shadow: 0 0 0 10px rgba(255, 204, 0, 0); }
           100% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); }
         }
+        @keyframes bluePulse {
+          0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.8); border-color: rgba(0, 122, 255, 0.8); }
+          70% { box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 1); }
+          100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 0.8); }
+        }
         .checkout-pulse-btn {
           animation: yellowPulse 2s infinite ease-in-out;
+        }
+        .flip-pulse-btn {
+          animation: bluePulse 2s infinite ease-in-out;
         }
       `}</style>
       <div className={isFlipped ? "card-flipper flipped" : "card-flipper"} style={{ height: '100%' }}>
@@ -327,7 +338,20 @@ function DemoAssetCard() {
             >
               CHECK OUT
             </button>
-            <button onClick={() => setIsFlipped(true)} style={{ padding: '10px 16px', borderRadius: '8px', backgroundColor: 'transparent', color: '#0052cc', border: '1px solid #0052cc', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
+            <button 
+              className="flip-pulse-btn"
+              onClick={() => setIsFlipped(true)} 
+              style={{ 
+                padding: '10px 16px', 
+                borderRadius: '8px', 
+                backgroundColor: 'transparent', 
+                color: '#007aff', 
+                border: '1px solid #007aff', 
+                fontWeight: '700', 
+                fontSize: '12px', 
+                cursor: 'pointer' 
+              }}
+            >
               Flip ⤹
             </button>
           </div>
