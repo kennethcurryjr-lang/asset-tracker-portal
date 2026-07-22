@@ -53,108 +53,6 @@ const assetDemoData = {
   ]
 };
 
-function DemoAssetCard() {
-  const [isFlipped, setIsFlipped] = React.useState(false);
-  const [isHovered, setIsHovered] = React.useState(false);
-  const [steps, setSteps] = React.useState(assetDemoData.steps);
-  const [logs, setLogs] = React.useState(assetDemoData.logs);
-  const [serviceNote, setServiceNote] = React.useState("");
-
-  // Auto-flip timer unless hovered or manually interacted
-  React.useEffect(() => {
-    if (isHovered) return;
-    const timer = setInterval(() => {
-      setIsFlipped(prev => !prev);
-    }, 4500);
-    return () => clearInterval(timer);
-  }, [isHovered]);
-
-  const toggleStep = (id) => {
-    setSteps(steps.map(s => s.id === id ? { ...s, checked: !s.checked } : s));
-  };
-
-  const logService = () => {
-    const timestamp = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-    const noteText = serviceNote.trim() ? serviceNote.trim() : "Performed scheduled preventative maintenance.";
-    setLogs([{ text: `[Tech] ${noteText}`, time: timestamp }, ...logs]);
-    setServiceNote("");
-  };
-
-  return (
-    <div 
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{ height: '620px', perspective: '1200px', display: 'flex', width: '100%', maxWidth: '420px', margin: '0 auto' }}
-    >
-      <div style={{ transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)', transformStyle: 'preserve-3d', position: 'relative', width: '100%', height: '100%', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
-        
-        {/* FRONT FACE */}
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#1c1c1e', borderRadius: '16px', padding: '24px', border: '1px solid #3a3a3c', color: '#ffffff', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box', backfaceVisibility: 'hidden', zIndex: 2 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: '11px', color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Module 02 • Asset Card</div>
-              <div style={{ fontSize: '22px', fontWeight: '800' }}>{assetDemoData.id}</div>
-              <div style={{ fontSize: '13px', color: '#86868b' }}>{assetDemoData.model} • <strong style={{ color: '#34c759' }}>{assetDemoData.value}</strong></div>
-            </div>
-            <button onClick={() => setIsFlipped(true)} style={{ background: '#2c2c2e', border: '1px solid #3a3a3c', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}>Flip ⤹</button>
-          </div>
-
-          <div style={{ backgroundColor: '#2c2c2e', borderRadius: '12px', padding: '14px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
-            <div style={{ fontSize: '12px', fontWeight: '700', color: '#ffcc00', display: 'flex', justifyContent: 'space-between' }}>
-              <span>Preventative Maintenance</span>
-              <span style={{ fontSize: '10px', color: '#34c759', backgroundColor: '#1c1c1e', padding: '2px 6px', borderRadius: '4px' }}>{assetDemoData.status}</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', flex: 1 }}>
-              {steps.map(step => (
-                <label key={step.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px', color: '#d1d5db', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={step.checked} onChange={() => toggleStep(step.id)} style={{ marginTop: '2px', accentColor: '#007aff' }} />
-                  <span style={{ textDecoration: step.checked ? 'line-through' : 'none', opacity: step.checked ? 0.6 : 1 }}>{step.text}</span>
-                </label>
-              ))}
-            </div>
-            <div style={{ display: 'flex', gap: '6px', marginTop: 'auto' }}>
-              <input placeholder="Add service note..." value={serviceNote} onChange={(e) => setServiceNote(e.target.value)} style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#121212', border: '1px solid #3a3a3c', color: '#ffffff', fontSize: '12px', outline: 'none', flex: 1 }} />
-              <button onClick={logService} style={{ backgroundColor: '#007aff', color: '#ffffff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: '700', cursor: 'pointer', fontSize: '11px' }}>Log</button>
-            </div>
-          </div>
-
-          <div style={{ fontSize: '10px', color: '#86868b', textAlign: 'center' }}>
-            Hover to pause auto-flip • Auto-flipping every 4.5s
-          </div>
-        </div>
-
-        {/* BACK FACE */}
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#1c1c1e', borderRadius: '16px', padding: '24px', border: '1px solid #3a3a3c', color: '#ffffff', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box', transform: 'rotateY(180deg)', backfaceVisibility: 'hidden', zIndex: 1 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '12px' }}>
-            <div style={{ fontSize: '16px', fontWeight: '700', color: '#007aff' }}>⚙️ Chain-of-Custody & Serial Data</div>
-            <button onClick={() => setIsFlipped(false)} style={{ background: '#2c2c2e', border: '1px solid #3a3a3c', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}>⤶ Back</button>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px', backgroundColor: '#2c2c2e', padding: '14px', borderRadius: '12px', border: '1px solid #3a3a3c' }}>
-            <div><span style={{ color: '#86868b' }}>Serial Number:</span> <strong style={{ color: '#ffffff' }}>{assetDemoData.serial}</strong></div>
-            <div><span style={{ color: '#86868b' }}>Hour Meter Limit:</span> <strong style={{ color: '#ffcc00' }}>{assetDemoData.hourLimit}</strong></div>
-            <div><span style={{ color: '#86868b' }}>Custody Handoff:</span> <strong style={{ color: '#34c759' }}>{assetDemoData.custody}</strong></div>
-          </div>
-
-          <div style={{ fontSize: '11px', fontWeight: '700', color: '#86868b' }}>Immutable Audit Trail</div>
-          <div style={{ backgroundColor: '#121212', borderRadius: '8px', padding: '10px', flex: 1, overflowY: 'auto', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {logs.map((log, idx) => (
-              <div key={idx} style={{ fontSize: '11px', borderBottom: idx < logs.length - 1 ? '1px solid #2c2c2e' : 'none', paddingBottom: '6px' }}>
-                <div style={{ color: '#ffffff', fontWeight: '600' }}>{log.text}</div>
-                <div style={{ color: '#86868b', fontSize: '9px' }}>{log.time}</div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ fontSize: '10px', color: '#86868b', textAlign: 'center' }}>
-            AWS Bedrock AI Verified Record
-          </div>
-        </div>
-
-      </div>
-    </div>
-  );
-}
 // --- END DEMO ASSET CARD ---
 // -
 
@@ -378,6 +276,255 @@ function DemoKineticCard() {
           />
           <button onClick={handlePostNote} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '6px', backgroundColor: '#ffffff', color: '#121212', border: 'none', fontWeight: '700', cursor: 'pointer' }}>Post</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+function DemoAssetCard() {
+  const [tool, setTool] = React.useState({
+    toolId: "CAT-00482",
+    name: "Caterpillar Track Loader",
+    value: 65000,
+    category: "Heavy Machinery",
+    location: "Field Operations",
+    serial: "SN-9948-2026-X",
+    status: "IN-STOCK",
+    condition: "Requires Maintenance",
+    assignedUser: null,
+    metrics: [{ unit: "Hours", current: 254, interval: 250 }],
+    pmChecklist: [
+      "Drain water separator & replace fuel filters",
+      "Inspect hydraulic return filter & pull S·O·S fluid",
+      "Check and adjust track tension limits"
+    ],
+    customManifest: [
+      "Ignition Keys / Fob",
+      "Registration & Insurance Card",
+      "Clean Interior / Exterior"
+    ],
+    history: [
+      { user: "Admin", action: "Tool Ingested to Database", date: "Jul 21, 2026, 6:19 PM", condition: "New" },
+      { user: "Tech Ops", action: "Chain-of-Custody Signed Off", date: "Jul 21, 2026, 7:00 PM", condition: "Good" }
+    ]
+  });
+
+  const [isFlipped, setIsFlipped] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState('service');
+  const [serviceChecklist, setServiceChecklist] = React.useState([]);
+  const [serviceNote, setServiceNote] = React.useState("");
+
+  const isOverdue = tool.metrics.some(m => m.current >= m.interval);
+
+  const toggleChecklistStep = (step) => {
+    setServiceChecklist(prev => 
+      prev.includes(step) ? prev.filter(s => s !== step) : [...prev, step]
+    );
+  };
+
+  const handleLogService = () => {
+    setTool(prev => ({
+      ...prev,
+      condition: "Excellent",
+      metrics: prev.metrics.map(m => ({ ...m, current: 0 })),
+      history: [
+        { 
+          user: "demo_user", 
+          action: "PM Service Completed & Intervals Reset", 
+          date: "Just now", 
+          condition: "Excellent",
+          note: serviceNote || "Routine PM inspection & filter swap complete."
+        },
+        ...prev.history
+      ]
+    }));
+    setServiceChecklist([]);
+    setServiceNote("");
+    setIsFlipped(false);
+  };
+
+  const flipperClass = isFlipped ? "card-flipper flipped" : "card-flipper";
+
+  return (
+    <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', margin: '0 auto', minHeight: '380px' }}>
+      <div className={flipperClass}>
+        
+        {/* FRONT FACE (1:1 Tools.js Card) */}
+        <div className="card-face card-front" style={{ 
+          padding: '20px', 
+          border: '1px solid #d1d5db', 
+          borderRadius: '16px', 
+          backgroundColor: isOverdue ? '#fafafa' : '#ffffff',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '14px',
+          color: '#0a1b35'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ 
+              fontSize: '11px', 
+              fontWeight: '700', 
+              padding: '4px 8px', 
+              borderRadius: '4px', 
+              backgroundColor: isOverdue ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)', 
+              color: isOverdue ? '#ef4444' : '#10b981', 
+              letterSpacing: '0.05em' 
+            }}>
+              <span style={{ 
+                display: 'inline-block', 
+                width: '8px', 
+                height: '8px', 
+                borderRadius: '50%', 
+                marginRight: '8px', 
+                backgroundColor: isOverdue ? '#ef4444' : '#10b981',
+                boxShadow: isOverdue ? '0 0 8px rgba(239,68,68,0.5)' : '0 0 8px rgba(16,185,129,0.5)'
+              }}></span>
+              {isOverdue ? 'SERVICE DUE' : 'OPERATIONAL'}
+            </span>
+            <span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600' }}>[ {tool.toolId} ]</span>
+          </div>
+
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ fontSize: '20px', fontWeight: '800', lineHeight: '1.3', color: '#0a1b35' }}>{tool.name}</div>
+            <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '6px', fontWeight: '600' }}>
+              Category: {tool.category} • <strong style={{ color: '#0052cc' }}>${tool.value.toLocaleString()}</strong>
+            </div>
+            <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>Location: {tool.location}</div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
+            <button 
+              disabled={isOverdue} 
+              style={{ 
+                flex: 1, 
+                padding: '12px', 
+                borderRadius: '8px', 
+                backgroundColor: isOverdue ? '#f3f4f6' : '#0a1b35', 
+                color: isOverdue ? '#9ca3af' : '#ffffff', 
+                border: 'none', 
+                fontWeight: '800', 
+                fontSize: '12px', 
+                cursor: isOverdue ? 'not-allowed' : 'pointer' 
+              }}
+            >
+              {isOverdue ? 'LOCKED' : 'CHECK OUT'}
+            </button>
+            <button 
+              onClick={() => setIsFlipped(true)} 
+              style={{ 
+                padding: '12px 16px', 
+                borderRadius: '8px', 
+                backgroundColor: 'transparent', 
+                color: '#0052cc', 
+                border: '1px solid #0052cc', 
+                fontWeight: '700', 
+                fontSize: '12px', 
+                cursor: 'pointer' 
+              }}
+            >
+              Flip ⤹
+            </button>
+          </div>
+        </div>
+
+        {/* BACK FACE (1:1 Tools.js Back Face) */}
+        <div className="card-face card-back" style={{ 
+          padding: '20px', 
+          borderRadius: '16px', 
+          border: '1px solid #d1d5db', 
+          backgroundColor: '#ffffff', 
+          color: '#0a1b35', 
+          boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '4px', flex: 1, marginRight: '8px' }}>
+              <button className={activeTab === 'service' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('service')}>PM</button>
+              <button className={activeTab === 'manifest' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('manifest')}>MANIFEST</button>
+              <button className={activeTab === 'specs' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('specs')}>INFO</button>
+            </div>
+            <button onClick={() => setIsFlipped(false)} style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>✕</button>
+          </div>
+
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            {activeTab === 'service' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '100%' }}>
+                {tool.metrics.map((m, idx) => (
+                  <div key={idx}>
+                    <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>{m.unit.toUpperCase()} INTERVAL</div>
+                    <div style={{ fontSize: '20px', fontWeight: '800', color: m.current >= m.interval ? '#ef4444' : '#0a1b35' }}>
+                      {m.current} / {m.interval} <span style={{ fontSize: '11px', color: '#6b7280' }}>HRS</span>
+                    </div>
+                  </div>
+                ))}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', backgroundColor: '#f3f4f6', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
+                  {tool.pmChecklist.map(step => (
+                    <label key={step} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#374151', cursor: 'pointer', fontWeight: '600' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={serviceChecklist.includes(step)} 
+                        onChange={() => toggleChecklistStep(step)} 
+                        style={{ width: '14px', height: '14px', accentColor: '#0052cc' }} 
+                      />
+                      {step}
+                    </label>
+                  ))}
+                </div>
+
+                <input 
+                  placeholder="Add service note..." 
+                  value={serviceNote}
+                  onChange={(e) => setServiceNote(e.target.value)}
+                  style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '11px', outline: 'none', backgroundColor: '#f8f9fa' }} 
+                />
+
+                <button 
+                  disabled={serviceChecklist.length !== tool.pmChecklist.length}
+                  onClick={handleLogService}
+                  style={{ 
+                    marginTop: 'auto', 
+                    padding: '12px', 
+                    borderRadius: '8px', 
+                    backgroundColor: serviceChecklist.length === tool.pmChecklist.length ? '#0a1b35' : '#9ca3af', 
+                    color: '#ffffff', 
+                    border: 'none', 
+                    fontWeight: '800', 
+                    fontSize: '12px', 
+                    cursor: serviceChecklist.length === tool.pmChecklist.length ? 'pointer' : 'not-allowed' 
+                  }}
+                >
+                  LOG SERVICE & RESET
+                </button>
+              </div>
+            )}
+
+            {activeTab === 'manifest' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: '#374151' }}>Custody Handoff Items:</div>
+                {tool.customManifest.map((item, i) => (
+                  <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: '#4b5563' }}>
+                    <input type="checkbox" defaultChecked style={{ width: '14px', height: '14px', accentColor: '#0052cc' }} /> {item}
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'specs' && (
+              <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div><span style={{ color: '#374151', fontWeight: '700' }}>Value:</span> ${tool.value.toLocaleString()}</div>
+                <div><span style={{ color: '#374151', fontWeight: '700' }}>Category:</span> {tool.category}</div>
+                <div><span style={{ color: '#374151', fontWeight: '700' }}>Serial:</span> {tool.serial}</div>
+                <div><span style={{ color: '#374151', fontWeight: '700' }}>Location:</span> {tool.location}</div>
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );
