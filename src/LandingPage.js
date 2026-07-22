@@ -580,9 +580,16 @@ export default function LandingPage({ onLoginClick }) {
             <div>
               <div style={{ color: "#34c759", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 03</div>
               <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>FIFO Rotation & Label Engines</h2>
-              <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "24px", fontSize: "15px" }}>
-                Manage perishable stock and multi-bin warehouse distribution with automated badges and thermal label previews.
+              <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "16px", fontSize: "15px" }}>
+                Comprehensive perishable stock management and multi-bin warehouse distribution. Kinetic Inventory combines automated rotation badges with thermal label printing and offline scanning.
               </p>
+              <ul style={{ color: "#86868b", lineHeight: "1.8", marginBottom: "24px", fontSize: "14px", paddingLeft: "20px", margin: "0 0 24px 0" }}>
+                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Smart FIFO Rotation Engine:</strong> Flashing 🟢 PICK FIRST badges automatically highlight the oldest valid lot to eliminate waste and prevent inventory trapping.</li>
+                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Thermal Label & Barcode Engine:</strong> Print-ready 4x6 Zebra thermal label previews alongside camera barcode scanning with Rapid Fire and Pallet modes.</li>
+                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Multi-Zone Bin Mapping:</strong> Track and transfer stock across specific cooler bays, dry aisles, and placement zones with real-time quantity reconciliation.</li>
+                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Offline "Dead Zone" Sync:</strong> Queue scans locally in low-connectivity warehouse zones and automatically flush queued updates to AWS upon reconnecting.</li>
+                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Automated PO Routing & Compliance:</strong> Route one-click PO requests to vendor emails via AWS SES and enforce hard compliance stops on expired stock.</li>
+              </ul>
             </div>
 
             <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>
