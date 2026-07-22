@@ -286,11 +286,13 @@ function DemoKineticCard() {
 
 
 
+
+
+
 function DemoAssetCard() {
-  const [isFlipped, setIsFlipped] = React.useState(false);
+  const [isFlipped, setIsFlipped] = React.useState(true); // Default to showing back face
   const [activeTab, setActiveTab] = React.useState('service');
-  const [hours, setHours] = React.useState(0);
-  const [interval, setIntervalVal] = React.useState(90);
+  const [hours, setHours] = React.useState(254);
   const [checklist, setChecklist] = React.useState([
     { id: 1, text: "Drain the water separator and replace primary and secondary fuel filters to prevent fuel system contamination.", checked: false },
     { id: 2, text: "Inspect the hydraulic return filter and case drain filter, and pull an S·O·S fluid sample to monitor for wear metals.", checked: false },
@@ -321,7 +323,6 @@ function DemoAssetCard() {
     setServiceNote("");
     setHasPhoto(false);
     setChecklist(prev => prev.map(s => ({ ...s, checked: false })));
-    setIsFlipped(false);
   };
 
   const allChecked = checklist.length > 0 && checklist.every(s => s.checked);
@@ -330,7 +331,7 @@ function DemoAssetCard() {
     <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', margin: '0 auto', minHeight: '380px' }}>
       <div className={isFlipped ? "card-flipper flipped" : "card-flipper"}>
         
-        {/* FRONT FACE (OPERATIONAL CARD) */}
+        {/* FRONT FACE */}
         <div className="card-face card-front" style={{ 
           padding: '20px', 
           border: '1px solid #d1d5db', 
@@ -348,8 +349,8 @@ function DemoAssetCard() {
               fontWeight: '700', 
               padding: '4px 8px', 
               borderRadius: '4px', 
-              backgroundColor: 'rgba(16,185,129,0.15)', 
-              color: '#10b981', 
+              backgroundColor: 'rgba(239,68,68,0.15)', 
+              color: '#ef4444', 
               letterSpacing: '0.05em' 
             }}>
               <span style={{ 
@@ -358,10 +359,10 @@ function DemoAssetCard() {
                 height: '8px', 
                 borderRadius: '50%', 
                 marginRight: '8px', 
-                backgroundColor: '#10b981',
-                boxShadow: '0 0 8px rgba(16,185,129,0.5)'
+                backgroundColor: '#ef4444',
+                boxShadow: '0 0 8px rgba(239,68,68,0.5)'
               }}></span>
-              IN-STOCK
+              SERVICE DUE
             </span>
             <span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600' }}>[ CAT-333 ]</span>
           </div>
@@ -375,8 +376,8 @@ function DemoAssetCard() {
           </div>
 
           <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-            <button style={{ flex: 1, padding: '12px', borderRadius: '8px', backgroundColor: '#0a1b35', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>
-              CHECK OUT
+            <button style={{ flex: 1, padding: '12px', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#9ca3af', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'not-allowed' }}>
+              LOCKED
             </button>
             <button onClick={() => setIsFlipped(true)} style={{ padding: '12px 16px', borderRadius: '8px', backgroundColor: 'transparent', color: '#0052cc', border: '1px solid #0052cc', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
               Flip ⤹
@@ -384,7 +385,7 @@ function DemoAssetCard() {
           </div>
         </div>
 
-        {/* BACK FACE (1:1 BACK OF CARD FROM DASHBOARD) */}
+        {/* BACK FACE (1:1 DYNAMIC PM HUB BACK FACE) */}
         <div className="card-face card-back" style={{ 
           padding: '20px', 
           borderRadius: '16px', 
@@ -400,20 +401,20 @@ function DemoAssetCard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
             <div style={{ display: 'flex', gap: '4px', flex: 1, marginRight: '8px' }}>
               <button className={activeTab === 'service' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('service')}>PM</button>
-              <button className={activeTab === 'manifest' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('manifest')}>MANIFEST</button>
-              <button className={activeTab === 'qr' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('qr')}>QR</button>
-              <button className={activeTab === 'specs' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('specs')}>INFO</button>
+              <button className={activeTab === 'manifest' ? 'tab-btn tab-active' : 'tab-inactive'} onClick={() => setActiveTab('manifest')}>MANIFEST</button>
+              <button className={activeTab === 'qr' ? 'tab-btn tab-active' : 'tab-inactive'} onClick={() => setActiveTab('qr')}>QR</button>
+              <button className={activeTab === 'specs' ? 'tab-btn tab-active' : 'tab-inactive'} onClick={() => setActiveTab('specs')}>INFO</button>
             </div>
             <button onClick={() => setIsFlipped(false)} style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>✕</button>
           </div>
 
           {activeTab === 'service' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
-              {/* INTERVAL COUNTER */}
+              {/* HOURS COUNTER */}
               <div>
-                <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em' }}>DAYS INTERVAL</div>
-                <div style={{ fontSize: '18px', fontWeight: '800', color: '#0a1b35' }}>
-                  {hours} / {interval} <span style={{ fontSize: '11px', color: '#6b7280' }}>DAYS</span>
+                <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em' }}>HOURS INTERVAL</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: hours >= 250 ? '#dc2626' : '#0a1b35' }}>
+                  {hours} / 250 <span style={{ fontSize: '11px', color: '#6b7280' }}>HRS</span>
                 </div>
               </div>
 
@@ -440,7 +441,7 @@ function DemoAssetCard() {
                 style={{ padding: '8px 10px', borderRadius: '4px', border: '1px dashed #d1d5db', backgroundColor: 'transparent', color: '#374151', fontSize: '11px', outline: 'none' }} 
               />
 
-              {/* SERVICE NOTE & PHOTO ATTACHMENT */}
+              {/* SERVICE NOTE & PHOTO */}
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <input 
                   type="text" 
@@ -670,10 +671,13 @@ export default function LandingPage({ onLoginClick }) {
               </p>
             </div>
 
-            <DemoAssetCard />
+            <div style={{ flex: "1 1 350px", maxWidth: "380px", width: "100%", margin: "0 auto" }}>
+              <DemoAssetCard />
             </div>
           </div>
         )}
+
+        
 
         {/* TAB 3: INVENTORY */}
         {activeTab === "inventory" && (
