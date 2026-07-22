@@ -9,25 +9,20 @@ export default function LandingPage({ onLoginClick }) {
   const [activeTab, setActiveTab] = useState("tracking");
 
   // --- 1. TRACKING CARD STATE ---
-  const [trackingFlipped, setTrackingFlipped] = useState(false);
   const [watchdogActive, setWatchdogActive] = useState(true);
-  const [showLogs, setShowLogs] = useState(false);
   const [logs, setLogs] = useState([
     { user: "kennethcurryjr@gmail.com", text: "GPS Installed", time: "7/8/2026 - 7:40 PM" },
     { user: "kennethcurryjr@gmail.com", text: "Repaired C02 Line Leak", time: "7/8/2026 - 7:40 PM" }
   ]);
   const [newLogText, setNewLogText] = useState("");
 
-  // --- 2. KINETIC TOOLS CARD STATE (FULL ASSET / HEAVY EQUIPMENT CARD) ---
-  const [toolsFlipped, setToolsFlipped] = useState(false);
+  // --- 2. TRUE KINETIC TOOLS CARD STATE ---
   const [toolHours, setToolHours] = useState(254);
   const [toolChecklist, setToolChecklist] = useState({ step1: false, step2: false, step3: false });
   const [toolStatus, setToolStatus] = useState("SERVICE_REQUIRED");
-  const [showCustodyDrawer, setShowCustodyDrawer] = useState(false);
   const [custodySignature, setCustodySignature] = useState("");
 
   // --- 3. KINETIC INVENTORY CARD STATE ---
-  const [inventoryFlipped, setInventoryFlipped] = useState(false);
   const [stockQty, setStockQty] = useState(420);
   const [selectedZone, setSelectedZone] = useState("Cooler Bay-01");
   const [showZebraPreview, setShowZebraPreview] = useState(false);
@@ -47,21 +42,13 @@ export default function LandingPage({ onLoginClick }) {
   return (
     <div style={pageStyle}>
       <style>{`
-        .exact-card-wrapper { perspective: 1200px; width: 100%; max-width: 500px; margin: 0 auto; display: flex; }
-        .card-flipper { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; display: flex; flex-direction: column; }
-        .card-flipper.flipped { transform: rotateY(180deg); }
-        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; box-sizing: border-box; border-radius: 18px; }
-        .card-front { transform: rotateY(0deg); z-index: 2; position: relative; }
-        .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #161618; border: 1px solid #3a3a3c; display: flex; flex-direction: column; padding: 28px; overflow-y: auto; }
-        
+        .full-feature-card { width: 100%; max-width: 520px; margin: 0 auto; background-color: #202022; border: 1px solid #3a3a3c; border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); }
         @keyframes radar-pulse-glow {
           0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); }
           70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); }
           100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
         }
-        .live-pulse-dot {
-          width: 9px; height: 9px; background-color: #34c759; border-radius: 50%; display: inline-block; animation: radar-pulse-glow 2s infinite ease-in-out;
-        }
+        .live-pulse-dot { width: 9px; height: 9px; background-color: #34c759; border-radius: 50%; display: inline-block; animation: radar-pulse-glow 2s infinite ease-in-out; }
       `}</style>
 
       {/* NAVIGATION HEADER */}
@@ -86,23 +73,13 @@ export default function LandingPage({ onLoginClick }) {
         <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
           <button 
             onClick={onLoginClick}
-            style={{
-              backgroundColor: "transparent", color: "#ffffff",
-              border: "1px solid #3a3a3c", padding: "10px 20px",
-              borderRadius: "20px", fontWeight: "600", cursor: "pointer"
-            }}
+            style={{ backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "10px 20px", borderRadius: "20px", fontWeight: "600", cursor: "pointer" }}
           >
             Sign In
           </button>
           <button 
             onClick={handleDemoClick}
-            style={{
-              backgroundColor: "#ffffff", color: "#000000",
-              border: "none", padding: "10px 22px",
-              borderRadius: "20px", fontWeight: "700", cursor: "pointer",
-              boxShadow: "0 4px 20px rgba(255,255,255,0.2)",
-              display: "flex", alignItems: "center", gap: "6px"
-            }}
+            style={{ backgroundColor: "#ffffff", color: "#000000", border: "none", padding: "10px 22px", borderRadius: "20px", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 20px rgba(255,255,255,0.2)", display: "flex", alignItems: "center", gap: "6px" }}
           >
             <Mail size={16} /> Request Demo
           </button>
@@ -110,25 +87,11 @@ export default function LandingPage({ onLoginClick }) {
       </nav>
 
       {/* HERO SECTION */}
-      <section style={{
-        textAlign: "center", padding: "70px 20px 40px 20px",
-        maxWidth: "960px", margin: "0 auto"
-      }}>
-        <div style={{
-          display: "inline-flex", alignItems: "center", gap: "8px",
-          backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c",
-          padding: "6px 16px", borderRadius: "20px", fontSize: "13px",
-          color: "#007aff", fontWeight: "600", marginBottom: "24px"
-        }}>
+      <section style={{ textAlign: "center", padding: "70px 20px 40px 20px", maxWidth: "960px", margin: "0 auto" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", padding: "6px 16px", borderRadius: "20px", fontSize: "13px", color: "#007aff", fontWeight: "600", marginBottom: "24px" }}>
           <Cpu size={16} /> AWS Bedrock AI-Powered Operations Platform
         </div>
-
-        <h1 style={{
-          fontSize: "52px", fontWeight: "800", lineHeight: "1.15",
-          letterSpacing: "-0.03em", marginBottom: "24px",
-          background: "linear-gradient(180deg, #ffffff 0%, #a1a1a6 100%)",
-          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
-        }}>
+        <h1 style={{ fontSize: "52px", fontWeight: "800", lineHeight: "1.15", letterSpacing: "-0.03em", marginBottom: "24px", background: "linear-gradient(180deg, #ffffff 0%, #a1a1a6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           Total Operations Command.<br />
           GPS, Assets, and Stock in One Deck.<br />
           <span style={{ color: "#ffcc00", WebkitTextFillColor: "#ffcc00", fontSize: "44px" }}>Or A LA CARTE!</span>
@@ -137,395 +100,222 @@ export default function LandingPage({ onLoginClick }) {
 
       {/* MODULE SELECTOR TABS */}
       <section style={{ maxWidth: "1280px", margin: "10px auto 100px auto", padding: "0 20px" }}>
-        <div style={{
-          display: "flex", justifyContent: "center", gap: "12px",
-          marginBottom: "40px", flexWrap: "wrap"
-        }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "40px", flexWrap: "wrap" }}>
           <button 
             onClick={() => setActiveTab("tracking")}
-            style={{
-              padding: "16px 28px", borderRadius: "16px", border: "none",
-              backgroundColor: activeTab === "tracking" ? "#007aff" : "#1c1c1e",
-              color: "#ffffff", fontWeight: "700", fontSize: "15px",
-              cursor: "pointer", display: "flex", alignItems: "center", gap: "10px",
-              boxShadow: activeTab === "tracking" ? "0 8px 25px rgba(0,122,255,0.4)" : "none"
-            }}
+            style={{ padding: "16px 28px", borderRadius: "16px", border: "none", backgroundColor: activeTab === "tracking" ? "#007aff" : "#1c1c1e", color: "#ffffff", fontWeight: "700", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}
           >
             <Navigation size={18} /> 1. Kinetic Tracking Card
           </button>
           <button 
             onClick={() => setActiveTab("tools")}
-            style={{
-              padding: "16px 28px", borderRadius: "16px", border: "none",
-              backgroundColor: activeTab === "tools" ? "#007aff" : "#1c1c1e",
-              color: "#ffffff", fontWeight: "700", fontSize: "15px",
-              cursor: "pointer", display: "flex", alignItems: "center", gap: "10px",
-              boxShadow: activeTab === "tools" ? "0 8px 25px rgba(0,122,255,0.4)" : "none"
-            }}
+            style={{ padding: "16px 28px", borderRadius: "16px", border: "none", backgroundColor: activeTab === "tools" ? "#007aff" : "#1c1c1e", color: "#ffffff", fontWeight: "700", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}
           >
             <Wrench size={18} /> 2. Kinetic Tools Card
           </button>
           <button 
             onClick={() => setActiveTab("inventory")}
-            style={{
-              padding: "16px 28px", borderRadius: "16px", border: "none",
-              backgroundColor: activeTab === "inventory" ? "#007aff" : "#1c1c1e",
-              color: "#ffffff", fontWeight: "700", fontSize: "15px",
-              cursor: "pointer", display: "flex", alignItems: "center", gap: "10px",
-              boxShadow: activeTab === "inventory" ? "0 8px 25px rgba(0,122,255,0.4)" : "none"
-            }}
+            style={{ padding: "16px 28px", borderRadius: "16px", border: "none", backgroundColor: activeTab === "inventory" ? "#007aff" : "#1c1c1e", color: "#ffffff", fontWeight: "700", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}
           >
             <Boxes size={18} /> 3. Kinetic Inventory Card
           </button>
         </div>
 
-        {/* TAB 1: TRACKING CARD */}
+        {/* TAB 1: TRACKING CARD (FULL DISPLAY - NO COLLAPSING) */}
         {activeTab === "tracking" && (
-          <div style={{
-            backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c",
-            borderRadius: "24px", padding: "48px", display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "48px", alignItems: "start"
-          }}>
+          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "24px", padding: "48px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "48px", alignItems: "start" }}>
             <div>
               <div style={{ color: "#ffcc00", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 01</div>
-              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>Live Geofence Watchdog & Expandable Logs</h2>
+              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>Live Geofence Watchdog & Always-Open Logs</h2>
               <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "24px", fontSize: "15px" }}>
-                Inspect real-time telemetry, geographic anchor locks, and full immutable maintenance logs directly inside the vertical card view.
+                Real-time hardware telemetry and full immutable maintenance logs displayed directly on the card face.
               </p>
-              <ul style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: 0, listStyle: "none" }}>
-                <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px" }}>
-                  <CheckCircle2 color="#34c759" size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
-                  <div><strong>Interactive Logs Drawer:</strong> Expand timestamps, user signatures, and service notes logged directly against the device ID.</div>
-                </li>
-              </ul>
             </div>
 
-            <div className="exact-card-wrapper">
-              <div className={`card-flipper ${trackingFlipped ? 'flipped' : ''}`}>
-                <div className="card-face card-front" style={{ backgroundColor: '#202022', border: '1px solid #3a3a3c', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.7)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontWeight: '800', fontSize: '18px' }}>GPS-1 <span style={{ fontSize: '13px', color: '#86868b', fontWeight: 'normal' }}>(862605278000318)</span></div>
-                      <div style={{ fontSize: '11px', color: '#007aff', marginTop: '2px' }}>Group: LV-DEMO-77</div>
-                    </div>
-                    <span style={{ backgroundColor: watchdogActive ? 'rgba(52,199,89,0.15)' : 'rgba(255,59,48,0.15)', color: watchdogActive ? '#34c759' : '#ff3b30', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      {watchdogActive && <span className="live-pulse-dot"></span>}
-                      {watchdogActive ? 'WATCHDOG ACTIVE' : 'WATCHDOG OFF'}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '10px', alignItems: 'center' }}>
-                    <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.5' }}>
-                      <div>Lat: <strong style={{ color: '#fff' }}>36.078802</strong></div>
-                      <div>Lon: <strong style={{ color: '#fff' }}>-115.191695</strong></div>
-                      <div style={{ color: '#34c759', marginTop: '4px' }}>⚡ Battery: 99%</div>
-                      <div style={{ fontSize: '10px', color: '#a1a1a6', marginTop: '2px' }}>Last Seen: Just now</div>
-                    </div>
-                    <div style={{ position: 'relative', height: '90px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #3a3a3c', backgroundColor: '#121212' }}>
-                      <iframe title="tracking-map" width="100%" height="100%" frameBorder="0" scrolling="no" src="https://www.openstreetmap.org/export/embed.html?bbox=-115.21%2C36.06%2C-115.17%2C36.09&layer=mapnik&marker=36.0788%2C-115.1917" style={{ pointerEvents: 'none', border: 'none', opacity: 0.85 }}></iframe>
-                    </div>
-                  </div>
-
-                  <div style={{ backgroundColor: '#161618', borderRadius: '8px', border: '1px solid #2d2d2f', overflow: 'hidden' }}>
-                    <button 
-                      onClick={() => setShowLogs(!showLogs)}
-                      style={{ width: '100%', padding: '10px 12px', backgroundColor: 'transparent', border: 'none', color: '#007aff', fontSize: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                    >
-                      <span>📋 Device Logs ({logs.length})</span>
-                      <span>{showLogs ? '▲ Hide' : '▼ View'}</span>
-                    </button>
-
-                    {showLogs && (
-                      <div style={{ padding: '10px 12px', borderTop: '1px solid #2d2d2f', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '130px', overflowY: 'auto' }}>
-                        {logs.map((l, i) => (
-                          <div key={i} style={{ fontSize: '11px', borderBottom: '1px solid #222', paddingBottom: '4px' }}>
-                            <div style={{ color: '#fff', fontWeight: '600' }}>{l.text}</div>
-                            <div style={{ color: '#86868b', fontSize: '10px' }}>{l.time} • {l.user}</div>
-                          </div>
-                        ))}
-                        
-                        <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
-                          <input 
-                            type="text" 
-                            placeholder="Add note..." 
-                            value={newLogText}
-                            onChange={e => setNewLogText(e.target.value)}
-                            style={{ flex: 1, padding: '4px 8px', fontSize: '11px', backgroundColor: '#0a0a0c', border: '1px solid #3a3a3c', color: '#fff', borderRadius: '4px', outline: 'none' }}
-                          />
-                          <button 
-                            onClick={() => {
-                              if (newLogText) {
-                                setLogs([...logs, { user: "sales.demo@titanassets.dev", text: newLogText, time: "Just now" }]);
-                                setNewLogText("");
-                              }
-                            }}
-                            style={{ padding: '4px 8px', backgroundColor: '#007aff', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
-                          >
-                            Add
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-                    <button 
-                      onClick={() => setWatchdogActive(!watchdogActive)} 
-                      style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #fff', backgroundColor: watchdogActive ? '#1a1a1c' : 'transparent', color: '#fff', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
-                    >
-                      {watchdogActive ? 'Watchdog On' : 'Watchdog Off'}
-                    </button>
-                    <button 
-                      onClick={() => setTrackingFlipped(true)} 
-                      style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: '#007aff', color: '#fff', fontSize: '11px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      <RotateCw size={12} /> Share Link
-                    </button>
-                  </div>
+            <div className="full-feature-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: '800', fontSize: '18px' }}>GPS-1 <span style={{ fontSize: '13px', color: '#86868b', fontWeight: 'normal' }}>(862605278000318)</span></div>
+                  <div style={{ fontSize: '11px', color: '#007aff', marginTop: '2px' }}>Group: LV-DEMO-77</div>
                 </div>
+                <span style={{ backgroundColor: watchdogActive ? 'rgba(52,199,89,0.15)' : 'rgba(255,59,48,0.15)', color: watchdogActive ? '#34c759' : '#ff3b30', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {watchdogActive && <span className="live-pulse-dot"></span>}
+                  {watchdogActive ? 'WATCHDOG ACTIVE' : 'WATCHDOG OFF'}
+                </span>
+              </div>
 
-                <div className="card-face card-back">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '12px', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '800', color: '#007aff' }}>⚙️ Cryptographic Recovery Share</span>
-                    <button onClick={() => setTrackingFlipped(false)} style={{ background: 'none', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '12px' }}>⤶ Back</button>
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '16px' }}>
-                    Dispatch a secure, self-terminating 24-hour map tracking link for law enforcement or asset recovery teams.
-                  </div>
-                  <input type="email" placeholder="investigator@agency.gov" style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#0a0a0c', color: '#fff', fontSize: '12px', outline: 'none', marginBottom: '16px', width: '100%', boxSizing: 'border-box' }} />
-                  <button onClick={() => alert("Secure tracking link generated!")} style={{ marginTop: 'auto', padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#fff', fontSize: '12px', fontWeight: '800', cursor: 'pointer' }}>
-                    Generate Secure Dispatch Link
+              <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '10px', alignItems: 'center' }}>
+                <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.5' }}>
+                  <div>Lat: <strong style={{ color: '#fff' }}>36.078802</strong></div>
+                  <div>Lon: <strong style={{ color: '#fff' }}>-115.191695</strong></div>
+                  <div style={{ color: '#34c759', marginTop: '4px' }}>⚡ Battery: 99%</div>
+                </div>
+                <div style={{ position: 'relative', height: '90px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #3a3a3c', backgroundColor: '#121212' }}>
+                  <iframe title="tracking-map" width="100%" height="100%" frameBorder="0" scrolling="no" src="https://www.openstreetmap.org/export/embed.html?bbox=-115.21%2C36.06%2C-115.17%2C36.09&layer=mapnik&marker=36.0788%2C-115.1917" style={{ pointerEvents: 'none', border: 'none', opacity: 0.85 }}></iframe>
+                </div>
+              </div>
+
+              {/* ALWAYS-OPEN LOGS FEED */}
+              <div style={{ backgroundColor: '#161618', borderRadius: '8px', border: '1px solid #2d2d2f', padding: '12px' }}>
+                <div style={{ fontSize: '12px', color: '#007aff', fontWeight: '700', marginBottom: '8px' }}>📋 Device Audit Logs</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '110px', overflowY: 'auto' }}>
+                  {logs.map((l, i) => (
+                    <div key={i} style={{ fontSize: '11px', borderBottom: '1px solid #222', paddingBottom: '4px' }}>
+                      <div style={{ color: '#fff', fontWeight: '600' }}>{l.text}</div>
+                      <div style={{ color: '#86868b', fontSize: '10px' }}>{l.time} • {l.user}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Add operational note..." 
+                    value={newLogText}
+                    onChange={e => setNewLogText(e.target.value)}
+                    style={{ flex: 1, padding: '6px 8px', fontSize: '11px', backgroundColor: '#0a0a0c', border: '1px solid #3a3a3c', color: '#fff', borderRadius: '4px', outline: 'none' }}
+                  />
+                  <button 
+                    onClick={() => {
+                      if (newLogText) {
+                        setLogs([...logs, { user: "sales.demo@titanassets.dev", text: newLogText, time: "Just now" }]);
+                        setNewLogText("");
+                      }
+                    }}
+                    style={{ padding: '6px 12px', backgroundColor: '#007aff', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
+                  >
+                    Post
                   </button>
                 </div>
               </div>
+
+              <button 
+                onClick={() => setWatchdogActive(!watchdogActive)} 
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #fff', backgroundColor: watchdogActive ? '#1a1a1c' : 'transparent', color: '#fff', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}
+              >
+                {watchdogActive ? 'Toggle Watchdog: Active' : 'Toggle Watchdog: Offline'}
+              </button>
             </div>
           </div>
         )}
 
-        {/* TAB 2: TRUE KINETIC TOOLS & ASSETS CARD */}
+        {/* TAB 2: TRUE KINETIC TOOLS CARD (FULL DISPLAY - NO COLLAPSING) */}
         {activeTab === "tools" && (
-          <div style={{
-            backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c",
-            borderRadius: "24px", padding: "48px", display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "48px", alignItems: "start"
-          }}>
+          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "24px", padding: "48px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "48px", alignItems: "start" }}>
             <div>
               <div style={{ color: "#007aff", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 02</div>
-              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>Kinetic Tools & Chain-of-Custody</h2>
+              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>Kinetic Tools & AI PM Checklists</h2>
               <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "24px", fontSize: "15px" }}>
-                This is the actual <strong>Kinetic Tools</strong> asset card structure, complete with tag numbers, serial tracking, preventative maintenance hour limits, and e-signature handoff workflows.
+                Complete asset record with tag number, serial tracking, preventative maintenance hour limits, and AWS Bedrock AI checklists fully accessible.
               </p>
-              <ul style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: 0, listStyle: "none" }}>
-                <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px" }}>
-                  <CheckCircle2 color="#34c759" size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
-                  <div><strong>Full Chain-of-Custody Modal:</strong> Capture touch signatures, condition photos, IP logs, and digital handoff receipts upon checkout.</div>
-                </li>
-              </ul>
             </div>
 
-            {/* TRUE KINETIC TOOLS CARD */}
-            <div className="exact-card-wrapper">
-              <div className={`card-flipper ${toolsFlipped ? 'flipped' : ''}`}>
-                
-                {/* FRONT FACE */}
-                <div className="card-face card-front" style={{ backgroundColor: '#202022', border: '1px solid #3a3a3c', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0 20px 40px rgba(0,0,0,0.7)' }}>
-                  
-                  {/* Tool Card Header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', fontWeight: '800', color: toolStatus === "SERVICE_REQUIRED" ? '#ff3b30' : '#34c759', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? 'rgba(255,59,48,0.15)' : 'rgba(52,199,89,0.15)', padding: '4px 10px', borderRadius: '6px' }}>
-                      {toolStatus === "SERVICE_REQUIRED" ? '⚠️ SERVICE OVERDUE' : '🟢 OPERATIONAL'}
-                    </span>
-                    <span style={{ fontSize: '12px', color: '#86868b', fontWeight: '700' }}>Tag # 00482</span>
-                  </div>
-
-                  <div>
-                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#fff' }}>Caterpillar Track Loader</div>
-                    <div style={{ fontSize: '12px', color: '#007aff', marginTop: '2px' }}>Model: CAT-259D3 • Serial: C2L99201</div>
-                  </div>
-
-                  {/* Metrics Box */}
-                  <div style={{ backgroundColor: '#161618', padding: '12px 14px', borderRadius: '8px', border: '1px solid #3a3a3c', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <div>
-                      <div style={{ fontSize: '9px', color: '#86868b', fontWeight: '700' }}>HOURS METER</div>
-                      <div style={{ fontSize: '18px', fontWeight: '800', color: toolHours >= 250 ? '#ff3b30' : '#34c759' }}>
-                        {toolHours} <span style={{ fontSize: '11px', color: '#86868b' }}>/ 250 hrs</span>
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '9px', color: '#86868b', fontWeight: '700' }}>REPLACEMENT VAL</div>
-                      <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff' }}>$65,000</div>
-                    </div>
-                  </div>
-
-                  {/* Custody Drawer Toggle */}
-                  <div style={{ backgroundColor: '#161618', borderRadius: '8px', border: '1px solid #2d2d2f', overflow: 'hidden' }}>
-                    <button 
-                      onClick={() => setShowCustodyDrawer(!showCustodyDrawer)}
-                      style={{ width: '100%', padding: '10px 12px', backgroundColor: 'transparent', border: 'none', color: '#007aff', fontSize: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                    >
-                      <span>🛡️ Chain-of-Custody Handoff</span>
-                      <span>{showCustodyDrawer ? '▲ Hide' : '▼ Sign'}</span>
-                    </button>
-
-                    {showCustodyDrawer && (
-                      <div style={{ padding: '10px 12px', borderTop: '1px solid #2d2d2f', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ fontSize: '11px', color: '#86868b' }}>Required: Authorized Tech E-Signature & Condition Photo</div>
-                        <input 
-                          type="text" 
-                          placeholder="Type Tech Name as Signature..." 
-                          value={custodySignature}
-                          onChange={e => setCustodySignature(e.target.value)}
-                          style={{ padding: '6px 10px', fontSize: '11px', backgroundColor: '#0a0a0c', border: '1px solid #3a3a3c', color: '#fff', borderRadius: '4px', outline: 'none' }}
-                        />
-                        <div style={{ fontSize: '10px', color: '#34c759' }}>{custodySignature ? `✓ Signed by ${custodySignature}` : 'Awaiting signature...'}</div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-                    <button 
-                      disabled={toolStatus === "SERVICE_REQUIRED"}
-                      style={{ flex: 1, padding: '11px', borderRadius: '8px', border: 'none', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? '#3a3a3c' : '#007aff', color: toolStatus === "SERVICE_REQUIRED" ? '#86868b' : '#fff', fontSize: '11px', fontWeight: '800', cursor: toolStatus === "SERVICE_REQUIRED" ? 'not-allowed' : 'pointer' }}
-                    >
-                      {toolStatus === "SERVICE_REQUIRED" ? 'CHECKOUT LOCKED' : 'CHECK OUT'}
-                    </button>
-                    <button 
-                      onClick={() => setToolsFlipped(true)} 
-                      style={{ padding: '11px 14px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontSize: '11px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      <RotateCw size={12} /> PM Service
-                    </button>
-                  </div>
-                </div>
-
-                {/* BACK FACE */}
-                <div className="card-face card-back">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '12px', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#007aff' }}>🤖 AWS Bedrock AI PM Checklist</span>
-                    <button onClick={() => setToolsFlipped(false)} style={{ background: 'none', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '12px' }}>⤶ Back</button>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#121212', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '12px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={toolChecklist.step1} onChange={e => setToolChecklist({...toolChecklist, step1: e.target.checked})} />
-                      Verify hydraulic line pressure
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={toolChecklist.step2} onChange={e => setToolChecklist({...toolChecklist, step2: e.target.checked})} />
-                      Inspect and repack grease points
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={toolChecklist.step3} onChange={e => setToolChecklist({...toolChecklist, step3: e.target.checked})} />
-                      Test emergency stop switch
-                    </label>
-                  </div>
-
-                  <button 
-                    disabled={!toolChecklist.step1 || !toolChecklist.step2 || !toolChecklist.step3}
-                    onClick={() => {
-                      setToolHours(120);
-                      setToolStatus("OPERATIONAL");
-                      setToolsFlipped(false);
-                    }}
-                    style={{ marginTop: 'auto', padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: (toolChecklist.step1 && toolChecklist.step2 && toolChecklist.step3) ? '#34c759' : '#3a3a3c', color: '#fff', fontSize: '12px', fontWeight: '800', cursor: 'pointer' }}
-                  >
-                    Log Service & Unlock Tool
-                  </button>
-                </div>
-
+            <div className="full-feature-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', fontWeight: '800', color: toolStatus === "SERVICE_REQUIRED" ? '#ff3b30' : '#34c759', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? 'rgba(255,59,48,0.15)' : 'rgba(52,199,89,0.15)', padding: '4px 10px', borderRadius: '6px' }}>
+                  {toolStatus === "SERVICE_REQUIRED" ? '⚠️ SERVICE OVERDUE' : '🟢 OPERATIONAL'}
+                </span>
+                <span style={{ fontSize: '12px', color: '#86868b', fontWeight: '700' }}>Tag # 00482</span>
               </div>
+
+              <div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: '#fff' }}>Caterpillar Track Loader</div>
+                <div style={{ fontSize: '12px', color: '#007aff', marginTop: '2px' }}>Model: CAT-259D3 • Serial: C2L99201</div>
+              </div>
+
+              <div style={{ backgroundColor: '#161618', padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <div style={{ fontSize: '9px', color: '#86868b', fontWeight: '700' }}>HOURS METER</div>
+                  <div style={{ fontSize: '18px', fontWeight: '800', color: toolHours >= 250 ? '#ff3b30' : '#34c759' }}>
+                    {toolHours} <span style={{ fontSize: '11px', color: '#86868b' }}>/ 250 hrs</span>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '9px', color: '#86868b', fontWeight: '700' }}>REPLACEMENT VAL</div>
+                  <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff' }}>$65,000</div>
+                </div>
+              </div>
+
+              {/* ALWAYS-OPEN AI CHECKLIST */}
+              <div style={{ backgroundColor: '#161618', padding: '14px', borderRadius: '8px', border: '1px solid #2d2d2f' }}>
+                <div style={{ fontSize: '12px', fontWeight: '800', color: '#007aff', marginBottom: '8px' }}>🤖 AWS Bedrock AI PM Checklist</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={toolChecklist.step1} onChange={e => setToolChecklist({...toolChecklist, step1: e.target.checked})} />
+                    Verify hydraulic line pressure
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={toolChecklist.step2} onChange={e => setToolChecklist({...toolChecklist, step2: e.target.checked})} />
+                    Inspect and repack grease points
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={toolChecklist.step3} onChange={e => setToolChecklist({...toolChecklist, step3: e.target.checked})} />
+                    Test emergency stop switch
+                  </label>
+                </div>
+              </div>
+
+              <button 
+                disabled={!toolChecklist.step1 || !toolChecklist.step2 || !toolChecklist.step3}
+                onClick={() => {
+                  setToolHours(120);
+                  setToolStatus("OPERATIONAL");
+                }}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: (toolChecklist.step1 && toolChecklist.step2 && toolChecklist.step3) ? '#34c759' : '#3a3a3c', color: '#fff', fontSize: '12px', fontWeight: '800', cursor: 'pointer' }}
+              >
+                {(toolChecklist.step1 && toolChecklist.step2 && toolChecklist.step3) ? 'Complete Service & Unlock Tool' : 'Complete Checklist to Unlock'}
+              </button>
             </div>
           </div>
         )}
 
-        {/* TAB 3: INVENTORY CARD */}
+        {/* TAB 3: INVENTORY CARD (FULL DISPLAY - NO COLLAPSING) */}
         {activeTab === "inventory" && (
-          <div style={{
-            backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c",
-            borderRadius: "24px", padding: "48px", display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "48px", alignItems: "start"
-          }}>
+          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "24px", padding: "48px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "48px", alignItems: "start" }}>
             <div>
               <div style={{ color: "#34c759", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 03</div>
-              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>FIFO Rotation & Multi-Zone Bin Allocation</h2>
+              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>FIFO Rotation & Zebra Thermal Preview</h2>
               <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "24px", fontSize: "15px" }}>
-                Manage perishable stock and multi-bin warehouse distribution with automated "PICK FIRST" badges and Zebra thermal label printing previews.
+                Manage perishable stock and multi-bin warehouse distribution with automated "PICK FIRST" badges and 4x6 thermal label previews.
               </p>
-              <ul style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: 0, listStyle: "none" }}>
-                <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px" }}>
-                  <CheckCircle2 color="#34c759" size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
-                  <div><strong>Multi-Zone Bin Tracking:</strong> Switch between Cooler Bays and Dry Aisles to manage split product lots with real quantity deductions.</div>
-                </li>
-              </ul>
             </div>
 
-            <div className="exact-card-wrapper">
-              <div className={`card-flipper ${inventoryFlipped ? 'flipped' : ''}`}>
-                <div className="card-face card-front" style={{ backgroundColor: '#202022', border: '1px solid #3a3a3c', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.7)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', color: '#86868b', textTransform: 'uppercase', fontWeight: '800' }}>Citrus Springs</span>
-                    <span style={{ backgroundColor: 'rgba(52,199,89,0.2)', border: '1px solid #34c759', color: '#34c759', padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: '900' }}>🟢 PICK FIRST</span>
-                  </div>
+            <div className="full-feature-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', color: '#86868b', textTransform: 'uppercase', fontWeight: '800' }}>Citrus Springs</span>
+                <span style={{ backgroundColor: 'rgba(52,199,89,0.2)', border: '1px solid #34c759', color: '#34c759', padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: '900' }}>🟢 PICK FIRST</span>
+              </div>
 
-                  <div>
-                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff' }}>100% Orange Juice Concentrate</div>
-                    <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>Lot: LOT-2026-01 • Exp: Oct 15, 2026</div>
-                  </div>
+              <div>
+                <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff' }}>100% Orange Juice Concentrate</div>
+                <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>Lot: LOT-2026-01 • Exp: Oct 15, 2026</div>
+              </div>
 
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {["Cooler Bay-01", "Dry Aisle-03"].map(zone => (
-                      <button 
-                        key={zone}
-                        onClick={() => setSelectedZone(zone)}
-                        style={{ padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', border: selectedZone === zone ? '1px solid #007aff' : '1px solid #3a3a3c', backgroundColor: selectedZone === zone ? 'rgba(0,122,255,0.15)' : '#161618', color: selectedZone === zone ? '#007aff' : '#86868b', cursor: 'pointer' }}
-                      >
-                        📍 {zone}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div style={{ fontSize: '30px', fontWeight: '800', color: '#34c759' }}>
-                    {stockQty} <span style={{ fontSize: '14px', color: '#86868b' }}>Boxes in Stock</span>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-                    <button onClick={() => setStockQty(stockQty + 10)} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #34c759', backgroundColor: 'rgba(52,199,89,0.15)', color: '#34c759', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>+10 Receive</button>
-                    <button onClick={() => setStockQty(Math.max(0, stockQty - 10))} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ff3b30', backgroundColor: 'rgba(255,59,48,0.15)', color: '#ff3b30', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>-10 Ship</button>
-                    <button onClick={() => setInventoryFlipped(true)} style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: '#007aff', color: '#fff', fontWeight: '800', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <RotateCw size={12} /> Flip
-                    </button>
-                  </div>
-                </div>
-
-                <div className="card-face card-back">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '12px', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#007aff' }}>📊 Velocity & Zebra Label Engine</span>
-                    <button onClick={() => setInventoryFlipped(false)} style={{ background: 'none', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '12px' }}>⤶ Back</button>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-                    <div style={{ backgroundColor: '#121212', padding: '10px', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '10px', color: '#86868b' }}>30-DAY BURN</div>
-                      <div style={{ fontSize: '16px', fontWeight: '800' }}>75 bx</div>
-                    </div>
-                    <div style={{ backgroundColor: '#121212', padding: '10px', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '10px', color: '#86868b' }}>90-DAY BURN</div>
-                      <div style={{ fontSize: '16px', fontWeight: '800' }}>225 bx</div>
-                    </div>
-                  </div>
-
-                  {showZebraPreview && (
-                    <div style={{ backgroundColor: '#fff', color: '#000', padding: '10px', borderRadius: '8px', textAlign: 'center', marginBottom: '16px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: '800' }}>CITRUS SPRINGS — ORANGE JUICE</div>
-                      <div style={{ fontSize: '10px', fontFamily: 'monospace' }}>UPC: 082123456781 • ZONE: {selectedZone}</div>
-                    </div>
-                  )}
-
-                  <button onClick={() => setShowZebraPreview(!showZebraPreview)} style={{ marginTop: 'auto', padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: '#161618', border: '1px solid #3a3a3c', color: '#fff', fontSize: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                    <Printer size={14} /> {showZebraPreview ? 'Hide Thermal Preview' : 'Preview Zebra 4x6 Thermal Label'}
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {["Cooler Bay-01", "Dry Aisle-03"].map(zone => (
+                  <button 
+                    key={zone}
+                    onClick={() => setSelectedZone(zone)}
+                    style={{ padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', border: selectedZone === zone ? '1px solid #007aff' : '1px solid #3a3a3c', backgroundColor: selectedZone === zone ? 'rgba(0,122,255,0.15)' : '#161618', color: selectedZone === zone ? '#007aff' : '#86868b', cursor: 'pointer' }}
+                  >
+                    📍 {zone}
                   </button>
-                </div>
+                ))}
+              </div>
+
+              <div style={{ fontSize: '30px', fontWeight: '800', color: '#34c759' }}>
+                {stockQty} <span style={{ fontSize: '14px', color: '#86868b' }}>Boxes in Stock</span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => setStockQty(stockQty + 10)} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #34c759', backgroundColor: 'rgba(52,199,89,0.15)', color: '#34c759', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>+10 Receive</button>
+                <button onClick={() => setStockQty(Math.max(0, stockQty - 10))} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ff3b30', backgroundColor: 'rgba(255,59,48,0.15)', color: '#ff3b30', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>-10 Ship</button>
+              </div>
+
+              {/* ALWAYS-VISIBLE ZEBRA LABEL PREVIEW */}
+              <div style={{ backgroundColor: '#fff', color: '#000', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '11px', fontWeight: '800' }}>ZEBRA 4x6 THERMAL LABEL PREVIEW</div>
+                <div style={{ fontSize: '10px', fontWeight: '700', marginTop: '2px' }}>CITRUS SPRINGS — ORANGE JUICE</div>
+                <div style={{ fontSize: '9px', fontFamily: 'monospace', marginTop: '2px' }}>UPC: 082123456781 • ZONE: {selectedZone}</div>
               </div>
             </div>
           </div>
@@ -538,12 +328,7 @@ export default function LandingPage({ onLoginClick }) {
         <p style={{ color: "#86868b", fontSize: "16px", marginBottom: "32px" }}>Experience seamless asset tracking in under 5 minutes.</p>
         <button 
           onClick={handleDemoClick}
-          style={{
-            backgroundColor: "#ffffff", color: "#000000", border: "none",
-            padding: "16px 40px", borderRadius: "30px", fontSize: "16px",
-            fontWeight: "800", cursor: "pointer", boxShadow: "0 10px 30px rgba(255,255,255,0.2)",
-            display: "inline-flex", alignItems: "center", gap: "8px"
-          }}
+          style={{ backgroundColor: "#ffffff", color: "#000000", border: "none", padding: "16px 40px", borderRadius: "30px", fontSize: "16px", fontWeight: "800", cursor: "pointer", boxShadow: "0 10px 30px rgba(255,255,255,0.2)", display: "inline-flex", alignItems: "center", gap: "8px" }}
         >
           <Mail size={18} /> Request Enterprise Demo
         </button>
