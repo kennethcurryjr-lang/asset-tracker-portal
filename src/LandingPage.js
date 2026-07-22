@@ -228,8 +228,11 @@ function DemoKineticCard() {
 
 // --- MAIN LANDING PAGE COMPONENT ---
 
+
+
+
 function DemoAssetCard() {
-  const [isFlipped, setIsFlipped] = React.useState(false); // Default to Front Face
+  const [isFlipped, setIsFlipped] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('service');
   const [hours, setHours] = React.useState(254);
   const [checklist, setChecklist] = React.useState([
@@ -237,30 +240,13 @@ function DemoAssetCard() {
     { id: 2, text: "Inspect hydraulic return filter & pull S·O·S fluid", checked: false },
     { id: 3, text: "Check and adjust track tension limits", checked: false }
   ]);
-  const [customStep, setCustomStep] = React.useState("");
-  const [serviceNote, setServiceNote] = React.useState("");
-  const [hasPhoto, setHasPhoto] = React.useState(false);
 
   const toggleStep = (id) => {
     setChecklist(prev => prev.map(s => s.id === id ? { ...s, checked: !s.checked } : s));
   };
 
-  const removeStep = (id) => {
-    setChecklist(prev => prev.filter(s => s.id !== id));
-  };
-
-  const handleAddCustomStep = (e) => {
-    if (e.key === 'Enter' && customStep.trim()) {
-      e.preventDefault();
-      setChecklist(prev => [...prev, { id: Date.now(), text: customStep.trim(), checked: false }]);
-      setCustomStep("");
-    }
-  };
-
   const handleLogService = () => {
     setHours(0);
-    setServiceNote("");
-    setHasPhoto(false);
     setChecklist(prev => prev.map(s => ({ ...s, checked: false })));
     setIsFlipped(false);
   };
@@ -268,19 +254,20 @@ function DemoAssetCard() {
   const allChecked = checklist.length > 0 && checklist.every(s => s.checked);
 
   return (
-    <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', margin: '0 auto', minHeight: '400px' }}>
-      <div className={isFlipped ? "card-flipper flipped" : "card-flipper"}>
+    <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', height: '340px', margin: '0 auto' }}>
+      <div className={isFlipped ? "card-flipper flipped" : "card-flipper"} style={{ height: '100%' }}>
         
-        {/* FRONT FACE */}
+        {/* FRONT FACE (1:1 Tools.js Asset Card) */}
         <div className="card-face card-front" style={{ 
-          padding: '24px', 
+          height: '100%',
+          padding: '20px', 
           border: '1px solid #d1d5db', 
           borderRadius: '16px', 
           backgroundColor: '#ffffff',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+          boxShadow: '0 12px 30px rgba(0,0,0,0.3)',
           display: 'flex', 
           flexDirection: 'column', 
-          gap: '16px',
+          justify: 'space-between',
           color: '#0a1b35',
           boxSizing: 'border-box'
         }}>
@@ -294,103 +281,70 @@ function DemoAssetCard() {
               color: '#ef4444', 
               letterSpacing: '0.05em' 
             }}>
-              <span style={{ 
-                display: 'inline-block', 
-                width: '8px', 
-                height: '8px', 
-                borderRadius: '50%', 
-                marginRight: '8px', 
-                backgroundColor: '#ef4444',
-                boxShadow: '0 0 8px rgba(239,68,68,0.5)'
-              }}></span>
+              <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', marginRight: '6px', backgroundColor: '#ef4444' }}></span>
               SERVICE DUE
             </span>
             <span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600' }}>[ CAT-00482 ]</span>
           </div>
 
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '20px', fontWeight: '800', lineHeight: '1.3', color: '#0a1b35' }}>Caterpillar Track Loader</div>
-            <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '6px', fontWeight: '600' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ fontSize: '20px', fontWeight: '800', lineHeight: '1.2', color: '#0a1b35' }}>Caterpillar Track Loader</div>
+            <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '600' }}>
               Heavy Machinery • <strong style={{ color: '#0052cc' }}>$65,000</strong>
             </div>
-            <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>Assigned: Field Operations</div>
+            <div style={{ fontSize: '12px', color: '#86868b' }}>Assigned: Field Operations</div>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-            <button style={{ flex: 1, padding: '12px', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#9ca3af', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'not-allowed' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#9ca3af', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'not-allowed' }}>
               LOCKED
             </button>
-            <button onClick={() => setIsFlipped(true)} style={{ padding: '12px 16px', borderRadius: '8px', backgroundColor: 'transparent', color: '#0052cc', border: '1px solid #0052cc', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
+            <button onClick={() => setIsFlipped(true)} style={{ padding: '10px 16px', borderRadius: '8px', backgroundColor: 'transparent', color: '#0052cc', border: '1px solid #0052cc', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
               Flip ⤹
             </button>
           </div>
         </div>
 
-        {/* BACK FACE */}
+        {/* BACK FACE (1:1 Tools.js Back Face) */}
         <div className="card-face card-back" style={{ 
-          padding: '24px', 
+          height: '100%',
+          padding: '16px', 
           borderRadius: '16px', 
           border: '1px solid #d1d5db', 
           backgroundColor: '#ffffff', 
           color: '#0a1b35', 
-          boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+          boxShadow: '0 12px 30px rgba(0,0,0,0.3)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px',
+          justify: 'space-between',
           boxSizing: 'border-box'
         }}>
-          {/* TAB BAR */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
             <div style={{ display: 'flex', gap: '4px', flex: 1, marginRight: '8px' }}>
               <button className={activeTab === 'service' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('service')}>PM</button>
               <button className={activeTab === 'manifest' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('manifest')}>MANIFEST</button>
               <button className={activeTab === 'qr' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('qr')}>QR</button>
               <button className={activeTab === 'specs' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('specs')}>INFO</button>
             </div>
-            <button onClick={() => setIsFlipped(false)} style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>✕</button>
+            <button onClick={() => setIsFlipped(false)} style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>✕</button>
           </div>
 
           {activeTab === 'service' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
-              <div>
-                <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em' }}>HOURS INTERVAL</div>
-                <div style={{ fontSize: '20px', fontWeight: '800', color: hours >= 250 ? '#dc2626' : '#0a1b35' }}>
-                  {hours} / 250 <span style={{ fontSize: '11px', color: '#6b7280' }}>HRS</span>
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, marginTop: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800' }}>HOURS INTERVAL</span>
+                <span style={{ fontSize: '16px', fontWeight: '800', color: hours >= 250 ? '#dc2626' : '#0a1b35' }}>
+                  {hours} / 250 <span style={{ fontSize: '10px', color: '#6b7280' }}>HRS</span>
+                </span>
               </div>
 
-              <div style={{ backgroundColor: '#f3f4f6', borderRadius: '8px', padding: '10px', border: '1px solid #d1d5db', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
+              <div style={{ backgroundColor: '#f3f4f6', borderRadius: '8px', padding: '8px', border: '1px solid #d1d5db', display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '120px', overflowY: 'auto' }}>
                 {checklist.map(item => (
-                  <div key={item.id} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', fontSize: '11px', color: '#374151', fontWeight: '600' }}>
-                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer', flex: 1, lineHeight: '1.3' }}>
-                      <input type="checkbox" checked={item.checked} onChange={() => toggleStep(item.id)} style={{ width: '13px', height: '13px', marginTop: '1px', accentColor: '#0052cc' }} />
-                      <span style={{ textDecoration: item.checked ? 'line-through' : 'none', opacity: item.checked ? 0.6 : 1 }}>{item.text}</span>
-                    </label>
-                    <span onClick={() => removeStep(item.id)} style={{ color: '#9ca3af', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>✕</span>
-                  </div>
+                  <label key={item.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '11px', color: '#374151', fontWeight: '600', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={item.checked} onChange={() => toggleStep(item.id)} style={{ width: '13px', height: '13px', marginTop: '1px', accentColor: '#0052cc' }} />
+                    <span style={{ textDecoration: item.checked ? 'line-through' : 'none', opacity: item.checked ? 0.6 : 1 }}>{item.text}</span>
+                  </label>
                 ))}
-              </div>
-
-              <input 
-                type="text" 
-                placeholder="+ Add Custom Step (Press Enter)" 
-                value={customStep}
-                onChange={(e) => setCustomStep(e.target.value)}
-                onKeyDown={handleAddCustomStep}
-                style={{ padding: '8px 10px', borderRadius: '6px', border: '1px dashed #d1d5db', backgroundColor: '#f8f9fa', color: '#374151', fontSize: '11px', outline: 'none' }} 
-              />
-
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <input 
-                  type="text" 
-                  placeholder="Add Service Notes..." 
-                  value={serviceNote}
-                  onChange={(e) => setServiceNote(e.target.value)}
-                  style={{ flex: 1, padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', backgroundColor: '#f8f9fa', color: '#0a1b35', fontSize: '11px', outline: 'none' }} 
-                />
-                <button onClick={() => setHasPhoto(!hasPhoto)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', padding: '0 4px' }}>
-                  {hasPhoto ? '✅' : '📷'}
-                </button>
               </div>
 
               <button 
@@ -398,7 +352,7 @@ function DemoAssetCard() {
                 onClick={handleLogService}
                 style={{ 
                   marginTop: 'auto', 
-                  padding: '12px', 
+                  padding: '10px', 
                   borderRadius: '8px', 
                   border: 'none', 
                   backgroundColor: allChecked ? '#0a1b35' : '#9ca3af', 
@@ -414,23 +368,23 @@ function DemoAssetCard() {
           )}
 
           {activeTab === 'manifest' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '10px 0' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '8px 0' }}>
               <div style={{ fontSize: '12px', fontWeight: '800', color: '#0a1b35' }}>Custody Manifest</div>
-              <label style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#4b5563' }}><input type="checkbox" defaultChecked /> Ignition Keys / Fob</label>
-              <label style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#4b5563' }}><input type="checkbox" defaultChecked /> Registration & Insurance Card</label>
-              <label style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#4b5563' }}><input type="checkbox" defaultChecked /> Clean Interior / Exterior</label>
+              <label style={{ display: 'flex', gap: '8px', fontSize: '11px', color: '#4b5563' }}><input type="checkbox" defaultChecked /> Ignition Keys / Fob</label>
+              <label style={{ display: 'flex', gap: '8px', fontSize: '11px', color: '#4b5563' }}><input type="checkbox" defaultChecked /> Registration & Insurance Card</label>
+              <label style={{ display: 'flex', gap: '8px', fontSize: '11px', color: '#4b5563' }}><input type="checkbox" defaultChecked /> Clean Interior / Exterior</label>
             </div>
           )}
 
           {activeTab === 'qr' && (
             <div style={{ textAlign: 'center', padding: '10px 0' }}>
               <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=CAT-00482" alt="Asset QR" style={{ width: '80px', height: '80px', margin: '0 auto', display: 'block' }} />
-              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '8px', fontWeight: '700' }}>SCAN FOR CUSTODY HANDOFF</div>
+              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '6px', fontWeight: '700' }}>SCAN FOR CUSTODY HANDOFF</div>
             </div>
           )}
 
           {activeTab === 'specs' && (
-            <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '8px', padding: '10px 0' }}>
+            <div style={{ fontSize: '11px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '6px', padding: '8px 0' }}>
               <div><strong style={{ color: '#0a1b35' }}>Value:</strong> $65,000</div>
               <div><strong style={{ color: '#0a1b35' }}>Category:</strong> Heavy Machinery</div>
               <div><strong style={{ color: '#0a1b35' }}>Serial:</strong> SN-9948-2026-X</div>
