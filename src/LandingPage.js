@@ -283,80 +283,59 @@ function DemoKineticCard() {
 
 
 
-function DemoAssetCard() {
-  const [tool, setTool] = React.useState({
-    toolId: "CAT-00482",
-    name: "Caterpillar Track Loader",
-    value: 65000,
-    category: "Heavy Machinery",
-    location: "Field Operations",
-    serial: "SN-9948-2026-X",
-    status: "IN-STOCK",
-    condition: "Requires Maintenance",
-    assignedUser: null,
-    metrics: [{ unit: "Hours", current: 254, interval: 250 }],
-    pmChecklist: [
-      "Drain water separator & replace fuel filters",
-      "Inspect hydraulic return filter & pull S·O·S fluid",
-      "Check and adjust track tension limits"
-    ],
-    customManifest: [
-      "Ignition Keys / Fob",
-      "Registration & Insurance Card",
-      "Clean Interior / Exterior"
-    ],
-    history: [
-      { user: "Admin", action: "Tool Ingested to Database", date: "Jul 21, 2026, 6:19 PM", condition: "New" },
-      { user: "Tech Ops", action: "Chain-of-Custody Signed Off", date: "Jul 21, 2026, 7:00 PM", condition: "Good" }
-    ]
-  });
 
+
+
+function DemoAssetCard() {
   const [isFlipped, setIsFlipped] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('service');
-  const [serviceChecklist, setServiceChecklist] = React.useState([]);
+  const [hours, setHours] = React.useState(0);
+  const [interval, setIntervalVal] = React.useState(90);
+  const [checklist, setChecklist] = React.useState([
+    { id: 1, text: "Drain the water separator and replace primary and secondary fuel filters to prevent fuel system contamination.", checked: false },
+    { id: 2, text: "Inspect the hydraulic return filter and case drain filter, and pull an S·O·S fluid sample to monitor for wear metals.", checked: false },
+    { id: 3, text: "Check and adjust track tension by measuring sag according to manufacturer specifications.", checked: false }
+  ]);
+  const [customStep, setCustomStep] = React.useState("");
   const [serviceNote, setServiceNote] = React.useState("");
+  const [hasPhoto, setHasPhoto] = React.useState(false);
 
-  const isOverdue = tool.metrics.some(m => m.current >= m.interval);
+  const toggleStep = (id) => {
+    setChecklist(prev => prev.map(s => s.id === id ? { ...s, checked: !s.checked } : s));
+  };
 
-  const toggleChecklistStep = (step) => {
-    setServiceChecklist(prev => 
-      prev.includes(step) ? prev.filter(s => s !== step) : [...prev, step]
-    );
+  const removeStep = (id) => {
+    setChecklist(prev => prev.filter(s => s.id !== id));
+  };
+
+  const handleAddCustomStep = (e) => {
+    if (e.key === 'Enter' && customStep.trim()) {
+      e.preventDefault();
+      setChecklist(prev => [...prev, { id: Date.now(), text: customStep.trim(), checked: false }]);
+      setCustomStep("");
+    }
   };
 
   const handleLogService = () => {
-    setTool(prev => ({
-      ...prev,
-      condition: "Excellent",
-      metrics: prev.metrics.map(m => ({ ...m, current: 0 })),
-      history: [
-        { 
-          user: "demo_user", 
-          action: "PM Service Completed & Intervals Reset", 
-          date: "Just now", 
-          condition: "Excellent",
-          note: serviceNote || "Routine PM inspection & filter swap complete."
-        },
-        ...prev.history
-      ]
-    }));
-    setServiceChecklist([]);
+    setHours(0);
     setServiceNote("");
+    setHasPhoto(false);
+    setChecklist(prev => prev.map(s => ({ ...s, checked: false })));
     setIsFlipped(false);
   };
 
-  const flipperClass = isFlipped ? "card-flipper flipped" : "card-flipper";
+  const allChecked = checklist.length > 0 && checklist.every(s => s.checked);
 
   return (
     <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', margin: '0 auto', minHeight: '380px' }}>
-      <div className={flipperClass}>
+      <div className={isFlipped ? "card-flipper flipped" : "card-flipper"}>
         
-        {/* FRONT FACE (1:1 Tools.js Card) */}
+        {/* FRONT FACE (OPERATIONAL CARD) */}
         <div className="card-face card-front" style={{ 
           padding: '20px', 
           border: '1px solid #d1d5db', 
           borderRadius: '16px', 
-          backgroundColor: isOverdue ? '#fafafa' : '#ffffff',
+          backgroundColor: '#ffffff',
           boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
           display: 'flex', 
           flexDirection: 'column', 
@@ -369,8 +348,8 @@ function DemoAssetCard() {
               fontWeight: '700', 
               padding: '4px 8px', 
               borderRadius: '4px', 
-              backgroundColor: isOverdue ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)', 
-              color: isOverdue ? '#ef4444' : '#10b981', 
+              backgroundColor: 'rgba(16,185,129,0.15)', 
+              color: '#10b981', 
               letterSpacing: '0.05em' 
             }}>
               <span style={{ 
@@ -379,58 +358,33 @@ function DemoAssetCard() {
                 height: '8px', 
                 borderRadius: '50%', 
                 marginRight: '8px', 
-                backgroundColor: isOverdue ? '#ef4444' : '#10b981',
-                boxShadow: isOverdue ? '0 0 8px rgba(239,68,68,0.5)' : '0 0 8px rgba(16,185,129,0.5)'
+                backgroundColor: '#10b981',
+                boxShadow: '0 0 8px rgba(16,185,129,0.5)'
               }}></span>
-              {isOverdue ? 'SERVICE DUE' : 'OPERATIONAL'}
+              IN-STOCK
             </span>
-            <span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600' }}>[ {tool.toolId} ]</span>
+            <span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600' }}>[ CAT-333 ]</span>
           </div>
 
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '20px', fontWeight: '800', lineHeight: '1.3', color: '#0a1b35' }}>{tool.name}</div>
+            <div style={{ fontSize: '22px', fontWeight: '800', lineHeight: '1.3', color: '#0a1b35' }}>323</div>
             <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '6px', fontWeight: '600' }}>
-              Category: {tool.category} • <strong style={{ color: '#0052cc' }}>${tool.value.toLocaleString()}</strong>
+              Heavy Machinery • <strong style={{ color: '#0052cc' }}>$85,000</strong>
             </div>
-            <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>Location: {tool.location}</div>
+            <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>Location: Main Tool Crib</div>
           </div>
 
           <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-            <button 
-              disabled={isOverdue} 
-              style={{ 
-                flex: 1, 
-                padding: '12px', 
-                borderRadius: '8px', 
-                backgroundColor: isOverdue ? '#f3f4f6' : '#0a1b35', 
-                color: isOverdue ? '#9ca3af' : '#ffffff', 
-                border: 'none', 
-                fontWeight: '800', 
-                fontSize: '12px', 
-                cursor: isOverdue ? 'not-allowed' : 'pointer' 
-              }}
-            >
-              {isOverdue ? 'LOCKED' : 'CHECK OUT'}
+            <button style={{ flex: 1, padding: '12px', borderRadius: '8px', backgroundColor: '#0a1b35', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>
+              CHECK OUT
             </button>
-            <button 
-              onClick={() => setIsFlipped(true)} 
-              style={{ 
-                padding: '12px 16px', 
-                borderRadius: '8px', 
-                backgroundColor: 'transparent', 
-                color: '#0052cc', 
-                border: '1px solid #0052cc', 
-                fontWeight: '700', 
-                fontSize: '12px', 
-                cursor: 'pointer' 
-              }}
-            >
+            <button onClick={() => setIsFlipped(true)} style={{ padding: '12px 16px', borderRadius: '8px', backgroundColor: 'transparent', color: '#0052cc', border: '1px solid #0052cc', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
               Flip ⤹
             </button>
           </div>
         </div>
 
-        {/* BACK FACE (1:1 Tools.js Back Face) */}
+        {/* BACK FACE (1:1 BACK OF CARD FROM DASHBOARD) */}
         <div className="card-face card-back" style={{ 
           padding: '20px', 
           borderRadius: '16px', 
@@ -439,90 +393,113 @@ function DemoAssetCard() {
           color: '#0a1b35', 
           boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          gap: '12px'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', alignItems: 'center' }}>
+          {/* TAB BAR */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
             <div style={{ display: 'flex', gap: '4px', flex: 1, marginRight: '8px' }}>
               <button className={activeTab === 'service' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('service')}>PM</button>
               <button className={activeTab === 'manifest' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('manifest')}>MANIFEST</button>
+              <button className={activeTab === 'qr' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('qr')}>QR</button>
               <button className={activeTab === 'specs' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('specs')}>INFO</button>
             </div>
             <button onClick={() => setIsFlipped(false)} style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>✕</button>
           </div>
 
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            {activeTab === 'service' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '100%' }}>
-                {tool.metrics.map((m, idx) => (
-                  <div key={idx}>
-                    <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>{m.unit.toUpperCase()} INTERVAL</div>
-                    <div style={{ fontSize: '20px', fontWeight: '800', color: m.current >= m.interval ? '#ef4444' : '#0a1b35' }}>
-                      {m.current} / {m.interval} <span style={{ fontSize: '11px', color: '#6b7280' }}>HRS</span>
-                    </div>
+          {activeTab === 'service' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+              {/* INTERVAL COUNTER */}
+              <div>
+                <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em' }}>DAYS INTERVAL</div>
+                <div style={{ fontSize: '18px', fontWeight: '800', color: '#0a1b35' }}>
+                  {hours} / {interval} <span style={{ fontSize: '11px', color: '#6b7280' }}>DAYS</span>
+                </div>
+              </div>
+
+              {/* CHECKLIST */}
+              <div style={{ backgroundColor: '#e5e7eb', borderRadius: '8px', padding: '10px', border: '1px solid #d1d5db', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '160px', overflowY: 'auto' }}>
+                {checklist.map(item => (
+                  <div key={item.id} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', fontSize: '11px', color: '#374151', fontWeight: '600' }}>
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer', flex: 1, lineHeight: '1.3' }}>
+                      <input type="checkbox" checked={item.checked} onChange={() => toggleStep(item.id)} style={{ width: '13px', height: '13px', marginTop: '1px', accentColor: '#0052cc' }} />
+                      <span style={{ textDecoration: item.checked ? 'line-through' : 'none', opacity: item.checked ? 0.6 : 1 }}>{item.text}</span>
+                    </label>
+                    <span onClick={() => removeStep(item.id)} style={{ color: '#9ca3af', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>✕</span>
                   </div>
                 ))}
+              </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', backgroundColor: '#f3f4f6', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
-                  {tool.pmChecklist.map(step => (
-                    <label key={step} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#374151', cursor: 'pointer', fontWeight: '600' }}>
-                      <input 
-                        type="checkbox" 
-                        checked={serviceChecklist.includes(step)} 
-                        onChange={() => toggleChecklistStep(step)} 
-                        style={{ width: '14px', height: '14px', accentColor: '#0052cc' }} 
-                      />
-                      {step}
-                    </label>
-                  ))}
-                </div>
+              {/* ADD CUSTOM STEP */}
+              <input 
+                type="text" 
+                placeholder="+ Add Custom Step (Press Enter)" 
+                value={customStep}
+                onChange={(e) => setCustomStep(e.target.value)}
+                onKeyDown={handleAddCustomStep}
+                style={{ padding: '8px 10px', borderRadius: '4px', border: '1px dashed #d1d5db', backgroundColor: 'transparent', color: '#374151', fontSize: '11px', outline: 'none' }} 
+              />
 
+              {/* SERVICE NOTE & PHOTO ATTACHMENT */}
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <input 
-                  placeholder="Add service note..." 
+                  type="text" 
+                  placeholder="Add Service Notes..." 
                   value={serviceNote}
                   onChange={(e) => setServiceNote(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '11px', outline: 'none', backgroundColor: '#f8f9fa' }} 
+                  style={{ flex: 1, padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', backgroundColor: '#e5e7eb', color: '#0a1b35', fontSize: '11px', outline: 'none' }} 
                 />
-
-                <button 
-                  disabled={serviceChecklist.length !== tool.pmChecklist.length}
-                  onClick={handleLogService}
-                  style={{ 
-                    marginTop: 'auto', 
-                    padding: '12px', 
-                    borderRadius: '8px', 
-                    backgroundColor: serviceChecklist.length === tool.pmChecklist.length ? '#0a1b35' : '#9ca3af', 
-                    color: '#ffffff', 
-                    border: 'none', 
-                    fontWeight: '800', 
-                    fontSize: '12px', 
-                    cursor: serviceChecklist.length === tool.pmChecklist.length ? 'pointer' : 'not-allowed' 
-                  }}
-                >
-                  LOG SERVICE & RESET
+                <button onClick={() => setHasPhoto(!hasPhoto)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '2px' }}>
+                  {hasPhoto ? '✅' : '📷'}
                 </button>
               </div>
-            )}
 
-            {activeTab === 'manifest' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#374151' }}>Custody Handoff Items:</div>
-                {tool.customManifest.map((item, i) => (
-                  <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: '#4b5563' }}>
-                    <input type="checkbox" defaultChecked style={{ width: '14px', height: '14px', accentColor: '#0052cc' }} /> {item}
-                  </label>
-                ))}
-              </div>
-            )}
+              {/* LOG SERVICE BUTTON */}
+              <button 
+                disabled={!allChecked}
+                onClick={handleLogService}
+                style={{ 
+                  marginTop: 'auto', 
+                  padding: '12px', 
+                  borderRadius: '8px', 
+                  border: 'none', 
+                  backgroundColor: allChecked ? '#0a1b35' : '#9ca3af', 
+                  color: '#ffffff', 
+                  fontWeight: '800', 
+                  fontSize: '12px', 
+                  cursor: allChecked ? 'pointer' : 'not-allowed'
+                }}
+              >
+                LOG SERVICE & RESET
+              </button>
+            </div>
+          )}
 
-            {activeTab === 'specs' && (
-              <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div><span style={{ color: '#374151', fontWeight: '700' }}>Value:</span> ${tool.value.toLocaleString()}</div>
-                <div><span style={{ color: '#374151', fontWeight: '700' }}>Category:</span> {tool.category}</div>
-                <div><span style={{ color: '#374151', fontWeight: '700' }}>Serial:</span> {tool.serial}</div>
-                <div><span style={{ color: '#374151', fontWeight: '700' }}>Location:</span> {tool.location}</div>
-              </div>
-            )}
-          </div>
+          {activeTab === 'manifest' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '10px 0' }}>
+              <div style={{ fontSize: '12px', fontWeight: '800', color: '#0a1b35' }}>Custody Manifest</div>
+              <label style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#4b5563' }}><input type="checkbox" defaultChecked /> Ignition Keys / Fob</label>
+              <label style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#4b5563' }}><input type="checkbox" defaultChecked /> Registration & Insurance Card</label>
+              <label style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#4b5563' }}><input type="checkbox" defaultChecked /> Clean Interior / Exterior</label>
+            </div>
+          )}
+
+          {activeTab === 'qr' && (
+            <div style={{ textAlign: 'center', padding: '10px 0' }}>
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=CAT-333" alt="Asset QR" style={{ width: '80px', height: '80px', margin: '0 auto', display: 'block' }} />
+              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '8px', fontWeight: '700' }}>SCAN FOR CUSTODY HANDOFF</div>
+            </div>
+          )}
+
+          {activeTab === 'specs' && (
+            <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '8px', padding: '10px 0' }}>
+              <div><strong style={{ color: '#0a1b35' }}>Value:</strong> $85,000</div>
+              <div><strong style={{ color: '#0a1b35' }}>Category:</strong> Heavy Machinery</div>
+              <div><strong style={{ color: '#0a1b35' }}>Serial:</strong> SN-9948-2026-X</div>
+              <div><strong style={{ color: '#0a1b35' }}>Location:</strong> Main Tool Crib</div>
+            </div>
+          )}
+
         </div>
 
       </div>
