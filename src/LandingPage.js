@@ -164,183 +164,220 @@ function DemoAssetCard() {
 
 
 
-function DemoKineticCard({ initialAsset }) {
-  const asset = initialAsset || {
-    deviceId: "862605278000318",
-    tag: "GPS-1",
+
+
+
+function DemoKineticCard() {
+  const [asset, setAsset] = React.useState({
+    deviceId: "862605278000314",
+    tag: "LAS-9",
     city: "Las Vegas",
-    group: "LV-DEMO-77",
+    group: "LV-DEMO-81",
     latitude: 36.078802,
     longitude: -115.191695,
     batteryLevel: 99,
-    isServiceMode: false,
-    lastSeen: "Just Now",
-    logs: [
-      { text: "🔧 Preventative Maintenance: Replaced worn seals & tested voltage", user: "tech_ops", time: "Today - 10:30 AM" },
-      { text: "📅 Service scheduled. Next due: 6 Months", user: "admin_user", time: "Today - 9:15 AM" },
-      { text: "📍 Home Anchor Set: 36.0788, -115.1916", user: "demo_user", time: "Today - 8:05 AM" },
-      { text: "✅ Asset activated and claimed", user: "demo_user", time: "Today - 8:00 AM" }
+    estTimeRemaining: "18 mos",
+    lastSeen: "Jul 21 12:30 PM",
+    isServiceMode: true, // Watchdog off
+    homeLat: 36.0787,
+    homeLon: -115.1915,
+    notesList: [
+      { text: "replaced strawberry bib", user: "kennethcurryjr", time: "7/7/2026 - 9:28 PM" },
+      { text: "Installed Gps", user: "kennethcurryjr", time: "7/8/2026 - 7:48 PM" },
+      { text: "📍 Home Anchor Set: 36.0787, -115.1915", user: "kennethcurryjr", time: "7/8/2026 - 7:51 PM" },
+      { text: "🛡️ Watchdog Disabled (Service Mode Engaged by kennethcurryjr)", user: "kennethcurryjr", time: "7/8/2026 - 7:52 PM" }
     ]
-  };
+  });
 
-  const [tag] = React.useState(asset.tag);
-  const [isServiceMode, setIsServiceMode] = React.useState(asset.isServiceMode);
-  const [logs, setLogs] = React.useState(asset.logs);
-  const [newNote, setNewNote] = React.useState("");
+  const [tagInput, setTagInput] = React.useState("");
+  const [noteInput, setNoteInput] = React.useState("");
+  const [serviceOption, setServiceOption] = React.useState("0");
 
   const toggleWatchdog = () => {
-    const newState = !isServiceMode;
-    setIsServiceMode(newState);
-    const logItem = {
-      text: newState ? "🛡️ Watchdog Disabled (Service Mode Active)" : "🛡️ Watchdog Armed & Digital Anchor Active",
-      user: "tech_ops",
-      time: "Just now"
-    };
-    setLogs([logItem, ...logs]);
+    const newMode = !asset.isServiceMode;
+    const logMsg = newMode 
+      ? "🛡️ Watchdog Disabled (Service Mode Engaged by demo_user)" 
+      : "Watchdog Activated (Monitoring Live Position by demo_user)";
+    
+    setAsset(prev => ({
+      ...prev,
+      isServiceMode: newMode,
+      notesList: [{ text: logMsg, user: "demo_user", time: "Just now" }, ...prev.notesList]
+    }));
   };
 
-  const addLogEntry = () => {
-    if (!newNote.trim()) return;
-    const logItem = {
-      text: `📝 ${newNote.trim()}`,
-      user: "field_tech",
-      time: "Just now"
-    };
-    setLogs([logItem, ...logs]);
-    setNewNote("");
+  const handleSaveName = () => {
+    if (!tagInput.trim()) return;
+    setAsset(prev => ({ ...prev, tag: tagInput.trim() }));
+    setTagInput("");
+  };
+
+  const handlePostNote = () => {
+    if (!noteInput.trim()) return;
+    setAsset(prev => ({
+      ...prev,
+      notesList: [{ text: noteInput.trim(), user: "demo_user", time: "Just now" }, ...prev.notesList]
+    }));
+    setNoteInput("");
+  };
+
+  const toggleHome = () => {
+    if (asset.homeLat) {
+      setAsset(prev => ({
+        ...prev,
+        homeLat: null,
+        homeLon: null,
+        notesList: [{ text: "🚫 Home Anchor Cleared", user: "demo_user", time: "Just now" }, ...prev.notesList]
+      }));
+    } else {
+      setAsset(prev => ({
+        ...prev,
+        homeLat: asset.latitude,
+        homeLon: asset.longitude,
+        notesList: [{ text: `📍 Home Anchor Set: ${asset.latitude.toFixed(4)}, ${asset.longitude.toFixed(4)}`, user: "demo_user", time: "Just now" }, ...prev.notesList]
+      }));
+    }
   };
 
   return (
     <div style={{
       backgroundColor: '#1c1c1e',
-      borderRadius: '20px',
-      padding: '24px',
+      borderRadius: '14px',
+      padding: '16px',
       border: '1px solid #3a3a3c',
-      color: '#ffffff',
+      boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
       display: 'flex',
       flexDirection: 'column',
-      gap: '18px',
+      gap: '12px',
       width: '100%',
       maxWidth: '480px',
       margin: '0 auto',
-      boxSizing: 'border-box',
-      boxShadow: '0 20px 50px rgba(0,0,0,0.6)'
+      boxSizing: 'border-box'
     }}>
-      {/* HEADER SECTION */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span className="live-pulse-dot"></span>
-            <span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Live Telemetry • {asset.group}
-            </span>
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: '800', letterSpacing: '-0.02em' }}>{tag}</div>
-          <div style={{ fontSize: '13px', color: '#34c759', fontWeight: '600', marginTop: '2px' }}>
-            ⚡ Battery: {asset.batteryLevel}% • {asset.city} ({asset.latitude}, {asset.longitude})
-          </div>
-        </div>
-
-        <button 
-          onClick={toggleWatchdog} 
-          style={{
-            backgroundColor: isServiceMode ? '#ff3b30' : '#34c759',
-            color: '#ffffff',
-            border: 'none',
-            padding: '8px 14px',
-            borderRadius: '10px',
-            fontSize: '12px',
-            fontWeight: '700',
-            cursor: 'pointer',
-            boxShadow: isServiceMode ? '0 4px 12px rgba(255,59,48,0.3)' : '0 4px 12px rgba(52,199,89,0.3)',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          {isServiceMode ? 'Watchdog Off' : 'Watchdog Active'}
-        </button>
-      </div>
-
-      {/* QUICK METRICS ROW */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', backgroundColor: '#2c2c2e', padding: '12px', borderRadius: '12px', border: '1px solid #3a3a3c' }}>
-        <div>
-          <div style={{ fontSize: '10px', color: '#86868b', fontWeight: '700' }}>STATUS</div>
-          <div style={{ fontSize: '12px', fontWeight: '800', color: isServiceMode ? '#ff9500' : '#34c759' }}>
-            {isServiceMode ? 'SERVICE' : 'TRACKING'}
-          </div>
-        </div>
-        <div>
-          <div style={{ fontSize: '10px', color: '#86868b', fontWeight: '700' }}>LAST SIGNAL</div>
-          <div style={{ fontSize: '12px', fontWeight: '800', color: '#ffffff' }}>{asset.lastSeen}</div>
-        </div>
-        <div>
-          <div style={{ fontSize: '10px', color: '#86868b', fontWeight: '700' }}>DEVICE ID</div>
-          <div style={{ fontSize: '11px', fontWeight: '700', color: '#86868b', fontFamily: 'monospace' }}>...{asset.deviceId.slice(-6)}</div>
-        </div>
-      </div>
-
-      {/* TIMELINE & LOGS FEED */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ fontSize: '12px', fontWeight: '700', color: '#86868b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>Immutable Timeline & Maintenance Trail</span>
-          <span style={{ fontSize: '10px', color: '#007aff' }}>{logs.length} Entries</span>
-        </div>
-
-        <div style={{
-          backgroundColor: '#121212',
-          borderRadius: '12px',
-          padding: '12px',
-          height: '180px',
-          overflowY: 'auto',
-          border: '1px solid #3a3a3c',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px'
-        }}>
-          {logs.map((log, idx) => (
-            <div key={idx} style={{ fontSize: '12px', borderBottom: idx < logs.length - 1 ? '1px solid #2c2c2e' : 'none', paddingBottom: '8px' }}>
-              <div style={{ color: '#ffffff', fontWeight: '600', lineHeight: '1.4' }}>{log.text}</div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#86868b', fontSize: '10px', marginTop: '4px' }}>
-                <span>👤 {log.user}</span>
-                <span>{log.time}</span>
+      {/* SPLIT RESPONSIVE CORE ROW */}
+      <div style={{ display: 'flex', gap: '12px' }}>
+        
+        {/* LEFT COLUMN: TELEMETRY */}
+        <div style={{ flex: 1.1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <input type="checkbox" defaultChecked style={{ width: '16px', height: '16px', accentColor: '#ffffff' }} />
+              <div style={{ fontSize: '18px', fontWeight: '800', color: '#ffffff', letterSpacing: '-0.01em' }}>
+                {asset.tag}
               </div>
             </div>
-          ))}
+
+            <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
+              <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', padding: '2px 6px', backgroundColor: '#ff3b30', borderRadius: '4px' }}>
+                OFFLINE
+              </span>
+            </div>
+
+            <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.4' }}>
+              <div style={{ fontWeight: '600', color: '#ffffff', fontSize: '13px' }}>{asset.city}</div>
+              <div style={{ fontSize: '10px', color: '#86868b', marginTop: '2px' }}>Last seen: {asset.lastSeen}</div>
+              <div style={{ fontSize: '11px' }}>ID: {asset.deviceId}</div>
+              <div style={{ fontSize: '11px', fontStyle: 'italic' }}>{asset.group}</div>
+              {asset.homeLat && (
+                <div style={{ fontSize: '10px', color: '#007aff', marginTop: '4px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#007aff' }}></span>
+                  Anchor: {Number(asset.homeLat).toFixed(4)}, {Number(asset.homeLon).toFixed(4)}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* SPARK BATTERY GAUGE */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', backgroundColor: '#121212', padding: '4px 8px', borderRadius: '6px', border: '1px solid #2c2c2e' }}>
+            <div style={{ width: '40px', height: '4px', backgroundColor: '#2c2c2e', borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{ width: `${asset.batteryLevel}%`, height: '100%', backgroundColor: '#34c759' }} />
+            </div>
+            <span style={{ fontSize: '11px', fontWeight: '700', color: '#34c759' }}>{asset.batteryLevel}%</span>
+            <span style={{ fontSize: '11px', fontWeight: '500', color: '#86868b', borderLeft: '1px solid #3a3a3c', paddingLeft: '8px', marginLeft: '2px' }}>{asset.estTimeRemaining}</span>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: MICRO MAP PREVIEW */}
+        <div style={{ flex: 0.9, position: 'relative', height: '110px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #3a3a3c', backgroundColor: '#121212' }}>
+          <iframe 
+            title="demo-map"
+            frameBorder="0" 
+            scrolling="no" 
+            src="https://www.openstreetmap.org/export/embed.html?bbox=-115.211695%2C36.058802%2C-115.171695%2C36.098802&layer=mapnik&marker=36.078802%2C-115.191695"
+            style={{ pointerEvents: 'none', position: 'absolute', top: '-60px', left: '-60px', width: 'calc(100% + 120px)', height: 'calc(100% + 120px)', border: 'none' }}
+          />
         </div>
       </div>
 
-      {/* QUICK LOG ENTRY INPUT */}
-      <div style={{ display: 'flex', gap: '8px' }}>
+      {/* OPERATIONS ROW 1: RENAME */}
+      <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
         <input 
-          placeholder="Log field service or maintenance note..." 
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addLogEntry()}
-          style={{
-            flex: 1,
-            backgroundColor: '#121212',
-            border: '1px solid #3a3a3c',
-            borderRadius: '10px',
-            padding: '10px 14px',
-            color: '#ffffff',
-            fontSize: '12px',
-            outline: 'none'
-          }}
+          placeholder="Rename Asset..." 
+          value={tagInput}
+          onChange={(e) => setTagInput(e.target.value)}
+          style={{ flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#121212', border: '1px solid #3a3a3c', color: '#ffffff', outline: 'none' }}
         />
-        <button 
-          onClick={addLogEntry}
-          style={{
-            backgroundColor: '#007aff',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: '10px',
-            padding: '10px 16px',
-            fontWeight: '700',
-            fontSize: '12px',
-            cursor: 'pointer'
-          }}
-        >
-          Add Log
+        <button onClick={handleSaveName} style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '6px', color: '#ffffff', border: '1px solid #ffffff', backgroundColor: '#007aff', fontWeight: '600', cursor: 'pointer' }}>Save</button>
+        <button style={{ background: '#121212', border: '1px solid #3a3a3c', cursor: 'pointer', fontSize: '11px', color: '#ffffff', padding: '6px 10px', borderRadius: '6px', fontWeight: '600' }}>Flip ⤹</button>
+      </div>
+
+      {/* OPERATIONS ROW 2: SHARE / WATCHDOG / SET HOME */}
+      <div style={{ display: 'flex', gap: '4px', width: '100%' }}>
+        <button style={{ padding: '6px 10px', fontSize: '11px', borderRadius: '8px', flex: 1, color: '#1c1c1e', backgroundColor: '#ffffff', border: '1px solid #ffffff', fontWeight: '700', cursor: 'pointer' }}>Share</button>
+        
+        <button onClick={toggleWatchdog} style={{ fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '6px 10px', backgroundColor: asset.isServiceMode ? 'transparent' : '#1d1d1f', color: '#ffffff', border: '1px solid #ffffff', cursor: 'pointer', fontWeight: '600' }}>
+          {!asset.isServiceMode && <span className="live-pulse-dot" style={{ marginRight: '4px' }}></span>}
+          {asset.isServiceMode ? 'Watchdog off' : 'Watchdog active'}
         </button>
+
+        <button onClick={toggleHome} style={{ fontSize: '11px', borderRadius: '8px', flex: 1.2, padding: '6px 10px', backgroundColor: asset.homeLat ? 'transparent' : '#1d1d1f', color: '#ffffff', border: '1px solid #ffffff', cursor: 'pointer', fontWeight: '600' }}>
+          {asset.homeLat ? "Clear Home" : "Set Home"}
+        </button>
+      </div>
+
+      {/* SERVICE SCHEDULE DROPDOWN */}
+      <div style={{ display: 'flex', gap: '6px', width: '100%', alignItems: 'center', backgroundColor: '#121212', padding: '8px', borderRadius: '8px', border: '1px solid #2c2c2e', boxSizing: 'border-box' }}>
+        <select value={serviceOption} onChange={(e) => setServiceOption(e.target.value)} style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #3a3a3c', fontSize: '11px', backgroundColor: '#1c1c1e', color: '#ffffff', flex: 1, outline: 'none' }}>
+          <option value="0">Off (Opt-Out)</option>
+          <option value="1">1 Month</option>
+          <option value="3">3 Months</option>
+          <option value="6">6 Months</option>
+          <option value="9">9 Months</option>
+          <option value="12">12 Months</option>
+        </select>
+        <button style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #ffffff', fontSize: '11px', fontWeight: '600', cursor: 'pointer', backgroundColor: '#ffffff', color: '#1c1c1e' }}>Schedule Service</button>
+      </div>
+
+      {/* TIMELINE STEPPER FOR LOGS */}
+      <div style={{ padding: '12px', backgroundColor: '#121212', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
+        <div style={{ display: 'block', height: '110px', overflowY: 'auto', marginBottom: '8px', paddingRight: '2px' }}>
+          <div style={{ position: 'relative', paddingLeft: '12px', borderLeft: '2px solid #3a3a3c', marginLeft: '4px' }}>
+            {asset.notesList.map((logEntry, index) => (
+              <div key={index} style={{ position: 'relative', paddingBottom: index !== asset.notesList.length - 1 ? '12px' : '2px', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '4px' }}>
+                <div style={{ position: 'absolute', left: '-19px', top: '4px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff9500', border: '2px solid #121212', zIndex: 2 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '12px', fontWeight: '500', lineHeight: '1.3', wordBreak: 'break-word' }}>{logEntry.text}</div>
+                  <div style={{ color: '#86868b', fontSize: '10px', marginTop: '1px' }}>
+                    {logEntry.user} • <span style={{ fontSize: '9px', color: '#86868b' }}>{logEntry.time}</span>
+                  </div>
+                </div>
+                <button style={{ color: '#ff3b30', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(255, 59, 48, 0.05)', borderRadius: '4px' }}>✕</button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ADD NOTE POST */}
+        <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid #2c2c2e', paddingTop: '8px' }}>
+          <input 
+            placeholder="Add note..." 
+            value={noteInput}
+            onChange={(e) => setNoteInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handlePostNote()}
+            style={{ flex: 1, backgroundColor: '#1c1c1e', padding: '4px 8px', fontSize: '12px', borderRadius: '6px', border: '1px solid #3a3a3c', color: '#ffffff', outline: 'none' }} 
+          />
+          <button onClick={handlePostNote} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '6px', backgroundColor: '#ffffff', color: '#121212', border: 'none', fontWeight: '700', cursor: 'pointer' }}>Post</button>
+        </div>
       </div>
     </div>
   );
