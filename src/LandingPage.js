@@ -289,8 +289,11 @@ function DemoKineticCard() {
 
 
 
+
+
+
 function DemoAssetCard() {
-  const [isFlipped, setIsFlipped] = React.useState(true); // Default to showing back face
+  const [isFlipped, setIsFlipped] = React.useState(true);
   const [activeTab, setActiveTab] = React.useState('service');
   const [hours, setHours] = React.useState(254);
   const [checklist, setChecklist] = React.useState([
@@ -385,7 +388,7 @@ function DemoAssetCard() {
           </div>
         </div>
 
-        {/* BACK FACE (1:1 DYNAMIC PM HUB BACK FACE) */}
+        {/* BACK FACE */}
         <div className="card-face card-back" style={{ 
           padding: '20px', 
           borderRadius: '16px', 
@@ -401,9 +404,9 @@ function DemoAssetCard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
             <div style={{ display: 'flex', gap: '4px', flex: 1, marginRight: '8px' }}>
               <button className={activeTab === 'service' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('service')}>PM</button>
-              <button className={activeTab === 'manifest' ? 'tab-btn tab-active' : 'tab-inactive'} onClick={() => setActiveTab('manifest')}>MANIFEST</button>
-              <button className={activeTab === 'qr' ? 'tab-btn tab-active' : 'tab-inactive'} onClick={() => setActiveTab('qr')}>QR</button>
-              <button className={activeTab === 'specs' ? 'tab-btn tab-active' : 'tab-inactive'} onClick={() => setActiveTab('specs')}>INFO</button>
+              <button className={activeTab === 'manifest' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('manifest')}>MANIFEST</button>
+              <button className={activeTab === 'qr' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('qr')}>QR</button>
+              <button className={activeTab === 'specs' ? 'tab-btn tab-active' : 'tab-btn tab-inactive'} onClick={() => setActiveTab('specs')}>INFO</button>
             </div>
             <button onClick={() => setIsFlipped(false)} style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>✕</button>
           </div>
@@ -676,8 +679,6 @@ export default function LandingPage({ onLoginClick }) {
             </div>
           </div>
         )}
-
-        
 
         {/* TAB 3: INVENTORY */}
         {activeTab === "inventory" && (
