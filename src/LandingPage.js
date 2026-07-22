@@ -568,8 +568,48 @@ export default function LandingPage({ onLoginClick }) {
               </ul>
             </div>
 
-            <div style={{ flex: "1 1 350px", maxWidth: "380px", width: "100%", margin: "0 auto" }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: '1 1 350px', maxWidth: '380px', width: '100%', margin: '0 auto' }}>
               <DemoAssetCard />
+
+              {/* INSPECTOR DASHBOARD PREVIEW CARD */}
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', borderRadius: '16px', padding: '20px', color: '#0a1b35', boxShadow: '0 12px 30px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '14px', boxSizing: 'border-box' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px' }}>
+                  <div>
+                    <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em', marginBottom: '2px' }}>INSPECTOR DASHBOARD</div>
+                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#0a1b35' }}>CAT-00482</div>
+                    <div style={{ fontSize: '12px', color: '#6b7280', fontWeight: '600' }}>Caterpillar Track Loader</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '800', color: '#0052cc' }}>$65,000</div>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=CAT-00482" alt="QR" style={{ width: '48px', height: '48px', marginTop: '4px', borderRadius: '4px', border: '1px solid #d1d5db', padding: '2px', backgroundColor: '#fff' }} />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em' }}>LOG HISTORY</div>
+                  <div style={{ backgroundColor: '#f3f4f6', borderRadius: '8px', padding: '10px', border: '1px solid #d1d5db', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', color: '#374151' }}>
+                      <span>[Admin] Tool Ingested to Database</span>
+                      <span style={{ fontSize: '10px', color: '#10b981' }}>Condition: New</span>
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#6b7280' }}>Jul 21, 2026, 6:19 PM</div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em' }}>CURRENT STATUS</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#f3f4f6', borderRadius: '8px', border: '1px solid #d1d5db' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }}></span>
+                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#0a1b35' }}>IN-STOCK</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+                  <button style={{ padding: '8px', borderRadius: '6px', border: '1px solid #d1d5db', backgroundColor: 'transparent', color: '#6b7280', fontWeight: '700', fontSize: '11px', cursor: 'pointer' }}>REPORT DAMAGE / FAULT</button>
+                  <button style={{ padding: '8px', borderRadius: '6px', border: '1px solid #374151', backgroundColor: 'transparent', color: '#374151', fontWeight: '700', fontSize: '11px', cursor: 'pointer' }}>EDIT ASSET DETAILS</button>
+                  <button style={{ padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', fontWeight: '800', fontSize: '12px', cursor: 'pointer', marginTop: '2px' }}>CHECK OUT TO EMPLOYEE</button>
+                </div>
+              </div>
             </div>
           </div>
         )}
