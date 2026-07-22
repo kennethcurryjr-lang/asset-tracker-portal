@@ -42,6 +42,13 @@ export default function LandingPage({ onLoginClick }) {
   return (
     <div style={pageStyle}>
       <style>{`
+        .exact-card-wrapper { perspective: 1200px; width: 100%; max-width: 500px; margin: 0 auto; display: flex; }
+        .card-flipper { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; display: flex; flex-direction: column; }
+        .card-flipper.flipped { transform: rotateY(180deg); }
+        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; box-sizing: border-box; border-radius: 18px; }
+        .card-front { transform: rotateY(0deg); z-index: 2; position: relative; }
+        .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #161618; border: 1px solid #3a3a3c; display: flex; flex-direction: column; padding: 28px; overflow-y: auto; }
+
         .full-feature-card { width: 100%; max-width: 520px; margin: 0 auto; background-color: #202022; border: 1px solid #3a3a3c; border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); }
         @keyframes radar-pulse-glow {
           0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); }
