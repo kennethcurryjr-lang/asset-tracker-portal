@@ -16,7 +16,6 @@ export default function LandingPage({ onLoginClick }) {
 
   // --- CARD 2: TOOLS INTERACTIVE STATE ---
   const [toolsFlipped, setToolsFlipped] = useState(false);
-  const [toolTab, setToolTab] = useState("pm");
   const [toolHours, setToolHours] = useState(254);
   const [toolChecklist, setToolChecklist] = useState({ step1: false, step2: false, step3: false });
   const [toolStatus, setToolStatus] = useState("SERVICE_REQUIRED");
@@ -41,12 +40,12 @@ export default function LandingPage({ onLoginClick }) {
   return (
     <div style={pageStyle}>
       <style>{`
-        .card-perspective-wrapper { perspective: 1200px; width: 100%; min-height: 420px; display: flex; }
+        .card-perspective-wrapper { perspective: 1200px; width: 100%; max-width: 340px; margin: 0 auto; display: flex; }
         .card-flipper { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; display: flex; flex-direction: column; flex: 1; }
         .card-flipper.flipped { transform: rotateY(180deg); }
-        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; flex: 1; box-sizing: border-box; border-radius: 16px; }
+        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; flex: 1; box-sizing: border-box; border-radius: 14px; }
         .card-front { transform: rotateY(0deg); z-index: 2; position: relative; }
-        .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #1a1a1c; border: 1px solid #3a3a3c; display: flex; flex-direction: column; padding: 20px; overflow-y: auto; }
+        .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #1a1a1c; border: 1px solid #3a3a3c; display: flex; flex-direction: column; padding: 16px; overflow-y: auto; }
         
         @keyframes radar-pulse-glow {
           0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); }
@@ -208,7 +207,7 @@ export default function LandingPage({ onLoginClick }) {
           <div style={{
             backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c",
             borderRadius: "24px", padding: "40px", display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "40px", alignItems: "center"
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "40px", alignItems: "center"
           }}>
             <div>
               <div style={{ color: "#ffcc00", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 01</div>
@@ -225,95 +224,91 @@ export default function LandingPage({ onLoginClick }) {
                   <CheckCircle2 color="#34c759" size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
                   <div><strong>Cryptographic Law Enforcement Share Links:</strong> Dispatch 12-hour to 7-day self-terminating, unindexed tracking links to external recovery teams.</div>
                 </li>
-                <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px" }}>
-                  <CheckCircle2 color="#34c759" size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
-                  <div><strong>Reverse-Geocoding Engine:</strong> Converts raw GPS nodes into municipal locations with specialized Las Vegas township override maps.</div>
-                </li>
               </ul>
             </div>
 
-            {/* 3D FLIPPABLE TRACKING CARD */}
+            {/* SIZED-TO-SCALE INTERACTIVE TRACKING CARD */}
             <div className="card-perspective-wrapper">
               <div className={`card-flipper ${trackingFlipped ? 'flipped' : ''}`}>
                 
                 {/* FRONT FACE */}
-                <div className="card-face card-front" style={{ backgroundColor: '#2c2c2e', border: '1px solid #3a3a3c', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="card-face card-front" style={{ backgroundColor: '#2c2c2e', border: '1px solid #3a3a3c', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: '700', fontSize: '16px' }}>LAS-01 — Mobile Node</span>
-                    <span style={{ backgroundColor: watchdogActive ? 'rgba(52,199,89,0.15)' : 'rgba(255,59,48,0.15)', color: watchdogActive ? '#34c759' : '#ff3b30', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontWeight: '700', fontSize: '15px' }}>LAS-01 — Mobile Node</span>
+                    <span style={{ backgroundColor: watchdogActive ? 'rgba(52,199,89,0.15)' : 'rgba(255,59,48,0.15)', color: watchdogActive ? '#34c759' : '#ff3b30', padding: '3px 8px', borderRadius: '6px', fontSize: '9px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       {watchdogActive && <span className="live-pulse-dot"></span>}
                       {watchdogActive ? 'WATCHDOG ACTIVE' : 'WATCHDOG OFF'}
                     </span>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '10px' }}>
-                    <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.4' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '8px' }}>
+                    <div style={{ fontSize: '11px', color: '#86868b', lineHeight: '1.4' }}>
                       <div style={{ color: '#fff', fontWeight: '600' }}>Las Vegas, NV</div>
                       <div>ID: 862605278000318</div>
                       <div>Group: Fleet Alpha</div>
-                      {hasAnchor && <div style={{ color: '#007aff', fontSize: '10px', fontWeight: '700', marginTop: '4px' }}>📍 Anchor: 36.0788, -115.1917</div>}
+                      {hasAnchor && <div style={{ color: '#007aff', fontSize: '10px', fontWeight: '700', marginTop: '3px' }}>📍 Anchor: 36.0788, -115.1917</div>}
                     </div>
                     
-                    <div style={{ position: 'relative', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #3a3a3c', backgroundColor: '#121212' }}>
+                    <div style={{ position: 'relative', height: '70px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #3a3a3c', backgroundColor: '#121212' }}>
                       <iframe title="tracking-demo-map" width="100%" height="100%" frameBorder="0" scrolling="no" src="https://www.openstreetmap.org/export/embed.html?bbox=-115.21%2C36.06%2C-115.17%2C36.09&layer=mapnik&marker=36.0788%2C-115.1917" style={{ pointerEvents: 'none', border: 'none', opacity: 0.8 }}></iframe>
                     </div>
                   </div>
 
                   {/* Battery Spark Bar */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#121212', padding: '6px 12px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
-                    <div style={{ width: '40px', height: '4px', backgroundColor: '#2c2c2e', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#121212', padding: '6px 10px', borderRadius: '6px', border: '1px solid #3a3a3c' }}>
+                    <div style={{ width: '36px', height: '4px', backgroundColor: '#2c2c2e', borderRadius: '2px', overflow: 'hidden' }}>
                       <div style={{ width: '99%', height: '100%', backgroundColor: '#34c759' }} />
                     </div>
                     <span style={{ fontSize: '11px', fontWeight: '700', color: '#34c759' }}>99%</span>
-                    <span style={{ fontSize: '11px', color: '#86868b' }}>Est. 18 mos remaining</span>
+                    <span style={{ fontSize: '10px', color: '#86868b' }}>18 mos</span>
                   </div>
 
                   {/* Interactive Action Deck */}
                   <div style={{ display: 'flex', gap: '6px', marginTop: 'auto' }}>
                     <button 
                       onClick={() => setWatchdogActive(!watchdogActive)} 
-                      style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #fff', backgroundColor: watchdogActive ? '#1d1d1f' : 'transparent', color: '#fff', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
+                      style={{ flex: 1, padding: '6px 4px', borderRadius: '6px', border: '1px solid #fff', backgroundColor: watchdogActive ? '#1d1d1f' : 'transparent', color: '#fff', fontSize: '10px', fontWeight: '700', cursor: 'pointer' }}
                     >
                       {watchdogActive ? 'Watchdog On' : 'Watchdog Off'}
                     </button>
 
                     <button 
                       onClick={() => setHasAnchor(!hasAnchor)} 
-                      style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #fff', backgroundColor: 'transparent', color: '#fff', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
+                      style={{ flex: 1, padding: '6px 4px', borderRadius: '6px', border: '1px solid #fff', backgroundColor: 'transparent', color: '#fff', fontSize: '10px', fontWeight: '700', cursor: 'pointer' }}
                     >
                       {hasAnchor ? 'Clear Home' : 'Set Home'}
                     </button>
 
                     <button 
                       onClick={() => setTrackingFlipped(true)} 
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: '#007aff', color: '#fff', fontSize: '11px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #007aff', backgroundColor: '#007aff', color: '#fff', fontSize: '10px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
                     >
-                      <RotateCw size={12} /> Flip
+                      <RotateCw size={10} /> Flip
                     </button>
                   </div>
                 </div>
 
                 {/* BACK FACE */}
                 <div className="card-face card-back">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '10px', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#007aff' }}>⚙️ Escalate Live Tracking</span>
-                    <button onClick={() => setTrackingFlipped(false)} style={{ background: 'none', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '12px' }}>⤶ Back</button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '8px', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#007aff' }}>⚙️ Escalate Live Tracking</span>
+                    <button onClick={() => setTrackingFlipped(false)} style={{ background: 'none', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '11px' }}>⤶ Back</button>
                   </div>
                   
-                  <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '12px' }}>
-                    Generate a secure, unindexed 24-hour tracking link for law enforcement or recovery teams.
+                  <div style={{ fontSize: '11px', color: '#86868b', marginBottom: '10px' }}>
+                    Generate a secure, unindexed 24-hour tracking link for recovery teams.
                   </div>
 
-                  <input type="email" placeholder="e.g. investigator@agency.gov" style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#fff', fontSize: '12px', outline: 'none', marginBottom: '12px' }} />
+                  <input type="email" placeholder="investigator@agency.gov" style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid #3a3a3c', backgroundColor: '#121212', color: '#fff', fontSize: '11px', outline: 'none', marginBottom: '10px', width: '100%', boxSizing: 'border-box' }} />
 
                   {shareSimulated && (
-                    <div style={{ backgroundColor: 'rgba(52,199,89,0.15)', border: '1px solid #34c759', padding: '8px', borderRadius: '6px', fontSize: '11px', color: '#34c759', marginBottom: '12px' }}>
+                    <div style={{ backgroundColor: 'rgba(52,199,89,0.15)', border: '1px solid #34c759', padding: '6px', borderRadius: '6px', fontSize: '10px', color: '#34c759', marginBottom: '10px' }}>
                       ✅ Token Generated! Expiration set for 24 Hours.
                     </div>
                   )}
 
-                  <button onClick={() => setShareFlipped(!shareSimulated)} style={{ marginTop: 'auto', padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#fff', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
-                    {shareSimulated ? 'Revoke Link' : 'Generate Secure Dispatch Link'}
+                  <button onClick={() => setShareFlipped(!shareSimulated)} style={{ marginTop: 'auto', padding: '8px', borderRadius: '6px', border: 'none', backgroundColor: '#007aff', color: '#fff', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
+                    {shareSimulated ? 'Revoke Link' : 'Generate Dispatch Link'}
                   </button>
                 </div>
 
@@ -327,7 +322,7 @@ export default function LandingPage({ onLoginClick }) {
           <div style={{
             backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c",
             borderRadius: "24px", padding: "40px", display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "40px", alignItems: "center"
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "40px", alignItems: "center"
           }}>
             <div>
               <div style={{ color: "#007aff", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 02</div>
@@ -342,73 +337,69 @@ export default function LandingPage({ onLoginClick }) {
                 </li>
                 <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px" }}>
                   <CheckCircle2 color="#34c759" size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
-                  <div><strong>Sign-and-Snap Dispatch:</strong> Requires digital touch-signatures, outbound condition photos, IP address logs, and device fingerprints for checkout.</div>
-                </li>
-                <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px" }}>
-                  <CheckCircle2 color="#34c759" size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
                   <div><strong>Multi-Metric PM Kanban:</strong> Tracks Days, Miles, Hours, and Crimps/Cycles. Automatically locks overdue tools from field dispatch.</div>
                 </li>
               </ul>
             </div>
 
-            {/* 3D FLIPPABLE TOOLS CARD */}
+            {/* SIZED-TO-SCALE INTERACTIVE TOOLS CARD */}
             <div className="card-perspective-wrapper">
               <div className={`card-flipper ${toolsFlipped ? 'flipped' : ''}`}>
                 
                 {/* FRONT FACE */}
-                <div className="card-face card-front" style={{ backgroundColor: '#2c2c2e', border: '1px solid #3a3a3c', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="card-face card-front" style={{ backgroundColor: '#2c2c2e', border: '1px solid #3a3a3c', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', fontWeight: '800', color: toolStatus === "SERVICE_REQUIRED" ? '#ff3b30' : '#34c759', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? 'rgba(255,59,48,0.15)' : 'rgba(52,199,89,0.15)', padding: '4px 8px', borderRadius: '4px' }}>
-                      {toolStatus === "SERVICE_REQUIRED" ? '⚠️ SERVICE OVERDUE' : '🟢 IN-STOCK / OPERATIONAL'}
+                    <span style={{ fontSize: '10px', fontWeight: '800', color: toolStatus === "SERVICE_REQUIRED" ? '#ff3b30' : '#34c759', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? 'rgba(255,59,48,0.15)' : 'rgba(52,199,89,0.15)', padding: '3px 8px', borderRadius: '4px' }}>
+                      {toolStatus === "SERVICE_REQUIRED" ? '⚠️ SERVICE OVERDUE' : '🟢 OPERATIONAL'}
                     </span>
                     <span style={{ fontSize: '11px', color: '#86868b' }}>[ CAT-259D3 ]</span>
                   </div>
 
                   <div>
-                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff' }}>Caterpillar Track Loader</div>
-                    <div style={{ fontSize: '12px', color: '#86868b' }}>Replacement Value: $65,000</div>
+                    <div style={{ fontSize: '16px', fontWeight: '800', color: '#fff' }}>Caterpillar Track Loader</div>
+                    <div style={{ fontSize: '11px', color: '#86868b' }}>Valued at $65,000</div>
                   </div>
 
-                  <div style={{ backgroundColor: '#121212', padding: '10px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
-                    <div style={{ fontSize: '10px', color: '#86868b', fontWeight: '700' }}>HOURS INTERVAL</div>
-                    <div style={{ fontSize: '20px', fontWeight: '800', color: toolHours >= 250 ? '#ff3b30' : '#34c759' }}>
-                      {toolHours} / 250 <span style={{ fontSize: '11px', color: '#86868b' }}>HOURS</span>
+                  <div style={{ backgroundColor: '#121212', padding: '8px 10px', borderRadius: '6px', border: '1px solid #3a3a3c' }}>
+                    <div style={{ fontSize: '9px', color: '#86868b', fontWeight: '700' }}>HOURS INTERVAL</div>
+                    <div style={{ fontSize: '18px', fontWeight: '800', color: toolHours >= 250 ? '#ff3b30' : '#34c759' }}>
+                      {toolHours} / 250 <span style={{ fontSize: '10px', color: '#86868b' }}>HOURS</span>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
+                  <div style={{ display: 'flex', gap: '6px', marginTop: 'auto' }}>
                     <button 
                       disabled={toolStatus === "SERVICE_REQUIRED"}
-                      style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? '#3a3a3c' : '#007aff', color: toolStatus === "SERVICE_REQUIRED" ? '#86868b' : '#fff', fontSize: '11px', fontWeight: '800', cursor: toolStatus === "SERVICE_REQUIRED" ? 'not-allowed' : 'pointer' }}
+                      style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? '#3a3a3c' : '#007aff', color: toolStatus === "SERVICE_REQUIRED" ? '#86868b' : '#fff', fontSize: '10px', fontWeight: '800', cursor: toolStatus === "SERVICE_REQUIRED" ? 'not-allowed' : 'pointer' }}
                     >
                       {toolStatus === "SERVICE_REQUIRED" ? 'CHECKOUT LOCKED' : 'CHECK OUT'}
                     </button>
                     <button 
                       onClick={() => setToolsFlipped(true)} 
-                      style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontSize: '11px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontSize: '10px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
                     >
-                      <RotateCw size={12} /> Flip & Service
+                      <RotateCw size={10} /> Flip & Service
                     </button>
                   </div>
                 </div>
 
                 {/* BACK FACE */}
                 <div className="card-face card-back">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '10px', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: '800', color: '#007aff' }}>🤖 AWS Bedrock AI Checklist</span>
-                    <button onClick={() => setToolsFlipped(false)} style={{ background: 'none', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '12px' }}>⤶ Back</button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '8px', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '800', color: '#007aff' }}>🤖 AWS Bedrock AI Checklist</span>
+                    <button onClick={() => setToolsFlipped(false)} style={{ background: 'none', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '11px' }}>⤶ Back</button>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#121212', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', backgroundColor: '#121212', padding: '8px', borderRadius: '6px', marginBottom: '10px', fontSize: '11px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                       <input type="checkbox" checked={toolChecklist.step1} onChange={e => setToolChecklist({...toolChecklist, step1: e.target.checked})} />
-                      Verify hydraulic line pressure
+                      Hydraulic line pressure check
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                       <input type="checkbox" checked={toolChecklist.step2} onChange={e => setToolChecklist({...toolChecklist, step2: e.target.checked})} />
-                      Inspect & repack grease points
+                      Repack grease points
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                       <input type="checkbox" checked={toolChecklist.step3} onChange={e => setToolChecklist({...toolChecklist, step3: e.target.checked})} />
                       Test emergency stop switch
                     </label>
@@ -421,7 +412,7 @@ export default function LandingPage({ onLoginClick }) {
                       setToolStatus("OPERATIONAL");
                       setToolsFlipped(false);
                     }}
-                    style={{ marginTop: 'auto', padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: (toolChecklist.step1 && toolChecklist.step2 && toolChecklist.step3) ? '#34c759' : '#3a3a3c', color: '#fff', fontSize: '12px', fontWeight: '800', cursor: 'pointer' }}
+                    style={{ marginTop: 'auto', padding: '8px', borderRadius: '6px', border: 'none', backgroundColor: (toolChecklist.step1 && toolChecklist.step2 && toolChecklist.step3) ? '#34c759' : '#3a3a3c', color: '#fff', fontSize: '11px', fontWeight: '800', cursor: 'pointer' }}
                   >
                     Log Service & Reset Hours
                   </button>
@@ -437,7 +428,7 @@ export default function LandingPage({ onLoginClick }) {
           <div style={{
             backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c",
             borderRadius: "24px", padding: "40px", display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "40px", alignItems: "center"
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "40px", alignItems: "center"
           }}>
             <div>
               <div style={{ color: "#34c759", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 03</div>
@@ -452,74 +443,70 @@ export default function LandingPage({ onLoginClick }) {
                 </li>
                 <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px" }}>
                   <CheckCircle2 color="#34c759" size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
-                  <div><strong>Multi-Zone Bin Allocation:</strong> Track single products split across Cooler Bays and Dry Aisles with cascading quantity deductions.</div>
-                </li>
-                <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px" }}>
-                  <CheckCircle2 color="#34c759" size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
                   <div><strong>Offline Dead-Zone Queue:</strong> Caches scans locally in concrete warehouses and auto-flushes to DynamoDB when signal returns.</div>
                 </li>
               </ul>
             </div>
 
-            {/* 3D FLIPPABLE INVENTORY CARD */}
+            {/* SIZED-TO-SCALE INTERACTIVE INVENTORY CARD */}
             <div className="card-perspective-wrapper">
               <div className={`card-flipper ${inventoryFlipped ? 'flipped' : ''}`}>
                 
                 {/* FRONT FACE */}
-                <div className="card-face card-front" style={{ backgroundColor: '#2c2c2e', border: '1px solid #3a3a3c', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="card-face card-front" style={{ backgroundColor: '#2c2c2e', border: '1px solid #3a3a3c', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', color: '#86868b', textTransform: 'uppercase', fontWeight: '700' }}>Citrus Springs</span>
-                    <span style={{ backgroundColor: 'rgba(52,199,89,0.2)', border: '1px solid #34c759', color: '#34c759', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '900' }}>🟢 PICK FIRST</span>
+                    <span style={{ fontSize: '10px', color: '#86868b', textTransform: 'uppercase', fontWeight: '700' }}>Citrus Springs</span>
+                    <span style={{ backgroundColor: 'rgba(52,199,89,0.2)', border: '1px solid #34c759', color: '#34c759', padding: '2px 8px', borderRadius: '10px', fontSize: '9px', fontWeight: '900' }}>🟢 PICK FIRST</span>
                   </div>
 
                   <div>
-                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff' }}>100% Orange Juice Concentrate</div>
-                    <div style={{ fontSize: '12px', color: '#86868b' }}>Lot: LOT-2026-01 • Exp: Oct 15, 2026</div>
+                    <div style={{ fontSize: '16px', fontWeight: '800', color: '#fff' }}>100% Orange Juice Concentrate</div>
+                    <div style={{ fontSize: '11px', color: '#86868b' }}>Lot: LOT-2026-01 • Exp: Oct 15, 2026</div>
                   </div>
 
-                  <div style={{ fontSize: '28px', fontWeight: '800', color: '#34c759' }}>
-                    {stockQty} <span style={{ fontSize: '14px', color: '#86868b' }}>Boxes in Stock</span>
+                  <div style={{ fontSize: '26px', fontWeight: '800', color: '#34c759' }}>
+                    {stockQty} <span style={{ fontSize: '12px', color: '#86868b' }}>Boxes in Stock</span>
                   </div>
 
                   <div style={{ fontSize: '11px', color: '#007aff' }}>📍 Cooler Bay-01 ({stockQty}bx)</div>
 
                   {/* Interactive Action Deck */}
                   <div style={{ display: 'flex', gap: '6px', marginTop: 'auto' }}>
-                    <button onClick={() => setStockQty(stockQty + 10)} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #34c759', backgroundColor: 'rgba(52,199,89,0.15)', color: '#34c759', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>+10 RCV</button>
-                    <button onClick={() => setStockQty(Math.max(0, stockQty - 10))} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #ff3b30', backgroundColor: 'rgba(255,59,48,0.15)', color: '#ff3b30', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>-10 SHP</button>
-                    <button onClick={() => setInventoryFlipped(true)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #007aff', backgroundColor: '#007aff', color: '#fff', fontWeight: '800', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <RotateCw size={12} /> Flip
+                    <button onClick={() => setStockQty(stockQty + 10)} style={{ flex: 1, padding: '6px', borderRadius: '6px', border: '1px solid #34c759', backgroundColor: 'rgba(52,199,89,0.15)', color: '#34c759', fontWeight: '800', fontSize: '10px', cursor: 'pointer' }}>+10 RCV</button>
+                    <button onClick={() => setStockQty(Math.max(0, stockQty - 10))} style={{ flex: 1, padding: '6px', borderRadius: '6px', border: '1px solid #ff3b30', backgroundColor: 'rgba(255,59,48,0.15)', color: '#ff3b30', fontWeight: '800', fontSize: '10px', cursor: 'pointer' }}>-10 SHP</button>
+                    <button onClick={() => setInventoryFlipped(true)} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #007aff', backgroundColor: '#007aff', color: '#fff', fontWeight: '800', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                      <RotateCw size={10} /> Flip
                     </button>
                   </div>
                 </div>
 
                 {/* BACK FACE */}
                 <div className="card-face card-back">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '10px', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: '800', color: '#007aff' }}>📊 Velocity & Zebra Label Engine</span>
-                    <button onClick={() => setInventoryFlipped(false)} style={{ background: 'none', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '12px' }}>⤶ Back</button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '8px', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '800', color: '#007aff' }}>📊 Velocity & Zebra Label Engine</span>
+                    <button onClick={() => setInventoryFlipped(false)} style={{ background: 'none', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '11px' }}>⤶ Back</button>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
                     <div style={{ backgroundColor: '#121212', padding: '8px', borderRadius: '6px' }}>
                       <div style={{ fontSize: '9px', color: '#86868b' }}>30-DAY BURN</div>
-                      <div style={{ fontSize: '16px', fontWeight: '800' }}>75 bx</div>
+                      <div style={{ fontSize: '15px', fontWeight: '800' }}>75 bx</div>
                     </div>
                     <div style={{ backgroundColor: '#121212', padding: '8px', borderRadius: '6px' }}>
                       <div style={{ fontSize: '9px', color: '#86868b' }}>90-DAY BURN</div>
-                      <div style={{ fontSize: '16px', fontWeight: '800' }}>225 bx</div>
+                      <div style={{ fontSize: '15px', fontWeight: '800' }}>225 bx</div>
                     </div>
                   </div>
 
                   {showZebraPreview && (
-                    <div style={{ backgroundColor: '#fff', color: '#000', padding: '10px', borderRadius: '6px', textAlign: 'center', marginBottom: '12px' }}>
+                    <div style={{ backgroundColor: '#fff', color: '#000', padding: '8px', borderRadius: '6px', textAlign: 'center', marginBottom: '10px' }}>
                       <div style={{ fontSize: '10px', fontWeight: '800' }}>CITRUS SPRINGS — ORANGE JUICE</div>
                       <div style={{ fontSize: '9px', fontFamily: 'monospace' }}>UPC: 082123456781</div>
                     </div>
                   )}
 
-                  <button onClick={() => setShowZebraPreview(!showZebraPreview)} style={{ marginTop: 'auto', padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#fff', fontSize: '11px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                    <Printer size={14} /> {showZebraPreview ? 'Hide Zebra Label' : 'Preview Zebra Thermal Label'}
+                  <button onClick={() => setShowZebraPreview(!showZebraPreview)} style={{ marginTop: 'auto', padding: '8px', borderRadius: '6px', border: 'none', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', color: '#fff', fontSize: '10px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <Printer size={12} /> {showZebraPreview ? 'Hide Zebra Label' : 'Preview Zebra Thermal Label'}
                   </button>
                 </div>
 
