@@ -24,8 +24,10 @@ const trackingDemoAsset = {
   deviceId: "862605278000318", tag: "GPS-1", city: "Las Vegas", group: "LV-DEMO-77",
   latitude: 36.078802, longitude: -115.191695, batteryLevel: 99, isServiceMode: false, lastSeen: "Just Now",
   logs: [
-    { text: "✅ Asset activated and claimed", user: "demo_user", time: "Today - 8:00 AM" },
-    { text: "📍 Home Anchor Set: 36.0788, -115.1916", user: "demo_user", time: "Today - 8:05 AM" }
+    { text: "🔧 Preventative Maintenance: Replaced worn seals & tested voltage", user: "tech_ops", time: "Today - 10:30 AM" },
+    { text: "📅 Service scheduled. Next due: 6 Months", user: "admin_user", time: "Today - 9:15 AM" },
+    { text: "📍 Home Anchor Set: 36.0788, -115.1916", user: "demo_user", time: "Today - 8:05 AM" },
+    { text: "✅ Asset activated and claimed", user: "demo_user", time: "Today - 8:00 AM" }
   ]
 };
 
@@ -281,7 +283,6 @@ export default function LandingPage({ onLoginClick }) {
         {activeTab === "tracking" && (
           <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "24px", padding: "48px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "48px", alignItems: "start" }}>
             <div>
-              <div style={{ color: "#ffcc00", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 01</div>
               <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>Live Geofence Watchdog & Recovery</h2>
               <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "16px", fontSize: "15px" }}>
                 Go beyond basic dots on a map. Kinetic Tracking delivers continuous telemetry with instantaneous geofence breach alerts and predictive battery analytics directly inside the unified card interface.
