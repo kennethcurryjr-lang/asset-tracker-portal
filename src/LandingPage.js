@@ -5,6 +5,139 @@ import {
   Zap, Mail, RotateCw, Printer
 } from "lucide-react";
 
+
+// --- DEMO CARD COMPONENT & MOCK DATA ---
+const deviceCardStyle = { backgroundColor: '#2c2c2e', borderRadius: '14px', padding: '16px', border: '1px solid #3a3a3c', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', boxSizing: 'border-box', alignItems: 'stretch' };
+const inputStyle = { padding: '8px 12px', borderRadius: '8px', border: '1px solid #3a3a3c', fontSize: '14px', backgroundColor: '#1c1c1e', color: '#ffffff', outline: 'none', transition: 'all 0.2s' };
+const buttonStyle = { padding: '10px 20px', borderRadius: '20px', border: '1px solid #ffffff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', backgroundColor: '#121212', color: '#ffffff' };
+const primaryButtonStyle = { ...buttonStyle, backgroundColor: '#ffffff', color: '#121212' };
+
+const getTimelineMarkerColor = (text = "") => {
+  const logText = text.toLowerCase();
+  if (logText.includes('overheat') || logText.includes('fail') || logText.includes('error')) return '#ff3b30'; 
+  if (logText.includes('install') || logText.includes('repair') || logText.includes('fix')) return '#ff9500'; 
+  if (logText.includes('activated') || logText.includes('claimed') || logText.includes('set')) return '#34c759'; 
+  return '#86868b'; 
+};
+
+const trackingDemoAsset = {
+  deviceId: "862605278000318", tag: "GPS-1", city: "Las Vegas", group: "LV-DEMO-77",
+  latitude: 36.078802, longitude: -115.191695, batteryLevel: 99, isServiceMode: false, lastSeen: "Just Now",
+  logs: [
+    { text: "✅ Asset activated and claimed", user: "demo_user", time: "Today - 8:00 AM" },
+    { text: "📍 Home Anchor Set: 36.0788, -115.1916", user: "demo_user", time: "Today - 8:05 AM" }
+  ]
+};
+
+function DemoKineticCard({ initialAsset }) {
+  const [tag, setTag] = React.useState(initialAsset.tag);
+  const [tagInput, setTagInput] = React.useState("");
+  const [isFlipped, setIsFlipped] = React.useState(false);
+  const [isServiceMode, setIsServiceMode] = React.useState(initialAsset.isServiceMode);
+  const [homeLat, setHomeLat] = React.useState(initialAsset.latitude);
+  const [logs, setLogs] = React.useState(initialAsset.logs || []);
+  const [noteInput, setNoteInput] = React.useState("");
+  
+  const sparkColor = initialAsset.batteryLevel <= 20 ? '#ff3b30' : initialAsset.batteryLevel <= 50 ? '#ff9500' : '#34c759';
+
+  const handleSaveTag = () => { if (tagInput) setTag(tagInput); setTagInput(""); };
+  const toggleWatchdog = () => {
+    const newState = !isServiceMode;
+    setIsServiceMode(newState);
+    setLogs([{ text: newState ? "🛡️ Watchdog Disabled" : "Watchdog Activated", user: "demo_user", time: "Just now" }, ...logs]);
+  };
+  const toggleHome = () => {
+    if (homeLat) { setHomeLat(null); setLogs([{ text: "🚫 Home Anchor Cleared", user: "demo_user", time: "Just now" }, ...logs]); } 
+    else { setHomeLat(initialAsset.latitude); setLogs([{ text: `📍 Home Anchor Set: ${initialAsset.latitude.toFixed(4)}`, user: "demo_user", time: "Just now" }, ...logs]); }
+  };
+  const handlePostNote = () => { if (!noteInput) return; setLogs([{ text: noteInput, user: "demo_user", time: "Just now" }, ...logs]); setNoteInput(""); };
+
+  return (
+    <div className="card-perspective-wrapper" style={{ height: '620px', perspective: '1200px', display: 'flex', width: '100%' }}>
+      <div className={`card-flipper ${isFlipped ? 'flipped' : ''}`} style={{ transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)', transformStyle: 'preserve-3d', position: 'relative', width: '100%', display: 'flex', flexDirection: 'column' }}>
+        <div className="card-face card-front" style={{ ...deviceCardStyle, backgroundColor: '#1c1c1e', backfaceVisibility: 'hidden', zIndex: 2, position: 'relative', height: '100%' }}>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <input type="checkbox" readOnly checked style={{ width: '16px', height: '16px', accentColor: '#ffffff' }} />
+                <div style={{ fontSize: '15px', fontWeight: '600', color: '#ffffff' }}>{tag}</div>
+              </div>
+              <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.4' }}>
+                <div style={{ fontWeight: '500', color: '#ffffff' }}>{initialAsset.city}</div>
+                <div style={{ fontSize: '10px', color: '#86868b' }}>Last seen: {initialAsset.lastSeen}</div>
+                <div style={{ fontSize: '11px' }}>ID: {initialAsset.deviceId}</div>
+                <div style={{ fontSize: '11px', fontStyle: 'italic' }}>{initialAsset.group}</div>
+                {homeLat && (
+                  <div style={{ fontSize: '10px', color: '#007aff', marginTop: '4px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#007aff'}}></span>
+                    Anchor: {Number(homeLat).toFixed(4)}
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '12px', backgroundColor: '#121212', padding: '4px 8px', borderRadius: '6px', border: '1px solid #2c2c2e' }}>
+                <div style={{ width: '40px', height: '4px', backgroundColor: '#2c2c2e', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ width: `${initialAsset.batteryLevel}%`, height: '100%', backgroundColor: sparkColor }} />
+                </div>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: sparkColor }}>{initialAsset.batteryLevel}%</span>
+              </div>
+            </div>
+            <div style={{ position: 'relative', height: '120px', flex: 1, borderRadius: '8px', overflow: 'hidden', border: '1px solid #3a3a3c', backgroundColor: '#121212' }}>
+               <iframe title="demo-map" frameBorder="0" scrolling="no" src={`https://www.openstreetmap.org/export/embed.html?bbox=${initialAsset.longitude-0.01}%2C${initialAsset.latitude-0.01}%2C${initialAsset.longitude+0.01}%2C${initialAsset.latitude+0.01}&layer=mapnik&marker=${initialAsset.latitude}%2C${initialAsset.longitude}`} style={{ pointerEvents: "none", border: "none", position: "absolute", top: "-60px", left: "-60px", width: "calc(100% + 120px)", height: "calc(100% + 120px)" }}></iframe>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '6px', marginTop: '12px' }}>
+            <input placeholder="Rename Asset..." value={tagInput} onChange={(e) => setTagInput(e.target.value)} style={{ ...inputStyle, flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#121212' }} />
+            <button onClick={handleSaveTag} style={{ ...primaryButtonStyle, padding: "6px 12px", fontSize: "12px", borderRadius: "6px", backgroundColor: "#007aff", color: '#ffffff', border: 'none' }}>Save</button>
+            <button onClick={() => setIsFlipped(true)} style={{ background: "#121212", border: "1px solid #3a3a3c", cursor: "pointer", fontSize: "11px", color: '#ffffff', padding: "6px 10px", borderRadius: "6px", fontWeight: "600" }}>Flip ⤹</button>
+          </div>
+          <div style={{ display: 'flex', gap: '4px', width: '100%', flexWrap: 'wrap', marginTop: '6px' }}>
+            <button onClick={toggleWatchdog} style={{ ...buttonStyle, fontSize: '11px', borderRadius: '8px', flex: 1.5, padding: '8px 10px', backgroundColor: isServiceMode === false ? '#1d1d1f' : 'transparent', color: '#ffffff', border: '1px solid #ffffff' }}>
+              {isServiceMode === false && <span style={{ width: '8px', height: '8px', backgroundColor: '#34c759', borderRadius: '50%', display: 'inline-block' }}></span>}
+              {isServiceMode === false ? 'Watchdog active' : 'Watchdog off'}
+            </button>
+            <button onClick={toggleHome} style={{ ...buttonStyle, fontSize: "11px", borderRadius: "8px", flex: 1.2, padding: "8px 10px", backgroundColor: homeLat ? "transparent" : "#1d1d1f", color: "#ffffff", border: "1px solid #ffffff" }}>
+              {homeLat ? "Clear Home" : "Set Home"}
+            </button>
+          </div>
+          <div style={{ marginTop: 'auto', padding: '12px', backgroundColor: '#121212', borderRadius: '8px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', flex: 1, minHeight: '150px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', marginBottom: '8px', paddingRight: '2px' }}>
+              <div style={{ position: 'relative', paddingLeft: '12px', borderLeft: '2px solid #3a3a3c', marginLeft: '4px' }}>
+                {logs.map((logEntry, index) => {
+                  const nodeColor = getTimelineMarkerColor(logEntry.text);
+                  return (
+                    <div key={index} style={{ position: 'relative', paddingBottom: index !== logs.length - 1 ? '12px' : '2px', color: '#ffffff', display: 'flex', justifyContent: 'space-between' }}>
+                      <div style={{ position: 'absolute', left: '-19px', top: '4px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: nodeColor, border: '2px solid #121212', zIndex: 2 }}></div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '12px', fontWeight: '500', lineHeight: '1.3' }}>{logEntry.text}</div>
+                        <div style={{ color: '#86868b', fontSize: '10px', marginTop: '1px' }}>{logEntry.user} • <span style={{ fontSize: '9px' }}>{logEntry.time}</span></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid #2c2c2e', paddingTop: '8px' }}>
+              <input placeholder="Add note..." value={noteInput} onChange={(e) => setNoteInput(e.target.value)} style={{ ...inputStyle, flex: 1, backgroundColor: '#1c1c1e', padding: '4px 8px', fontSize: '12px', borderRadius: '6px' }} />
+              <button onClick={handlePostNote} style={{ ...primaryButtonStyle, padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }}>Post</button>
+            </div>
+          </div>
+        </div>
+        <div className="card-face card-back" style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden', position: 'absolute', top: 0, left: 0, height: '100%', width: '100%', backgroundColor: '#1c1c1e', borderRadius: '14px', border: '1px solid #3a3a3c', padding: '20px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '16px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '16px', fontWeight: '600', color: '#ffffff' }}><span style={{ color: '#007aff' }}>⚙️</span> Diagnostics</div>
+            <button onClick={() => setIsFlipped(false)} style={{ background: '#2c2c2e', border: '1px solid #3a3a3c', cursor: 'pointer', fontSize: '11px', color: '#ffffff', padding: '4px 10px', borderRadius: '8px', fontWeight: '600' }}>⤶ Back</button>
+          </div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '12px', color: '#86868b' }}>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: '#3a3a3c' }}>Expansion Slot Ready</div>
+            <div style={{ fontSize: '12px', lineHeight: '1.5' }}>Interactive demo mode. Real-time BSSID anchors require account authorization.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+// --- END DEMO CARD ---
+
 export default function LandingPage({ onLoginClick }) {
   const [activeTab, setActiveTab] = useState("tracking");
 
@@ -146,13 +279,10 @@ export default function LandingPage({ onLoginClick }) {
             <div className="exact-card-wrapper">
               <div className={`card-flipper ${trackingFlipped ? 'flipped' : ''}`}>
                 <div className="card-face card-front" style={{ backgroundColor: '#ffffff', color: '#0a1b35', border: '1px solid #d1d5db', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ backgroundColor: watchdogActive ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: watchdogActive ? '#10b981' : '#ef4444', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      {watchdogActive && <span className="live-pulse-dot"></span>}
-                      {watchdogActive ? 'WATCHDOG ACTIVE' : 'WATCHDOG OFF'}
-                    </span>
-                    <span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '700' }}>[ GPS-1 ]</span>
-                  </div>
+                  
+          <div style={{ flex: '1 1 350px', maxWidth: '380px', width: '100%', margin: '0 auto' }}>
+            <DemoKineticCard initialAsset={trackingDemoAsset} />
+          </div>
 
                   <div>
                     <div style={{ fontSize: '18px', fontWeight: '800' }}>Fleet Tracker - LV-DEMO-77</div>
