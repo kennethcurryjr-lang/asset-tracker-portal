@@ -99,6 +99,18 @@ function DemoKineticCard({ initialAsset }) {
               {homeLat ? "Clear Home" : "Set Home"}
             </button>
           </div>
+          
+          <div style={{ display: "flex", gap: "6px", width: "100%", marginTop: "12px", marginBottom: "8px", alignItems: "center", backgroundColor: "#121212", padding: "8px", borderRadius: "8px", border: "1px solid #2c2c2e", boxSizing: "border-box" }}>
+            <select style={{ padding: "4px 8px", borderRadius: "6px", border: "1px solid #3a3a3c", fontSize: "11px", backgroundColor: '#1c1c1e', color: '#ffffff', flex: 1, outline: "none" }}>
+              <option value="0">Off (Opt-Out)</option>
+              <option value="1">1 Month</option>
+              <option value="3">3 Months</option>
+              <option value="6">6 Months</option>
+              <option value="9">9 Months</option>
+              <option value="12">12 Months</option>
+            </select>
+            <button onClick={(e) => { e.preventDefault(); setLogs([{ text: "📅 Service scheduled.", user: "demo_user", time: "Just now" }, ...logs]); }} style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #ffffff", fontSize: "11px", fontWeight: "600", cursor: "pointer", backgroundColor: "#ffffff", color: "#1c1c1e" }}>Schedule Service</button>
+          </div>
           <div style={{ marginTop: 'auto', padding: '12px', backgroundColor: '#121212', borderRadius: '8px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', flex: 1, minHeight: '150px' }}>
             <div style={{ flex: 1, overflowY: 'auto', marginBottom: '8px', paddingRight: '2px' }}>
               <div style={{ position: 'relative', paddingLeft: '12px', borderLeft: '2px solid #3a3a3c', marginLeft: '4px' }}>
