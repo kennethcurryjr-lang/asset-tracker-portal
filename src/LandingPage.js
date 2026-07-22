@@ -32,29 +32,42 @@ const trackingDemoAsset = {
 };
 
 
+
 // --- DEMO ASSET CARD & MOCK DATA ---
 const assetDemoData = {
   id: "FORD-681",
   model: "F-150",
   value: "$75,000",
   status: "IN-STOCK",
-  condition: "New",
+  serial: "SN-9948-2026-X",
+  hourLimit: "500 hrs / 85% used",
+  custody: "Verified • Handoff #402",
   logs: [
-    { text: "[Admin] Tool Ingested to Database", time: "Jul 21, 2026, 6:19 PM" }
+    { text: "[Admin] Tool Ingested to Database", time: "Jul 21, 2026, 6:19 PM" },
+    { text: "[Chain-of-Custody] Signed off by Field Ops", time: "Jul 21, 2026, 7:00 PM" }
   ],
   steps: [
-    { id: 1, text: "Drain the water separator and replace primary/secondary fuel filters.", checked: false },
-    { id: 2, text: "Inspect hydraulic return filter and pull S·O·S fluid sample.", checked: false },
-    { id: 3, text: "Check and adjust track tension.", checked: false }
+    { id: 1, text: "Drain water separator & replace fuel filters", checked: true },
+    { id: 2, text: "Inspect hydraulic return filter & pull S·O·S fluid", checked: false },
+    { id: 3, text: "Check and adjust track tension limits", checked: false }
   ]
 };
 
 function DemoAssetCard() {
-  const [activeTab, setActiveTab] = React.useState("PM");
+  const [isFlipped, setIsFlipped] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
   const [steps, setSteps] = React.useState(assetDemoData.steps);
   const [logs, setLogs] = React.useState(assetDemoData.logs);
   const [serviceNote, setServiceNote] = React.useState("");
-  const [status, setStatus] = React.useState(assetDemoData.status);
+
+  // Auto-flip timer unless hovered or manually interacted
+  React.useEffect(() => {
+    if (isHovered) return;
+    const timer = setInterval(() => {
+      setIsFlipped(prev => !prev);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [isHovered]);
 
   const toggleStep = (id) => {
     setSteps(steps.map(s => s.id === id ? { ...s, checked: !s.checked } : s));
@@ -65,91 +78,85 @@ function DemoAssetCard() {
     const noteText = serviceNote.trim() ? serviceNote.trim() : "Performed scheduled preventative maintenance.";
     setLogs([{ text: `[Tech] ${noteText}`, time: timestamp }, ...logs]);
     setServiceNote("");
-    alert("Service logged successfully & maintenance cycle reset!");
   };
 
   return (
-    <div style={{ backgroundColor: '#1c1c1e', borderRadius: '16px', padding: '24px', border: '1px solid #3a3a3c', color: '#ffffff', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', width: '100%', maxWidth: '1100px', margin: '40px auto', boxSizing: 'border-box' }}>
-      
-      {/* Left Column: Asset Selector / List */}
-      <div style={{ backgroundColor: '#2c2c2e', borderRadius: '12px', padding: '16px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ fontSize: '12px', fontWeight: '700', color: '#86868b', textTransform: 'uppercase' }}>Asset Inventory</div>
-        <div style={{ padding: '12px', borderRadius: '8px', backgroundColor: '#121212', border: '1px solid #007aff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontWeight: '700', fontSize: '15px' }}>FORD-681</div>
-            <div style={{ fontSize: '12px', color: '#86868b' }}>F-150 • In-Stock</div>
-          </div>
-          <span style={{ fontSize: '10px', backgroundColor: '#34c759', color: '#121212', padding: '2px 6px', borderRadius: '4px', fontWeight: '700' }}>ACTIVE</span>
-        </div>
-        <div style={{ padding: '12px', borderRadius: '8px', backgroundColor: '#1c1c1e', border: '1px solid #3a3a3c', opacity: 0.7 }}>
-          <div style={{ fontWeight: '700', fontSize: '15px' }}>CAT-333</div>
-          <div style={{ fontSize: '12px', color: '#86868b' }}>323 • In-Stock</div>
-        </div>
-      </div>
-
-      {/* Middle Column: PM Checklist & Tabs */}
-      <div style={{ backgroundColor: '#2c2c2e', borderRadius: '12px', padding: '16px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #3a3a3c', paddingBottom: '8px' }}>
-          {['PM', 'MANIFEST', 'QR', 'INFO'].map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} style={{ background: activeTab === tab ? '#007aff' : 'transparent', color: '#ffffff', border: 'none', padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>{tab}</button>
-          ))}
-        </div>
-
-        {activeTab === 'PM' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ fontSize: '12px', fontWeight: '700', color: '#ffcc00' }}>Preventative Maintenance Checklist</div>
-            {steps.map(step => (
-              <label key={step.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px', color: '#d1d5db', cursor: 'pointer' }}>
-                <input type="checkbox" checked={step.checked} onChange={() => toggleStep(step.id)} style={{ marginTop: '2px', accentColor: '#007aff' }} />
-                <span style={{ textDecoration: step.checked ? 'line-through' : 'none', opacity: step.checked ? 0.6 : 1 }}>{step.text}</span>
-              </label>
-            ))}
-            <input placeholder="+ Add Custom Step (Press Enter)" style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#121212', border: '1px solid #3a3a3c', color: '#ffffff', fontSize: '12px', outline: 'none' }} />
-            <input placeholder="Add Service Notes..." value={serviceNote} onChange={(e) => setServiceNote(e.target.value)} style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#121212', border: '1px solid #3a3a3c', color: '#ffffff', fontSize: '12px', outline: 'none' }} />
-            <button onClick={logService} style={{ backgroundColor: '#34c759', color: '#ffffff', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}>LOG SERVICE & RESET</button>
-          </div>
-        )}
-        {activeTab !== 'PM' && (
-          <div style={{ padding: '20px', textAlign: 'center', color: '#86868b', fontSize: '13px' }}>
-            {activeTab} view loaded for FORD-681.
-          </div>
-        )}
-      </div>
-
-      {/* Right Column: Inspector Dashboard */}
-      <div style={{ backgroundColor: '#2c2c2e', borderRadius: '12px', padding: '16px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <div style={{ fontSize: '11px', color: '#86868b', textTransform: 'uppercase' }}>Inspector Dashboard</div>
-            <div style={{ fontSize: '20px', fontWeight: '800' }}>FORD-681</div>
-            <div style={{ fontSize: '13px', color: '#86868b' }}>F-150 • Valuation: <strong style={{ color: '#34c759' }}>$75,000</strong></div>
-          </div>
-          <div style={{ width: '40px', height: '40px', backgroundColor: '#ffffff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#121212', fontWeight: 'bold' }}>QR</div>
-        </div>
-
-        <div style={{ fontSize: '11px', fontWeight: '700', color: '#86868b', marginTop: '4px' }}>Log History</div>
-        <div style={{ backgroundColor: '#121212', borderRadius: '8px', padding: '8px', maxHeight: '100px', overflowY: 'auto', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          {logs.map((log, idx) => (
-            <div key={idx} style={{ fontSize: '11px', borderBottom: idx < logs.length - 1 ? '1px solid #2c2c2e' : 'none', paddingBottom: '4px' }}>
-              <div style={{ color: '#ffffff', fontWeight: '600' }}>{log.text}</div>
-              <div style={{ color: '#86868b', fontSize: '9px' }}>{log.time}</div>
+    <div 
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{ height: '620px', perspective: '1200px', display: 'flex', width: '100%', maxWidth: '420px', margin: '0 auto' }}
+    >
+      <div style={{ transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)', transformStyle: 'preserve-3d', position: 'relative', width: '100%', height: '100%', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
+        
+        {/* FRONT FACE */}
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#1c1c1e', borderRadius: '16px', padding: '24px', border: '1px solid #3a3a3c', color: '#ffffff', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box', backfaceVisibility: 'hidden', zIndex: 2 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: '11px', color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Module 02 • Asset Card</div>
+              <div style={{ fontSize: '22px', fontWeight: '800' }}>{assetDemoData.id}</div>
+              <div style={{ fontSize: '13px', color: '#86868b' }}>{assetDemoData.model} • <strong style={{ color: '#34c759' }}>{assetDemoData.value}</strong></div>
             </div>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: 'auto' }}>
-          <div style={{ backgroundColor: '#1c1c1e', padding: '10px', borderRadius: '8px', border: '1px solid #3a3a3c', textAlign: 'center', fontWeight: '700' }}>
-            🟢 {status}
+            <button onClick={() => setIsFlipped(true)} style={{ background: '#2c2c2e', border: '1px solid #3a3a3c', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}>Flip ⤹</button>
           </div>
-          <button style={{ backgroundColor: 'transparent', color: '#ff3b30', border: '1px solid #ff3b30', padding: '8px', borderRadius: '8px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>REPORT DAMAGE / FAULT</button>
-          <button style={{ backgroundColor: '#007aff', color: '#ffffff', border: 'none', padding: '8px', borderRadius: '8px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>EDIT ASSET DETAILS</button>
-        </div>
-      </div>
 
+          <div style={{ backgroundColor: '#2c2c2e', borderRadius: '12px', padding: '14px', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+            <div style={{ fontSize: '12px', fontWeight: '700', color: '#ffcc00', display: 'flex', justifyContent: 'space-between' }}>
+              <span>Preventative Maintenance</span>
+              <span style={{ fontSize: '10px', color: '#34c759', backgroundColor: '#1c1c1e', padding: '2px 6px', borderRadius: '4px' }}>{assetDemoData.status}</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', flex: 1 }}>
+              {steps.map(step => (
+                <label key={step.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px', color: '#d1d5db', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={step.checked} onChange={() => toggleStep(step.id)} style={{ marginTop: '2px', accentColor: '#007aff' }} />
+                  <span style={{ textDecoration: step.checked ? 'line-through' : 'none', opacity: step.checked ? 0.6 : 1 }}>{step.text}</span>
+                </label>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '6px', marginTop: 'auto' }}>
+              <input placeholder="Add service note..." value={serviceNote} onChange={(e) => setServiceNote(e.target.value)} style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#121212', border: '1px solid #3a3a3c', color: '#ffffff', fontSize: '12px', outline: 'none', flex: 1 }} />
+              <button onClick={logService} style={{ backgroundColor: '#007aff', color: '#ffffff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: '700', cursor: 'pointer', fontSize: '11px' }}>Log</button>
+            </div>
+          </div>
+
+          <div style={{ fontSize: '10px', color: '#86868b', textAlign: 'center' }}>
+            Hover to pause auto-flip • Auto-flipping every 4.5s
+          </div>
+        </div>
+
+        {/* BACK FACE */}
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#1c1c1e', borderRadius: '16px', padding: '24px', border: '1px solid #3a3a3c', color: '#ffffff', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box', transform: 'rotateY(180deg)', backfaceVisibility: 'hidden', zIndex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '12px' }}>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: '#007aff' }}>⚙️ Chain-of-Custody & Serial Data</div>
+            <button onClick={() => setIsFlipped(false)} style={{ background: '#2c2c2e', border: '1px solid #3a3a3c', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}>⤶ Back</button>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px', backgroundColor: '#2c2c2e', padding: '14px', borderRadius: '12px', border: '1px solid #3a3a3c' }}>
+            <div><span style={{ color: '#86868b' }}>Serial Number:</span> <strong style={{ color: '#ffffff' }}>{assetDemoData.serial}</strong></div>
+            <div><span style={{ color: '#86868b' }}>Hour Meter Limit:</span> <strong style={{ color: '#ffcc00' }}>{assetDemoData.hourLimit}</strong></div>
+            <div><span style={{ color: '#86868b' }}>Custody Handoff:</span> <strong style={{ color: '#34c759' }}>{assetDemoData.custody}</strong></div>
+          </div>
+
+          <div style={{ fontSize: '11px', fontWeight: '700', color: '#86868b' }}>Immutable Audit Trail</div>
+          <div style={{ backgroundColor: '#121212', borderRadius: '8px', padding: '10px', flex: 1, overflowY: 'auto', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {logs.map((log, idx) => (
+              <div key={idx} style={{ fontSize: '11px', borderBottom: idx < logs.length - 1 ? '1px solid #2c2c2e' : 'none', paddingBottom: '6px' }}>
+                <div style={{ color: '#ffffff', fontWeight: '600' }}>{log.text}</div>
+                <div style={{ color: '#86868b', fontSize: '9px' }}>{log.time}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ fontSize: '10px', color: '#86868b', textAlign: 'center' }}>
+            AWS Bedrock AI Verified Record
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
-// --- END ASSET DEMO CARD ---
+// --- END DEMO ASSET CARD ---
+-
 
 function DemoKineticCard({ initialAsset }) {
   const [tag, setTag] = React.useState(initialAsset.tag);
