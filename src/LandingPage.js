@@ -670,74 +670,7 @@ export default function LandingPage({ onLoginClick }) {
               </p>
             </div>
 
-            <div className="exact-card-wrapper">
-              <div className={`card-flipper ${toolsFlipped ? 'flipped' : ''}`}>
-                
-                {/* FRONT FACE (1:1 with Tools.js Matrix Card) */}
-                <div className="card-face card-front" style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '4px', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)', color: toolStatus === "SERVICE_REQUIRED" ? '#ef4444' : '#10b981', letterSpacing: '0.05em' }}>
-                      <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', marginRight: '8px', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? '#ef4444' : '#10b981' }}></span>
-                      {toolStatus === "SERVICE_REQUIRED" ? 'SERVICE DUE' : 'OPERATIONAL'}
-                    </span>
-                    <span style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600' }}>[ CAT-00482 ]</span>
-                  </div>
-
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', marginTop: '8px' }}>
-                    <div style={{ fontSize: '18px', fontWeight: '700', lineHeight: '1.3', color: '#0a1b35' }}>Caterpillar Track Loader</div>
-                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', fontWeight: '600' }}>Assigned: Field Operations</div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '16px' }}>
-                    <button disabled={toolStatus === "SERVICE_REQUIRED"} style={{ flex: 1, padding: '12px', borderRadius: '8px', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? '#f3f4f6' : 'transparent', color: toolStatus === "SERVICE_REQUIRED" ? '#9ca3af' : '#374151', border: toolStatus === "SERVICE_REQUIRED" ? 'none' : '1px solid #3f3f46', fontWeight: '800', fontSize: '12px', cursor: toolStatus === "SERVICE_REQUIRED" ? 'not-allowed' : 'pointer' }}>
-                      {toolStatus === "SERVICE_REQUIRED" ? 'LOCKED' : 'CHECK OUT'}
-                    </button>
-                    <button onClick={() => setToolsFlipped(true)} style={{ padding: '12px', borderRadius: '8px', backgroundColor: 'transparent', color: '#4b5563', border: '1px solid #d1d5db', fontWeight: '700', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
-                      Flip ⤹
-                    </button>
-                  </div>
-                </div>
-
-                {/* BACK FACE (1:1 with Tools.js Flipped Card) */}
-                <div className="card-face card-back" style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', padding: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'flex-start' }}>
-                    <div style={{ display: 'flex', gap: '4px', flex: 1, marginRight: '8px' }}>
-                      <button onClick={() => setCardTabs('service')} style={{ flex: 1, padding: '6px', fontSize: '10px', fontWeight: '700', borderRadius: '6px', border: 'none', backgroundColor: cardTabs === 'service' ? '#0052cc' : '#f3f4f6', color: cardTabs === 'service' ? '#fff' : '#6b7280', cursor: 'pointer' }}>PM</button>
-                      <button onClick={() => setCardTabs('manifest')} style={{ flex: 1, padding: '6px', fontSize: '10px', fontWeight: '700', borderRadius: '6px', border: 'none', backgroundColor: cardTabs === 'manifest' ? '#0052cc' : '#f3f4f6', color: cardTabs === 'manifest' ? '#fff' : '#6b7280', cursor: 'pointer' }}>MANIFEST</button>
-                    </div>
-                    <button onClick={() => setToolsFlipped(false)} style={{ background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px', padding: 0 }}>✕</button>
-                  </div>
-
-                  <div style={{ flex: 1, overflowY: 'auto' }}>
-                    {cardTabs === 'service' && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <div>
-                          <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.05em' }}>HOURS INTERVAL</div>
-                          <div style={{ fontSize: '18px', fontWeight: '800', color: toolHours >= 250 ? '#ef4444' : '#0a1b35' }}>
-                            {toolHours} / 250 <span style={{fontSize: '11px', color: '#6b7280'}}>HRS</span>
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', backgroundColor: '#f3f4f6', padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#374151', cursor: 'pointer', fontWeight: '600', margin: 0 }}>
-                            <input type="checkbox" checked={toolChecklist.step1} onChange={e => setToolChecklist({...toolChecklist, step1: e.target.checked})} style={{ width: '14px', height: '14px' }} /> Verify hydraulic line pressure
-                          </label>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#374151', cursor: 'pointer', fontWeight: '600', margin: 0 }}>
-                            <input type="checkbox" checked={toolChecklist.step2} onChange={e => setToolChecklist({...toolChecklist, step2: e.target.checked})} style={{ width: '14px', height: '14px' }} /> Inspect grease points
-                          </label>
-                        </div>
-                        <button disabled={!toolChecklist.step1 || !toolChecklist.step2} onClick={() => { setToolHours(120); setToolStatus("OPERATIONAL"); setToolsFlipped(false); }} style={{ marginTop: 'auto', padding: '12px', borderRadius: '8px', backgroundColor: (toolChecklist.step1 && toolChecklist.step2) ? '#0a1b35' : '#9ca3af', color: '#ffffff', border: 'none', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>LOG SERVICE & RESET</button>
-                      </div>
-                    )}
-                    {cardTabs === 'manifest' && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <div style={{ fontSize: '12px', fontWeight: '700', color: '#374151' }}>Required Items:</div>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: '#4b5563' }}><input type="checkbox" defaultChecked /> Ignition Keys / Fob</label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: '#4b5563' }}><input type="checkbox" defaultChecked /> Clean Interior</label>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+            <DemoAssetCard />
             </div>
           </div>
         )}
@@ -753,54 +686,7 @@ export default function LandingPage({ onLoginClick }) {
               </p>
             </div>
 
-            <div className="exact-card-wrapper">
-              <div className={`card-flipper ${inventoryFlipped ? 'flipped' : ''}`}>
-                <div className="card-face card-front" style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', fontWeight: '800' }}>Citrus Springs</span>
-                    <span style={{ backgroundColor: 'rgba(16,185,129,0.15)', color: '#10b981', padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '800' }}>🟢 PICK FIRST</span>
-                  </div>
-
-                  <div>
-                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#0a1b35' }}>100% Orange Juice Concentrate</div>
-                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>Lot: LOT-2026-01 • Exp: Oct 15, 2026</div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {["Cooler Bay-01", "Dry Aisle-03"].map(zone => (
-                      <button key={zone} onClick={() => setSelectedZone(zone)} style={{ padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', border: selectedZone === zone ? '1px solid #0052cc' : '1px solid #d1d5db', backgroundColor: selectedZone === zone ? 'rgba(0,82,204,0.1)' : '#f3f4f6', color: selectedZone === zone ? '#0052cc' : '#6b7280', cursor: 'pointer' }}>
-                        📍 {zone}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div style={{ fontSize: '32px', fontWeight: '800', color: '#0a1b35', margin: '10px 0' }}>
-                    {stockQty} <span style={{ fontSize: '14px', color: '#6b7280' }}>Boxes</span>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-                    <button onClick={() => setStockQty(stockQty + 10)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>+ Receive</button>
-                    <button onClick={() => setStockQty(Math.max(0, stockQty - 10))} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#fff', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>- Ship</button>
-                    <button onClick={() => setInventoryFlipped(true)} style={{ padding: '12px 14px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: 'transparent', color: '#4b5563', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>Flip ⤹</button>
-                  </div>
-                </div>
-
-                <div className="card-face card-back" style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#0052cc' }}>📊 Velocity & Labels</span>
-                    <button onClick={() => setInventoryFlipped(false)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px' }}>✕</button>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '24px' }}>
-                    <div style={{ backgroundColor: '#f3f4f6', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
-                      <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '700' }}>30-DAY BURN</div>
-                      <div style={{ fontSize: '18px', fontWeight: '800', color: '#0a1b35' }}>75 bx</div>
-                    </div>
-                    <div style={{ backgroundColor: '#f3f4f6', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
-                      <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '700' }}>90-DAY BURN</div>
-                      <div style={{ fontSize: '18px', fontWeight: '800', color: '#0a1b35' }}>225 bx</div>
-                    </div>
-                  </div>
+            <DemoAssetCard />
 
                   <div style={{ backgroundColor: '#fff', color: '#000', padding: '16px', borderRadius: '8px', textAlign: 'center', border: '2px dashed #d1d5db', marginTop: 'auto' }}>
                     <div style={{ fontSize: '12px', fontWeight: '800', marginBottom: '4px' }}>CITRUS SPRINGS — ORANGE JUICE</div>
