@@ -161,36 +161,186 @@ function DemoAssetCard() {
 // --- END DEMO CARD ---
 
 
+
+
+
 function DemoKineticCard({ initialAsset }) {
-  const [tag, setTag] = React.useState(initialAsset ? initialAsset.tag : "GPS-1");
-  const [isServiceMode, setIsServiceMode] = React.useState(initialAsset ? initialAsset.isServiceMode : false);
-  const [logs, setLogs] = React.useState(initialAsset ? initialAsset.logs || [] : []);
+  const asset = initialAsset || {
+    deviceId: "862605278000318",
+    tag: "GPS-1",
+    city: "Las Vegas",
+    group: "LV-DEMO-77",
+    latitude: 36.078802,
+    longitude: -115.191695,
+    batteryLevel: 99,
+    isServiceMode: false,
+    lastSeen: "Just Now",
+    logs: [
+      { text: "🔧 Preventative Maintenance: Replaced worn seals & tested voltage", user: "tech_ops", time: "Today - 10:30 AM" },
+      { text: "📅 Service scheduled. Next due: 6 Months", user: "admin_user", time: "Today - 9:15 AM" },
+      { text: "📍 Home Anchor Set: 36.0788, -115.1916", user: "demo_user", time: "Today - 8:05 AM" },
+      { text: "✅ Asset activated and claimed", user: "demo_user", time: "Today - 8:00 AM" }
+    ]
+  };
+
+  const [tag] = React.useState(asset.tag);
+  const [isServiceMode, setIsServiceMode] = React.useState(asset.isServiceMode);
+  const [logs, setLogs] = React.useState(asset.logs);
+  const [newNote, setNewNote] = React.useState("");
 
   const toggleWatchdog = () => {
     const newState = !isServiceMode;
     setIsServiceMode(newState);
-    setLogs([{ text: newState ? "🛡️ Watchdog Disabled" : "Watchdog Activated", user: "demo_user", time: "Just now" }, ...logs]);
+    const logItem = {
+      text: newState ? "🛡️ Watchdog Disabled (Service Mode Active)" : "🛡️ Watchdog Armed & Digital Anchor Active",
+      user: "tech_ops",
+      time: "Just now"
+    };
+    setLogs([logItem, ...logs]);
+  };
+
+  const addLogEntry = () => {
+    if (!newNote.trim()) return;
+    const logItem = {
+      text: `📝 ${newNote.trim()}`,
+      user: "field_tech",
+      time: "Just now"
+    };
+    setLogs([logItem, ...logs]);
+    setNewNote("");
   };
 
   return (
-    <div style={{ backgroundColor: '#1c1c1e', borderRadius: '16px', padding: '24px', border: '1px solid #3a3a3c', color: '#ffffff', display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', maxWidth: '380px', margin: '0 auto', boxSizing: 'border-box' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{
+      backgroundColor: '#1c1c1e',
+      borderRadius: '20px',
+      padding: '24px',
+      border: '1px solid #3a3a3c',
+      color: '#ffffff',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '18px',
+      width: '100%',
+      maxWidth: '480px',
+      margin: '0 auto',
+      boxSizing: 'border-box',
+      boxShadow: '0 20px 50px rgba(0,0,0,0.6)'
+    }}>
+      {/* HEADER SECTION */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <div style={{ fontSize: '11px', color: '#86868b', textTransform: 'uppercase' }}>Live Tracker</div>
-          <div style={{ fontSize: '20px', fontWeight: '800' }}>{tag}</div>
-          <div style={{ fontSize: '13px', color: '#34c759' }}>⚡ Battery: 99% • Las Vegas</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <span className="live-pulse-dot"></span>
+            <span style={{ fontSize: '11px', color: '#86868b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Live Telemetry • {asset.group}
+            </span>
+          </div>
+          <div style={{ fontSize: '24px', fontWeight: '800', letterSpacing: '-0.02em' }}>{tag}</div>
+          <div style={{ fontSize: '13px', color: '#34c759', fontWeight: '600', marginTop: '2px' }}>
+            ⚡ Battery: {asset.batteryLevel}% • {asset.city} ({asset.latitude}, {asset.longitude})
+          </div>
         </div>
-        <button onClick={toggleWatchdog} style={{ backgroundColor: isServiceMode ? '#ff3b30' : '#34c759', color: '#ffffff', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
+
+        <button 
+          onClick={toggleWatchdog} 
+          style={{
+            backgroundColor: isServiceMode ? '#ff3b30' : '#34c759',
+            color: '#ffffff',
+            border: 'none',
+            padding: '8px 14px',
+            borderRadius: '10px',
+            fontSize: '12px',
+            fontWeight: '700',
+            cursor: 'pointer',
+            boxShadow: isServiceMode ? '0 4px 12px rgba(255,59,48,0.3)' : '0 4px 12px rgba(52,199,89,0.3)',
+            transition: 'all 0.2s ease'
+          }}
+        >
           {isServiceMode ? 'Watchdog Off' : 'Watchdog Active'}
         </button>
       </div>
-      <div style={{ backgroundColor: '#121212', borderRadius: '8px', padding: '10px', height: '120px', overflowY: 'auto', border: '1px solid #3a3a3c', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {logs.map((log, idx) => (
-          <div key={idx} style={{ fontSize: '11px', borderBottom: idx < logs.length - 1 ? '1px solid #2c2c2e' : 'none', paddingBottom: '4px' }}>
-            <div style={{ color: '#ffffff', fontWeight: '600' }}>{log.text}</div>
-            <div style={{ color: '#86868b', fontSize: '9px' }}>{log.time}</div>
+
+      {/* QUICK METRICS ROW */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', backgroundColor: '#2c2c2e', padding: '12px', borderRadius: '12px', border: '1px solid #3a3a3c' }}>
+        <div>
+          <div style={{ fontSize: '10px', color: '#86868b', fontWeight: '700' }}>STATUS</div>
+          <div style={{ fontSize: '12px', fontWeight: '800', color: isServiceMode ? '#ff9500' : '#34c759' }}>
+            {isServiceMode ? 'SERVICE' : 'TRACKING'}
           </div>
-        ))}
+        </div>
+        <div>
+          <div style={{ fontSize: '10px', color: '#86868b', fontWeight: '700' }}>LAST SIGNAL</div>
+          <div style={{ fontSize: '12px', fontWeight: '800', color: '#ffffff' }}>{asset.lastSeen}</div>
+        </div>
+        <div>
+          <div style={{ fontSize: '10px', color: '#86868b', fontWeight: '700' }}>DEVICE ID</div>
+          <div style={{ fontSize: '11px', fontWeight: '700', color: '#86868b', fontFamily: 'monospace' }}>...{asset.deviceId.slice(-6)}</div>
+        </div>
+      </div>
+
+      {/* TIMELINE & LOGS FEED */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ fontSize: '12px', fontWeight: '700', color: '#86868b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Immutable Timeline & Maintenance Trail</span>
+          <span style={{ fontSize: '10px', color: '#007aff' }}>{logs.length} Entries</span>
+        </div>
+
+        <div style={{
+          backgroundColor: '#121212',
+          borderRadius: '12px',
+          padding: '12px',
+          height: '180px',
+          overflowY: 'auto',
+          border: '1px solid #3a3a3c',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px'
+        }}>
+          {logs.map((log, idx) => (
+            <div key={idx} style={{ fontSize: '12px', borderBottom: idx < logs.length - 1 ? '1px solid #2c2c2e' : 'none', paddingBottom: '8px' }}>
+              <div style={{ color: '#ffffff', fontWeight: '600', lineHeight: '1.4' }}>{log.text}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#86868b', fontSize: '10px', marginTop: '4px' }}>
+                <span>👤 {log.user}</span>
+                <span>{log.time}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* QUICK LOG ENTRY INPUT */}
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <input 
+          placeholder="Log field service or maintenance note..." 
+          value={newNote}
+          onChange={(e) => setNewNote(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && addLogEntry()}
+          style={{
+            flex: 1,
+            backgroundColor: '#121212',
+            border: '1px solid #3a3a3c',
+            borderRadius: '10px',
+            padding: '10px 14px',
+            color: '#ffffff',
+            fontSize: '12px',
+            outline: 'none'
+          }}
+        />
+        <button 
+          onClick={addLogEntry}
+          style={{
+            backgroundColor: '#007aff',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '10px',
+            padding: '10px 16px',
+            fontWeight: '700',
+            fontSize: '12px',
+            cursor: 'pointer'
+          }}
+        >
+          Add Log
+        </button>
       </div>
     </div>
   );
