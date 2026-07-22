@@ -732,7 +732,9 @@ export default function LandingPage({ onLoginClick }) {
           </div>
         )}
 
-              {/* FOOTER */}
+                    </section>
+
+      {/* FOOTER */}
       <section style={{ textAlign: "center", padding: "100px 20px", borderTop: "1px solid #1c1c1e" }}>
         <h2 style={{ fontSize: "38px", fontWeight: "800", letterSpacing: "-0.02em", marginBottom: "16px" }}>Ready to Modernize Your Fleet?</h2>
         <p style={{ color: "#86868b", fontSize: "16px", marginBottom: "32px" }}>Experience seamless asset tracking in under 5 minutes.</p>
