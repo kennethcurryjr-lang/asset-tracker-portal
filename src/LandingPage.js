@@ -285,7 +285,7 @@ export default function LandingPage({ onLoginClick }) {
           </div>
 
                   <div>
-                    <div style={{ fontSize: '18px', fontWeight: '800' }}>Fleet Tracker - LV-DEMO-77</div>
+                    
                     <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>ID: 862605278000318</div>
                   </div>
 
