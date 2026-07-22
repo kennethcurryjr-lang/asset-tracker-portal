@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { 
   Navigation, Cpu, WifiOff, ShieldCheck, 
   Wrench, Boxes, ArrowRight, CheckCircle2, 
-  Zap, Mail, Printer, AlertTriangle, RotateCw, FileText, Plus
+  Zap, Mail, Printer, AlertTriangle, RotateCw, FileText, Plus, Camera, Lock
 } from "lucide-react";
 
 export default function LandingPage({ onLoginClick }) {
   const [activeTab, setActiveTab] = useState("tracking");
 
-  // --- EXACT TRACKING CARD STATE ---
+  // --- 1. TRACKING CARD STATE ---
   const [trackingFlipped, setTrackingFlipped] = useState(false);
   const [watchdogActive, setWatchdogActive] = useState(true);
   const [showLogs, setShowLogs] = useState(false);
@@ -18,13 +18,15 @@ export default function LandingPage({ onLoginClick }) {
   ]);
   const [newLogText, setNewLogText] = useState("");
 
-  // --- EXACT TOOLS CARD STATE ---
+  // --- 2. KINETIC TOOLS CARD STATE (FULL ASSET / HEAVY EQUIPMENT CARD) ---
   const [toolsFlipped, setToolsFlipped] = useState(false);
   const [toolHours, setToolHours] = useState(254);
   const [toolChecklist, setToolChecklist] = useState({ step1: false, step2: false, step3: false });
   const [toolStatus, setToolStatus] = useState("SERVICE_REQUIRED");
+  const [showCustodyDrawer, setShowCustodyDrawer] = useState(false);
+  const [custodySignature, setCustodySignature] = useState("");
 
-  // --- EXACT INVENTORY CARD STATE ---
+  // --- 3. KINETIC INVENTORY CARD STATE ---
   const [inventoryFlipped, setInventoryFlipped] = useState(false);
   const [stockQty, setStockQty] = useState(420);
   const [selectedZone, setSelectedZone] = useState("Cooler Bay-01");
@@ -45,10 +47,10 @@ export default function LandingPage({ onLoginClick }) {
   return (
     <div style={pageStyle}>
       <style>{`
-        .exact-card-wrapper { perspective: 1200px; width: 100%; max-width: 480px; margin: 0 auto; display: flex; }
+        .exact-card-wrapper { perspective: 1200px; width: 100%; max-width: 500px; margin: 0 auto; display: flex; }
         .card-flipper { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; display: flex; flex-direction: column; }
         .card-flipper.flipped { transform: rotateY(180deg); }
-        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; box-sizing: border-box; border-radius: 16px; }
+        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; box-sizing: border-box; border-radius: 18px; }
         .card-front { transform: rotateY(0deg); z-index: 2; position: relative; }
         .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; background-color: #161618; border: 1px solid #3a3a3c; display: flex; flex-direction: column; padding: 28px; overflow-y: auto; }
         
@@ -177,7 +179,7 @@ export default function LandingPage({ onLoginClick }) {
           </button>
         </div>
 
-        {/* TAB 1: EXACT TRACKING CARD WITH LIVE LOGS DRAWER */}
+        {/* TAB 1: TRACKING CARD */}
         {activeTab === "tracking" && (
           <div style={{
             backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c",
@@ -193,19 +195,14 @@ export default function LandingPage({ onLoginClick }) {
               <ul style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: 0, listStyle: "none" }}>
                 <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px" }}>
                   <CheckCircle2 color="#34c759" size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
-                  <div><strong>Interactive Logs Drawer:</strong> Click to expand timestamps, user signatures, and service notes logged directly against the device ID.</div>
+                  <div><strong>Interactive Logs Drawer:</strong> Expand timestamps, user signatures, and service notes logged directly against the device ID.</div>
                 </li>
               </ul>
             </div>
 
-            {/* EXACT PROPORTION TRACKING CARD */}
             <div className="exact-card-wrapper">
               <div className={`card-flipper ${trackingFlipped ? 'flipped' : ''}`}>
-                
-                {/* FRONT FACE */}
                 <div className="card-face card-front" style={{ backgroundColor: '#202022', border: '1px solid #3a3a3c', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.7)' }}>
-                  
-                  {/* Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ fontWeight: '800', fontSize: '18px' }}>GPS-1 <span style={{ fontSize: '13px', color: '#86868b', fontWeight: 'normal' }}>(862605278000318)</span></div>
@@ -217,7 +214,6 @@ export default function LandingPage({ onLoginClick }) {
                     </span>
                   </div>
 
-                  {/* Map & Coordinates */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '10px', alignItems: 'center' }}>
                     <div style={{ fontSize: '12px', color: '#86868b', lineHeight: '1.5' }}>
                       <div>Lat: <strong style={{ color: '#fff' }}>36.078802</strong></div>
@@ -230,7 +226,6 @@ export default function LandingPage({ onLoginClick }) {
                     </div>
                   </div>
 
-                  {/* Expandable Logs Section */}
                   <div style={{ backgroundColor: '#161618', borderRadius: '8px', border: '1px solid #2d2d2f', overflow: 'hidden' }}>
                     <button 
                       onClick={() => setShowLogs(!showLogs)}
@@ -273,7 +268,6 @@ export default function LandingPage({ onLoginClick }) {
                     )}
                   </div>
 
-                  {/* Actions */}
                   <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
                     <button 
                       onClick={() => setWatchdogActive(!watchdogActive)} 
@@ -290,30 +284,25 @@ export default function LandingPage({ onLoginClick }) {
                   </div>
                 </div>
 
-                {/* BACK FACE */}
                 <div className="card-face card-back">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '12px', marginBottom: '16px' }}>
                     <span style={{ fontSize: '14px', fontWeight: '800', color: '#007aff' }}>⚙️ Cryptographic Recovery Share</span>
                     <button onClick={() => setTrackingFlipped(false)} style={{ background: 'none', border: 'none', color: '#86868b', cursor: 'pointer', fontSize: '12px' }}>⤶ Back</button>
                   </div>
-                  
                   <div style={{ fontSize: '12px', color: '#86868b', marginBottom: '16px' }}>
                     Dispatch a secure, self-terminating 24-hour map tracking link for law enforcement or asset recovery teams.
                   </div>
-
                   <input type="email" placeholder="investigator@agency.gov" style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #3a3a3c', backgroundColor: '#0a0a0c', color: '#fff', fontSize: '12px', outline: 'none', marginBottom: '16px', width: '100%', boxSizing: 'border-box' }} />
-
-                  <button onClick={() => alert("Secure tracking link generated and copied to clipboard!")} style={{ marginTop: 'auto', padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#fff', fontSize: '12px', fontWeight: '800', cursor: 'pointer' }}>
+                  <button onClick={() => alert("Secure tracking link generated!")} style={{ marginTop: 'auto', padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: '#007aff', color: '#fff', fontSize: '12px', fontWeight: '800', cursor: 'pointer' }}>
                     Generate Secure Dispatch Link
                   </button>
                 </div>
-
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 2: EXACT TOOLS CARD */}
+        {/* TAB 2: TRUE KINETIC TOOLS & ASSETS CARD */}
         {activeTab === "tools" && (
           <div style={{
             backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c",
@@ -322,56 +311,90 @@ export default function LandingPage({ onLoginClick }) {
           }}>
             <div>
               <div style={{ color: "#007aff", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 02</div>
-              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>Chain-of-Custody & Overdue PM Lock</h2>
+              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>Kinetic Tools & Chain-of-Custody</h2>
               <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "24px", fontSize: "15px" }}>
-                Heavy machinery and high-value tools require rigorous maintenance tracking. When hours exceed limits, checkout is locked until AI service steps are completed.
+                This is the actual <strong>Kinetic Tools</strong> asset card structure, complete with tag numbers, serial tracking, preventative maintenance hour limits, and e-signature handoff workflows.
               </p>
               <ul style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: 0, listStyle: "none" }}>
                 <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "14px" }}>
                   <CheckCircle2 color="#34c759" size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
-                  <div><strong>Automated Checkout Lock:</strong> Prevents field dispatch on overdue equipment until maintenance checklists are cleared.</div>
+                  <div><strong>Full Chain-of-Custody Modal:</strong> Capture touch signatures, condition photos, IP logs, and digital handoff receipts upon checkout.</div>
                 </li>
               </ul>
             </div>
 
-            {/* EXACT PROPORTION TOOLS CARD */}
+            {/* TRUE KINETIC TOOLS CARD */}
             <div className="exact-card-wrapper">
               <div className={`card-flipper ${toolsFlipped ? 'flipped' : ''}`}>
                 
                 {/* FRONT FACE */}
-                <div className="card-face card-front" style={{ backgroundColor: '#202022', border: '1px solid #3a3a3c', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.7)' }}>
+                <div className="card-face card-front" style={{ backgroundColor: '#202022', border: '1px solid #3a3a3c', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0 20px 40px rgba(0,0,0,0.7)' }}>
                   
+                  {/* Tool Card Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '11px', fontWeight: '800', color: toolStatus === "SERVICE_REQUIRED" ? '#ff3b30' : '#34c759', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? 'rgba(255,59,48,0.15)' : 'rgba(52,199,89,0.15)', padding: '4px 10px', borderRadius: '6px' }}>
                       {toolStatus === "SERVICE_REQUIRED" ? '⚠️ SERVICE OVERDUE' : '🟢 OPERATIONAL'}
                     </span>
-                    <span style={{ fontSize: '12px', color: '#86868b', fontWeight: '700' }}>[ CAT-259D3 ]</span>
+                    <span style={{ fontSize: '12px', color: '#86868b', fontWeight: '700' }}>Tag # 00482</span>
                   </div>
 
                   <div>
                     <div style={{ fontSize: '20px', fontWeight: '800', color: '#fff' }}>Caterpillar Track Loader</div>
-                    <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>Replacement Value: $65,000</div>
+                    <div style={{ fontSize: '12px', color: '#007aff', marginTop: '2px' }}>Model: CAT-259D3 • Serial: C2L99201</div>
                   </div>
 
-                  <div style={{ backgroundColor: '#161618', padding: '14px', borderRadius: '8px', border: '1px solid #3a3a3c' }}>
-                    <div style={{ fontSize: '10px', color: '#86868b', fontWeight: '700' }}>HOURS METER INTERVAL</div>
-                    <div style={{ fontSize: '24px', fontWeight: '800', color: toolHours >= 250 ? '#ff3b30' : '#34c759', marginTop: '2px' }}>
-                      {toolHours} / 250 <span style={{ fontSize: '12px', color: '#86868b' }}>HOURS</span>
+                  {/* Metrics Box */}
+                  <div style={{ backgroundColor: '#161618', padding: '12px 14px', borderRadius: '8px', border: '1px solid #3a3a3c', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div>
+                      <div style={{ fontSize: '9px', color: '#86868b', fontWeight: '700' }}>HOURS METER</div>
+                      <div style={{ fontSize: '18px', fontWeight: '800', color: toolHours >= 250 ? '#ff3b30' : '#34c759' }}>
+                        {toolHours} <span style={{ fontSize: '11px', color: '#86868b' }}>/ 250 hrs</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '9px', color: '#86868b', fontWeight: '700' }}>REPLACEMENT VAL</div>
+                      <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff' }}>$65,000</div>
                     </div>
                   </div>
 
+                  {/* Custody Drawer Toggle */}
+                  <div style={{ backgroundColor: '#161618', borderRadius: '8px', border: '1px solid #2d2d2f', overflow: 'hidden' }}>
+                    <button 
+                      onClick={() => setShowCustodyDrawer(!showCustodyDrawer)}
+                      style={{ width: '100%', padding: '10px 12px', backgroundColor: 'transparent', border: 'none', color: '#007aff', fontSize: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    >
+                      <span>🛡️ Chain-of-Custody Handoff</span>
+                      <span>{showCustodyDrawer ? '▲ Hide' : '▼ Sign'}</span>
+                    </button>
+
+                    {showCustodyDrawer && (
+                      <div style={{ padding: '10px 12px', borderTop: '1px solid #2d2d2f', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ fontSize: '11px', color: '#86868b' }}>Required: Authorized Tech E-Signature & Condition Photo</div>
+                        <input 
+                          type="text" 
+                          placeholder="Type Tech Name as Signature..." 
+                          value={custodySignature}
+                          onChange={e => setCustodySignature(e.target.value)}
+                          style={{ padding: '6px 10px', fontSize: '11px', backgroundColor: '#0a0a0c', border: '1px solid #3a3a3c', color: '#fff', borderRadius: '4px', outline: 'none' }}
+                        />
+                        <div style={{ fontSize: '10px', color: '#34c759' }}>{custodySignature ? `✓ Signed by ${custodySignature}` : 'Awaiting signature...'}</div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
                   <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
                     <button 
                       disabled={toolStatus === "SERVICE_REQUIRED"}
-                      style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? '#3a3a3c' : '#007aff', color: toolStatus === "SERVICE_REQUIRED" ? '#86868b' : '#fff', fontSize: '12px', fontWeight: '800', cursor: toolStatus === "SERVICE_REQUIRED" ? 'not-allowed' : 'pointer' }}
+                      style={{ flex: 1, padding: '11px', borderRadius: '8px', border: 'none', backgroundColor: toolStatus === "SERVICE_REQUIRED" ? '#3a3a3c' : '#007aff', color: toolStatus === "SERVICE_REQUIRED" ? '#86868b' : '#fff', fontSize: '11px', fontWeight: '800', cursor: toolStatus === "SERVICE_REQUIRED" ? 'not-allowed' : 'pointer' }}
                     >
                       {toolStatus === "SERVICE_REQUIRED" ? 'CHECKOUT LOCKED' : 'CHECK OUT'}
                     </button>
                     <button 
                       onClick={() => setToolsFlipped(true)} 
-                      style={{ padding: '12px 14px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontSize: '12px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      style={{ padding: '11px 14px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontSize: '11px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
-                      <RotateCw size={12} /> Flip & Service
+                      <RotateCw size={12} /> PM Service
                     </button>
                   </div>
                 </div>
@@ -416,7 +439,7 @@ export default function LandingPage({ onLoginClick }) {
           </div>
         )}
 
-        {/* TAB 3: EXACT INVENTORY CARD */}
+        {/* TAB 3: INVENTORY CARD */}
         {activeTab === "inventory" && (
           <div style={{
             backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c",
@@ -437,13 +460,9 @@ export default function LandingPage({ onLoginClick }) {
               </ul>
             </div>
 
-            {/* EXACT PROPORTION INVENTORY CARD */}
             <div className="exact-card-wrapper">
               <div className={`card-flipper ${inventoryFlipped ? 'flipped' : ''}`}>
-                
-                {/* FRONT FACE */}
                 <div className="card-face card-front" style={{ backgroundColor: '#202022', border: '1px solid #3a3a3c', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.7)' }}>
-                  
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '11px', color: '#86868b', textTransform: 'uppercase', fontWeight: '800' }}>Citrus Springs</span>
                     <span style={{ backgroundColor: 'rgba(52,199,89,0.2)', border: '1px solid #34c759', color: '#34c759', padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: '900' }}>🟢 PICK FIRST</span>
@@ -454,7 +473,6 @@ export default function LandingPage({ onLoginClick }) {
                     <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>Lot: LOT-2026-01 • Exp: Oct 15, 2026</div>
                   </div>
 
-                  {/* Bin Selector */}
                   <div style={{ display: 'flex', gap: '6px' }}>
                     {["Cooler Bay-01", "Dry Aisle-03"].map(zone => (
                       <button 
@@ -471,7 +489,6 @@ export default function LandingPage({ onLoginClick }) {
                     {stockQty} <span style={{ fontSize: '14px', color: '#86868b' }}>Boxes in Stock</span>
                   </div>
 
-                  {/* Actions */}
                   <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
                     <button onClick={() => setStockQty(stockQty + 10)} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #34c759', backgroundColor: 'rgba(52,199,89,0.15)', color: '#34c759', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>+10 Receive</button>
                     <button onClick={() => setStockQty(Math.max(0, stockQty - 10))} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ff3b30', backgroundColor: 'rgba(255,59,48,0.15)', color: '#ff3b30', fontWeight: '800', fontSize: '11px', cursor: 'pointer' }}>-10 Ship</button>
@@ -481,7 +498,6 @@ export default function LandingPage({ onLoginClick }) {
                   </div>
                 </div>
 
-                {/* BACK FACE */}
                 <div className="card-face card-back">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3a3a3c', paddingBottom: '12px', marginBottom: '16px' }}>
                     <span style={{ fontSize: '13px', fontWeight: '800', color: '#007aff' }}>📊 Velocity & Zebra Label Engine</span>
@@ -510,7 +526,6 @@ export default function LandingPage({ onLoginClick }) {
                     <Printer size={14} /> {showZebraPreview ? 'Hide Thermal Preview' : 'Preview Zebra 4x6 Thermal Label'}
                   </button>
                 </div>
-
               </div>
             </div>
           </div>
