@@ -276,61 +276,8 @@ export default function LandingPage({ onLoginClick }) {
               </p>
             </div>
 
-            <div className="exact-card-wrapper">
-              <div className={`card-flipper ${trackingFlipped ? 'flipped' : ''}`}>
-                <div className="card-face card-front" style={{ backgroundColor: '#ffffff', color: '#0a1b35', border: '1px solid #d1d5db', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-                  
-          <div style={{ flex: '1 1 350px', maxWidth: '380px', width: '100%', margin: '0 auto' }}>
-            <DemoKineticCard initialAsset={trackingDemoAsset} />
-          </div>
-
-                  <div>
-                    
-                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>ID: 862605278000318</div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '10px', alignItems: 'center', backgroundColor: '#f3f4f6', padding: '12px', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '12px', color: '#4b5563', lineHeight: '1.5' }}>
-                      <div>Lat: <strong style={{ color: '#0a1b35' }}>36.078802</strong></div>
-                      <div>Lon: <strong style={{ color: '#0a1b35' }}>-115.191695</strong></div>
-                      <div style={{ color: '#10b981', marginTop: '4px', fontWeight: 'bold' }}>⚡ Battery: 99%</div>
-                    </div>
-                    <div style={{ position: 'relative', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #d1d5db' }}>
-                      <iframe title="tracking-map" width="100%" height="100%" frameBorder="0" scrolling="no" src="https://www.openstreetmap.org/export/embed.html?bbox=-115.21%2C36.06%2C-115.17%2C36.09&layer=mapnik&marker=36.0788%2C-115.1917" style={{ pointerEvents: 'none', border: 'none' }}></iframe>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-                    <button onClick={() => setWatchdogActive(!watchdogActive)} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#ffffff', color: '#374151', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
-                      {watchdogActive ? 'Disable Watchdog' : 'Enable Watchdog'}
-                    </button>
-                    <button onClick={() => setTrackingFlipped(true)} style={{ padding: '10px 14px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#fff', fontSize: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      Flip ⤹
-                    </button>
-                  </div>
-                </div>
-
-                <div className="card-face card-back" style={{ backgroundColor: '#ffffff', color: '#0a1b35', border: '1px solid #d1d5db', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#0052cc' }}>📋 Device Audit Logs</span>
-                    <button onClick={() => setTrackingFlipped(false)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px' }}>✕</button>
-                  </div>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', flex: 1 }}>
-                    {logs.map((l, i) => (
-                      <div key={i} style={{ fontSize: '11px', borderBottom: '1px solid #f3f4f6', paddingBottom: '6px' }}>
-                        <div style={{ color: '#0a1b35', fontWeight: '600' }}>{l.text}</div>
-                        <div style={{ color: '#6b7280', fontSize: '10px' }}>{l.time} • {l.user}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '6px', marginTop: '12px' }}>
-                    <input type="text" placeholder="Add note..." value={newLogText} onChange={e => setNewLogText(e.target.value)} style={{ flex: 1, padding: '8px', fontSize: '11px', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '4px', outline: 'none' }} />
-                    <button onClick={() => { if (newLogText) { setLogs([...logs, { user: "admin", text: newLogText, time: "Just now" }]); setNewLogText(""); } }} style={{ padding: '8px 12px', backgroundColor: '#0052cc', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>Post</button>
-                  </div>
-                </div>
-              </div>
+            <div style={{ flex: '1 1 350px', maxWidth: '380px', width: '100%', margin: '0 auto' }}>
+              <DemoKineticCard initialAsset={trackingDemoAsset} />
             </div>
           </div>
         )}
