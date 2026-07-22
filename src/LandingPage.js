@@ -105,19 +105,19 @@ export default function LandingPage({ onLoginClick }) {
             onClick={() => setActiveTab("tracking")}
             style={{ padding: "16px 28px", borderRadius: "16px", border: "none", backgroundColor: activeTab === "tracking" ? "#007aff" : "#1c1c1e", color: "#ffffff", fontWeight: "700", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}
           >
-            <Navigation size={18} /> 1. Kinetic Tracking Card
+            <Navigation size={18} /> 1. Kinetic Tracking
           </button>
           <button 
             onClick={() => setActiveTab("tools")}
             style={{ padding: "16px 28px", borderRadius: "16px", border: "none", backgroundColor: activeTab === "tools" ? "#007aff" : "#1c1c1e", color: "#ffffff", fontWeight: "700", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}
           >
-            <Wrench size={18} /> 2. Kinetic Tools Card
+            <Wrench size={18} /> 2. Kinetic Assets
           </button>
           <button 
             onClick={() => setActiveTab("inventory")}
             style={{ padding: "16px 28px", borderRadius: "16px", border: "none", backgroundColor: activeTab === "inventory" ? "#007aff" : "#1c1c1e", color: "#ffffff", fontWeight: "700", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}
           >
-            <Boxes size={18} /> 3. Kinetic Inventory Card
+            <Boxes size={18} /> 3. Kinetic Inventory
           </button>
         </div>
 
