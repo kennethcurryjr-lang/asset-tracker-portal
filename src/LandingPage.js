@@ -460,6 +460,16 @@ function DemoInventoryCard() {
 
   return (
     <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>
+      <style>{`
+        @keyframes bluePulseInv {
+          0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.8); border-color: rgba(0, 122, 255, 0.8); }
+          70% { box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 1); }
+          100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 0.8); }
+        }
+        .flip-pulse-btn {
+          animation: bluePulseInv 2s infinite ease-in-out !important;
+        }
+      `}</style>
       <div className={invFlipped ? "card-flipper flipped" : "card-flipper"}>
         
         {/* FRONT FACE */}
