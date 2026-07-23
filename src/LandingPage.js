@@ -610,7 +610,7 @@ export default function LandingPage({ onLoginClick }) {
           Engineered for Enterprise Scale With
           
         {/* PLAIN-ENGLISH VALUE PROPOSITION STRIP */}
-        <div style={{ maxWidth: "1000px", margin: "40px auto 20px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px", textAlign: "left" }}>
+        <div style={{ maxWidth: "1200px", margin: "60px auto 40px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px", textAlign: "left", position: "relative", zIndex: 2 }}>
           <div style={{ backgroundColor: "#161618", border: "1px solid #2c2c2e", borderRadius: "16px", padding: "24px" }}>
             <div style={{ color: "#007aff", fontSize: "12px", fontWeight: "800", letterSpacing: "0.1em", marginBottom: "8px", textTransform: "uppercase" }}>Step 01</div>
             <h4 style={{ color: "#fff", fontSize: "17px", fontWeight: "700", marginBottom: "8px" }}>Pick A La Carte</h4>
