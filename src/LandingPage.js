@@ -633,8 +633,7 @@ export default function LandingPage({ onLoginClick }) {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: '1 1 350px', maxWidth: '380px', width: '100%', margin: '0 auto' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: '1 1 350px', maxWidth: '380px', width: '100%', margin: '0 auto' }}>
-                            {/* Self-contained Inventory Demo Card */}
+              {/* Self-contained Inventory Demo Card */}
               {(() => {
                 const [invFlipped, setInvFlipped] = React.useState(false);
                 const [stockCnt, setStockCnt] = React.useState(420);
@@ -746,8 +745,6 @@ export default function LandingPage({ onLoginClick }) {
             </div>
           </div>
         )}
-
-                    </section>
 
       {/* FOOTER */}
       <section style={{ textAlign: "center", padding: "100px 20px", borderTop: "1px solid #1c1c1e" }}>
