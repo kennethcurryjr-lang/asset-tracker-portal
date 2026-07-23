@@ -300,7 +300,16 @@ function DemoAssetCard() {
         .flip-pulse-btn {
           animation: bluePulse 2s infinite ease-in-out;
         }
-      `}</style>
+      `}
+        /* High-contrast edges for the 3D demo cards */
+        .card-front > div, .card-back {
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+            background-color: #18181b !important;
+            border-radius: 14px !important;
+        }
+
+      </style>
       <div className={isFlipped ? "card-flipper flipped" : "card-flipper"} style={{ height: '100%' }}>
         
         {/* FRONT FACE */}
@@ -693,7 +702,7 @@ export default function LandingPage({ onLoginClick }) {
               </div>
             </div>
           </div>
-          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '480px', alignItems: 'center' }}>
+          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '580px', alignItems: 'center' }}>
             <DemoKineticCard />
           </div>
         </div>
@@ -733,7 +742,7 @@ export default function LandingPage({ onLoginClick }) {
               </div>
             </div>
           </div>
-          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '480px', alignItems: 'center' }}>
+          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '580px', alignItems: 'center' }}>
             <DemoAssetCard />
           </div>
         </div>
@@ -773,7 +782,7 @@ export default function LandingPage({ onLoginClick }) {
               </div>
             </div>
           </div>
-          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '480px', alignItems: 'center' }}>
+          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '580px', alignItems: 'center' }}>
             <DemoInventoryCard />
           </div>
         </div>
