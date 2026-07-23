@@ -743,6 +743,7 @@ export default function LandingPage({ onLoginClick }) {
             </div>
           </div>
         )}
+      </section>
 
       {/* FOOTER */}
       <section style={{ textAlign: "center", padding: "100px 20px", borderTop: "1px solid #1c1c1e" }}>
