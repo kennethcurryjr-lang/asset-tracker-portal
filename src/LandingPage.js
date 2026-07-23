@@ -91,10 +91,6 @@ function DemoKineticCard() {
   };
 
   return (
-    <div>
-    
-      
-
     <div style={{
       backgroundColor: '#1c1c1e',
       borderRadius: '14px',
@@ -265,7 +261,24 @@ function DemoAssetCard() {
 
   return (
     <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', height: '340px', margin: '0 auto' }}>
-      
+      <style>{`
+        @keyframes yellowPulse {
+          0% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.8); }
+          70% { box-shadow: 0 0 0 10px rgba(255, 204, 0, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); }
+        }
+        @keyframes bluePulse {
+          0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.8); border-color: rgba(0, 122, 255, 0.8); }
+          70% { box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 1); }
+          100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 0.8); }
+        }
+        .checkout-pulse-btn {
+          animation: yellowPulse 2s infinite ease-in-out;
+        }
+        .flip-pulse-btn {
+          animation: bluePulse 2s infinite ease-in-out;
+        }
+      `}</style>
       <div className={isFlipped ? "card-flipper flipped" : "card-flipper"} style={{ height: '100%' }}>
         
         {/* FRONT FACE */}
@@ -447,7 +460,16 @@ function DemoInventoryCard() {
 
   return (
     <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>
-      
+      <style>{`
+        @keyframes bluePulseInv {
+          0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.8); border-color: rgba(0, 122, 255, 0.8); }
+          70% { box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 1); }
+          100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); border-color: rgba(0, 122, 255, 0.8); }
+        }
+        .flip-pulse-btn {
+          animation: bluePulseInv 2s infinite ease-in-out !important;
+        }
+      `}</style>
       <div className={invFlipped ? "card-flipper flipped" : "card-flipper"}>
         
         {/* FRONT FACE */}
@@ -534,7 +556,23 @@ export default function LandingPage({ onLoginClick }) {
 
   return (
     <div style={{ backgroundColor: "#0a0a0c", color: "#ffffff", fontFamily: '"SF Pro Display", -apple-system, sans-serif', minHeight: "100vh", overflowX: "hidden" }}>
-      
+      <style>{`
+        .card-perspective-wrapper { perspective: 1200px; }
+        .card-flipper { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; display: flex; flex-direction: column; }
+        .card-flipper.flipped { transform: rotateY(180deg); }
+        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; box-sizing: border-box; }
+        .card-front { transform: rotateY(0deg); z-index: 2; position: relative; }
+        .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; }
+        .tab-btn { flex: 1; padding: 6px; font-size: 11px; font-weight: 800; border-radius: 6px; border: none; cursor: pointer; }
+        .tab-active { background-color: #0052cc; color: #ffffff; }
+        .tab-inactive { background-color: #f3f4f6; color: #6b7280; }
+        @keyframes radar-pulse-glow {
+          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); }
+          70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); }
+          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
+        }
+        .live-pulse-dot { width: 8px; height: 8px; background-color: #34c759; border-radius: 50%; display: inline-block; animation: radar-pulse-glow 2s infinite ease-in-out; }
+      `}</style>
 
       {/* NAVIGATION HEADER */}
       <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 40px", maxWidth: "1280px", margin: "0 auto", borderBottom: "1px solid #1c1c1e" }}>
@@ -561,8 +599,8 @@ export default function LandingPage({ onLoginClick }) {
           <Cpu size={16} /> PREVENTATIVE MAINTENANCE & FLEET TRACKING
         </div>
         <h1 className="hero-entrance-headline" style={{ fontSize: "clamp(36px, 4.5vw, 56px)", fontWeight: "800", letterSpacing: "-0.03em", lineHeight: "1.15", marginBottom: "24px", background: "linear-gradient(135deg, #ffffff 30%, #a1a1a6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-          Track equipment, manage stock, and schedule <span style={{ background: "linear-gradient(90deg, #0a84ff, #30d158, #ff9f0a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>preventative maintenance</span> in one place.
-        </h1>
+  Track equipment, manage stock, and schedule <span style={{ background: "linear-gradient(90deg, #0a84ff, #30d158, #ff9f0a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>preventative maintenance</span> in one place.
+</h1>
       </section>
 
       {/* MODULE SELECTOR TABS */}
