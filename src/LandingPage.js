@@ -610,7 +610,7 @@ export default function LandingPage({ onLoginClick }) {
           Engineered for Enterprise Scale With
           
         {/* PLAIN-ENGLISH VALUE PROPOSITION STRIP */}
-        <div style={{ maxWidth: "1200px", margin: "60px auto 40px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px", textAlign: "left", position: "relative", zIndex: 2 }}>
+        <div style={{ maxWidth: "1000px", margin: "40px auto 20px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px", textAlign: "left" }}>
           <div style={{ backgroundColor: "#161618", border: "1px solid #2c2c2e", borderRadius: "16px", padding: "24px" }}>
             <div style={{ color: "#007aff", fontSize: "12px", fontWeight: "800", letterSpacing: "0.1em", marginBottom: "8px", textTransform: "uppercase" }}>Step 01</div>
             <h4 style={{ color: "#fff", fontSize: "17px", fontWeight: "700", marginBottom: "8px" }}>Pick A La Carte</h4>
@@ -635,46 +635,27 @@ export default function LandingPage({ onLoginClick }) {
           </div>
         </div>
     <span style={{ color: "#ffcc00", WebkitTextFillColor: "#ffcc00", fontSize: "44px" }}>
-        {/* SINGLE CLEAN VALUE PROPOSITION CARDS */}
-        <div style={{ maxWidth: "1200px", margin: "0 auto 60px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px", textAlign: "left", position: "relative", zIndex: 2 }}>
+        {/* PLAIN ENGLISH VALUE PROPOSITION */}
+        <div style={{ maxWidth: "1200px", margin: "20px auto 50px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px", textAlign: "left", position: "relative", zIndex: 2 }}>
           <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
             <div style={{ color: "#007aff", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 01</div>
-            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>Pick A La Carte</h3>
+            <h3 style={{ color: "#ffffff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>Pick A La Carte</h3>
             <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Only run what you need. Mix and match GPS telemetry, tool liability, or warehouse inventory modules.</p>
           </div>
           <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
             <div style={{ color: "#34c759", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 02</div>
-            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>Any Physical Thing</h3>
+            <h3 style={{ color: "#ffffff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>Any Physical Thing</h3>
             <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Heavy machinery, power drills, pallets, or stock inventory—if it's a physical asset, it connects.</p>
           </div>
           <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
             <div style={{ color: "#ff9f0a", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 03</div>
-            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>One Living Card</h3>
+            <h3 style={{ color: "#ffffff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>One Living Card</h3>
             <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Collapse location, e-signatures, PM logs, and history onto a single interactive card.</p>
           </div>
         </div>
     
         Or A LA CARTE!</span>
         </h1>
-        {/* PLAIN-ENGLISH VALUE PROPOSITION CARDS */}
-        <div style={{ maxWidth: "1200px", margin: "40px auto 60px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px", textAlign: "left", position: "relative", zIndex: 2 }}>
-          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
-            <div style={{ color: "#007aff", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 01</div>
-            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>Pick A La Carte</h3>
-            <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Only run what you need. Mix and match GPS telemetry, tool liability, or warehouse inventory modules.</p>
-          </div>
-          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
-            <div style={{ color: "#34c759", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 02</div>
-            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>Any Physical Thing</h3>
-            <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Heavy machinery, power drills, pallets, or stock inventory—if it's a physical asset, it connects.</p>
-          </div>
-          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
-            <div style={{ color: "#ff9f0a", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 03</div>
-            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>One Living Card</h3>
-            <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Collapse location, e-signatures, PM logs, and history onto a single interactive card.</p>
-          </div>
-        </div>
-        
       </section>
 
       {/* MODULE SELECTOR TABS */}
