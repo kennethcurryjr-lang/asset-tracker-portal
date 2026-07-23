@@ -163,7 +163,7 @@ function DemoKineticCard() {
           style={{ flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#121212', border: '1px solid #3a3a3c', color: '#ffffff', outline: 'none' }}
         />
         <button onClick={handleSaveName} style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '6px', color: '#ffffff', border: '1px solid #ffffff', backgroundColor: '#007aff', fontWeight: '600', cursor: 'pointer' }}>Save</button>
-        <button className="flip-pulse-btn" className="flip-pulse-btn" onClick={() => setInvFlipped(true)} style={{ padding: '12px 14px', borderRadius: '8px', border: '2px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }} style={{ padding: '12px 14px', borderRadius: '8px', border: '2px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>Flip ⤹</button>
+        
       </div>
 
       <div style={{ display: 'flex', gap: '4px', width: '100%' }}>
