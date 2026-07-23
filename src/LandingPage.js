@@ -76,77 +76,116 @@ export default function LandingPage({ onLoginClick }) {
         </p>
       </header>
 
-      {/* CORE MODULES GRID */}
-      <section style={{ padding: '0 48px', maxWidth: '1400px', margin: '0 auto 120px auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px' }}>
+      
+      {/* COMPREHENSIVE MODULES */}
+      <section style={{ padding: '0 48px', maxWidth: '1200px', margin: '0 auto 120px auto', display: 'flex', flexDirection: 'column', gap: '48px' }}>
+        
+        {/* MODULE 1: TRACKING */}
+        <div className="glass-panel" style={{ padding: '48px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px' }}>
+            <div style={{ width: '56px', height: '56px', backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Crosshair size={28} />
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', color: '#3b82f6', fontWeight: '700', letterSpacing: '0.1em', marginBottom: '4px' }}>MODULE 01</div>
+              <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#fff', margin: 0 }}>Kinetic Tracking & Telemetry</h2>
+            </div>
+          </div>
+          <p style={{ color: '#a1a1aa', fontSize: '16px', marginBottom: '40px', maxWidth: '800px' }}>
+            Continuous live telemetry with predictive analytics. Engineered for remote deployments with multi-carrier cellular fallback and localized geofencing.
+          </p>
           
-          {/* MODULE 1: TRACKING */}
-          <div className="glass-panel" style={{ padding: '40px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ width: '48px', height: '48px', backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-              <Crosshair size={24} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '40px' }}>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '8px' }}>Live Watchdog Anchors</h4>
+              <p style={{ color: '#71717a', fontSize: '14px' }}>Arm devices with localized digital perimeters. Instant wake-and-broadcast if an asset breaches the geofence.</p>
             </div>
-            <h3 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '12px', color: '#fff' }}>Watchdog Tracking</h3>
-            <p style={{ color: '#a1a1aa', fontSize: '15px', marginBottom: '32px', flex: 1 }}>
-              Arm localized digital anchors. If an asset breaches the geofence perimeter, the hardware instantly wakes from deep sleep to broadcast continuous LBS/GPS telemetry.
-            </p>
-            {/* Minimal Data Viz */}
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', color: '#71717a' }}>
-                <span className="mono-text">LAT: 36.0788° N</span>
-                <span className="mono-text">LON: 115.1916° W</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#10b981' }}>
-                <MapPin size={14} /> LIVE GEOFENCE ACTIVE
-              </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '8px' }}>Law Enforcement Live Share</h4>
+              <p style={{ color: '#71717a', fontSize: '14px' }}>Instantly generate secure, time-limited tracking links for rapid asset recovery coordination.</p>
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '8px' }}>Predictive Battery Diagnostics</h4>
+              <p style={{ color: '#71717a', fontSize: '14px' }}>Machine learning models analyze ping frequency and signal strength to forecast exact battery depletion dates.</p>
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '8px' }}>Cellular Triangulation (LBS)</h4>
+              <p style={{ color: '#71717a', fontSize: '14px' }}>Fallback location tracking using cell tower triangulation when GPS satellites are obscured.</p>
             </div>
           </div>
-
-          {/* MODULE 2: ASSETS */}
-          <div className="glass-panel" style={{ padding: '40px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ width: '48px', height: '48px', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-              <ShieldCheck size={24} />
-            </div>
-            <h3 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '12px', color: '#fff' }}>Chain of Custody</h3>
-            <p style={{ color: '#a1a1aa', fontSize: '15px', marginBottom: '32px', flex: 1 }}>
-              Generate automated preventative maintenance checklists based on asset class. Hard-lock overdue tools from field dispatch until certified service is logged.
-            </p>
-            {/* Minimal Data Viz */}
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: '#d4d4d8' }}>
-                  <CheckCircle2 size={16} color="#10b981" /> Hydraulic pressure tested
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: '#d4d4d8' }}>
-                  <CheckCircle2 size={16} color="#10b981" /> Return filter replaced
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* MODULE 3: INVENTORY */}
-          <div className="glass-panel" style={{ padding: '40px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ width: '48px', height: '48px', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-              <Layers size={24} />
-            </div>
-            <h3 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '12px', color: '#fff' }}>Velocity Inventory</h3>
-            <p style={{ color: '#a1a1aa', fontSize: '15px', marginBottom: '32px', flex: 1 }}>
-              Execute strict FIFO rotation with automated batch tracking. Queue barcode scans offline in warehouse dead-zones and auto-flush to AWS upon reconnection.
-            </p>
-            {/* Minimal Data Viz */}
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
-               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', color: '#71717a', textTransform: 'uppercase' }}>
-                <span>Bin Capacity (Zone A)</span>
-                <span className="mono-text">84%</span>
-              </div>
-              <div style={{ width: '100%', height: '4px', backgroundColor: '#27272a', borderRadius: '2px', overflow: 'hidden' }}>
-                <div style={{ width: '84%', height: '100%', backgroundColor: '#10b981' }}></div>
-              </div>
-            </div>
-          </div>
-
         </div>
-      </section>
 
+        {/* MODULE 2: ASSETS */}
+        <div className="glass-panel" style={{ padding: '48px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px' }}>
+            <div style={{ width: '56px', height: '56px', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ShieldCheck size={28} />
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', color: '#f59e0b', fontWeight: '700', letterSpacing: '0.1em', marginBottom: '4px' }}>MODULE 02</div>
+              <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#fff', margin: 0 }}>Chain of Custody & Assets</h2>
+            </div>
+          </div>
+          <p style={{ color: '#a1a1aa', fontSize: '16px', marginBottom: '40px', maxWidth: '800px' }}>
+            Complete high-value equipment management. Combines AI-generated servicing protocols with immutable digital handoffs and field liability tracking.
+          </p>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '40px' }}>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '8px' }}>E-Signature Manifests</h4>
+              <p style={{ color: '#71717a', fontSize: '14px' }}>Require technicians to draw signatures and verify custom condition manifests before tool dispatch.</p>
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '8px' }}>AI-Generated PM Checklists</h4>
+              <p style={{ color: '#71717a', fontSize: '14px' }}>AWS Bedrock automatically builds custom preventative maintenance checklists based on asset make and model.</p>
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '8px' }}>Maintenance Hard-Locks</h4>
+              <p style={{ color: '#71717a', fontSize: '14px' }}>Automatically lock overdue tools from checkout until certified service is logged and timers are reset.</p>
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '8px' }}>Immutable Master Ledger</h4>
+              <p style={{ color: '#71717a', fontSize: '14px' }}>Audit-ready history of all checkouts, returns, repairs, and financial valuations across the entire fleet.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* MODULE 3: INVENTORY */}
+        <div className="glass-panel" style={{ padding: '48px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px' }}>
+            <div style={{ width: '56px', height: '56px', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Layers size={28} />
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', color: '#10b981', fontWeight: '700', letterSpacing: '0.1em', marginBottom: '4px' }}>MODULE 03</div>
+              <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#fff', margin: 0 }}>Velocity Inventory Engine</h2>
+            </div>
+          </div>
+          <p style={{ color: '#a1a1aa', fontSize: '16px', marginBottom: '40px', maxWidth: '800px' }}>
+            Comprehensive perishable stock management. Automated rotation badges, thermal label printing, and multi-bin warehouse distribution.
+          </p>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '40px' }}>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '8px' }}>Smart FIFO Rotation</h4>
+              <p style={{ color: '#71717a', fontSize: '14px' }}>Flashing badges automatically highlight the oldest valid lot to eliminate waste and prevent inventory trapping.</p>
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '8px' }}>Offline "Dead Zone" Sync</h4>
+              <p style={{ color: '#71717a', fontSize: '14px' }}>Queue barcode scans locally in low-connectivity zones and automatically flush payloads to AWS upon reconnect.</p>
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '8px' }}>Thermal Label Generation</h4>
+              <p style={{ color: '#71717a', fontSize: '14px' }}>Print-ready 4x6 Zebra thermal label previews alongside rapid-fire camera barcode scanning.</p>
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '8px' }}>Automated PO Compliance</h4>
+              <p style={{ color: '#71717a', fontSize: '14px' }}>Route one-click PO requests to vendor emails via AWS SES and enforce hard compliance stops on expired stock.</p>
+            </div>
+          </div>
+        </div>
+
+      </section>
       {/* TECHNICAL SPECS (Hardware & Architecture) */}
       <section style={{ borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', backgroundColor: '#000000', padding: '80px 48px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '60px' }}>
