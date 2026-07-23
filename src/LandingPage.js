@@ -693,7 +693,7 @@ export default function LandingPage({ onLoginClick }) {
               </div>
             </div>
           </div>
-          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '480px', alignItems: 'center' }}>
             <DemoKineticCard />
           </div>
         </div>
@@ -733,7 +733,7 @@ export default function LandingPage({ onLoginClick }) {
               </div>
             </div>
           </div>
-          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '480px', alignItems: 'center' }}>
             <DemoAssetCard />
           </div>
         </div>
@@ -773,7 +773,7 @@ export default function LandingPage({ onLoginClick }) {
               </div>
             </div>
           </div>
-          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '480px', alignItems: 'center' }}>
             <DemoInventoryCard />
           </div>
         </div>
