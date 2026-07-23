@@ -91,3 +91,19 @@ button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button {
   background-color: #1c1c1e !important;
   border-top: 1px solid #3a3a3c !important;
 }
+
+
+@keyframes headlineFlipIn {
+  0% {
+    opacity: 0;
+    transform: perspective(1000px) rotateX(-35px) translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1000px) rotateX(0deg) translateY(0);
+  }
+}
+.headline-flip-reveal {
+  animation: headlineFlipIn 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  display: inline-block;
+}
