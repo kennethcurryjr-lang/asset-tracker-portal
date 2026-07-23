@@ -609,32 +609,27 @@ export default function LandingPage({ onLoginClick }) {
         <div style={{ position: "relative", zIndex: 1, marginTop: "60px", marginBottom: "80px", color: "#6b7280", fontSize: "11px", fontWeight: "800", letterSpacing: "0.15em", textTransform: "uppercase", textAlign: "center" }}>
           Engineered for Enterprise Scale With
           
+        
         {/* PLAIN-ENGLISH VALUE PROPOSITION STRIP */}
-        <div style={{ maxWidth: "1200px", margin: "60px auto 40px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px", textAlign: "left", position: "relative", zIndex: 2 }}>
-          <div style={{ backgroundColor: "#161618", border: "1px solid #2c2c2e", borderRadius: "16px", padding: "24px" }}>
-            <div style={{ color: "#007aff", fontSize: "12px", fontWeight: "800", letterSpacing: "0.1em", marginBottom: "8px", textTransform: "uppercase" }}>Step 01</div>
-            <h4 style={{ color: "#fff", fontSize: "17px", fontWeight: "700", marginBottom: "8px" }}>Pick A La Carte</h4>
-            <p style={{ color: "#86868b", fontSize: "14px", lineHeight: "1.5", margin: 0 }}>Only run what you need. Mix and match GPS telemetry, tool liability, or warehouse inventory.</p>
+        <div style={{ maxWidth: "1200px", margin: "40px auto 40px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px", textAlign: "left", position: "relative", zIndex: 2 }}>
+          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
+            <div style={{ color: "#007aff", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 01</div>
+            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>Pick A La Carte</h3>
+            <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Only run what you need. Mix and match GPS telemetry, tool liability, or warehouse inventory modules.</p>
           </div>
-          <div style={{ backgroundColor: "#161618", border: "1px solid #2c2c2e", borderRadius: "16px", padding: "24px" }}>
-            <div style={{ color: "#34c759", fontSize: "12px", fontWeight: "800", letterSpacing: "0.1em", marginBottom: "8px", textTransform: "uppercase" }}>Step 02</div>
-            <h4 style={{ color: "#fff", fontSize: "17px", fontWeight: "700", marginBottom: "8px" }}>Any Physical Thing</h4>
-            <p style={{ color: "#86868b", fontSize: "14px", lineHeight: "1.5", margin: 0 }}>Heavy machinery, power drills, pallets, or stock inventory—if it's physical, it connects.</p>
+          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
+            <div style={{ color: "#34c759", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 02</div>
+            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>Any Physical Thing</h3>
+            <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Heavy machinery, power drills, pallets, or stock inventory—if it's a physical asset, it connects.</p>
           </div>
-          <div style={{ backgroundColor: "#161618", border: "1px solid #2c2c2e", borderRadius: "16px", padding: "24px" }}>
-            <div style={{ color: "#ff9f0a", fontSize: "12px", fontWeight: "800", letterSpacing: "0.1em", marginBottom: "8px", textTransform: "uppercase" }}>Step 03</div>
-            <h4 style={{ color: "#fff", fontSize: "17px", fontWeight: "700", marginBottom: "8px" }}>One Living Card</h4>
-            <p style={{ color: "#86868b", fontSize: "14px", lineHeight: "1.5", margin: 0 }}>Collapse location, e-signatures, PM logs, and history onto a single interactive card.</p>
-          </div>
-        </div>
-        <div style={{ display: "flex", justifyContent: "center", gap: "40px", marginTop: "24px", opacity: 0.7, flexWrap: "wrap", fontSize: "14px", fontWeight: "700", color: "#ffffff", textTransform: "none" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> AWS IoT Core</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg> Amazon DynamoDB</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.1 7.1"/><path d="M12 12l9.9 4.9"/></svg> AWS Bedrock AI</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> Zebra Thermal APIs</span>
+          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
+            <div style={{ color: "#ff9f0a", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 03</div>
+            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>One Living Card</h3>
+            <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Collapse location, e-signatures, PM logs, and history onto a single interactive card.</p>
           </div>
         </div>
-    <span style={{ color: "#ffcc00", WebkitTextFillColor: "#ffcc00", fontSize: "44px" }}>Or A LA CARTE!</span>
+        
+    Or A LA CARTE!</span>
         </h1>
       </section>
 
