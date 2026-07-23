@@ -107,3 +107,18 @@ button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button {
   animation: headlineFlipIn 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   display: inline-block;
 }
+
+
+@keyframes fadeScaleIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.headline-fade-scale {
+  animation: fadeScaleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -598,7 +598,7 @@ export default function LandingPage({ onLoginClick }) {
         <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", padding: "6px 16px", borderRadius: "20px", fontSize: "13px", color: "#007aff", fontWeight: "600", marginBottom: "24px" }}>
           <Cpu size={16} /> PREVENTATIVE MAINTENANCE & FLEET TRACKING
         </div>
-        <h1 className="headline-flip-reveal" style={{ fontSize: "clamp(36px, 4.5vw, 56px)", fontWeight: "800", letterSpacing: "-0.03em", lineHeight: "1.15", marginBottom: "24px", background: "linear-gradient(135deg, #ffffff 30%, #a1a1a6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+        <h1 className="headline-flip-reveal" className="headline-fade-scale" style={{ fontSize: "clamp(36px, 4.5vw, 56px)", fontWeight: "800", letterSpacing: "-0.03em", lineHeight: "1.15", marginBottom: "24px", background: "linear-gradient(135deg, #ffffff 30%, #a1a1a6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
   Track equipment, manage stock, and schedule <span style={{ background: "linear-gradient(90deg, #0a84ff, #30d158, #ff9f0a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>preventative maintenance</span> in one place.
 </h1>
       </section>
