@@ -610,7 +610,7 @@ export default function LandingPage({ onLoginClick }) {
           width: 8px; height: 8px; background-color: #10b981; border-radius: 50%;
           animation: pulse-ring 2s infinite;
         }
-      `}
+      
         .card-perspective-wrapper { perspective: 1200px; z-index: 10; }
         .card-flipper { transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; height: 100%; }
         .card-flipper.flipped { transform: rotateY(180deg); }
@@ -621,8 +621,7 @@ export default function LandingPage({ onLoginClick }) {
         .tab-active { background-color: #0052cc; color: #ffffff; }
         .tab-inactive { background-color: #f3f4f6; color: #6b7280; }
         .live-pulse-dot { width: 8px; height: 8px; background-color: #34c759; border-radius: 50%; display: inline-block; animation: pulse-ring 2s infinite; }
-
-      </style>
+      `}</style>
 
       {/* TOP NAVIGATION */}
       <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 48px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
