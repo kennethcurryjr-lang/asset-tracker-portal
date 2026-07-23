@@ -594,7 +594,27 @@ export default function LandingPage({ onLoginClick }) {
       </nav>
 
       {/* HERO SECTION */}
-      <section style={{ textAlign: "center", padding: "70px 20px 40px 20px", maxWidth: "960px", margin: "0 auto" }}>
+      
+        {/* SINGLE CLEAN VALUE PROPOSITION CARDS */}
+        <div style={{ maxWidth: "1200px", margin: "0 auto 60px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px", textAlign: "left", position: "relative", zIndex: 2 }}>
+          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
+            <div style={{ color: "#007aff", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 01</div>
+            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>Pick A La Carte</h3>
+            <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Only run what you need. Mix and match GPS telemetry, tool liability, or warehouse inventory modules.</p>
+          </div>
+          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
+            <div style={{ color: "#34c759", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 02</div>
+            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>Any Physical Thing</h3>
+            <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Heavy machinery, power drills, pallets, or stock inventory—if it's a physical asset, it connects.</p>
+          </div>
+          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
+            <div style={{ color: "#ff9f0a", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 03</div>
+            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>One Living Card</h3>
+            <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Collapse location, e-signatures, PM logs, and history onto a single interactive card.</p>
+          </div>
+        </div>
+        
+<section style={{ textAlign: "center", padding: "70px 20px 40px 20px", maxWidth: "960px", margin: "0 auto" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", padding: "6px 16px", borderRadius: "20px", fontSize: "13px", color: "#007aff", fontWeight: "600", marginBottom: "24px" }}>
           <Cpu size={16} /> AWS Bedrock AI-Powered Operations Platform
         </div>
@@ -609,11 +629,7 @@ export default function LandingPage({ onLoginClick }) {
         <div style={{ position: "relative", zIndex: 1, marginTop: "60px", marginBottom: "80px", color: "#6b7280", fontSize: "11px", fontWeight: "800", letterSpacing: "0.15em", textTransform: "uppercase", textAlign: "center" }}>
           Engineered for Enterprise Scale With
           
-        {/* PLAIN-ENGLISH VALUE PROPOSITION STRIP */}
-        <div style={{ maxWidth: "1200px", margin: "60px auto 40px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px", textAlign: "left", position: "relative", zIndex: 2 }}>
-          <div style={{ backgroundColor: "#161618", border: "1px solid #2c2c2e", borderRadius: "16px", padding: "24px" }}>
-            <div style={{ color: "#007aff", fontSize: "12px", fontWeight: "800", letterSpacing: "0.1em", marginBottom: "8px", textTransform: "uppercase" }}>Step 01</div>
-            <h4 style={{ color: "#fff", fontSize: "17px", fontWeight: "700", marginBottom: "8px" }}>Pick A La Carte</h4>
+        <h4 style={{ color: "#fff", fontSize: "17px", fontWeight: "700", marginBottom: "8px" }}>Pick A La Carte</h4>
             <p style={{ color: "#86868b", fontSize: "14px", lineHeight: "1.5", margin: 0 }}>Only run what you need. Mix and match GPS telemetry, tool liability, or warehouse inventory.</p>
           </div>
           <div style={{ backgroundColor: "#161618", border: "1px solid #2c2c2e", borderRadius: "16px", padding: "24px" }}>
@@ -636,11 +652,7 @@ export default function LandingPage({ onLoginClick }) {
         </div>
     <span style={{ color: "#ffcc00", WebkitTextFillColor: "#ffcc00", fontSize: "44px" }}>Or A LA CARTE!</span>
         </h1>
-        {/* PLAIN-ENGLISH VALUE PROPOSITION CARDS */}
-        <div style={{ maxWidth: "1200px", margin: "40px auto 60px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px", textAlign: "left", position: "relative", zIndex: 2 }}>
-          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
-            <div style={{ color: "#007aff", fontSize: "12px", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "12px", textTransform: "uppercase" }}>Step 01</div>
-            <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>Pick A La Carte</h3>
+        <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: "800", marginBottom: "12px", letterSpacing: "-0.02em" }}>Pick A La Carte</h3>
             <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Only run what you need. Mix and match GPS telemetry, tool liability, or warehouse inventory modules.</p>
           </div>
           <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "16px", padding: "32px" }}>
