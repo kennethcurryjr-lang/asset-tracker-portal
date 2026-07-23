@@ -634,7 +634,7 @@ export default function LandingPage({ onLoginClick }) {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: '1 1 350px', maxWidth: '380px', width: '100%', margin: '0 auto' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: '1 1 350px', maxWidth: '380px', width: '100%', margin: '0 auto' }}>
-              {/* Self-contained Inventory Demo Card */}
+                            {/* Self-contained Inventory Demo Card */}
               {(() => {
                 const [invFlipped, setInvFlipped] = React.useState(false);
                 const [stockCnt, setStockCnt] = React.useState(420);
@@ -712,6 +712,9 @@ export default function LandingPage({ onLoginClick }) {
 
                       </div>
                     </div>
+                  </>
+                );
+              })()}
 
               {/* INVENTORY INSPECTOR DASHBOARD PREVIEW */}
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', borderRadius: '16px', padding: '20px', color: '#0a1b35', boxShadow: '0 12px 30px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '14px', boxSizing: 'border-box' }}>
