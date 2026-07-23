@@ -596,7 +596,7 @@ export default function LandingPage({ onLoginClick }) {
       {/* HERO SECTION */}
       <section style={{ textAlign: "center", padding: "70px 20px 40px 20px", maxWidth: "960px", margin: "0 auto" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", padding: "6px 16px", borderRadius: "20px", fontSize: "13px", color: "#007aff", fontWeight: "600", marginBottom: "24px" }}>
-          <Cpu size={16} /> AWS Bedrock AI-Powered Operations Platform
+          <Cpu size={16} /> PREVENTATIVE MAINTENANCE & FLEET TRACKING
         </div>
         <h1 style={{ fontSize: "52px", fontWeight: "800", lineHeight: "1.15", letterSpacing: "-0.03em", marginBottom: "24px", background: "linear-gradient(180deg, #ffffff 0%, #a1a1a6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           Total Operations Command.<br />
