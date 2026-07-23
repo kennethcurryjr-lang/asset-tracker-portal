@@ -583,6 +583,20 @@ export default function LandingPage({ onLoginClick }) {
       overflowX: "hidden",
       position: "relative"
     }}>
+
+      <style>{`
+        .card-perspective-wrapper { perspective: 1200px; }
+        .card-flipper { transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; height: 100%; }
+        .card-flipper.flipped { transform: rotateY(180deg); }
+        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; height: 100%; position: absolute; top: 0; left: 0; box-sizing: border-box; }
+        .card-front { transform: rotateY(0deg); z-index: 2; }
+        .card-back { transform: rotateY(180deg); }
+        
+        .tab-btn { flex: 1; padding: 6px; font-size: 11px; font-weight: 800; border-radius: 6px; border: none; cursor: pointer; }
+        .tab-active { background-color: #0052cc; color: #ffffff; }
+        .tab-inactive { background-color: #f3f4f6; color: #6b7280; }
+      `}</style>
+
       
       {/* 1. AMBIENT GLOWING ORBS (The Digital Panda Signature) */}
       <div style={{ position: 'fixed', top: '-15%', left: '-10%', width: '60vw', height: '60vw', background: 'radial-gradient(circle, rgba(138, 43, 226, 0.15) 0%, rgba(0,0,0,0) 60%)', filter: 'blur(100px)', zIndex: 0, pointerEvents: 'none' }}></div>
