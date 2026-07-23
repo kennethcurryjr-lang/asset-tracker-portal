@@ -544,259 +544,106 @@ function DemoInventoryCard() {
 }
 
 
-export default function LandingPage({ onLoginClick }) {
-  const [activeTab, setActiveTab] = useState("tracking");
-  const [inventoryFlipped, setInventoryFlipped] = useState(false);
-  const [stockQty, setStockQty] = useState(420);
-  const [selectedZone, setSelectedZone] = useState("Cooler Bay-01");
 
+
+export default function LandingPage({ onLoginClick }) {
   const handleDemoClick = () => {
-    window.location.href = "mailto:sale@titanassets.dev?subject=Kinetic%20Cards%20Demo%20Request&body=Hi%20Kinetic%20Team,%20I'd%20like%20to%20schedule%20a%20demo%20of%20Kinetic%20Cards.";
+    window.location.href = "mailto:sale@titanassets.dev?subject=Kinetic%20Cards%20Enterprise%20Demo";
   };
 
   return (
-    <div style={{ backgroundColor: "#0a0a0c", color: "#ffffff", fontFamily: '"SF Pro Display", -apple-system, sans-serif', minHeight: "100vh", overflowX: "hidden" }}>
-      <style>{`
-        .card-perspective-wrapper { perspective: 1200px; }
-        .card-flipper { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; display: flex; flex-direction: column; }
-        .card-flipper.flipped { transform: rotateY(180deg); }
-        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; box-sizing: border-box; }
-        .card-front { transform: rotateY(0deg); z-index: 2; position: relative; }
-        .card-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; height: 100%; }
-        .tab-btn { flex: 1; padding: 6px; font-size: 11px; font-weight: 800; border-radius: 6px; border: none; cursor: pointer; }
-        .tab-active { background-color: #0052cc; color: #ffffff; }
-        .tab-inactive { background-color: #f3f4f6; color: #6b7280; }
-        @keyframes radar-pulse-glow {
-          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); }
-          70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); }
-          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
-        }
-        .live-pulse-dot { width: 8px; height: 8px; background-color: #34c759; border-radius: 50%; display: inline-block; animation: radar-pulse-glow 2s infinite ease-in-out; }
-      `}</style>
+    <div style={{ 
+      backgroundColor: "#050508", 
+      color: "#ffffff", 
+      fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif', 
+      minHeight: "100vh", 
+      overflowX: "hidden",
+      position: "relative"
+    }}>
+      
+      {/* 1. AMBIENT GLOWING ORBS (The Digital Panda Signature) */}
+      <div style={{ position: 'fixed', top: '-15%', left: '-10%', width: '60vw', height: '60vw', background: 'radial-gradient(circle, rgba(138, 43, 226, 0.15) 0%, rgba(0,0,0,0) 60%)', filter: 'blur(100px)', zIndex: 0, pointerEvents: 'none' }}></div>
+      <div style={{ position: 'fixed', top: '30%', right: '-15%', width: '70vw', height: '70vw', background: 'radial-gradient(circle, rgba(0, 122, 255, 0.12) 0%, rgba(0,0,0,0) 60%)', filter: 'blur(120px)', zIndex: 0, pointerEvents: 'none' }}></div>
+      <div style={{ position: 'fixed', bottom: '-20%', left: '10%', width: '60vw', height: '60vw', background: 'radial-gradient(circle, rgba(52, 199, 89, 0.08) 0%, rgba(0,0,0,0) 60%)', filter: 'blur(100px)', zIndex: 0, pointerEvents: 'none' }}></div>
 
-      {/* NAVIGATION HEADER */}
-      <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 40px", maxWidth: "1280px", margin: "0 auto", borderBottom: "1px solid #1c1c1e" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ background: "linear-gradient(135deg, #0052cc 0%, #007aff 100%)", width: "36px", height: "36px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Zap size={20} color="#ffffff" />
-          </div>
-          <span style={{ fontWeight: "900", fontSize: "22px", letterSpacing: "0.5px" }}>
-            KINETIC<span style={{ color: "#ffcc00" }}>CARDS™</span>
-          </span>
+      {/* 2. FLOATING GLASS NAVIGATION PILL */}
+      <nav style={{ position: 'fixed', top: '30px', left: '50%', transform: 'translateX(-50%)', width: '90%', maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 32px', background: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '100px', zIndex: 100, boxSizing: 'border-box', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
+        <div style={{ fontWeight: "900", fontSize: "22px", letterSpacing: "0.5px", display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Zap size={22} color="#a87ffb" />
+          <span>KINETIC<span style={{ color: "#a87ffb" }}>CARDS</span></span>
         </div>
-
-        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-          <button onClick={onLoginClick} style={{ backgroundColor: "transparent", color: "#ffffff", border: "1px solid #3a3a3c", padding: "10px 20px", borderRadius: "20px", fontWeight: "600", cursor: "pointer" }}>Sign In</button>
-          <button onClick={handleDemoClick} style={{ backgroundColor: "#ffffff", color: "#000000", border: "none", padding: "10px 22px", borderRadius: "20px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
-            <Mail size={16} /> Request Demo
-          </button>
+        <div style={{ display: "flex", gap: "24px", alignItems: 'center' }}>
+          <button onClick={onLoginClick} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600', fontSize: '15px', letterSpacing: '0.5px' }}>Sign In</button>
+          <button onClick={handleDemoClick} style={{ background: '#ffffff', color: '#000000', border: 'none', padding: '12px 28px', borderRadius: '100px', fontWeight: '800', fontSize: '14px', cursor: 'pointer', transition: 'transform 0.2s', boxShadow: '0 0 20px rgba(255,255,255,0.2)' }}>Let's Talk</button>
         </div>
       </nav>
 
-      {/* HERO SECTION */}
-      <section style={{ textAlign: "center", padding: "70px 20px 40px 20px", maxWidth: "960px", margin: "0 auto" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", padding: "6px 16px", borderRadius: "20px", fontSize: "13px", color: "#007aff", fontWeight: "600", marginBottom: "24px" }}>
-          <Cpu size={16} /> PREVENTATIVE MAINTENANCE & FLEET TRACKING
+      {/* 3. MASSIVE IMMERSIVE HERO */}
+      <section style={{ position: 'relative', zIndex: 10, minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", padding: "0 5vw" }}>
+        <div style={{ padding: '10px 24px', background: 'rgba(138, 43, 226, 0.1)', border: '1px solid rgba(138, 43, 226, 0.25)', borderRadius: '100px', color: '#d4b3ff', fontSize: '13px', fontWeight: '700', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '40px', boxShadow: '0 0 30px rgba(138,43,226,0.15)' }}>
+          Living. Breathing. Operations.
         </div>
-        <h1 className="hero-entrance-headline" style={{ fontSize: "clamp(36px, 4.5vw, 56px)", fontWeight: "800", letterSpacing: "-0.03em", lineHeight: "1.15", marginBottom: "24px", background: "linear-gradient(135deg, #ffffff 30%, #a1a1a6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-  Track equipment, manage stock, and schedule <span style={{ background: "linear-gradient(90deg, #0a84ff, #30d158, #ff9f0a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>preventative maintenance</span> in one place.
-</h1>
+        <h1 style={{ fontSize: "clamp(60px, 10vw, 130px)", fontWeight: "900", lineHeight: "1", letterSpacing: "-0.04em", margin: "0 0 32px 0", textShadow: "0 10px 40px rgba(0,0,0,0.5)" }}>
+          Total visibility.<br/>
+          <span style={{ background: 'linear-gradient(135deg, #a87ffb, #007aff, #00e5ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Zero blind spots.</span>
+        </h1>
+        <p style={{ fontSize: "clamp(18px, 2.5vw, 26px)", maxWidth: "800px", color: "#a1a1a6", fontWeight: "500", lineHeight: "1.5", margin: "0 0 60px 0" }}>
+          We design for humans. Track equipment, manage dynamic stock, and schedule preventative maintenance through seamless digital experiences.
+        </p>
       </section>
 
-      {/* MODULE SELECTOR TABS */}
-      <section style={{ maxWidth: "1280px", margin: "10px auto 100px auto", padding: "0 20px" }}>
-        <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "40px", flexWrap: "wrap" }}>
-          <button onClick={() => setActiveTab("tracking")} style={{ padding: "16px 28px", borderRadius: "16px", border: "none", backgroundColor: activeTab === "tracking" ? "#007aff" : "#1c1c1e", color: "#ffffff", fontWeight: "700", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
-            <Navigation size={18} /> 1. Kinetic Tracking
-          </button>
-          <button onClick={() => setActiveTab("tools")} style={{ padding: "16px 28px", borderRadius: "16px", border: "none", backgroundColor: activeTab === "tools" ? "#007aff" : "#1c1c1e", color: "#ffffff", fontWeight: "700", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
-            <Wrench size={18} /> 2. Kinetic Assets
-          </button>
-          <button onClick={() => setActiveTab("inventory")} style={{ padding: "16px 28px", borderRadius: "16px", border: "none", backgroundColor: activeTab === "inventory" ? "#007aff" : "#1c1c1e", color: "#ffffff", fontWeight: "700", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
-            <Boxes size={18} /> 3. Kinetic Inventory
-          </button>
-          {/* 4. KINETIC MESH (COMING SOON) */}
-          <button style={{ backgroundColor: 'transparent', color: '#6b7280', border: '1px dashed #3a3a3c', padding: '14px 24px', borderRadius: '30px', fontSize: '16px', fontWeight: '800', cursor: 'not-allowed', display: 'inline-flex', alignItems: 'center', gap: '8px', opacity: 0.7 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-            4. Kinetic Mesh
-            <span style={{ fontSize: '10px', backgroundColor: 'rgba(52,199,89,0.1)', color: '#34c759', padding: '2px 6px', borderRadius: '4px', letterSpacing: '0.05em', marginLeft: '4px' }}>BETA</span>
-          </button>
+      {/* 4. SCROLLING STORY SECTIONS (FROSTED GLASS PANELS) */}
+      <div style={{ position: 'relative', zIndex: 10, maxWidth: '1300px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '80px', paddingBottom: '150px', padding: '0 20px' }}>
+        
+        {/* MODULE 01: TRACKING */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '60px', alignItems: 'center', background: 'rgba(20, 20, 25, 0.4)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)', borderRadius: '48px', padding: '80px 60px', boxShadow: '0 30px 60px rgba(0,0,0,0.3)' }}>
+          <div style={{ flex: '1 1 400px' }}>
+             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '800', letterSpacing: '2px', color: '#007aff', marginBottom: '24px' }}>
+               <Navigation size={18} /> 01 / TRACKING
+             </div>
+             <h2 style={{ fontSize: "clamp(48px, 6vw, 72px)", fontWeight: "800", lineHeight: "1.05", letterSpacing: "-0.02em", marginBottom: "24px" }}>Watchdog Guard</h2>
+             <p style={{ fontSize: '20px', color: '#888', lineHeight: '1.6', fontWeight: '500' }}>
+               Continuous telemetry with instantaneous geofence breach alerts. Arm devices with localized digital anchors and monitor predictive battery analytics in real-time.
+             </p>
+          </div>
+          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center' }}>
+             <DemoKineticCard />
+          </div>
         </div>
 
-        {/* TAB 1: TRACKING */}
-        {activeTab === "tracking" && (
-          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "24px", padding: "48px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "48px", alignItems: "start" }}>
-            <div>
-              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>Live Geofence Watchdog & Recovery</h2>
-              <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "16px", fontSize: "15px" }}>
-                Go beyond basic dots on a map. Kinetic Tracking delivers continuous telemetry with instantaneous geofence breach alerts and predictive battery analytics directly inside the unified card interface.
-              </p>
-              <ul style={{ color: "#86868b", lineHeight: "1.8", marginBottom: "24px", fontSize: "14px", paddingLeft: "20px", margin: "0 0 24px 0" }}>
-                <li style={{ marginBottom: '8px' }}><strong style={{color: '#ffffff'}}>Law Enforcement Live Share:</strong> Instantly generate secure, time-limited tracking links for rapid asset recovery.</li>
-                <li style={{ marginBottom: '8px' }}><strong style={{color: '#ffffff'}}>Watchdog Guard:</strong> Arm devices with localized digital anchors and get notified the second an asset leaves its perimeter.</li>
-                <li style={{ marginBottom: '8px' }}><strong style={{color: '#ffffff'}}>PM & Service Logs:</strong> The integrated timeline doubles as a preventative maintenance tracker. Schedule service intervals, log repairs, and maintain an immutable history for every asset.</li>
-                <li><strong style={{color: '#ffffff'}}>Extended Battery Life:</strong> Engineered for remote deployments with an operational lifespan of up to 5 years on a single charge.</li>
-                <li style={{ marginBottom: '8px' }}><strong style={{color: '#ffffff'}}>Enterprise AWS Infrastructure:</strong> Built on a secure, scalable serverless AWS architecture featuring real-time DynamoDB synchronization and high-performance cloud operations.</li>
-              </ul>
-            </div>
-
-            <div style={{ flex: '1 1 350px', maxWidth: '380px', width: '100%', margin: '0 auto' }}>
-              <DemoKineticCard />
-            </div>
+        {/* MODULE 02: ASSETS (Reversed Layout) */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '60px', alignItems: 'center', flexDirection: 'row-reverse', background: 'rgba(20, 20, 25, 0.4)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)', borderRadius: '48px', padding: '80px 60px', boxShadow: '0 30px 60px rgba(0,0,0,0.3)' }}>
+          <div style={{ flex: '1 1 400px' }}>
+             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '800', letterSpacing: '2px', color: '#ffcc00', marginBottom: '24px' }}>
+               <Wrench size={18} /> 02 / ASSETS
+             </div>
+             <h2 style={{ fontSize: "clamp(48px, 6vw, 72px)", fontWeight: "800", lineHeight: "1.05", letterSpacing: "-0.02em", marginBottom: "24px" }}>Chain of Custody</h2>
+             <p style={{ fontSize: '20px', color: '#888', lineHeight: '1.6', fontWeight: '500' }}>
+               Automated PM checklists and immutable digital handoffs. Lock overdue tools from field checkout until certified maintenance is logged.
+             </p>
           </div>
-        )}
-
-        {/* TAB 2: ASSETS */}
-        {activeTab === "tools" && (
-          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "24px", padding: "48px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "48px", alignItems: "start" }}>
-            <div>
-              <div style={{ color: "#007aff", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 02</div>
-              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>Kinetic Assets & Chain-of-Custody</h2>
-              <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "16px", fontSize: "15px" }}>
-                Complete high-value equipment management and field liability tracking. Kinetic Assets combines AI-generated servicing protocols with immutable digital handoffs.
-              </p>
-              <ul style={{ color: "#86868b", lineHeight: "1.8", marginBottom: "24px", fontSize: "14px", paddingLeft: "20px", margin: "0 0 24px 0" }}>
-                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Chain-of-Custody E-Signatures:</strong> Require field technicians to draw e-signatures, verify custom manifests, and upload condition photos prior to tool dispatch.</li>
-                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>AI-Generated PM Checklists:</strong> AWS Bedrock automatically builds custom preventative maintenance checklists based on asset make, model, and category.</li>
-                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Preventative Maintenance Locks:</strong> Automatically lock overdue tools from field checkout until certified maintenance is logged and timers are reset.</li>
-                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Instant QR Code Scanning:</strong> Print and scan unique asset QR codes for rapid touchless custody transfers and inventory audits.</li>
-                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Immutable Master Ledger:</strong> Maintain a complete, audit-ready history of all checkouts, returns, repairs, and financial valuations across the entire fleet.</li>
-              </ul>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: '1 1 350px', maxWidth: '380px', width: '100%', margin: '0 auto' }}>
-              <DemoAssetCard />
-
-              {/* INSPECTOR DASHBOARD PREVIEW CARD */}
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', borderRadius: '16px', padding: '20px', color: '#0a1b35', boxShadow: '0 12px 30px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '14px', boxSizing: 'border-box' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px' }}>
-                  <div>
-                    <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em', marginBottom: '2px' }}>INSPECTOR DASHBOARD</div>
-                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#0a1b35' }}>CAT-00482</div>
-                    <div style={{ fontSize: '12px', color: '#6b7280', fontWeight: '600' }}>Caterpillar Track Loader</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '16px', fontWeight: '800', color: '#0052cc' }}>$65,000</div>
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=CAT-00482" alt="QR" style={{ width: '48px', height: '48px', marginTop: '4px', borderRadius: '4px', border: '1px solid #d1d5db', padding: '2px', backgroundColor: '#fff' }} />
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em' }}>LOG HISTORY</div>
-                  <div style={{ backgroundColor: '#f3f4f6', borderRadius: '8px', padding: '10px', border: '1px solid #d1d5db', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', color: '#374151' }}>
-                      <span>[Admin] Tool Ingested to Database</span>
-                      <span style={{ fontSize: '10px', color: '#10b981' }}>Condition: New</span>
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#6b7280' }}>Jul 21, 2026, 6:19 PM</div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em' }}>CURRENT STATUS</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#f3f4f6', borderRadius: '8px', border: '1px solid #d1d5db' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }}></span>
-                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#0a1b35' }}>IN-STOCK</span>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-                  <button style={{ padding: '8px', borderRadius: '6px', border: '1px solid #d1d5db', backgroundColor: 'transparent', color: '#6b7280', fontWeight: '700', fontSize: '11px', cursor: 'pointer' }}>REPORT DAMAGE / FAULT</button>
-                  <button style={{ padding: '8px', borderRadius: '6px', border: '1px solid #374151', backgroundColor: 'transparent', color: '#374151', fontWeight: '700', fontSize: '11px', cursor: 'pointer' }}>EDIT ASSET DETAILS</button>
-                  <button style={{ padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#ffffff', fontWeight: '800', fontSize: '12px', cursor: 'pointer', marginTop: '2px' }}>CHECK OUT TO EMPLOYEE</button>
-                </div>
-              </div>
-            </div>
+          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center' }}>
+             <DemoAssetCard />
           </div>
-        )}
-
-        {/* TAB 3: INVENTORY */}
-        {activeTab === "inventory" && (
-          <div style={{ backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", borderRadius: "24px", padding: "48px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "48px", alignItems: "start" }}>
-            <div>
-              <div style={{ color: "#34c759", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>Module 03</div>
-              <h2 style={{ fontSize: "34px", fontWeight: "800", marginBottom: "16px", lineHeight: "1.2" }}>FIFO Rotation & Label Engines</h2>
-              <p style={{ color: "#86868b", lineHeight: "1.6", marginBottom: "16px", fontSize: "15px" }}>
-                Comprehensive perishable stock management and multi-bin warehouse distribution. Kinetic Inventory combines automated rotation badges with thermal label printing and offline scanning.
-              </p>
-              <ul style={{ color: "#86868b", lineHeight: "1.8", marginBottom: "24px", fontSize: "14px", paddingLeft: "20px", margin: "0 0 24px 0" }}>
-                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Smart FIFO Rotation Engine:</strong> Flashing 🟢 PICK FIRST badges automatically highlight the oldest valid lot to eliminate waste and prevent inventory trapping.</li>
-                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Thermal Label & Barcode Engine:</strong> Print-ready 4x6 Zebra thermal label previews alongside camera barcode scanning with Rapid Fire and Pallet modes.</li>
-                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Multi-Zone Bin Mapping:</strong> Track and transfer stock across specific cooler bays, dry aisles, and placement zones with real-time quantity reconciliation.</li>
-                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Offline "Dead Zone" Sync:</strong> Queue scans locally in low-connectivity warehouse zones and automatically flush queued updates to AWS upon reconnecting.</li>
-                <li style={{ marginBottom: "8px" }}><strong style={{ color: "#ffffff" }}>Automated PO Routing & Compliance:</strong> Route one-click PO requests to vendor emails via AWS SES and enforce hard compliance stops on expired stock.</li>
-              </ul>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: '1 1 350px', maxWidth: '380px', width: '100%', margin: '0 auto' }}>
-              {/* Self-contained Inventory Demo Card */}
-              <DemoInventoryCard />
-              {/* INVENTORY INSPECTOR DASHBOARD PREVIEW */}
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', borderRadius: '16px', padding: '20px', color: '#0a1b35', boxShadow: '0 12px 30px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '14px', boxSizing: 'border-box' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px' }}>
-                  <div>
-                    <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em', marginBottom: '2px' }}>MASTER SECURITY AUDIT</div>
-                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#0a1b35' }}>Strawberry Daiquiri</div>
-                    <div style={{ fontSize: '12px', color: '#6b7280', fontWeight: '600' }}>Cool Attitudes • UPC: 082123456788</div>
-                  </div>
-                  <span style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '6px', backgroundColor: 'rgba(16,185,129,0.15)', color: '#10b981', fontWeight: '800' }}>114 bx</span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: '800', letterSpacing: '0.05em' }}>RECENT TRANSACTIONS</div>
-                  <div style={{ backgroundColor: '#f3f4f6', borderRadius: '8px', padding: '10px', border: '1px solid #d1d5db', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', color: '#374151' }}>
-                      <span style={{ color: '#10b981' }}>Receive 114bx ➔ Dry Aisle A</span>
-                      <span style={{ fontSize: '10px', color: '#6b7280' }}>Operator</span>
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#6b7280' }}>Lot: LOT-2026-17 • Exp: Aug 01, 2027</div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                  <button style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #d1d5db', backgroundColor: 'transparent', color: '#6b7280', fontWeight: '700', fontSize: '11px', cursor: 'pointer' }}>EXPORT CSV</button>
-                  <button style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #0052cc', backgroundColor: 'rgba(0,82,204,0.1)', color: '#0052cc', fontWeight: '700', fontSize: '11px', cursor: 'pointer' }}>AUDIT LOGS</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </section>
-
-      
-      {/* UNDER THE HOOD TELEMETRY STRIP */}
-      <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "100px 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "60px", borderTop: "1px solid #1c1c1e" }}>
-        <div>
-          <div style={{ color: "#007aff", marginBottom: "20px", backgroundColor: "rgba(0,122,255,0.1)", display: "inline-flex", padding: "14px", borderRadius: "14px" }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-          </div>
-          <h3 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "12px", color: "#fff", letterSpacing: "-0.02em" }}>OTA Firmware Engine</h3>
-          <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6" }}>Push mission-critical payload updates, heartbeat intervals, and sleep logic to thousands of trackers simultaneously via AWS IoT Jobs without field recall.</p>
         </div>
-        <div>
-          <div style={{ color: "#34c759", marginBottom: "20px", backgroundColor: "rgba(52,199,89,0.1)", display: "inline-flex", padding: "14px", borderRadius: "14px" }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
-          </div>
-          <h3 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "12px", color: "#fff", letterSpacing: "-0.02em" }}>Custom Modem Logic</h3>
-          <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6" }}>Deep AT command integration for aggressive power-saving protocols, cellular tower triangulation (LBS), and dead-zone queued offline flushing.</p>
-        </div>
-        <div>
-          <div style={{ color: "#ff9f0a", marginBottom: "20px", backgroundColor: "rgba(255,159,10,0.1)", display: "inline-flex", padding: "14px", borderRadius: "14px" }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
-          </div>
-          <h3 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "12px", color: "#fff", letterSpacing: "-0.02em" }}>Seamless Network Handoff</h3>
-          <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6" }}>Adaptive multi-carrier roaming seamlessly hops between AT&T, T-Mobile, and Verizon towers to maintain live telemetry during interstate transit.</p>
-        </div>
-      </section>
 
-      {/* FOOTER */}
-      <section style={{ textAlign: "center", padding: "100px 20px", borderTop: "1px solid #1c1c1e" }}>
-        <h2 style={{ fontSize: "38px", fontWeight: "800", letterSpacing: "-0.02em", marginBottom: "16px" }}>Ready to Modernize Your Fleet?</h2>
-        <p style={{ color: "#86868b", fontSize: "16px", marginBottom: "32px" }}>Experience seamless asset tracking in under 5 minutes.</p>
-        <button onClick={handleDemoClick} style={{ backgroundColor: "#ffffff", color: "#000000", border: "none", padding: "16px 40px", borderRadius: "30px", fontSize: "16px", fontWeight: "800", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px" }}>
-          <Mail size={18} /> Request Enterprise Demo
-        </button>
-      </section>
+        {/* MODULE 03: INVENTORY */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '60px', alignItems: 'center', background: 'rgba(20, 20, 25, 0.4)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)', borderRadius: '48px', padding: '80px 60px', boxShadow: '0 30px 60px rgba(0,0,0,0.3)', marginBottom: '80px' }}>
+          <div style={{ flex: '1 1 400px' }}>
+             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '800', letterSpacing: '2px', color: '#34c759', marginBottom: '24px' }}>
+               <Boxes size={18} /> 03 / INVENTORY
+             </div>
+             <h2 style={{ fontSize: "clamp(48px, 6vw, 72px)", fontWeight: "800", lineHeight: "1.05", letterSpacing: "-0.02em", marginBottom: "24px" }}>Smart Rotation</h2>
+             <p style={{ fontSize: '20px', color: '#888', lineHeight: '1.6', fontWeight: '500' }}>
+               Multi-bin warehouse distribution with automated rotation badges, thermal label printing, and offline scanning capabilities.
+             </p>
+          </div>
+          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center' }}>
+             <DemoInventoryCard />
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
