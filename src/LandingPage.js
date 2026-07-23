@@ -40,6 +40,8 @@ function DemoKineticCard() {
     ]
   });
 
+  const [kFlipped, setKFlipped] = React.useState(false);
+  React.useEffect(() => { const timer = setInterval(() => setKFlipped(f => !f), 5000); return () => clearInterval(timer); }, []);
   const [tagInput, setTagInput] = React.useState("");
   const [noteInput, setNoteInput] = React.useState("");
   const [serviceOption, setServiceOption] = React.useState("0");
@@ -91,8 +93,11 @@ function DemoKineticCard() {
   };
 
   return (
-    <div style={{
-      backgroundColor: '#1c1c1e',
+    <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '480px', height: '520px', margin: '0 auto' }}>
+      <div className={kFlipped ? "card-flipper flipped" : "card-flipper"} style={{ height: '100%' }}>
+        <div className="card-face card-front" style={{ height: '100%' }}>
+          <div style={{
+            backgroundColor: '#1c1c1e',
       borderRadius: '14px',
       padding: '16px',
       border: '1px solid #3a3a3c',
@@ -221,6 +226,22 @@ function DemoKineticCard() {
         </div>
       </div>
     </div>
+        </div>
+        
+        {/* NEW BACK FACE FOR KINETIC TRACKING */}
+        <div className="card-face card-back" style={{ height: '100%', backgroundColor: 'rgba(28, 28, 30, 0.95)', backdropFilter: 'blur(20px)', borderRadius: '14px', border: '1px solid rgba(0, 122, 255, 0.4)', color: '#fff', padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', boxSizing: 'border-box' }}>
+           <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#007aff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '24px' }}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+           <h3 style={{ fontSize: '26px', fontWeight: '900', marginBottom: '16px', letterSpacing: '2px' }}>LIVE TELEMETRY</h3>
+           <p style={{ color: '#888', fontSize: '15px', lineHeight: '1.6', marginBottom: '30px' }}>Securely receiving AWS IoT MQTT payloads, localized battery diagnostics, and geofence anchors.</p>
+           <div style={{ background: 'rgba(0, 122, 255, 0.1)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(0, 122, 255, 0.2)', width: '100%', textAlign: 'left', fontFamily: 'monospace', fontSize: '13px', color: '#00e5ff', lineHeight: '1.8' }}>
+             > SYS_SYNC: OK<br/>
+             > PING: 14ms<br/>
+             > PACKET_LOSS: 0%<br/>
+             > ENCRYPT: AES-256-GCM
+           </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -239,6 +260,7 @@ function DemoKineticCard() {
 
 function DemoAssetCard() {
   const [isFlipped, setIsFlipped] = React.useState(false);
+  React.useEffect(() => { const timer = setInterval(() => setIsFlipped(f => !f), 4000); return () => clearInterval(timer); }, []);
   const [activeTab, setActiveTab] = React.useState('service');
   const [hours, setHours] = React.useState(254);
   const [checklist, setChecklist] = React.useState([
@@ -260,7 +282,7 @@ function DemoAssetCard() {
   const allChecked = checklist.length > 0 && checklist.every(s => s.checked);
 
   return (
-    <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', height: '340px', margin: '0 auto' }}>
+    <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', height: '480px', margin: '0 auto' }}>
       <style>{`
         @keyframes yellowPulse {
           0% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.8); }
@@ -455,6 +477,7 @@ function DemoAssetCard() {
 
 function DemoInventoryCard() {
   const [invFlipped, setInvFlipped] = React.useState(false);
+  React.useEffect(() => { const timer = setInterval(() => setInvFlipped(f => !f), 4500); return () => clearInterval(timer); }, []);
   const [stockCnt, setStockCnt] = React.useState(420);
   const [selZone, setSelZone] = React.useState('Cooler Bay-01');
 
