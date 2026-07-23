@@ -598,25 +598,9 @@ export default function LandingPage({ onLoginClick }) {
         <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", backgroundColor: "#1c1c1e", border: "1px solid #3a3a3c", padding: "6px 16px", borderRadius: "20px", fontSize: "13px", color: "#007aff", fontWeight: "600", marginBottom: "24px" }}>
           <Cpu size={16} /> PREVENTATIVE MAINTENANCE & FLEET TRACKING
         </div>
-        <h1 style={{ fontSize: "52px", fontWeight: "800", lineHeight: "1.15", letterSpacing: "-0.03em", marginBottom: "24px", background: "linear-gradient(180deg, #ffffff 0%, #a1a1a6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-          Total Operations Command.<br />
-          GPS, Assets, and Stock in One Deck.<br />
-          
-        {/* GLOBAL HERO GLOW */}
-        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "100vw", height: "800px", background: "radial-gradient(circle at top, rgba(0, 82, 204, 0.15) 0%, rgba(10, 10, 12, 0) 60%)", zIndex: 0, pointerEvents: "none" }}></div>
-        
-        {/* TRUST BANNER */}
-        <div style={{ position: "relative", zIndex: 1, marginTop: "60px", marginBottom: "80px", color: "#6b7280", fontSize: "11px", fontWeight: "800", letterSpacing: "0.15em", textTransform: "uppercase", textAlign: "center" }}>
-          Engineered for Enterprise Scale With
-          <div style={{ display: "flex", justifyContent: "center", gap: "40px", marginTop: "24px", opacity: 0.7, flexWrap: "wrap", fontSize: "14px", fontWeight: "700", color: "#ffffff", textTransform: "none" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> AWS IoT Core</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg> Amazon DynamoDB</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.1 7.1"/><path d="M12 12l9.9 4.9"/></svg> AWS Bedrock AI</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> Zebra Thermal APIs</span>
-          </div>
-        </div>
-    <span style={{ color: "#ffcc00", WebkitTextFillColor: "#ffcc00", fontSize: "44px" }}>Or A LA CARTE!</span>
-        </h1>
+        <h1 style={{ fontSize: "clamp(40px, 5vw, 64px)", fontWeight: "800", color: "#ffffff", letterSpacing: "-0.03em", lineHeight: "1.1", marginBottom: "24px" }}>
+  Track equipment, manage stock, and schedule preventative maintenance in one place.
+</h1>
       </section>
 
       {/* MODULE SELECTOR TABS */}
