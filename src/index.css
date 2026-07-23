@@ -122,3 +122,20 @@ button, .diagnostic-flip-btn, .responsive-pill-options-sub-block button {
 .headline-fade-scale {
   animation: fadeScaleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+
+@keyframes heroEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(25px) scale(0.97);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+.hero-entrance-headline {
+  animation: heroEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
