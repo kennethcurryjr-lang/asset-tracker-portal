@@ -601,7 +601,21 @@ export default function LandingPage({ onLoginClick }) {
         <h1 style={{ fontSize: "52px", fontWeight: "800", lineHeight: "1.15", letterSpacing: "-0.03em", marginBottom: "24px", background: "linear-gradient(180deg, #ffffff 0%, #a1a1a6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           Total Operations Command.<br />
           GPS, Assets, and Stock in One Deck.<br />
-          <span style={{ color: "#ffcc00", WebkitTextFillColor: "#ffcc00", fontSize: "44px" }}>Or A LA CARTE!</span>
+          
+        {/* GLOBAL HERO GLOW */}
+        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "100vw", height: "800px", background: "radial-gradient(circle at top, rgba(0, 82, 204, 0.15) 0%, rgba(10, 10, 12, 0) 60%)", zIndex: 0, pointerEvents: "none" }}></div>
+        
+        {/* TRUST BANNER */}
+        <div style={{ position: "relative", zIndex: 1, marginTop: "60px", marginBottom: "80px", color: "#6b7280", fontSize: "11px", fontWeight: "800", letterSpacing: "0.15em", textTransform: "uppercase", textAlign: "center" }}>
+          Engineered for Enterprise Scale With
+          <div style={{ display: "flex", justifyContent: "center", gap: "40px", marginTop: "24px", opacity: 0.7, flexWrap: "wrap", fontSize: "14px", fontWeight: "700", color: "#ffffff", textTransform: "none" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> AWS IoT Core</span>
+            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg> Amazon DynamoDB</span>
+            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.1 7.1"/><path d="M12 12l9.9 4.9"/></svg> AWS Bedrock AI</span>
+            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> Zebra Thermal APIs</span>
+          </div>
+        </div>
+    <span style={{ color: "#ffcc00", WebkitTextFillColor: "#ffcc00", fontSize: "44px" }}>Or A LA CARTE!</span>
         </h1>
       </section>
 
@@ -757,6 +771,32 @@ export default function LandingPage({ onLoginClick }) {
             </div>
           </div>
         )}
+      </section>
+
+      
+      {/* UNDER THE HOOD TELEMETRY STRIP */}
+      <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "100px 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "60px", borderTop: "1px solid #1c1c1e" }}>
+        <div>
+          <div style={{ color: "#007aff", marginBottom: "20px", backgroundColor: "rgba(0,122,255,0.1)", display: "inline-flex", padding: "14px", borderRadius: "14px" }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          </div>
+          <h3 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "12px", color: "#fff", letterSpacing: "-0.02em" }}>OTA Firmware Engine</h3>
+          <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6" }}>Push mission-critical payload updates, heartbeat intervals, and sleep logic to thousands of trackers simultaneously via AWS IoT Jobs without field recall.</p>
+        </div>
+        <div>
+          <div style={{ color: "#34c759", marginBottom: "20px", backgroundColor: "rgba(52,199,89,0.1)", display: "inline-flex", padding: "14px", borderRadius: "14px" }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+          </div>
+          <h3 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "12px", color: "#fff", letterSpacing: "-0.02em" }}>Custom Modem Logic</h3>
+          <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6" }}>Deep AT command integration for aggressive power-saving protocols, cellular tower triangulation (LBS), and dead-zone queued offline flushing.</p>
+        </div>
+        <div>
+          <div style={{ color: "#ff9f0a", marginBottom: "20px", backgroundColor: "rgba(255,159,10,0.1)", display: "inline-flex", padding: "14px", borderRadius: "14px" }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+          </div>
+          <h3 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "12px", color: "#fff", letterSpacing: "-0.02em" }}>Seamless Network Handoff</h3>
+          <p style={{ color: "#86868b", fontSize: "15px", lineHeight: "1.6" }}>Adaptive multi-carrier roaming seamlessly hops between AT&T, T-Mobile, and Verizon towers to maintain live telemetry during interstate transit.</p>
+        </div>
       </section>
 
       {/* FOOTER */}
