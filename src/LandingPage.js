@@ -300,13 +300,7 @@ function DemoAssetCard() {
         .flip-pulse-btn {
           animation: bluePulse 2s infinite ease-in-out;
         }
-      /* High-contrast edges for the 3D demo cards */
-        .card-front > div, .card-back {
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
-            background-color: #18181b !important;
-            border-radius: 14px !important;
-        }
+      
       `}</style>
       <div className={isFlipped ? "card-flipper flipped" : "card-flipper"} style={{ height: '100%' }}>
         
@@ -621,7 +615,7 @@ export default function LandingPage({ onLoginClick }) {
         .card-perspective-wrapper { perspective: 1200px; z-index: 10; }
         .card-flipper { transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; height: 100%; }
         .card-flipper.flipped { transform: rotateY(180deg); }
-        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; height: 100%; position: absolute; top: 0; left: 0; box-sizing: border-box; }
+        .card-face { border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8); border-radius: 14px; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; height: 100%; position: absolute; top: 0; left: 0; box-sizing: border-box; }
         .card-front { transform: rotateY(0deg); z-index: 2; }
         .card-back { transform: rotateY(180deg); }
         .tab-btn { flex: 1; padding: 6px; font-size: 11px; font-weight: 800; border-radius: 6px; border: none; cursor: pointer; }
@@ -700,7 +694,7 @@ export default function LandingPage({ onLoginClick }) {
               </div>
             </div>
           </div>
-          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '580px', alignItems: 'center' }}>
+          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '600px', alignItems: 'center' }}>
             <DemoKineticCard />
           </div>
         </div>
@@ -740,7 +734,7 @@ export default function LandingPage({ onLoginClick }) {
               </div>
             </div>
           </div>
-          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '580px', alignItems: 'center' }}>
+          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '600px', alignItems: 'center' }}>
             <DemoAssetCard />
           </div>
         </div>
@@ -780,7 +774,7 @@ export default function LandingPage({ onLoginClick }) {
               </div>
             </div>
           </div>
-          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '580px', alignItems: 'center' }}>
+          <div style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', minHeight: '600px', alignItems: 'center' }}>
             <DemoInventoryCard />
           </div>
         </div>
