@@ -163,7 +163,7 @@ function DemoKineticCard() {
           style={{ flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#121212', border: '1px solid #3a3a3c', color: '#ffffff', outline: 'none' }}
         />
         <button onClick={handleSaveName} style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '6px', color: '#ffffff', border: '1px solid #ffffff', backgroundColor: '#007aff', fontWeight: '600', cursor: 'pointer' }}>Save</button>
-        <button className="flip-pulse-btn" onClick={() => setInventoryFlipped(true)} style={{ padding: '12px 14px', borderRadius: '8px', border: '2px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>Flip ⤹</button>
+        <button className="flip-pulse-btn" className="flip-pulse-btn" onClick={() => setInvFlipped(true)} style={{ padding: '12px 14px', borderRadius: '8px', border: '2px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }} style={{ padding: '12px 14px', borderRadius: '8px', border: '2px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>Flip ⤹</button>
       </div>
 
       <div style={{ display: 'flex', gap: '4px', width: '100%' }}>
@@ -633,8 +633,14 @@ export default function LandingPage({ onLoginClick }) {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: '1 1 350px', maxWidth: '380px', width: '100%', margin: '0 auto' }}>
-              <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>
-                <div className={inventoryFlipped ? "card-flipper flipped" : "card-flipper"}>
+              {/* Self-contained Inventory Demo Card */}
+              {(() => {
+                const [invFlipped, setInvFlipped] = React.useState(false);
+                const [stockCnt, setStockCnt] = React.useState(420);
+                const [selZone, setSelZone] = React.useState('Cooler Bay-01');
+                return (
+                  <div className="card-perspective-wrapper" style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>
+                    <div className={invFlipped ? "card-flipper flipped" : "card-flipper"}>
                   <div className="card-face card-front" style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', color: '#0a1b35' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', fontWeight: '800' }}>Citrus Springs</span>
@@ -648,19 +654,19 @@ export default function LandingPage({ onLoginClick }) {
 
                     <div style={{ display: 'flex', gap: '6px' }}>
                       {["Cooler Bay-01", "Dry Aisle-03"].map(zone => (
-                        <button key={zone} onClick={() => setSelectedZone(zone)} style={{ padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', border: selectedZone === zone ? '1px solid #0052cc' : '1px solid #d1d5db', backgroundColor: selectedZone === zone ? 'rgba(0,82,204,0.1)' : '#f3f4f6', color: selectedZone === zone ? '#0052cc' : '#6b7280', cursor: 'pointer' }}>
+                        <button key={zone} onClick={() => setSelZone(zone)} style={{ padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', border: selZone === zone ? '1px solid #0052cc' : '1px solid #d1d5db', backgroundColor: selectedZone === zone ? 'rgba(0,82,204,0.1)' : '#f3f4f6', color: selectedZone === zone ? '#0052cc' : '#6b7280', cursor: 'pointer' }}>
                           📍 {zone}
                         </button>
                       ))}
                     </div>
 
                     <div style={{ fontSize: '32px', fontWeight: '800', color: '#0a1b35', margin: '10px 0' }}>
-                      {stockQty} <span style={{ fontSize: '14px', color: '#6b7280' }}>Boxes</span>
+                      {stockCnt} <span style={{ fontSize: '14px', color: '#6b7280' }}>Boxes</span>
                     </div>
 
                     <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-                      <button onClick={() => setStockQty(stockQty + 10)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>+ Receive</button>
-                      <button onClick={() => setStockQty(Math.max(0, stockQty - 10))} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#fff', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>- Ship</button>
+                      <button onClick={() => setStockCnt(stockCnt + 10)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>+ Receive</button>
+                      <button onClick={() => setStockCnt(Math.max(0, stockCnt - 10))} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: '#0a1b35', color: '#fff', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>- Ship</button>
                       <button onClick={() => setInventoryFlipped(true)} className="flip-pulse-btn" style={{ padding: '12px 14px', borderRadius: '8px', border: '1px solid #007aff', backgroundColor: 'transparent', color: '#007aff', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}>Flip ⤹</button>
                     </div>
                   </div>
@@ -668,7 +674,7 @@ export default function LandingPage({ onLoginClick }) {
                   <div className="card-face card-back" style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', borderRadius: '16px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', color: '#0a1b35' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px', marginBottom: '16px' }}>
                       <span style={{ fontSize: '13px', fontWeight: '800', color: '#0052cc' }}>📊 Historical Velocity</span>
-                      <button onClick={() => setInventoryFlipped(false)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+                      <button onClick={() => setInvFlipped(false)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px' }}>✕</button>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
@@ -700,6 +706,11 @@ export default function LandingPage({ onLoginClick }) {
                   </div>
                 </div>
               </div>
+
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* INVENTORY INSPECTOR DASHBOARD PREVIEW */}
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', borderRadius: '16px', padding: '20px', color: '#0a1b35', boxShadow: '0 12px 30px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '14px', boxSizing: 'border-box' }}>
